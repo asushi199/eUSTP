@@ -1,4 +1,8 @@
 import Link from "next/link";
+import { getDpdSummary } from "@/lib/stats/dpd";
+import { getPssSummary } from "@/lib/stats/pss";
+
+export const revalidate = 300;
 
 const MODULES = [
   {
@@ -47,9 +51,49 @@ const MODULES = [
       </svg>
     ),
   },
+  {
+    href: "/sumber",
+    title: "Sumber USTP",
+    description: "Kertas kerja, laporan, hebahan dan bahan sokongan USTP — semua dalam satu tempat.",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" className="h-7 w-7">
+        <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      </svg>
+    ),
+  },
+  {
+    href: "/analisis",
+    title: "Analisis USTP",
+    description: "Analisis DELIMa, DCS, Program Ains, Pensijilan Digital dan AI Tools daerah Manjung.",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" className="h-7 w-7">
+        <path d="M4 20V10M10 20V4M16 20v-8M22 20H2" />
+      </svg>
+    ),
+  },
+  {
+    href: "/maklumat-asas",
+    title: "Maklumat Asas",
+    description: "Carta organisasi, maklumat PKG/COE, takwim dan pegawai USTP PPD Manjung.",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" className="h-7 w-7">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 8h.01M11 12h1v4h1" />
+      </svg>
+    ),
+  },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const [dpd, pss] = await Promise.all([getDpdSummary(), getPssSummary()]);
+  const tiles = [
+    { label: "Program Pendigitalan (DPD)", value: dpd.jumlahProgram },
+    { label: "Bil. Murid Terlibat", value: dpd.bilMurid },
+    { label: "Bil. Pendidik Terlibat", value: dpd.bilPendidik },
+    { label: "Laporan PSS", value: pss.jumlahLaporan },
+    { label: "Laporan PSS Bulan Ini", value: pss.laporanBulanIni },
+  ];
+
   return (
     <>
       {/* Hero — ruang putih editorial, satu aksen biru */}
@@ -62,8 +106,30 @@ export default function HomePage() {
         </h1>
         <p className="mt-4 max-w-xl text-lg leading-relaxed text-graphite">
           Platform setempat Unit Sumber Teknologi Pendidikan PPD Manjung untuk
-          laporan, direktori dan tempahan — untuk semua sekolah daerah Manjung.
+          laporan, sumber, direktori dan tempahan — untuk semua sekolah daerah Manjung.
         </p>
+      </section>
+
+      {/* Statistik ringkas — nombor dakwat, tiada carta (carta di /statistik) */}
+      <section className="mx-auto max-w-6xl px-4 py-6 sm:px-8">
+        <div className="flex items-end justify-between gap-3">
+          <h2 className="text-sm font-semibold uppercase tracking-[0.7px] text-graphite">
+            Statistik Semasa
+          </h2>
+          <Link href="/statistik" className="link-blue text-sm">
+            Lihat statistik penuh
+          </Link>
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          {tiles.map((t) => (
+            <div key={t.label} className="card p-4">
+              <p className="text-2xl font-semibold tabular-nums tracking-tight">
+                {t.value.toLocaleString("ms-MY")}
+              </p>
+              <p className="mt-1 text-xs leading-snug text-graphite">{t.label}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* Grid modul — corak card-category-icon hp */}

@@ -2,6 +2,42 @@
 
 Log keputusan & konteks untuk sesi AI akan datang. Tambah entri terbaru di atas.
 
+## 2026-07-04 — Fasa E: Portal & Kandungan (migrasi ustp-dashboard_link_googlesheet)
+
+- Modul ke-5 dimigrasi: dashboard Google Sheet lama → Postgres sepenuhnya
+  (tiada lagi pergantungan Sheet/CSV/GAS panel). Data sebenar diimport dari
+  Sheet asal (13 tab CSV dalam `scripts/data/`, skrip
+  `npm run db:seed-dashboard`, idempoten — padam & masuk semula).
+- Skema baharu (migrasi `0002_complex_satana.sql`): `kandungan_cards` (satu
+  jadual denormalised ikut bentuk Sheet; group-edit subtopik = satu UPDATE),
+  `analisis_metrics` (KV) + `analisis_monthly` + `analisis_breakdown`,
+  `pegawai`, `app_settings` (KV), dan lajur `schools.website`.
+- Laluan awam baharu (semua `revalidate = 300`): `/sumber` + `/sumber/[topik]`
+  (6 topik, kad klik-untuk-pratonton — iframe TIDAK dimuat awal), `/analisis`
+  (5 modul recharts), `/statistik` (statistik DPD+PSS langsung dari jadual
+  laporan — ganti 2 halaman Looker Studio), `/laporan-dpd|pss/senarai`
+  (senarai awam berhalaman, pautan ke /cetak), `/maklumat-asas`.
+- Halaman utama kini portal: KPI tiles statistik (HTML tulen, TIADA recharts
+  di halaman utama — carta hanya di /statistik & /analisis) + 7 kad modul.
+- `lib/stats/` — SATU statistik SATU fungsi (definisi mudah ubah kelak).
+  `getPssByDimensi()` pulangkan [] buat masa ini (lajur `dimensi` belum wujud;
+  komponen carta sembunyi kad bila data kosong). Laporan dikira SERTA-MERTA
+  tanpa kelulusan; actions laporan kini revalidate `/`, `/statistik`, senarai.
+- Admin baharu (guard `requireKandunganAccess`): `/admin/kandungan`
+  (+`/baharu`, `/[id]`, `/subtopik` group-edit), `/admin/analisis`,
+  `/admin/pegawai`, `/admin/tetapan` (kunci whitelist dalam
+  `lib/maklumat/tetapan-keys.ts`), website sekolah dalam
+  `/admin/direktori/sekolah/[code]`.
+- Storan: TIADA Supabase Storage digunakan. Imej statik dalam `public/maklumat`
+  + `public/pegawai`; kad hanya simpan URL luaran (Drive/Canva/YouTube/Looker).
+  Anggaran DB: data kandungan <0.5MB, laporan ~5–10MB/tahun → 500MB cukup >10 tahun.
+- NOTA: tab OPTIK Sheet asal ada lajur snapshot kedua (21-Jun-26) yang
+  merosakkan paparan lama; hanya lajur pertama (kitaran 2025 lengkap) diimport —
+  nombor baharu dikemas kini melalui /admin/analisis.
+- Sahkan: build + typecheck lulus; smoke `/`, `/sumber/integrasi` (24 kad,
+  0 iframe pramuat, pratonton klik OK), `/analisis` (8 carta), `/statistik`,
+  `/maklumat-asas`, senarai 200; `/admin/*` redirect login.
+
 ## 2026-07-04 — Pengesahan DB langsung (Supabase pengguna)
 
 - Projek Supabase pengguna disambung. NOTA PENTING: Direct connection

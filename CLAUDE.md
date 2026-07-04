@@ -2,8 +2,8 @@
 
 ## Projek
 
-PWA Next.js 15 yang menggabungkan 4 modul USTP (Laporan DPD, Laporan PSS, Direktori
-GPICT/DELIMa/GPM, Tempahan PKG). Sumber asal berada di
+PWA Next.js 15 yang menggabungkan 5 modul USTP (Laporan DPD, Laporan PSS, Direktori
+GPICT/DELIMa/GPM, Tempahan PKG, Portal Sumber/Analisis/Maklumat Asas). Sumber asal berada di
 `C:\ClaudeProject\ustpallin1\needtocombine\`; templat seni bina ialah
 `C:\ClaudeProject\ustpallin1\template\egerak-v2`.
 
@@ -38,6 +38,11 @@ GPICT/DELIMa/GPM, Tempahan PKG). Sumber asal berada di
 - `lib/actions/…` — server actions per modul
 - `lib/tempahan/…` — logik porting dari tempahan-pkg-manjung
 - Gambar laporan → Google Drive via `gas/Code.gs` (subPath `[tahun, bulan, modul]`)
+- **TIADA Supabase Storage** — imej statik dalam `public/`, fail luaran kekal
+  sebagai URL (Drive/Canva/YouTube); gambar bilik tempahan (Fasa D) juga guna
+  saluran GAS→Drive, bukan bucket.
+- `lib/stats/` — satu statistik satu fungsi; carta recharts hanya di
+  `/statistik` & `/analisis`, JANGAN masuk halaman utama.
 
 ## Selepas setiap fasa
 

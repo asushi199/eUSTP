@@ -5,6 +5,8 @@ import PwaInstallButton from "./PwaInstallButton";
 const NAV_LINKS = [
   { href: "/laporan-dpd", label: "Laporan DPD" },
   { href: "/laporan-pss", label: "Laporan PSS" },
+  { href: "/sumber", label: "Sumber" },
+  { href: "/analisis", label: "Analisis" },
   { href: "/direktori", label: "Direktori" },
   { href: "/tempahan", label: "Tempahan" },
 ];

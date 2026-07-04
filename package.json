@@ -11,6 +11,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx scripts/migrate.ts",
     "db:seed": "tsx scripts/seed.ts",
+    "db:seed-dashboard": "tsx scripts/seed-dashboard.ts",
     "db:create-user": "tsx scripts/create-user.ts",
     "db:check-url": "tsx scripts/check-db-url.ts"
   },

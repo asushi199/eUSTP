@@ -151,6 +151,37 @@ export async function updateSchoolName(
   return { ok: true };
 }
 
+/** Admin: kemas kini laman web rasmi sekolah. */
+export async function updateSchoolWebsite(
+  schoolCode: string,
+  nextWebsite: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const user = await requireKandunganAccess();
+  const code = normalizeSchoolCode(schoolCode);
+  const website = nextWebsite.trim();
+  if (!code) return { ok: false, error: "Kod sekolah diperlukan." };
+  if (website && !/^https?:\/\//i.test(website)) {
+    return { ok: false, error: "URL mesti bermula dengan http:// atau https://" };
+  }
+
+  await db.transaction(async (tx) => {
+    await tx
+      .update(schools)
+      .set({ website, updatedAt: new Date() })
+      .where(eq(schools.code, code));
+    await tx.insert(adminActions).values({
+      action: "update_school_website",
+      schoolCode: code,
+      actorUserId: Number(user.id),
+    });
+  });
+
+  revalidatePath("/admin/direktori");
+  revalidatePath(`/admin/direktori/sekolah/${code}`);
+  revalidatePath("/direktori");
+  return { ok: true };
+}
+
 /** Admin: tambah sekolah baharu ke jadual induk. */
 export async function createSchool(input: {
   code: string;

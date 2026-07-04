@@ -46,6 +46,16 @@ const TABS: Tab[] = [
     ),
   },
   {
+    href: "/sumber",
+    label: "Sumber",
+    match: (p) => p.startsWith("/sumber") || p.startsWith("/analisis"),
+    icon: (
+      <svg {...iconProps}>
+        <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      </svg>
+    ),
+  },
+  {
     href: "/direktori",
     label: "Direktori",
     match: (p) => p.startsWith("/direktori"),
@@ -74,7 +84,7 @@ export default function BottomTabBar() {
   const pathname = usePathname();
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t hairline bg-white pb-[env(safe-area-inset-bottom)] md:hidden no-print">
-      <div className="grid grid-cols-4">
+      <div className="grid grid-cols-5">
         {TABS.map((tab) => {
           const active = tab.match(pathname);
           return (

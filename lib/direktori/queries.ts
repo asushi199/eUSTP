@@ -11,6 +11,7 @@ export type PublicDirectoryRow = {
   schoolCode: string;
   schoolName: string;
   zone: string;
+  website: string;
   role: TeacherRole;
   teacherName: string;
   phone: string;
@@ -52,6 +53,7 @@ export async function listPublicDirectory(role?: TeacherRole): Promise<PublicDir
       schoolCode: schools.code,
       schoolName: schools.name,
       zone: schools.zone,
+      website: schools.website,
       role: contactRoles.role,
       teacherName: contactRoles.teacherName,
       phone: contactRoles.phone,
@@ -117,7 +119,13 @@ export async function listAdminSchools(): Promise<AdminSchoolRecord[]> {
 
 /** Sejarah versi satu sekolah. */
 export async function getSchoolHistory(schoolCode: string): Promise<{
-  school: { code: string; name: string; zone: string; currentVersionId: string | null } | null;
+  school: {
+    code: string;
+    name: string;
+    zone: string;
+    website: string;
+    currentVersionId: string | null;
+  } | null;
   versions: VersionRecord[];
 }> {
   const school = await db.query.schools.findFirst({ where: eq(schools.code, schoolCode) });
@@ -136,6 +144,7 @@ export async function getSchoolHistory(schoolCode: string): Promise<{
       code: school.code,
       name: school.name,
       zone: school.zone,
+      website: school.website,
       currentVersionId: school.currentVersionId,
     },
     versions: versions.map((v) => ({

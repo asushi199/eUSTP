@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import EditSchoolNameForm from "@/components/direktori/EditSchoolNameForm";
+import EditSchoolWebsiteForm from "@/components/direktori/EditSchoolWebsiteForm";
 import RestoreButton from "@/components/direktori/RestoreButton";
 import { requireKandunganAccess } from "@/lib/rbac";
 import { getSchoolHistory } from "@/lib/direktori/queries";
@@ -31,6 +32,9 @@ export default async function SekolahHistoryPage({
           </p>
         </div>
         <EditSchoolNameForm schoolCode={school.code} currentName={school.name} />
+      </div>
+      <div className="mt-3">
+        <EditSchoolWebsiteForm schoolCode={school.code} currentWebsite={school.website} />
       </div>
 
       <h2 className="mt-8 text-lg font-semibold">

@@ -119,6 +119,7 @@ export async function createLaporanDpd(formData: FormData): Promise<CreateLapora
   );
 
   revalidatePath("/admin/laporan-dpd");
+  revalidatePublicStats("dpd");
   return { ok: true, id: row.id, warnings: warnings.length ? warnings : undefined };
 }
 
@@ -184,10 +185,18 @@ export async function createLaporanPss(formData: FormData): Promise<CreateLapora
   );
 
   revalidatePath("/admin/laporan-pss");
+  revalidatePublicStats("pss");
   return { ok: true, id: row.id, warnings: warnings.length ? warnings : undefined };
 }
 
 /* ----------------------------- Admin ----------------------------- */
+
+/** Statistik awam dikira terus dari jadual laporan — segarkan selepas setiap perubahan. */
+function revalidatePublicStats(modul: LaporanModul) {
+  revalidatePath("/");
+  revalidatePath("/statistik");
+  revalidatePath(modul === "dpd" ? "/laporan-dpd/senarai" : "/laporan-pss/senarai");
+}
 
 const statusSchema = z.enum(["BARU", "DISEMAK", "SELESAI"]);
 
@@ -242,5 +251,6 @@ export async function deleteLaporan(
   }
 
   revalidatePath(modul === "dpd" ? "/admin/laporan-dpd" : "/admin/laporan-pss");
+  revalidatePublicStats(modul);
   return { ok: true };
 }

@@ -26,6 +26,26 @@ export default async function AdminOverviewPage() {
         title: "Direktori",
         description: "Sejarah versi, pemulihan dan eksport CSV.",
       },
+      {
+        href: "/admin/kandungan",
+        title: "Kandungan Sumber",
+        description: "Kad bahan USTP untuk halaman /sumber.",
+      },
+      {
+        href: "/admin/analisis",
+        title: "Data Analisis",
+        description: "Nombor DELIMa, DCS, Ains, Pensijilan dan OPTIK.",
+      },
+      {
+        href: "/admin/pegawai",
+        title: "Pegawai USTP",
+        description: "Senarai pegawai halaman Maklumat Asas.",
+      },
+      {
+        href: "/admin/tetapan",
+        title: "Tetapan",
+        description: "Carta organisasi, imej PKG dan takwim.",
+      },
     );
   }
 

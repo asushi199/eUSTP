@@ -55,7 +55,22 @@ export default function RoleDirectoryTable({ rows }: { rows: PublicDirectoryRow[
               <tr key={`${r.schoolCode}-${r.role}`} className="border-b hairline last:border-0">
                 <td className="px-4 py-3">
                   <p className="font-medium">{r.schoolName}</p>
-                  <p className="text-xs text-graphite">{r.schoolCode}</p>
+                  <p className="text-xs text-graphite">
+                    {r.schoolCode}
+                    {r.website ? (
+                      <>
+                        {" · "}
+                        <a
+                          href={r.website}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="link-blue"
+                        >
+                          Laman web
+                        </a>
+                      </>
+                    ) : null}
+                  </p>
                 </td>
                 <td className="px-4 py-3 text-graphite">{r.zone || "-"}</td>
                 <td className="px-4 py-3">{r.teacherName || "-"}</td>

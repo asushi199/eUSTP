@@ -11,6 +11,7 @@ import {
   integer,
   primaryKey,
   date,
+  doublePrecision,
   type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 
@@ -52,6 +53,8 @@ export const schools = pgTable(
     name: text("name").notNull(),
     /** Zon PKG (cth. "PKG Sitiawan"). */
     zone: text("zone").notNull().default(""),
+    /** Laman web rasmi sekolah (URL penuh; kosong jika tiada). */
+    website: text("website").notNull().default(""),
     currentVersionId: uuid("current_version_id").references(
       (): AnyPgColumn => contactVersions.id,
       { onDelete: "set null" },
@@ -184,6 +187,140 @@ export const laporanPhotos = pgTable(
     laporanIdx: index("laporan_photos_modul_laporan_idx").on(t.modul, t.laporanId),
   }),
 );
+
+/* ==================== Modul Kandungan (Sumber USTP + Bahan Sokongan) ==================== */
+
+export const kandunganTopik = pgEnum("kandungan_topik", [
+  "integrasi",
+  "hebahan",
+  "itm",
+  "pembudayaan",
+  "pemerkasaan",
+  "bahan_sokongan",
+]);
+
+export const kandunganCardType = pgEnum("kandungan_card_type", [
+  "pdf",
+  "canva",
+  "gdoc",
+  "embed",
+  "youtube",
+  "image",
+  "link",
+]);
+
+/**
+ * Kad kandungan — denormalised mengikut bentuk Sheet asal (medan subtopik
+ * berulang setiap baris). "Group edit" subtopik = satu UPDATE WHERE topik+subtopikKey.
+ */
+export const kandunganCards = pgTable(
+  "kandungan_cards",
+  {
+    id: serial("id").primaryKey(),
+    topik: kandunganTopik("topik").notNull(),
+    subtopikKey: text("subtopik_key").notNull().default(""),
+    subtopikTitle: text("subtopik_title").notNull().default(""),
+    subtopikSort: integer("subtopik_sort").notNull().default(999),
+    subtopikBlurb: text("subtopik_blurb").notNull().default(""),
+    subtopikIcon: text("subtopik_icon").notNull().default(""),
+    sort: integer("sort").notNull().default(0),
+    title: text("title").notNull(),
+    blurb: text("blurb").notNull().default(""),
+    url: text("url").notNull(),
+    type: kandunganCardType("type").notNull().default("pdf"),
+    /** URL alternatif untuk pratonton (jika berbeza dari url penuh). */
+    previewUrl: text("preview_url").notNull().default(""),
+    aktif: boolean("aktif").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    topikIdx: index("kandungan_cards_topik_idx").on(t.topik, t.subtopikSort, t.sort),
+  }),
+);
+
+/* ==================== Modul Analisis USTP ==================== */
+
+export const analisisModul = pgEnum("analisis_modul", [
+  "delima",
+  "dcs",
+  "ains",
+  "pensijilan",
+  "optik",
+]);
+
+/** Metrik/konfigurasi KV per modul (cth. kpi_guru, tov, capai, intro). */
+export const analisisMetrics = pgTable(
+  "analisis_metrics",
+  {
+    id: serial("id").primaryKey(),
+    modul: analisisModul("modul").notNull(),
+    key: text("key").notNull(),
+    value: text("value").notNull().default(""),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    modulKeyIdx: uniqueIndex("analisis_metrics_modul_key_idx").on(t.modul, t.key),
+  }),
+);
+
+/** Siri bulanan (DELIMa guru/murid %; boleh dipakai modul lain kelak). */
+export const analisisMonthly = pgTable(
+  "analisis_monthly",
+  {
+    id: serial("id").primaryKey(),
+    modul: analisisModul("modul").notNull(),
+    monthLabel: text("month_label").notNull(),
+    chartLabel: text("chart_label").notNull().default(""),
+    guruPct: doublePrecision("guru_pct"),
+    muridPct: doublePrecision("murid_pct"),
+    includeChart: boolean("include_chart").notNull().default(true),
+    sort: integer("sort").notNull().default(0),
+  },
+  (t) => ({
+    modulIdx: index("analisis_monthly_modul_idx").on(t.modul, t.sort),
+  }),
+);
+
+/** Baris pecahan kategori (cth. Pensijilan: kind="lokasi"|"sekolah"). */
+export const analisisBreakdown = pgTable(
+  "analisis_breakdown",
+  {
+    id: serial("id").primaryKey(),
+    modul: analisisModul("modul").notNull(),
+    kind: text("kind").notNull(),
+    label: text("label").notNull(),
+    value: doublePrecision("value").notNull().default(0),
+    sort: integer("sort").notNull().default(0),
+  },
+  (t) => ({
+    modulKindIdx: index("analisis_breakdown_modul_kind_idx").on(t.modul, t.kind, t.sort),
+  }),
+);
+
+/* ==================== Maklumat Asas ==================== */
+
+/** Pegawai USTP/PPD — dipapar di halaman Maklumat Asas. */
+export const pegawai = pgTable("pegawai", {
+  id: serial("id").primaryKey(),
+  nama: text("nama").notNull(),
+  jawatan: text("jawatan").notNull().default(""),
+  telefon: text("telefon").notNull().default(""),
+  /** URL foto — aset public/ atau pautan luaran. */
+  photoUrl: text("photo_url").notNull().default(""),
+  detailUrl: text("detail_url").notNull().default(""),
+  sort: integer("sort").notNull().default(0),
+  aktif: boolean("aktif").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+/** Tetapan aplikasi KV (kalendar_embed_url, carta_organisasi_url, info_pkg_url, …). */
+export const appSettings = pgTable("app_settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull().default(""),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
 
 /** Jejak audit tindakan admin direktori (restore, tukar nama, dll.). */
 export const adminActions = pgTable("admin_actions", {

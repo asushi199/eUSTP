@@ -15,6 +15,13 @@
       "when": 1783142680987,
       "tag": "0001_keen_pete_wisdom",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783160927018,
+      "tag": "0002_complex_satana",
+      "breakpoints": true
     }
   ]
 }
