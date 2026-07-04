@@ -2,6 +2,30 @@
 
 Log keputusan & konteks untuk sesi AI akan datang. Tambah entri terbaru di atas.
 
+## 2026-07-04 — Fasa D: Modul Tempahan PKG (SIAP + diuji)
+
+- Skema: `pkgs` (5 seed, slug berhubung-strip: sitiawan/ayer-tawar/seri-manjung/
+  beruas/pantai-remis), `rooms` (amenities jsonb, soft delete), `bookings`
+  (slot am/pm/full_day, token kelulusan + 2 token kehadiran), `attendees`.
+  Migrasi 0003 + **0004 custom (trigger advisory-lock, diporting verbatim)**.
+- Trigger DIUJI: 2 insert serentak slot bertindih → tepat 1 berjaya, 1 ditolak
+  dengan mesej BM. Skrip ujian di scratchpad (perlu salin ke scripts/ untuk
+  resolusi node_modules, padam selepas guna).
+- Kelulusan: pautan WhatsApp `/tempahan/[pkg]/approve/[id]?token=` kini perlu
+  LOG MASUK (ganti kata laluan per-PKG lama); panel admin ada butang terus.
+  `approveBookingCore` jana 2 token kehadiran semasa lulus (corak sistem asal).
+- Laluan awam: /tempahan (pilih PKG), /tempahan/[pkg] (grid 14 hari × bilik ×
+  slot + borang), bilik/[slug], semak (ikut telefon), hadir/[token] (QR),
+  urus-hadir/[manageToken] (+ /export CSV, tiada login — token ialah kebenaran).
+- Admin: /admin/tempahan (skop PKG_Admin), [pkg] (lulus/tolak/batal),
+  [pkg]/bilik (CRUD + gambar Supabase Storage, belum diuji — perlu
+  NEXT_PUBLIC_SUPABASE_URL + SERVICE_ROLE_KEY + bucket room-photos),
+  [pkg]/tetapan (no. WhatsApp).
+- Diuji hujung-ke-hujung dalam dev: cipta bilik → tempah slot → lulus admin →
+  daftar kehadiran melalui pautan QR (jumlah=1). Semua PASS.
+- Akaun ujian dicipta: `ujian.claude` (Admin) — padam/nyahaktif sebelum produksi.
+- NOTA: kata laluan akaun `admin` telah ditukar pengguna (bukan lagi nilai seed).
+
 ## 2026-07-04 — Fasa E: Portal & Kandungan (migrasi ustp-dashboard_link_googlesheet)
 
 - Modul ke-5 dimigrasi: dashboard Google Sheet lama → Postgres sepenuhnya

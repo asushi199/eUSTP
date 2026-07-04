@@ -22,6 +22,20 @@
       "when": 1783160927018,
       "tag": "0002_complex_satana",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1783178203963,
+      "tag": "0003_rare_arachne",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1783178214910,
+      "tag": "0004_booking_conflict_trigger",
+      "breakpoints": true
     }
   ]
 }

@@ -37,6 +37,22 @@ async function main() {
     console.log(`Akaun admin dicipta (kata laluan awal: ${password}).`);
   }
 
+  // 5 PKG daerah Manjung (slug berhubung-strip; pemetaan data lama di Fasa E)
+  const pkgSeed = [
+    { id: "sitiawan", name: "PKG Sitiawan" },
+    { id: "ayer-tawar", name: "PKG Ayer Tawar" },
+    { id: "seri-manjung", name: "PKG Seri Manjung" },
+    { id: "beruas", name: "PKG Beruas" },
+    { id: "pantai-remis", name: "PKG Pantai Remis" },
+  ];
+  for (const pkg of pkgSeed) {
+    const found = await db.query.pkgs.findFirst({ where: eq(schema.pkgs.id, pkg.id) });
+    if (!found) {
+      await db.insert(schema.pkgs).values(pkg);
+      console.log(`PKG dicipta: ${pkg.name}`);
+    }
+  }
+
   await client.end();
 }
 

@@ -12,6 +12,7 @@ import {
   primaryKey,
   date,
   doublePrecision,
+  jsonb,
   type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 
@@ -331,3 +332,115 @@ export const adminActions = pgTable("admin_actions", {
   actorUserId: integer("actor_user_id").references(() => users.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
+
+/* ==================== Modul Tempahan PKG (multi-tenant) ==================== */
+
+export const bookingSlot = pgEnum("booking_slot", ["am", "pm", "full_day"]);
+export const bookingStatus = pgEnum("booking_status", [
+  "pending",
+  "approved",
+  "rejected",
+  "cancelled",
+]);
+
+/**
+ * PKG (tenant). Log masuk pentadbir kini melalui Auth.js
+ * (users.pkgId untuk PKG_Admin) — tiada lagi admin_password_hash per PKG.
+ */
+export const pkgs = pgTable("pkgs", {
+  /** slug, cth. "sitiawan", "pantai-remis" */
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  whatsappAdminPhone: text("whatsapp_admin_phone"),
+  logoSrc: text("logo_src"),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const rooms = pgTable(
+  "rooms",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    pkgId: text("pkg_id")
+      .notNull()
+      .references(() => pkgs.id, { onDelete: "cascade" }),
+    /** unik dalam satu PKG */
+    slug: text("slug").notNull(),
+    name: text("name").notNull(),
+    shortName: text("short_name").notNull(),
+    category: text("category").notNull().default(""),
+    imageSrc: text("image_src"),
+    amenities: jsonb("amenities").$type<string[]>().notNull().default([]),
+    active: boolean("active").notNull().default(true),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    pkgSlugIdx: uniqueIndex("rooms_pkg_slug_idx").on(t.pkgId, t.slug),
+    pkgActiveIdx: index("rooms_pkg_active_idx").on(t.pkgId, t.active, t.sortOrder),
+  }),
+);
+
+export const bookings = pgTable(
+  "bookings",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    pkgId: text("pkg_id")
+      .notNull()
+      .references(() => pkgs.id, { onDelete: "cascade" }),
+    /** merujuk rooms.slug dalam PKG yang sama */
+    roomSlug: text("room_slug").notNull(),
+    date: date("date").notNull(),
+    slot: bookingSlot("slot").notNull(),
+    name: text("name").notNull(),
+    schoolOrUnit: text("school_or_unit").notNull(),
+    purpose: text("purpose").notNull(),
+    contact: text("contact").notNull(),
+    contactNormalized: text("contact_normalized").notNull().default(""),
+    status: bookingStatus("status").notNull().default("pending"),
+    approvalTokenHash: text("approval_token_hash"),
+    /** token QR pendaftaran kehadiran awam (dijana semasa kelulusan) */
+    attendanceToken: text("attendance_token"),
+    /** token urus senarai kehadiran (berasingan — pemegang QR tak boleh muat turun senarai) */
+    attendanceManageToken: text("attendance_manage_token"),
+    approvedAt: timestamp("approved_at", { withTimezone: true }),
+    rejectedAt: timestamp("rejected_at", { withTimezone: true }),
+    cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    activeLookupIdx: index("bookings_active_lookup_idx").on(
+      t.pkgId,
+      t.date,
+      t.roomSlug,
+      t.slot,
+      t.status,
+    ),
+    contactLookupIdx: index("bookings_contact_lookup_idx").on(
+      t.pkgId,
+      t.contactNormalized,
+      t.status,
+    ),
+    attendanceTokenIdx: index("bookings_attendance_token_idx").on(t.attendanceToken),
+    manageTokenIdx: index("bookings_manage_token_idx").on(t.attendanceManageToken),
+  }),
+);
+
+export const attendees = pgTable(
+  "attendees",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    pkgId: text("pkg_id")
+      .notNull()
+      .references(() => pkgs.id, { onDelete: "cascade" }),
+    bookingId: uuid("booking_id")
+      .notNull()
+      .references(() => bookings.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    contact: text("contact").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    bookingIdx: index("attendees_booking_idx").on(t.pkgId, t.bookingId, t.createdAt),
+  }),
+);
