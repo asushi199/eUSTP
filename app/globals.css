@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* hp design language: kanvas putih, dakwat hampir-hitam, biru elektrik sebagai isyarat tunggal. */
+@layer base {
+  html,
+  body {
+    @apply bg-white text-ink antialiased;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex h-11 items-center justify-center gap-2 rounded-md px-6 text-sm font-semibold uppercase tracking-[0.7px] transition active:scale-[0.99] disabled:cursor-not-allowed disabled:active:scale-100;
+  }
+  .btn-primary {
+    @apply btn bg-primary text-white hover:bg-primary-bright active:bg-primary-deep disabled:bg-steel;
+  }
+  .btn-ink {
+    @apply btn bg-ink text-white hover:bg-charcoal disabled:bg-steel;
+  }
+  .btn-outline {
+    @apply btn border border-primary bg-white text-primary hover:bg-primary-soft/30 disabled:border-steel disabled:text-steel;
+  }
+  .btn-outline-ink {
+    @apply btn border border-fog bg-white text-ink hover:border-steel disabled:text-steel;
+  }
+  /* Alias untuk komponen yang diporting daripada template (PwaInstallButton). */
+  .btn-secondary {
+    @apply btn-outline-ink;
+  }
+  .btn-sm {
+    @apply h-9 px-4 text-xs;
+  }
+  .card {
+    @apply rounded-xl border border-fog/70 bg-white shadow-lift;
+  }
+  .card-cloud {
+    @apply rounded-xl bg-cloud;
+  }
+  .input {
+    @apply block h-11 w-full rounded-md border border-steel bg-white px-4 text-[15px] text-ink placeholder-graphite/70 focus:border-ink focus:outline-none focus:ring-1 focus:ring-ink;
+  }
+  .textarea {
+    @apply block w-full rounded-md border border-steel bg-white px-4 py-3 text-[15px] text-ink placeholder-graphite/70 focus:border-ink focus:outline-none focus:ring-1 focus:ring-ink;
+  }
+  .label {
+    @apply mb-1 block text-sm font-medium text-charcoal;
+  }
+  .hairline {
+    @apply border-fog;
+  }
+  /* Lencana status gaya titik (pinjaman corak linear.app). */
+  .status-badge {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-fog bg-white px-2.5 py-0.5 text-xs font-medium text-charcoal;
+  }
+  .status-dot {
+    @apply h-1.5 w-1.5 rounded-full;
+  }
+  .link-blue {
+    @apply font-medium text-primary hover:text-primary-deep hover:underline;
+  }
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm;
+  }
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #ffffff;
+  }
+}

@@ -1,0 +1,21 @@
+node_modules
+.next
+.env
+.env.local
+.env*.local
+*.tsbuildinfo
+.DS_Store
+.vercel
+secrets/
+.npm-cache/
+
+# CodeGraph index (local, regenerated)
+.codegraph/
+
+# PWA (generated at build)
+public/sw.js
+public/sw.js.map
+public/workbox-*.js
+public/workbox-*.js.map
+public/swe-worker-*.js
+public/fallback-*.js
