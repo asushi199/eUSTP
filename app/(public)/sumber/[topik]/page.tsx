@@ -1,15 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { TOPIK_META, topikBySlug } from "@/lib/kandungan/topik";
+import { topikBySlug } from "@/lib/kandungan/topik";
 import { getTopikGroups } from "@/lib/kandungan/queries";
 import CardGrid from "@/components/kandungan/CardGrid";
 
-export const revalidate = 300;
-
-export function generateStaticParams() {
-  return TOPIK_META.map((t) => ({ topik: t.slug }));
-}
+// Render semasa permintaan — jangan prarender di build (build Vercel tiada akses DB stabil).
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,

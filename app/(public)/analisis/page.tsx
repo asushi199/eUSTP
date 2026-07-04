@@ -5,7 +5,7 @@ import DelimaTrendChart from "@/components/analisis/DelimaTrendChart";
 import MonthlyLineChart from "@/components/stats/MonthlyLineChart";
 import BreakdownBarChart from "@/components/stats/BreakdownBarChart";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Analisis USTP — eUSTP Manjung",

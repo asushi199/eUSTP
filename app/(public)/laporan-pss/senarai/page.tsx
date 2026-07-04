@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { listPssPublic } from "@/lib/stats/pss";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Senarai Laporan PSS — eUSTP Manjung",

@@ -6,7 +6,7 @@ import StatKpiTiles from "@/components/stats/StatKpiTiles";
 import MonthlyLineChart from "@/components/stats/MonthlyLineChart";
 import BreakdownBarChart from "@/components/stats/BreakdownBarChart";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Statistik Laporan — eUSTP Manjung",

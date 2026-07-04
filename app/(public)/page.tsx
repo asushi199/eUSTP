@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getDpdSummary } from "@/lib/stats/dpd";
 import { getPssSummary } from "@/lib/stats/pss";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 const MODULES = [
   {

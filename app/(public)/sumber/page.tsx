@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { TOPIK_META } from "@/lib/kandungan/topik";
 import { countCardsByTopik } from "@/lib/kandungan/queries";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Sumber USTP — eUSTP Manjung",

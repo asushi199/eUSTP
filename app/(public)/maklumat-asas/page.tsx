@@ -3,7 +3,7 @@ import { getSettings, listPegawaiAktif } from "@/lib/maklumat/queries";
 import { driveFilePreviewUrl, driveImageUrl } from "@/lib/kandungan/embed-urls";
 import TakwimEmbed from "@/components/maklumat/TakwimEmbed";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Maklumat Asas — eUSTP Manjung",
