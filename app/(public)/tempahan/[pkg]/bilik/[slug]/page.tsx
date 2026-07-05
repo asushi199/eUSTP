@@ -52,7 +52,7 @@ export default async function RoomDetailPage({
   }));
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-6 pb-28 xl:px-8 xl:py-12 xl:pb-12">
+    <div className="mx-auto max-w-6xl px-4 py-6 pb-28 xl:px-8 xl:py-12 xl:pb-12">
       <Link href={`/tempahan/${pkgId}`} className="text-sm text-graphite hover:text-ink">
         ← Kembali ke senarai bilik
       </Link>

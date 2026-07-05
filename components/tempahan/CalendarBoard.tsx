@@ -93,7 +93,7 @@ export default function CalendarBoard({
   return (
     <div className="w-full overflow-x-hidden">
       {/* Wide desktop table header (xl+ only) */}
-      <div className="mb-2 hidden grid-cols-[88px_minmax(0,1fr)_minmax(0,1fr)] gap-2 border-b hairline pb-2 text-xs font-semibold uppercase tracking-wide text-graphite xl:grid">
+      <div className="mb-2 hidden grid-cols-[108px_minmax(0,1fr)_minmax(0,1fr)] gap-2 border-b hairline pb-2 text-xs font-semibold uppercase tracking-wide text-graphite xl:grid">
         <div>Tarikh</div>
         <div className="text-center">Pagi</div>
         <div className="text-center">Petang</div>
@@ -113,7 +113,7 @@ export default function CalendarBoard({
               key={date}
               className={cn(
                 "overflow-hidden rounded-lg border hairline",
-                "xl:grid xl:grid-cols-[88px_minmax(0,1fr)_minmax(0,1fr)] xl:gap-2 xl:rounded-none xl:border-0 xl:border-b xl:py-2 xl:last:border-0",
+                "xl:grid xl:grid-cols-[108px_minmax(0,1fr)_minmax(0,1fr)] xl:gap-2 xl:rounded-none xl:border-0 xl:border-b xl:py-2 xl:last:border-0",
               )}
             >
               <div className="border-b hairline bg-cloud/60 px-3 py-2 xl:block xl:border-0 xl:bg-transparent xl:px-0 xl:py-2">
@@ -127,9 +127,9 @@ export default function CalendarBoard({
                   <button
                     type="button"
                     className={cn(
-                      "mt-2 flex w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-md border border-primary/35 bg-white px-3 py-2 text-xs font-semibold text-primary-deep shadow-sm transition",
+                      "mt-2 flex w-full items-center justify-center gap-1.5 rounded-md border border-primary/35 bg-white px-3 py-2 text-xs font-semibold leading-tight text-primary-deep shadow-sm transition",
                       "hover:border-primary/50 hover:bg-primary-soft/25 active:scale-[0.98]",
-                      "xl:mt-1 xl:inline-flex xl:w-auto xl:border-0 xl:bg-transparent xl:p-0 xl:text-[11px] xl:text-primary xl:shadow-none xl:hover:bg-transparent xl:hover:underline",
+                      "xl:mt-1.5 xl:gap-1 xl:px-2 xl:py-1.5 xl:text-[11px] xl:shadow-none",
                     )}
                     onClick={() => handleSelect!("full_day")}
                   >

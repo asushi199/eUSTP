@@ -2,6 +2,30 @@
 
 Log keputusan & konteks untuk sesi AI akan datang. Tambah entri terbaru di atas.
 
+## 2026-07-05 — Penambahbaikan UI halaman butiran bilik (tempahan)
+
+Tiga polish visual pada aliran `/tempahan/[pkg]/bilik/[slug]` (semua komponen
+dikongsi → berkuat kuasa untuk semua PKG):
+
+- **`RoomDetailHero` (hero padat, paparan < xl):** badge kapasiti ("10 pax") &
+  butang "N kemudahan" terlalu rapat (hanya `mt-1`). Disusun semula dalam satu
+  baris `flex items-center gap-2` dengan pembahagi menegak (`h-4 w-px bg-fog`)
+  supaya dua blok maklumat jelas terpisah.
+- **`CalendarBoard` (paparan xl):** "Tempah penuh hari" dahulu teks `nowrap`
+  yang tersepit dalam lajur TARIKH 88px → terpotong jadi "Tempah penuh har".
+  Kini butang berbingkai sebenar (border `primary/35`, latar putih) sepadan gaya
+  mudah alih; lajur dilebarkan `88px→108px` (header **dan** baris data diselaras),
+  `whitespace-nowrap` dibuang + `leading-tight` supaya teks balut 2 baris dalam
+  butang, bukan terpotong.
+- **Kontena halaman butiran bilik** (`[slug]/page.tsx`): `max-w-4xl→max-w-6xl`
+  (896px→1152px) — jalur putih kiri/kanan di desktop terlalu lebar. Grid kerja
+  tempahan ialah `[minmax(0,1fr)_minmax(320px,384px)]`, jadi lebar tambahan masuk
+  ke lajur kalendar (borang kekal ≤384px). Kini selaras dengan `/tempahan` &
+  `/tempahan/[pkg]` yang guna `max-w-6xl`.
+- Disahkan pratonton desktop 1360px: kontena 1152px (dulu 896px), lajur kalendar
+  684px (dulu ~430px), jidar sisi ~97px (dulu ~232px), butang penuh-hari 108×42
+  teks penuh tanpa terpotong. `npm run typecheck` lulus, tiada ralat konsol.
+
 ## 2026-07-05 — Muat naik logo PKG (Supabase Storage)
 
 - Admin PKG kini boleh muat naik logo sendiri di `/admin/tempahan/[pkg]/tetapan`
