@@ -65,16 +65,16 @@ const roomSchema = z.object({
   name: z.string().min(1, "Nama bilik diperlukan").max(200),
   shortName: z.string().max(50).default(""),
   category: z.string().max(100).default(""),
-  amenities: z.string().max(1000).default(""),
   sortOrder: z.coerce.number().int().min(0).default(0),
 });
 
-function parseAmenities(raw: string): string[] {
-  return raw
-    .split(",")
+function parseAmenities(formData: FormData): string[] {
+  const preset = formData.getAll("amenities").map(String);
+  const custom = String(formData.get("amenities_custom") ?? "")
+    .split(/[\n,]/)
     .map((s) => s.trim())
-    .filter(Boolean)
-    .slice(0, 20);
+    .filter(Boolean);
+  return Array.from(new Set([...preset, ...custom])).slice(0, 20);
 }
 
 export async function saveRoom(pkgId: string, formData: FormData): Promise<ActionResult> {
@@ -84,7 +84,6 @@ export async function saveRoom(pkgId: string, formData: FormData): Promise<Actio
     name: formData.get("name"),
     shortName: formData.get("shortName"),
     category: formData.get("category"),
-    amenities: formData.get("amenities"),
     sortOrder: formData.get("sortOrder") ?? 0,
   });
   if (!parsed.success) {
@@ -116,7 +115,7 @@ export async function saveRoom(pkgId: string, formData: FormData): Promise<Actio
     name: data.name,
     shortName: data.shortName || data.name.slice(0, 30),
     category: data.category,
-    amenities: parseAmenities(data.amenities),
+    amenities: parseAmenities(formData),
     sortOrder: data.sortOrder,
     ...(imageSrc ? { imageSrc } : {}),
   };
@@ -138,6 +137,10 @@ export async function saveRoom(pkgId: string, formData: FormData): Promise<Actio
 
   revalidatePath(`/admin/tempahan/${pkgId}/bilik`);
   revalidatePath(`/tempahan/${pkgId}`);
+  const slugToRevalidate = existingSlug || slugifyRoomName(data.name);
+  if (slugToRevalidate) {
+    revalidatePath(`/tempahan/${pkgId}/bilik/${slugToRevalidate}`);
+  }
   return { ok: true };
 }
 

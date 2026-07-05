@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import BookingBoard from "@/components/tempahan/BookingBoard";
-import { toIsoDate } from "@/lib/tempahan/date";
-import { getPkg, listActiveBookings, listRooms } from "@/lib/tempahan/queries";
+import RoomGallery from "@/components/tempahan/RoomGallery";
+import { getPkg, listRooms } from "@/lib/tempahan/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -15,11 +14,7 @@ export default async function PkgTempahanPage({
   const pkg = await getPkg(pkgId);
   if (!pkg) notFound();
 
-  const today = toIsoDate(new Date());
-  const [rooms, activeBookings] = await Promise.all([
-    listRooms(pkgId),
-    listActiveBookings(pkgId, today),
-  ]);
+  const rooms = await listRooms(pkgId);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-8">
@@ -29,7 +24,10 @@ export default async function PkgTempahanPage({
             ← Semua PKG
           </Link>
           <h1 className="mt-2 text-3xl font-medium tracking-tight">{pkg.name}</h1>
-          <p className="mt-1 text-graphite">Tempahan bilik & kemudahan</p>
+          <p className="mt-1 max-w-xl text-graphite">
+            Pilih bilik di bawah untuk melihat gambar, kemudahan dan status slot, kemudian hantar
+            permohonan untuk kelulusan admin.
+          </p>
         </div>
         <Link href={`/tempahan/${pkgId}/semak`} className="btn-outline-ink btn-sm shrink-0">
           Semak Tempahan Saya
@@ -42,25 +40,15 @@ export default async function PkgTempahanPage({
             Tiada bilik didaftarkan untuk PKG ini lagi.
           </div>
         ) : (
-          <BookingBoard
+          <RoomGallery
             pkgId={pkgId}
             rooms={rooms.map((r) => ({
               slug: r.slug,
               name: r.name,
-              shortName: r.shortName,
               category: r.category,
               imageSrc: r.imageSrc,
               amenities: r.amenities,
             }))}
-            bookings={activeBookings.map((b) => ({
-              roomSlug: b.roomSlug,
-              date: b.date,
-              slot: b.slot,
-              status: b.status,
-              name: b.name,
-              purpose: b.purpose,
-            }))}
-            today={today}
           />
         )}
       </div>

@@ -17,6 +17,18 @@ export function addDays(value: string, days: number) {
   return toIsoDate(date);
 }
 
+export function startOfMonth(value: string) {
+  const date = fromIsoDate(value);
+  date.setDate(1);
+  return toIsoDate(date);
+}
+
+export function addMonths(value: string, months: number) {
+  const date = fromIsoDate(value);
+  date.setMonth(date.getMonth() + months);
+  return toIsoDate(date);
+}
+
 export function listDateRange(start: string, count: number) {
   return Array.from({ length: count }, (_, index) => addDays(start, index));
 }

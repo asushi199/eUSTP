@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toggleRoomActive } from "@/lib/actions/tempahan-admin";
+import { resolveAmenities } from "@/lib/tempahan/amenities";
 import RoomForm from "./RoomForm";
 
 type RoomData = {
@@ -81,7 +82,11 @@ export default function RoomAdminList({
                 </p>
                 <p className="text-xs text-graphite">
                   {room.category || "tiada kategori"} ·{" "}
-                  {room.amenities.length > 0 ? room.amenities.join(", ") : "tiada kemudahan"}
+                  {room.amenities.length > 0
+                    ? resolveAmenities(room.amenities)
+                        .map((a) => a.label)
+                        .join(", ")
+                    : "tiada kemudahan"}
                 </p>
               </div>
             </div>

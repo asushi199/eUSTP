@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { saveRoom } from "@/lib/actions/tempahan-admin";
+import AmenityFields from "./AmenityFields";
 
 type RoomData = {
   slug: string;
@@ -77,15 +78,7 @@ export default function RoomForm({
           />
         </div>
       </div>
-      <div>
-        <label className="label">Kemudahan (asingkan dengan koma)</label>
-        <input
-          name="amenities"
-          className="input"
-          placeholder="Projektor, WiFi, Penghawa dingin"
-          defaultValue={room?.amenities.join(", ") ?? ""}
-        />
-      </div>
+      <AmenityFields selected={room?.amenities} />
       <div>
         <label className="label">Gambar Bilik (pilihan, ≤4MB)</label>
         <input name="photo" type="file" accept="image/*" className="text-sm" />

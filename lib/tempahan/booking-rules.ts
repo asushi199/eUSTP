@@ -52,6 +52,27 @@ export function isSlotAvailable(
   return !getConflictingBooking(bookings, roomSlug, date, slot);
 }
 
+export function getSlotBooking<T extends BookingLike>(
+  bookings: T[],
+  roomSlug: string,
+  date: string,
+  slot: Slot,
+): T | undefined {
+  return bookings.find((booking) => {
+    if (!blocksSlot(booking)) return false;
+    if (booking.roomSlug !== roomSlug || booking.date !== date) return false;
+    if (booking.slot === "full_day") return true;
+    return booking.slot === slot;
+  });
+}
+
+export function formatRoom(
+  rooms: Array<{ slug: string; name: string }>,
+  roomSlug: string,
+) {
+  return rooms.find((item) => item.slug === roomSlug)?.name ?? roomSlug;
+}
+
 export function formatSlot(slot: Slot) {
   return slots.find((item) => item.id === slot)?.label ?? slot;
 }
