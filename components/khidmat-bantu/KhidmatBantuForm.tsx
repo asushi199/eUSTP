@@ -46,9 +46,12 @@ export default function KhidmatBantuForm({ schools }: { schools: SchoolOption[] 
   }, [filteredSchools, schoolCode]);
 
   useEffect(() => {
-    if (applicantType !== "sekolah") return;
-    const school = schools.find((s) => s.code === schoolCode);
-    if (school) setOrgName(school.name);
+    if (applicantType === "sekolah") {
+      const school = schools.find((s) => s.code === schoolCode);
+      if (school) setOrgName(school.name);
+      return;
+    }
+    setOrgName("");
   }, [applicantType, schoolCode, schools]);
 
   return (
