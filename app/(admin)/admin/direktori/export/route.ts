@@ -69,7 +69,11 @@ export async function GET(request: Request) {
     csv = [header, ...rows].map((row) => row.map(csvCell).join(",")).join("\n");
   }
 
-  const filename = `direktori-${listType}-${new Date().toISOString().slice(0, 10)}.csv`;
+  const roleTag =
+    listType === "teachers" && roles.length < ROLE_ORDER.length
+      ? `-${roles.map((r) => r.toLowerCase()).join("-")}`
+      : "";
+  const filename = `direktori-${listType}${roleTag}-${new Date().toISOString().slice(0, 10)}.csv`;
   return new NextResponse(`﻿${csv}`, {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",

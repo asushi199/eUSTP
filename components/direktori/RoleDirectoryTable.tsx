@@ -33,7 +33,66 @@ export default function RoleDirectoryTable({ rows }: { rows: PublicDirectoryRow[
         <p className="mt-1 text-xs text-graphite">{filtered.length} rekod</p>
       </div>
 
-      <div className="card overflow-x-auto">
+      {/* Mudah alih: senarai kad — tiada skrol mendatar */}
+      <ul className="space-y-3 md:hidden">
+        {filtered.length === 0 && (
+          <li className="card p-6 text-center text-sm text-graphite">
+            Tiada rekod dijumpai.
+          </li>
+        )}
+        {filtered.map((r) => (
+          <li key={`${r.schoolCode}-${r.role}`} className="card p-4">
+            <p className="font-medium leading-snug">{r.schoolName}</p>
+            <p className="mt-1 text-xs text-graphite">
+              {r.schoolCode}
+              {r.zone ? ` · ${r.zone}` : ""}
+              {r.website ? (
+                <>
+                  {" · "}
+                  <a
+                    href={r.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="link-blue"
+                  >
+                    Laman web
+                  </a>
+                </>
+              ) : null}
+            </p>
+            <div className="mt-3 flex items-center justify-between gap-3 border-t border-fog pt-3">
+              <p className="min-w-0 flex-1 text-sm leading-snug">
+                {r.teacherName || <span className="text-graphite">Tiada nama guru</span>}
+              </p>
+              {r.phone ? (
+                <a
+                  href={`tel:${r.phone}`}
+                  className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md border border-primary/25 px-3 text-sm font-medium tabular-nums text-primary active:bg-primary/5"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={1.8}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-4 w-4"
+                    aria-hidden
+                  >
+                    <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.8a2 2 0 0 1-.4 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.9.6 2.8.7a2 2 0 0 1 1.7 2z" />
+                  </svg>
+                  {r.phone}
+                </a>
+              ) : (
+                <span className="shrink-0 text-sm text-graphite">-</span>
+              )}
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      {/* Desktop: jadual penuh */}
+      <div className="card hidden overflow-x-auto md:block">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b hairline text-xs uppercase tracking-wide text-graphite">

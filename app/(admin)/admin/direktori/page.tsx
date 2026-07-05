@@ -1,5 +1,6 @@
 import Link from "next/link";
 import AdminSchoolsTable from "@/components/direktori/AdminSchoolsTable";
+import ExportGuruMenu from "@/components/direktori/ExportGuruMenu";
 import TambahSekolahForm from "@/components/direktori/TambahSekolahForm";
 import { requireKandunganAccess } from "@/lib/rbac";
 import { listAdminSchools } from "@/lib/direktori/queries";
@@ -20,13 +21,7 @@ export default async function AdminDirektoriPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Link
-            href="/admin/direktori/export?listType=teachers"
-            className="btn-outline-ink btn-sm"
-            prefetch={false}
-          >
-            CSV Guru
-          </Link>
+          <ExportGuruMenu />
           <Link
             href="/admin/direktori/export?listType=schools"
             className="btn-outline-ink btn-sm"
