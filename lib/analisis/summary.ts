@@ -1,6 +1,6 @@
 import "server-only";
 
-import { getAnalisisData, metricNum, metricText } from "./queries";
+import { deriveBelumBil, getAnalisisData, metricNum, metricText } from "./queries";
 
 /** Bentuk data boleh-serialize untuk kad + modal analisis di halaman utama. */
 export type HomeBarChart = {
@@ -20,6 +20,12 @@ export type HomeDelimaTrend = {
   kpiGuru: number | null;
 };
 
+export type HomeKpiGroup = {
+  title: string;
+  stats: { label: string; value: string }[];
+  align?: "left" | "center";
+};
+
 export type AnalisisHomeModule = {
   id: "delima" | "dcs" | "ains" | "pensijilan" | "optik";
   label: string;
@@ -27,6 +33,8 @@ export type AnalisisHomeModule = {
   headlineValue: string;
   headlineLabel: string;
   tiles: { label: string; value: string }[];
+  /** Kumpulan KPI ikut kategori (guru/murid, status/sasaran) — dipaparkan gantian `tiles` bila ada. */
+  tileGroups?: HomeKpiGroup[];
   delimaTrend?: HomeDelimaTrend;
   bars: HomeBarChart[];
   line?: HomeLineChart;
@@ -73,6 +81,36 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
       { label: "Purata Murid Aktif (Dis)", value: pct(metricNum(delima.metrics, "avg_dis_murid")) },
       { label: "Sasaran KPI Guru", value: pct(kpiGuru) },
       { label: "Sasaran KPI Murid", value: pct(metricNum(delima.metrics, "kpi_murid")) },
+    ],
+    tileGroups: [
+      {
+        title: "Capaian & Khidmat Bantu",
+        stats: [
+          { label: "Bil. Sekolah", value: bil(metricNum(delima.metrics, "bil_sekolah", "schools")) },
+          {
+            label: "Khidmat Bantu (kali)",
+            value: bil(metricNum(delima.metrics, "khidmat_bantu_kali")),
+          },
+          {
+            label: "Khidmat Bantu (sekolah)",
+            value: bil(metricNum(delima.metrics, "khidmat_bantu_sekolah")),
+          },
+        ],
+      },
+      {
+        title: "Guru",
+        stats: [
+          { label: "Purata Aktif (Dis)", value: pct(avgGuru) },
+          { label: "Sasaran KPI", value: pct(kpiGuru) },
+        ],
+      },
+      {
+        title: "Murid",
+        stats: [
+          { label: "Purata Aktif (Dis)", value: pct(metricNum(delima.metrics, "avg_dis_murid")) },
+          { label: "Sasaran KPI", value: pct(metricNum(delima.metrics, "kpi_murid")) },
+        ],
+      },
     ],
     delimaTrend: {
       points: delima.monthly
@@ -152,6 +190,8 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
 
   /* ---------- OPTIK ---------- */
   const optikSelesai = metricNum(optik.metrics, "selesai_pct");
+  const optikSelesaiBil = metricNum(optik.metrics, "selesai_bil");
+  const optikBelumPct = metricNum(optik.metrics, "belum_pct");
   const optikModule: AnalisisHomeModule = {
     id: "optik",
     label: "AI Tools (OPTIK)",
@@ -162,6 +202,32 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
       { label: "Bil. Selesai", value: bil(metricNum(optik.metrics, "selesai_bil")) },
       { label: "Belum Selesai", value: pct(metricNum(optik.metrics, "belum_pct")) },
       { label: "KPI Kebangsaan", value: pct(metricNum(optik.metrics, "kpi_kebangsaan")) },
+    ],
+    tileGroups: [
+      {
+        title: "KPI Kebangsaan",
+        align: "center",
+        stats: [
+          { label: "Sasaran", value: pct(metricNum(optik.metrics, "kpi_kebangsaan")) },
+        ],
+      },
+      {
+        title: "Selesai",
+        stats: [
+          { label: "Peratus", value: pct(optikSelesai) },
+          { label: "Bil. Selesai", value: bil(optikSelesaiBil) },
+        ],
+      },
+      {
+        title: "Belum Selesai",
+        stats: [
+          { label: "Peratus", value: pct(optikBelumPct) },
+          {
+            label: "Bil. Belum Selesai",
+            value: bil(deriveBelumBil(optikSelesaiBil, optikSelesai, optikBelumPct)),
+          },
+        ],
+      },
     ],
     bars: [],
     line: {

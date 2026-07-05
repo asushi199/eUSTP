@@ -73,3 +73,17 @@ export function metricText(metrics: MetricMap, ...keys: string[]): string {
   }
   return "";
 }
+
+/**
+ * Anggar bilangan "belum selesai" daripada bilangan "selesai" + peratusan kedua-duanya
+ * (cth. OPTIK hanya simpan bilangan siap, bukan bilangan belum siap).
+ */
+export function deriveBelumBil(
+  selesaiBil: number | null,
+  selesaiPct: number | null,
+  belumPct: number | null,
+): number | null {
+  if (selesaiBil == null || !selesaiPct || belumPct == null) return null;
+  const anggaran = Math.round(selesaiBil * (belumPct / selesaiPct));
+  return anggaran >= 0 ? anggaran : null;
+}

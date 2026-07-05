@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import AnalisisKpiTiles from "@/components/analisis/AnalisisKpiTiles";
+import KpiGroups from "@/components/analisis/KpiGroups";
 import type { AnalisisHomeModule } from "@/lib/analisis/summary";
 
 /* Carta recharts dimuat malas — hanya diambil apabila modal dibuka. */
@@ -140,7 +141,11 @@ export default function HomeAnalisisBand({ modules }: { modules: AnalisisHomeMod
                 {active.note ? (
                   <p className="text-sm leading-relaxed text-graphite">{active.note}</p>
                 ) : null}
-                <AnalisisKpiTiles tiles={active.tiles} />
+                {active.tileGroups ? (
+                  <KpiGroups groups={active.tileGroups} />
+                ) : (
+                  <AnalisisKpiTiles tiles={active.tiles} />
+                )}
                 {active.delimaTrend && active.delimaTrend.points.length > 0 ? (
                   <DelimaTrendChart
                     data={active.delimaTrend.points}
