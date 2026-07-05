@@ -85,13 +85,17 @@ const MODULES = [
 ];
 
 export default async function HomePage() {
-  const [dpd, pss] = await Promise.all([getDpdSummary(), getPssSummary()]);
+  // Halaman utama mesti sentiasa render — jika DB perlahan/gagal, papar 0 dahulu.
+  const [dpd, pss] = await Promise.all([
+    getDpdSummary().catch(() => null),
+    getPssSummary().catch(() => null),
+  ]);
   const tiles = [
-    { label: "Program Pendigitalan (DPD)", value: dpd.jumlahProgram },
-    { label: "Bil. Murid Terlibat", value: dpd.bilMurid },
-    { label: "Bil. Pendidik Terlibat", value: dpd.bilPendidik },
-    { label: "Laporan PSS", value: pss.jumlahLaporan },
-    { label: "Laporan PSS Bulan Ini", value: pss.laporanBulanIni },
+    { label: "Program Pendigitalan (DPD)", value: dpd?.jumlahProgram ?? 0 },
+    { label: "Bil. Murid Terlibat", value: dpd?.bilMurid ?? 0 },
+    { label: "Bil. Pendidik Terlibat", value: dpd?.bilPendidik ?? 0 },
+    { label: "Laporan PSS", value: pss?.jumlahLaporan ?? 0 },
+    { label: "Laporan PSS Bulan Ini", value: pss?.laporanBulanIni ?? 0 },
   ];
 
   return (
