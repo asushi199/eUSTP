@@ -10,6 +10,8 @@ import CalendarBoard from "./CalendarBoard";
 
 type ViewRange = "week" | "month";
 
+const DESKTOP_MQ = "(min-width: 1280px)";
+
 const formProps = {
   desktopId: "tempah",
   mobileId: "tempah-sheet",
@@ -22,8 +24,8 @@ function visibleDates(dates: string[], today: string, view: ViewRange): string[]
   return pool.slice(0, 7);
 }
 
-function isMobileViewport() {
-  return typeof window !== "undefined" && window.matchMedia("(max-width: 1023px)").matches;
+function isCompactLayout() {
+  return typeof window !== "undefined" && !window.matchMedia(DESKTOP_MQ).matches;
 }
 
 export default function RoomBookingWorkspace({
@@ -37,6 +39,7 @@ export default function RoomBookingWorkspace({
   previousStart,
   nextStart,
   monthStart,
+  todayMonthStart,
   monthLabel,
 }: {
   pkgId: string;
@@ -49,6 +52,7 @@ export default function RoomBookingWorkspace({
   previousStart: string;
   nextStart: string;
   monthStart: string;
+  todayMonthStart: string;
   monthLabel: string;
 }) {
   const [view, setView] = useState<ViewRange>("week");
@@ -59,6 +63,8 @@ export default function RoomBookingWorkspace({
     () => visibleDates(dates, today, view),
     [dates, today, view],
   );
+
+  const isCurrentMonth = monthStart === todayMonthStart;
 
   const prefillLabel = prefill
     ? `${formatMalayDate(prefill.date)} · ${formatSlot(prefill.slot)}`
@@ -81,13 +87,13 @@ export default function RoomBookingWorkspace({
 
   function onSlotSelect(date: string, slot: Slot) {
     setPrefill({ date, slot });
-    if (isMobileViewport()) {
+    if (isCompactLayout()) {
       setSheetOpen(true);
     }
   }
 
   useEffect(() => {
-    if (!sheetOpen || !isMobileViewport()) return;
+    if (!sheetOpen || !isCompactLayout()) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
@@ -104,14 +110,14 @@ export default function RoomBookingWorkspace({
   }, [sheetOpen]);
 
   const calendarSection = (
-    <section className="card p-4 lg:p-6" id="jadual">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+    <section className="card p-4 xl:p-6" id="jadual">
+      <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-primary">
             Status tempahan
           </p>
-          <h2 className="mt-0.5 text-lg font-semibold lg:text-xl">Jadual Bilik</h2>
-          <p className="mt-0.5 text-xs text-graphite lg:text-sm">
+          <h2 className="mt-0.5 text-lg font-semibold xl:text-xl">Jadual Bilik</h2>
+          <p className="mt-0.5 text-xs text-graphite xl:text-sm">
             {view === "week" && displayDates.length > 0
               ? `${formatMalayDate(displayDates[0])} – ${formatMalayDate(displayDates[displayDates.length - 1])}`
               : dates.length > 0
@@ -121,7 +127,7 @@ export default function RoomBookingWorkspace({
         </div>
 
         <div
-          className="flex items-center gap-2 text-[10px] text-graphite lg:text-xs"
+          className="flex items-center gap-2 text-[10px] text-graphite xl:text-xs"
           aria-label="Petunjuk status"
         >
           <span className="inline-flex items-center gap-1" title="Kosong">
@@ -181,21 +187,33 @@ export default function RoomBookingWorkspace({
           >
             ›
           </Link>
-          <Link
-            href={`${detailBase}?start=${monthStart}`}
-            scroll={false}
-            className="btn-outline-ink btn-sm !h-8 !px-2.5 !text-[10px] lg:!text-xs"
-          >
-            Hari ini
-          </Link>
+          {isCurrentMonth ? (
+            <span
+              className="btn-outline-ink btn-sm !h-8 cursor-default !px-2.5 !text-[10px] opacity-45 xl:!text-xs"
+              aria-current="date"
+            >
+              Hari ini
+            </span>
+          ) : (
+            <Link
+              href={`${detailBase}?start=${todayMonthStart}`}
+              scroll={false}
+              className="btn-outline-ink btn-sm !h-8 !px-2.5 !text-[10px] xl:!text-xs"
+            >
+              Hari ini
+            </Link>
+          )}
         </div>
       </div>
 
-      <p className="mt-2 text-[11px] text-graphite lg:hidden">
-        Ketuk slot <strong className="text-primary-deep">Kosong</strong> untuk tempah.
+      <p className="mt-2 text-[11px] text-graphite xl:hidden">
+        Ketuk slot <strong className="text-primary-deep">Kosong</strong> atau{" "}
+        <strong className="text-primary-deep">Tempah penuh hari</strong> untuk tempah.
       </p>
-      <p className="mt-2 hidden text-xs text-graphite lg:block">
-        Klik slot <strong className="text-primary-deep">Kosong</strong> untuk isi borang di sebelah kanan.
+      <p className="mt-2 hidden text-xs text-graphite xl:block">
+        Klik slot <strong className="text-primary-deep">Kosong</strong> atau{" "}
+        <strong className="text-primary-deep">Tempah penuh hari</strong> untuk isi borang di sebelah
+        kanan.
       </p>
 
       <div className="mt-4">
@@ -211,16 +229,14 @@ export default function RoomBookingWorkspace({
 
   return (
     <>
-      <div className="mt-6 grid items-start gap-5 lg:mt-10 lg:grid-cols-[minmax(0,1fr)_minmax(320px,384px)]">
+      <div className="mt-6 grid items-start gap-5 xl:mt-10 xl:grid-cols-[minmax(0,1fr)_minmax(320px,384px)]">
         {calendarSection}
 
-        {/* Desktop: sticky form */}
-        <div className="hidden lg:block lg:sticky lg:top-20 lg:self-start">
+        <div className="hidden xl:block xl:sticky xl:top-20 xl:self-start">
           <BookingForm {...sharedFormProps} variant="embedded" formId={formProps.desktopId} />
         </div>
       </div>
 
-      {/* Mobile: bottom sheet */}
       <BookingForm
         {...sharedFormProps}
         variant="sheet"
@@ -229,11 +245,10 @@ export default function RoomBookingWorkspace({
         formId={formProps.mobileId}
       />
 
-      {/* Mobile: FAB */}
       <button
         type="button"
         onClick={() => openSheet()}
-        className="fixed bottom-24 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-sm font-bold uppercase tracking-wide text-white shadow-modal transition hover:bg-primary-bright active:scale-95 lg:hidden"
+        className="fixed bottom-24 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-sm font-bold uppercase tracking-wide text-white shadow-modal transition hover:bg-primary-bright active:scale-95 xl:hidden"
         aria-label="Tempah bilik"
       >
         Tempah

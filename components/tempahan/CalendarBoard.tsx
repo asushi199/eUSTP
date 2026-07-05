@@ -2,6 +2,7 @@
 
 import {
   getSlotBooking,
+  isSlotAvailable,
   type BookingLike,
   type Slot,
 } from "@/lib/tempahan/booking-rules";
@@ -56,7 +57,7 @@ function SlotCell({
   );
 
   const className = cn(
-    "min-h-[52px] rounded-md border border-fog/80 border-l-[3px] px-2 py-1.5 text-left transition sm:min-h-[58px] sm:px-3 sm:py-2",
+    "min-h-[52px] rounded-md border border-fog/80 border-l-[3px] px-2 py-1.5 text-left transition xl:min-h-[56px] xl:px-2.5 xl:py-2",
     styles.cell,
     isClickable && "cursor-pointer active:scale-[0.98]",
   );
@@ -90,37 +91,48 @@ export default function CalendarBoard({
   onSlotSelect?: (date: string, slot: Slot) => void;
 }) {
   return (
-    <div className="w-full overflow-x-hidden sm:overflow-x-auto">
-      {/* Desktop table header */}
-      <div className="mb-2 hidden min-w-[480px] grid-cols-[120px_1fr_1fr] gap-2 border-b hairline pb-2 text-xs font-semibold uppercase tracking-wide text-graphite sm:grid">
+    <div className="w-full overflow-x-hidden">
+      {/* Wide desktop table header (xl+ only) */}
+      <div className="mb-2 hidden grid-cols-[88px_minmax(0,1fr)_minmax(0,1fr)] gap-2 border-b hairline pb-2 text-xs font-semibold uppercase tracking-wide text-graphite xl:grid">
         <div>Tarikh</div>
         <div className="text-center">Pagi</div>
         <div className="text-center">Petang</div>
       </div>
 
-      <div className="space-y-2 sm:min-w-[480px] sm:space-y-0">
+      <div className="space-y-2 xl:space-y-0">
         {dates.map((date) => {
           const handleSelect = onSlotSelect
             ? (slot: Slot) => onSlotSelect(date, slot)
             : undefined;
+          const canBookFullDay =
+            Boolean(handleSelect) &&
+            isSlotAvailable(bookings, roomSlug, date, "full_day");
 
           return (
             <div
               key={date}
               className={cn(
-                "overflow-hidden rounded-lg border hairline sm:grid sm:grid-cols-[120px_1fr_1fr] sm:gap-2 sm:rounded-none sm:border-0 sm:border-b sm:py-2 sm:last:border-0",
+                "overflow-hidden rounded-lg border hairline",
+                "xl:grid xl:grid-cols-[88px_minmax(0,1fr)_minmax(0,1fr)] xl:gap-2 xl:rounded-none xl:border-0 xl:border-b xl:py-2 xl:last:border-0",
               )}
             >
-              {/* Date header — compact bar on mobile, column on desktop */}
-              <div className="flex items-center gap-2 border-b hairline bg-cloud/60 px-3 py-2 sm:block sm:border-0 sm:bg-transparent sm:px-0 sm:py-2">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b hairline bg-cloud/60 px-3 py-2 xl:block xl:border-0 xl:bg-transparent xl:px-0 xl:py-2">
                 <strong className="text-sm">{formatDayName(date)}</strong>
                 <span className="text-xs text-graphite tabular-nums">
                   {formatMalayDate(date, { year: undefined })}
                 </span>
+                {canBookFullDay && (
+                  <button
+                    type="button"
+                    className="ml-auto text-[11px] font-semibold text-primary hover:underline xl:mt-1 xl:ml-0 xl:block xl:text-left"
+                    onClick={() => handleSelect!("full_day")}
+                  >
+                    Tempah penuh hari
+                  </button>
+                )}
               </div>
 
-              {/* Mobile: Pagi + Petang side by side */}
-              <div className="grid grid-cols-2 gap-2 p-2 sm:contents">
+              <div className="grid grid-cols-2 gap-2 p-2 xl:contents">
                 {(["am", "pm"] as const).map((slot) => (
                   <SlotCell
                     key={slot}

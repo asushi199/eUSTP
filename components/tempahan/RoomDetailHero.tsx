@@ -23,8 +23,8 @@ export default function RoomDetailHero({
 
   return (
     <>
-      {/* Mobile / tablet: compact hero */}
-      <section className="mt-3 flex gap-3 lg:hidden">
+      {/* Compact hero below xl */}
+      <section className="mt-3 flex gap-3 xl:hidden">
         <div className="h-16 w-20 shrink-0 overflow-hidden rounded-lg border hairline bg-cloud">
           {imageSrc ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -52,7 +52,7 @@ export default function RoomDetailHero({
       </section>
 
       {amenitiesOpen && amenities.length > 0 && (
-        <ul className="mt-2 flex flex-wrap gap-1.5 lg:hidden">
+        <ul className="mt-2 flex flex-wrap gap-1.5 xl:hidden">
           {amenities.map((item) => (
             <li
               key={item.label}
@@ -66,7 +66,7 @@ export default function RoomDetailHero({
       )}
 
       {/* Desktop: full hero */}
-      <section className="mt-4 hidden gap-6 lg:grid lg:grid-cols-2 lg:items-start">
+      <section className="mt-4 hidden gap-6 xl:grid xl:grid-cols-2 xl:items-start">
         <div className="overflow-hidden rounded-xl border hairline bg-cloud">
           {imageSrc ? (
             // eslint-disable-next-line @next/next/no-img-element

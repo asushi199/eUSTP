@@ -68,19 +68,19 @@ export default function BookingForm({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="pr-8">
           <p className="text-xs font-semibold uppercase tracking-wide text-primary">Tempahan baharu</p>
-          <h2 className="mt-1 text-lg font-semibold lg:text-xl">Permohonan Baharu</h2>
+          <h2 className="mt-1 text-lg font-semibold xl:text-xl">Permohonan Baharu</h2>
         </div>
         <span className="status-badge shrink-0">
           <span className="status-dot bg-amber-400" />
           Perlu kelulusan
         </span>
       </div>
-      <p className="mt-2 text-xs text-graphite lg:text-sm">
+      <p className="mt-2 text-xs text-graphite xl:text-sm">
         Selepas permohonan dihantar, klik butang WhatsApp untuk maklumkan admin.
       </p>
 
       {prefillLabel && (
-        <p className="mt-3 rounded-md border border-primary/25 bg-primary-soft/20 px-3 py-2 text-xs font-medium text-primary-deep lg:text-sm">
+        <p className="mt-3 rounded-md border border-primary/25 bg-primary-soft/20 px-3 py-2 text-xs font-medium text-primary-deep xl:text-sm">
           Slot dipilih: {prefillLabel}
         </p>
       )}
@@ -102,10 +102,10 @@ export default function BookingForm({
           )}
         </div>
       ) : (
-        <form action={formAction} className="mt-4 space-y-4 lg:mt-5">
+        <form action={formAction} className="mt-4 space-y-4 xl:mt-5">
           <input type="hidden" name="pkg" value={pkgId} />
 
-          <div className="grid gap-4 lg:grid-cols-1">
+          <div className="grid gap-4 xl:grid-cols-1">
             <div>
               <label className="label" htmlFor={`${formId}-name`}>
                 Nama *
@@ -159,7 +159,7 @@ export default function BookingForm({
             />
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-1">
+          <div className="grid gap-4 xl:grid-cols-1">
             <div>
               <label className="label" htmlFor={`${formId}-date`}>
                 Tarikh *
@@ -276,7 +276,7 @@ export default function BookingForm({
   }
 
   return (
-    <section id={formId} className="card scroll-mt-24 p-4 lg:p-6">
+    <section id={formId} className="card scroll-mt-24 p-4 xl:p-6">
       {body}
     </section>
   );

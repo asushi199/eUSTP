@@ -31,6 +31,7 @@ export default async function RoomDetailPage({
   const bookings = await listActiveBookings(pkgId, today);
 
   const monthStart = startOfMonth(startParam || today);
+  const todayMonthStart = startOfMonth(today);
   const dates = listDateRange(monthStart, 30);
   const previousStart = addMonths(monthStart, -1);
   const nextStart = addMonths(monthStart, 1);
@@ -51,7 +52,7 @@ export default async function RoomDetailPage({
   }));
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-6 pb-28 sm:px-8 sm:py-12 sm:pb-12">
+    <div className="mx-auto max-w-4xl px-4 py-6 pb-28 xl:px-8 xl:py-12 xl:pb-12">
       <Link href={`/tempahan/${pkgId}`} className="text-sm text-graphite hover:text-ink">
         ← Kembali ke senarai bilik
       </Link>
@@ -74,6 +75,7 @@ export default async function RoomDetailPage({
         previousStart={previousStart}
         nextStart={nextStart}
         monthStart={monthStart}
+        todayMonthStart={todayMonthStart}
         monthLabel={monthLabel}
       />
     </div>
