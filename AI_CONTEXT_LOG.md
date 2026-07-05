@@ -2,6 +2,24 @@
 
 Log keputusan & konteks untuk sesi AI akan datang. Tambah entri terbaru di atas.
 
+## 2026-07-05 — Migrasi data Direktori dari DashboardGPMICT (SELESAI)
+
+- Skrip: `scripts/migrate-direktori.ts` (sokong `--dry-run`). Sumber = Supabase
+  LAMA projek DashboardGPMICT via REST (env dibaca terus dari
+  `needtocombine/DashboardGPMICT/.env.local`) — BUKAN seed.sql (data Feb 2025
+  sahaja; DB lama ada kemaskini terkini).
+- Dipindah: 102 sekolah, 187 versi kontak, 561 peranan; id versi asal
+  dikekalkan; `current_version_id` ikut penunjuk lama (fallback: versi terbaru
+  tidak disorok). Semua 102 sekolah berpenunjuk selepas migrasi.
+- **Normalisasi nama sekolah** (8 dibaiki, fungsi `normalizeSchoolName`):
+  "SEKOLAH KEBANGSAAN KAMPONG KOTA"→"SK KAMPONG KOTA", "SJK C"/"SJK(C)"→SJKC,
+  "SJK(T)"→SJKT, kuotasi keriting ’→', KPG→KG, "METHODIST(ACS)"→"METHODIST (ACS)".
+  Nama dalam `contact_versions.school_name` turut dinormalisasi.
+- `scripts/data/laman-web.csv` hanya header (0 baris) — `schools.website`
+  kekal kosong, tiada apa untuk diimport.
+- Disahkan: `/direktori/gpict` papar 102 rekod, tiada format lama tinggal,
+  tiada ralat konsol.
+
 ## 2026-07-05 — OSC One Stop Center + jalur Analisis halaman utama
 
 - **OSC:** Sumber USTP + Analisis USTP + Maklumat Asas digabung di bawah satu

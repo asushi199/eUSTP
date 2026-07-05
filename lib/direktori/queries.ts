@@ -61,7 +61,7 @@ export async function listPublicDirectory(role?: TeacherRole): Promise<PublicDir
     .from(schools)
     .innerJoin(contactVersions, eq(schools.currentVersionId, contactVersions.id))
     .innerJoin(contactRoles, eq(contactRoles.versionId, contactVersions.id))
-    .orderBy(schools.name);
+    .orderBy(schools.code);
 
   const filtered = role ? rows.filter((r) => r.role === role) : rows;
   return filtered as PublicDirectoryRow[];
