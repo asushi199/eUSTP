@@ -14,7 +14,7 @@ const NAV_LINKS = [
 /** nav-bar-top hp: putih 64px, garis rambut bawah. */
 export default function TopNav() {
   return (
-    <header className="sticky top-0 z-40 h-16 border-b hairline bg-white">
+    <header className="sticky top-0 z-40 h-16 border-b hairline bg-white/88 backdrop-blur-md">
       <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-4 sm:px-8">
         <BrandWordmark />
         <nav className="hidden items-center gap-1 md:flex">
