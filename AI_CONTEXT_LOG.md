@@ -2,6 +2,49 @@
 
 Log keputusan & konteks untuk sesi AI akan datang. Tambah entri terbaru di atas.
 
+## 2026-07-05 — Diagnosis produksi: halaman tergantung 300s (SELESAI)
+
+**Gejala:** Di Vercel, semua halaman yang query DB tergantung sehingga 504
+(timeout 300s) secara BERSELANG — burst 200 OK selepas cold start, kemudian
+tergantung. `/api/health` sentiasa OK. `/laporan-dpd` & `/direktori` OK
+(halaman tanpa DB). DB sendiri sihat (ujian tempatan terus ke DB produksi:
+semua jenis query ms-level).
+
+**Proses diagnosis (kekalkan corak ini untuk isu serupa):**
+1. `/api/diag` (route handler, 5 jenis query) → SEMUA lulus ms-level.
+2. `/diag-page` v1 (query sama dalam konteks render halaman) → timeout,
+   walaupun `serverExternalPackages: ["postgres"]` sudah aktif → teori
+   bundling RSC DITOLAK.
+3. `/diag-page` v2 (TCP mentah, HTTPS egress, klien segar, klien global)
+   → SEMUA lulus 15 minit kemudian → sifat berselang disahkan; bukan
+   rangkaian, bukan bundling, bukan config.
+
+**Punca sebenar (model yang konsisten dengan semua bukti):** Instance
+fungsi Vercel menyimpan klien postgres global dengan `max: 1` TANPA
+sebarang timeout query. Bila instance dibekukan, pooler Supabase memutus
+soket melahu; instance yang dicairkan menulis query ke soket mati dan
+menunggu SELAMANYA — dan kerana `max: 1`, SEMUA query instance itu
+beratur di belakangnya → instance "beracun" sehingga dikitar semula.
+Corak berselang = instance sihat vs beracun.
+
+**Pengerasan dalam lib/db.ts:** `max: 3` (serverless), `idle_timeout: 3`,
+`max_lifetime: 60`, `keep_alive: 20`, `connect_timeout: 10` + pembungkus
+`withDbTimeout()` untuk halaman kritikal (halaman utama). JANGAN kembalikan
+`max: 1` atau naikkan idle_timeout di serverless.
+
+**Nota lain:**
+- `serverExternalPackages: ["postgres"]` dikekalkan (tidak berbahaya,
+  amalan disyor Next 15).
+- Halaman awam TIDAK boleh papar angka palsu semasa ralat — papar notis
+  "Statistik tidak dapat dimuatkan" (keputusan pengguna, 2026-07-05).
+- `/api/diag` + `/diag-page` = endpoint diagnostik sementara. BUANG selepas
+  produksi stabil beberapa hari.
+- DB Supabase baharu (Singapura, aws-1-ap-southeast-1): users=1 (admin),
+  pkgs=5, kandungan=96, pegawai=5, **schools=0** — senarai sekolah perlu
+  diimport (Fasa E) sebelum Direktori/Laporan PSS berguna.
+- Vercel: JANGAN klik "Redeploy" pada deployment lama (ia deploy semula
+  commit lama) — push commit baharu atau pilih deployment terkini.
+
 ## 2026-07-04 — Fasa D: Modul Tempahan PKG (SIAP + diuji)
 
 - Skema: `pkgs` (5 seed, slug berhubung-strip: sitiawan/ayer-tawar/seri-manjung/

@@ -16,17 +16,23 @@ const globalForPg = globalThis as unknown as {
 const client =
   globalForPg.pg ??
   postgres(connectionString, {
-    max: isServerless ? 1 : 5,
     /**
-     * Serverless: tutup sambungan melahu dengan cepat supaya kita tidak membawa
-     * sambungan "hampir mati" masuk ke kitaran beku (freeze) Vercel. Bila fungsi
-     * dibekukan, pooler Supabase memutuskan sambungan melahu; menggunakan semula
-     * soket mati itu menyebabkan query tergantung sehingga 300s (Vercel timeout).
-     * idle_timeout rendah → query seterusnya buat sambungan baharu yang sihat.
+     * max > 1 di serverless: dengan hanya SATU sambungan, satu soket mati
+     * (pooler putus semasa instance beku) menyekat SEMUA query instance itu
+     * selama-lamanya kerana query beratur pada sambungan yang sama. Dengan 3,
+     * query lain masih boleh lalu sementara soket rosak dikitar semula.
+     */
+    max: isServerless ? 3 : 5,
+    /**
+     * Tutup sambungan melahu cepat supaya tidak membawa soket "hampir mati"
+     * masuk ke kitaran beku Vercel — punca halaman tergantung 300s (diagnosis
+     * 2026-07-05: /api/diag OK ms-level manakala halaman timeout, berselang).
      */
     idle_timeout: isServerless ? 3 : 20,
     connect_timeout: 10,
     max_lifetime: isServerless ? 60 : 60 * 5,
+    /** TCP keep-alive: OS kesan peer mati → soket ralat, bukan tunggu selamanya. */
+    keep_alive: 20,
     /** Wajib untuk Supabase Transaction pooler (port 6543). */
     prepare: false,
   });
