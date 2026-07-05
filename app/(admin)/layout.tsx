@@ -1,6 +1,5 @@
-import Link from "next/link";
 import BrandWordmark from "@/components/BrandWordmark";
-import LogoutButton from "@/components/LogoutButton";
+import AdminUserMenu from "@/components/admin/AdminUserMenu";
 import { requireUser } from "@/lib/rbac";
 import { PERANAN_LABEL } from "@/lib/roles";
 
@@ -16,18 +15,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               Admin
             </span>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="hidden text-sm text-graphite sm:block">
-              {user.nama} · {PERANAN_LABEL[user.peranan]}
-            </span>
-            <Link
-              href="/tukar-kata-laluan"
-              className="rounded-md px-2 py-1.5 text-sm text-graphite hover:bg-cloud hover:text-ink"
-            >
-              Kata Laluan
-            </Link>
-            <LogoutButton />
-          </div>
+          <AdminUserMenu nama={user.nama} peranan={PERANAN_LABEL[user.peranan]} />
         </div>
       </header>
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-8">{children}</main>
