@@ -2,6 +2,18 @@
 
 Log keputusan & konteks untuk sesi AI akan datang. Tambah entri terbaru di atas.
 
+## 2026-07-05 — Muat naik logo PKG (Supabase Storage)
+
+- Admin PKG kini boleh muat naik logo sendiri di `/admin/tempahan/[pkg]/tetapan`
+  (≤2MB) → disimpan ke bucket awam `room-photos` (sama bucket dengan gambar
+  bilik) via `uploadPkgLogo` baharu dalam `lib/tempahan/room-photos.ts`; kekal
+  di `pkgs.logoSrc` (medan sedia ada, sebelum ini tidak digunakan).
+- Logo dipaparkan di senarai `/tempahan` dan header `/tempahan/[pkg]` bila wujud.
+- Nota CLAUDE.md "TIADA Supabase Storage" dibetulkan — sudah lapuk sejak
+  `uploadRoomPhoto` (gambar bilik) wujud; kini didokumenkan sebagai kekecualian
+  bertujuan untuk imej kecil/statik sahaja (bukan laporan/Drive).
+- `npm run typecheck` + `npm run build` lulus.
+
 ## 2026-07-05 — Kemaskini ikon PWA jenama baharu
 
 - `public/icons/icon-192.png`, `icon-512.png`, `apple-touch-icon.png` ditukar

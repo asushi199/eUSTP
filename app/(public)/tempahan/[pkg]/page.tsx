@@ -23,7 +23,17 @@ export default async function PkgTempahanPage({
           <Link href="/tempahan" className="text-sm text-graphite hover:text-ink">
             ← Semua PKG
           </Link>
-          <h1 className="mt-2 text-3xl font-medium tracking-tight">{pkg.name}</h1>
+          <div className="mt-2 flex items-center gap-3">
+            {pkg.logoSrc && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={pkg.logoSrc}
+                alt=""
+                className="h-12 w-12 rounded-lg border border-fog bg-white object-contain"
+              />
+            )}
+            <h1 className="text-3xl font-medium tracking-tight">{pkg.name}</h1>
+          </div>
           <p className="mt-1 max-w-xl text-graphite">
             Pilih bilik di bawah untuk melihat gambar, kemudahan dan status slot, kemudian hantar
             permohonan untuk kelulusan admin.

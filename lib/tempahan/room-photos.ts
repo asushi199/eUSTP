@@ -1,5 +1,5 @@
 /**
- * Gambar bilik PKG — Supabase Storage (bucket awam "room-photos").
+ * Gambar bilik & logo PKG — Supabase Storage (bucket awam "room-photos").
  * Berbeza dengan gambar laporan (Google Drive) kerana bilangan kecil dan statik.
  */
 
@@ -19,10 +19,10 @@ function cleanEnv(value: string | undefined): string {
   return v;
 }
 
-export async function uploadRoomPhoto(
-  pkgId: string,
-  roomSlug: string,
+async function uploadObject(
+  path: string,
   file: { name: string; type: string; buffer: Buffer },
+  errorLabel: string,
 ): Promise<string> {
   const base = cleanEnv(process.env.NEXT_PUBLIC_SUPABASE_URL).replace(/\/$/, "");
   const key = cleanEnv(process.env.SUPABASE_SERVICE_ROLE_KEY);
@@ -38,14 +38,6 @@ export async function uploadRoomPhoto(
     );
   }
 
-  const ext =
-    file.name
-      .slice(file.name.lastIndexOf(".") + 1)
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, "")
-      .slice(0, 5) || "jpg";
-  const path = `${pkgId}/${roomSlug}-${Date.now()}.${ext}`;
-
   const res = await fetch(`${base}/storage/v1/object/${bucket}/${path}`, {
     method: "POST",
     headers: {
@@ -58,8 +50,35 @@ export async function uploadRoomPhoto(
 
   if (!res.ok) {
     const err = await res.text();
-    throw new Error(`Muat naik gambar bilik gagal: ${err}`);
+    throw new Error(`${errorLabel} gagal: ${err}`);
   }
 
   return `${base}/storage/v1/object/public/${bucket}/${path}`;
+}
+
+function extOf(filename: string): string {
+  return (
+    filename
+      .slice(filename.lastIndexOf(".") + 1)
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "")
+      .slice(0, 5) || "jpg"
+  );
+}
+
+export async function uploadRoomPhoto(
+  pkgId: string,
+  roomSlug: string,
+  file: { name: string; type: string; buffer: Buffer },
+): Promise<string> {
+  const path = `${pkgId}/${roomSlug}-${Date.now()}.${extOf(file.name)}`;
+  return uploadObject(path, file, "Muat naik gambar bilik");
+}
+
+export async function uploadPkgLogo(
+  pkgId: string,
+  file: { name: string; type: string; buffer: Buffer },
+): Promise<string> {
+  const path = `${pkgId}/logo-${Date.now()}.${extOf(file.name)}`;
+  return uploadObject(path, file, "Muat naik logo PKG");
 }

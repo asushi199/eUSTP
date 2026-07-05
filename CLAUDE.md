@@ -37,10 +37,14 @@ GPICT/DELIMa/GPM, Tempahan PKG, Portal Sumber/Analisis/Maklumat Asas). Sumber as
 - `app/(admin)/admin/…` — backend (perlu log masuk)
 - `lib/actions/…` — server actions per modul
 - `lib/tempahan/…` — logik porting dari tempahan-pkg-manjung
-- Gambar laporan → Google Drive via `gas/Code.gs` (subPath `[tahun, bulan, modul]`)
-- **TIADA Supabase Storage** — imej statik dalam `public/`, fail luaran kekal
-  sebagai URL (Drive/Canva/YouTube); gambar bilik tempahan (Fasa D) juga guna
-  saluran GAS→Drive, bukan bucket.
+- **Storan fail — Supabase Storage ialah default** (bucket awam `room-photos`;
+  perlukan `NEXT_PUBLIC_SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` JWT
+  `eyJ...` dalam `.env.local`). Guna Google Drive (via `gas/Code.gs`) **hanya**
+  untuk kes bervolum besar/berterusan (cth. gambar laporan DPD/PSS, subPath
+  `[tahun, bulan, modul]`) — sebab pelan Supabase Storage kami ialah **free
+  tier** (kuota storan terhad). Contoh sedia ada: gambar bilik tempahan
+  (`lib/tempahan/room-photos.ts` `uploadRoomPhoto`) dan logo PKG
+  (`uploadPkgLogo`, `pkgs.logoSrc`).
 - `lib/stats/` — satu statistik satu fungsi; carta recharts di `/statistik`,
   `/analisis` dan modal Analisis halaman utama (`HomeAnalisisBand`, dimuat
   malas via `next/dynamic` — JANGAN import recharts terus dalam halaman utama).

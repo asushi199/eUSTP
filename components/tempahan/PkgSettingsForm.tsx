@@ -7,9 +7,11 @@ import { updatePkgSettings } from "@/lib/actions/tempahan-admin";
 export default function PkgSettingsForm({
   pkgId,
   whatsappAdminPhone,
+  logoSrc,
 }: {
   pkgId: string;
   whatsappAdminPhone: string;
+  logoSrc: string | null;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -50,6 +52,21 @@ export default function PkgSettingsForm({
           Gunakan format antarabangsa tanpa &quot;+&quot; (cth. 60123456789).
         </p>
       </div>
+      <div>
+        <label className="label" htmlFor="logo">
+          Logo PKG (pilihan, ≤2MB)
+        </label>
+        {logoSrc && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={logoSrc}
+            alt=""
+            className="mb-2 h-16 w-16 rounded-lg border border-fog object-contain bg-white"
+          />
+        )}
+        <input id="logo" name="logo" type="file" accept="image/*" className="text-sm" />
+      </div>
+
       {error && <p className="text-sm text-bloom-deep">{error}</p>}
       {saved && <p className="text-sm text-primary-deep">Tetapan disimpan.</p>}
       <button type="submit" className="btn-primary btn-sm" disabled={pending}>

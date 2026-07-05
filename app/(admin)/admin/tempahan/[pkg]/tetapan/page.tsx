@@ -25,7 +25,11 @@ export default async function AdminPkgSettingsPage({
       <h1 className="mt-1 text-2xl font-semibold tracking-tight">Tetapan PKG</h1>
 
       <div className="mt-6 max-w-md">
-        <PkgSettingsForm pkgId={pkgId} whatsappAdminPhone={pkg.whatsappAdminPhone ?? ""} />
+        <PkgSettingsForm
+          pkgId={pkgId}
+          whatsappAdminPhone={pkg.whatsappAdminPhone ?? ""}
+          logoSrc={pkg.logoSrc}
+        />
       </div>
     </>
   );

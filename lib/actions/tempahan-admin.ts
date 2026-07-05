@@ -9,7 +9,7 @@ import { requireTempahanAccess } from "@/lib/rbac";
 import { slugifyRoomName } from "@/lib/tempahan/booking-rules";
 import { parseCapacityInput } from "@/lib/tempahan/room-capacity";
 import { getRoomBySlug } from "@/lib/tempahan/queries";
-import { uploadRoomPhoto } from "@/lib/tempahan/room-photos";
+import { uploadPkgLogo, uploadRoomPhoto } from "@/lib/tempahan/room-photos";
 import {
   approveBookingCore,
   cancelBookingCore,
@@ -184,9 +184,23 @@ export async function updatePkgSettings(
     return { ok: false, error: "Nombor WhatsApp tidak sah." };
   }
 
+  let logoSrc: string | undefined;
+  const logo = formData.get("logo");
+  if (logo instanceof File && logo.size > 0) {
+    if (logo.size > 2 * 1024 * 1024) {
+      return { ok: false, error: "Logo melebihi 2 MB." };
+    }
+    try {
+      const buffer = Buffer.from(await logo.arrayBuffer());
+      logoSrc = await uploadPkgLogo(pkgId, { name: logo.name, type: logo.type, buffer });
+    } catch (e) {
+      return { ok: false, error: e instanceof Error ? e.message : String(e) };
+    }
+  }
+
   await db
     .update(pkgs)
-    .set({ whatsappAdminPhone: phone || null })
+    .set({ whatsappAdminPhone: phone || null, ...(logoSrc ? { logoSrc } : {}) })
     .where(eq(pkgs.id, pkgId));
 
   revalidatePath(`/admin/tempahan/${pkgId}`);
