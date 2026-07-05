@@ -34,7 +34,7 @@ const TABS: Tab[] = [
     ),
   },
   {
-    href: "/laporan-dpd",
+    href: "/laporan",
     label: "Laporan",
     match: (p) => p.startsWith("/laporan"),
     icon: (

@@ -1,12 +1,19 @@
+import { resolveLaporanModuleHref } from "./laporan-entry";
+
 export type ModuleTheme = {
   accent: string;
   eyebrow: string;
   title: string;
 };
 
+const dpdEntry = resolveLaporanModuleHref("dpd", "/laporan-dpd");
+const pssEntry = resolveLaporanModuleHref("pss", "/laporan-pss");
+
 export const MODULES = [
   {
-    href: "/laporan-dpd",
+    href: dpdEntry.href,
+    internalHref: "/laporan-dpd",
+    external: dpdEntry.external,
     title: "Laporan DPD",
     description:
       "Hantar laporan program pendigitalan dan jana laporan rasmi secara automatik.",
@@ -14,7 +21,9 @@ export const MODULES = [
     iconKey: "laporan" as const,
   },
   {
-    href: "/laporan-pss",
+    href: pssEntry.href,
+    internalHref: "/laporan-pss",
+    external: pssEntry.external,
     title: "Laporan PSS",
     description:
       "Pelaporan aktiviti Pusat Sumber Sekolah untuk semua sekolah daerah Manjung.",
@@ -23,6 +32,8 @@ export const MODULES = [
   },
   {
     href: "/direktori",
+    internalHref: "/direktori",
+    external: false,
     title: "Direktori GPICT",
     description:
       "Direktori Guru Penyelaras ICT, GP DELIMa dan GPM sekolah — cari dan kemas kini.",
@@ -31,6 +42,8 @@ export const MODULES = [
   },
   {
     href: "/tempahan",
+    internalHref: "/tempahan",
+    external: false,
     title: "Tempahan PKG",
     description:
       "Tempah bilik dan kemudahan di 5 Pusat Kegiatan Guru daerah Manjung.",
@@ -39,6 +52,8 @@ export const MODULES = [
   },
   {
     href: "/sumber",
+    internalHref: "/sumber",
+    external: false,
     title: "Sumber USTP",
     description:
       "Kertas kerja, laporan, hebahan dan bahan sokongan USTP — semua dalam satu tempat.",
@@ -47,6 +62,8 @@ export const MODULES = [
   },
   {
     href: "/analisis",
+    internalHref: "/analisis",
+    external: false,
     title: "Analisis USTP",
     description:
       "Analisis DELIMa, DCS, Program Ains, Pensijilan Digital dan AI Tools daerah Manjung.",
@@ -55,6 +72,8 @@ export const MODULES = [
   },
   {
     href: "/maklumat-asas",
+    internalHref: "/maklumat-asas",
+    external: false,
     title: "Maklumat Asas",
     description:
       "Carta organisasi, maklumat PKG/COE, takwim dan pegawai USTP PPD Manjung.",
@@ -67,9 +86,11 @@ export const MODULES = [
 export const HOME_MODULES = MODULES;
 
 export function getModuleThemeForPath(path: string): ModuleTheme {
-  const sorted = [...MODULES].sort((a, b) => b.href.length - a.href.length);
+  const sorted = [...MODULES].sort(
+    (a, b) => b.internalHref.length - a.internalHref.length,
+  );
   for (const mod of sorted) {
-    if (path === mod.href || path.startsWith(`${mod.href}/`)) {
+    if (path === mod.internalHref || path.startsWith(`${mod.internalHref}/`)) {
       return { accent: mod.accent, eyebrow: mod.title, title: mod.title };
     }
   }
@@ -87,6 +108,6 @@ export function getModuleThemeForPath(path: string): ModuleTheme {
 }
 
 export function getModuleAccent(href: string): string {
-  const mod = MODULES.find((m) => m.href === href);
+  const mod = MODULES.find((m) => m.internalHref === href || m.href === href);
   return mod?.accent ?? "#024AD8";
 }

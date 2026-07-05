@@ -163,12 +163,13 @@ export default async function HomePage() {
         <div className="grid gap-4 sm:grid-cols-2">
           {HOME_MODULES.map((mod, index) => (
             <ModuleCard
-              key={mod.href}
+              key={mod.internalHref}
               href={mod.href}
               title={mod.title}
               description={mod.description}
               accent={mod.accent}
               index={index}
+              external={mod.external}
               icon={<HomeModuleIcon iconKey={mod.iconKey} />}
             />
           ))}

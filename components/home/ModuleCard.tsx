@@ -11,6 +11,7 @@ type ModuleCardProps = {
   icon: ReactNode;
   accent: string;
   index: number;
+  external?: boolean;
 };
 
 export function ModuleCard({
@@ -20,6 +21,7 @@ export function ModuleCard({
   icon,
   accent,
   index,
+  external = false,
 }: ModuleCardProps) {
   const { ref, visible } = useScrollReveal<HTMLAnchorElement>();
 
@@ -27,6 +29,8 @@ export function ModuleCard({
     <Link
       ref={ref}
       href={href}
+      target={external ? "_blank" : undefined}
+      rel={external ? "noopener noreferrer" : undefined}
       className={`portal-module-card group${visible ? " is-visible" : ""}`}
       style={
         {
