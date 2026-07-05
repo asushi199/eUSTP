@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { withDbTimeout } from "@/lib/db";
 import { getDpdSummary } from "@/lib/stats/dpd";
 import { getPssSummary } from "@/lib/stats/pss";
 
@@ -85,18 +86,31 @@ const MODULES = [
 ];
 
 export default async function HomePage() {
-  // Halaman utama mesti sentiasa render — jika DB perlahan/gagal, papar 0 dahulu.
+  /**
+   * Halaman utama mesti sentiasa render. Jika DB gagal/lambat (>8s), JANGAN
+   * papar angka palsu — papar notis "statistik tidak tersedia" secara jujur,
+   * dan log ralat sebenar ke log Vercel untuk diagnosis.
+   */
   const [dpd, pss] = await Promise.all([
-    getDpdSummary().catch(() => null),
-    getPssSummary().catch(() => null),
+    withDbTimeout(getDpdSummary()).catch((e) => {
+      console.error("[home] getDpdSummary gagal:", e instanceof Error ? e.message : e);
+      return null;
+    }),
+    withDbTimeout(getPssSummary()).catch((e) => {
+      console.error("[home] getPssSummary gagal:", e instanceof Error ? e.message : e);
+      return null;
+    }),
   ]);
-  const tiles = [
-    { label: "Program Pendigitalan (DPD)", value: dpd?.jumlahProgram ?? 0 },
-    { label: "Bil. Murid Terlibat", value: dpd?.bilMurid ?? 0 },
-    { label: "Bil. Pendidik Terlibat", value: dpd?.bilPendidik ?? 0 },
-    { label: "Laporan PSS", value: pss?.jumlahLaporan ?? 0 },
-    { label: "Laporan PSS Bulan Ini", value: pss?.laporanBulanIni ?? 0 },
-  ];
+  const statsOk = dpd !== null && pss !== null;
+  const tiles = statsOk
+    ? [
+        { label: "Program Pendigitalan (DPD)", value: dpd.jumlahProgram },
+        { label: "Bil. Murid Terlibat", value: dpd.bilMurid },
+        { label: "Bil. Pendidik Terlibat", value: dpd.bilPendidik },
+        { label: "Laporan PSS", value: pss.jumlahLaporan },
+        { label: "Laporan PSS Bulan Ini", value: pss.laporanBulanIni },
+      ]
+    : [];
 
   return (
     <>
@@ -124,16 +138,23 @@ export default async function HomePage() {
             Lihat statistik penuh
           </Link>
         </div>
-        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-          {tiles.map((t) => (
-            <div key={t.label} className="card p-4">
-              <p className="text-2xl font-semibold tabular-nums tracking-tight">
-                {t.value.toLocaleString("ms-MY")}
-              </p>
-              <p className="mt-1 text-xs leading-snug text-graphite">{t.label}</p>
-            </div>
-          ))}
-        </div>
+        {statsOk ? (
+          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+            {tiles.map((t) => (
+              <div key={t.label} className="card p-4">
+                <p className="text-2xl font-semibold tabular-nums tracking-tight">
+                  {t.value.toLocaleString("ms-MY")}
+                </p>
+                <p className="mt-1 text-xs leading-snug text-graphite">{t.label}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="card-cloud mt-3 p-4 text-sm text-graphite">
+            Statistik tidak dapat dimuatkan buat masa ini. Sila muat semula
+            halaman sebentar lagi.
+          </div>
+        )}
       </section>
 
       {/* Grid modul — corak card-category-icon hp */}
