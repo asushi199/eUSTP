@@ -10,16 +10,32 @@ export function isRoomPhotoStorageConfigured(): boolean {
   );
 }
 
+/** Buang petik/ruang/newline yang tersalin bersama nilai env (punca "Invalid Compact JWS"). */
+function cleanEnv(value: string | undefined): string {
+  let v = (value ?? "").trim();
+  if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
+    v = v.slice(1, -1).trim();
+  }
+  return v;
+}
+
 export async function uploadRoomPhoto(
   pkgId: string,
   roomSlug: string,
   file: { name: string; type: string; buffer: Buffer },
 ): Promise<string> {
-  const base = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "");
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const bucket = process.env.SUPABASE_STORAGE_BUCKET || "room-photos";
+  const base = cleanEnv(process.env.NEXT_PUBLIC_SUPABASE_URL).replace(/\/$/, "");
+  const key = cleanEnv(process.env.SUPABASE_SERVICE_ROLE_KEY);
+  const bucket = cleanEnv(process.env.SUPABASE_STORAGE_BUCKET) || "room-photos";
   if (!base || !key) {
     throw new Error("Supabase Storage belum dikonfigurasi (URL + SERVICE_ROLE_KEY).");
+  }
+  // service_role Storage ialah JWT (eyJ...). Kunci baharu sb_secret_... tidak diterima.
+  if (!key.startsWith("eyJ")) {
+    throw new Error(
+      "SUPABASE_SERVICE_ROLE_KEY bukan kunci JWT service_role (patut bermula 'eyJ'). " +
+        "Salin kunci 'service_role' (legacy JWT) dari Supabase → Settings → API.",
+    );
   }
 
   const ext =
