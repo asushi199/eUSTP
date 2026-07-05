@@ -2,6 +2,33 @@
 
 Log keputusan & konteks untuk sesi AI akan datang. Tambah entri terbaru di atas.
 
+## 2026-07-05 — OSC One Stop Center + jalur Analisis halaman utama
+
+- **OSC:** Sumber USTP + Analisis USTP + Maklumat Asas digabung di bawah satu
+  payung "OSC USTP" (One Stop Center). Hub baharu `app/(public)/osc/page.tsx`
+  (statik, tiada DB) dengan 3 kad seksyen bertag kategori. Laluan lama
+  `/sumber`, `/analisis`, `/maklumat-asas` KEKAL (deep link tidak pecah);
+  eyebrow ketiga-tiga halaman kini "OSC USTP · …".
+- `lib/module-theme.ts`: `MODULES` kini termasuk entri `/osc`;
+  `HOME_MODULES` = 5 kad (DPD, PSS, Direktori, Tempahan, OSC);
+  `OSC_SECTIONS` = 3 sub-modul OSC. Hero halaman utama: 07 → 05 modul.
+- TopNav: pautan Sumber+Analisis → satu pautan "OSC USTP". BottomTabBar:
+  tab Sumber → tab OSC (match /osc|/sumber|/analisis|/maklumat-asas).
+- Admin overview (`/admin`) dikumpul ikut seksyen: Pelaporan / OSC One Stop
+  Center (Sumber, Analisis, Pegawai, Tetapan Maklumat Asas) / Perkhidmatan
+  (Direktori, Tempahan) / Sistem (Pengguna). RBAC tidak berubah.
+- **Jalur "Analisis Semasa" halaman utama:** petak DPD/PSS digantikan dengan
+  5 kad Analisis USTP (DELIMa, DCS, Ains, Pensijilan, OPTIK); klik kad buka
+  modal carta penuh (`components/home/HomeAnalisisBand.tsx`, carta recharts
+  dimuat malas via `next/dynamic ssr:false`). Data dari
+  `lib/analisis/summary.ts` (`getAnalisisHomeSummary`) — pengiraan selari
+  dengan `/analisis`; jika metrik berubah di sana, kemas kini di sini juga.
+- Petak statistik DPD/PSS: kod dikekalkan di sebalik flag
+  `SHOW_LAPORAN_TILES=false` dalam `app/(public)/page.tsx` — pelaporan 2026
+  masih guna Looker Studio; buka semula selepas migrasi.
+- Disahkan: `typecheck` + `build` lulus; smoke `/`, `/osc`, modal DELIMa
+  (tile + carta trend render dengan data produksi) — tiada ralat konsol.
+
 ## 2026-07-05 — Diagnosis produksi: halaman tergantung 300s (SELESAI)
 
 **Gejala:** Di Vercel, semua halaman yang query DB tergantung sehingga 504

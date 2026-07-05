@@ -1,6 +1,6 @@
-import type { HOME_MODULES } from "@/lib/home-modules";
+import type { MODULES } from "@/lib/home-modules";
 
-type IconKey = (typeof HOME_MODULES)[number]["iconKey"];
+type IconKey = (typeof MODULES)[number]["iconKey"];
 
 const iconClass = "h-7 w-7";
 
@@ -94,6 +94,23 @@ export function HomeModuleIcon({ iconKey }: { iconKey: IconKey }) {
           className={iconClass}
         >
           <path d="M4 20V10M10 20V4M16 20v-8M22 20H2" />
+        </svg>
+      );
+    case "osc":
+      return (
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.6}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={iconClass}
+        >
+          <rect x="3" y="3" width="8" height="8" rx="1.5" />
+          <rect x="13" y="3" width="8" height="8" rx="1.5" />
+          <rect x="3" y="13" width="8" height="8" rx="1.5" />
+          <path d="M17 13v8M13 17h8" />
         </svg>
       );
     case "maklumat":

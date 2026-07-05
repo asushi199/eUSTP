@@ -120,7 +120,7 @@ export default async function AnalisisPage() {
   return (
     <PublicPageShell>
       <PageHeader
-        eyebrow="Analisis USTP"
+        eyebrow="OSC USTP · Analisis"
         title="Analisis USTP"
         accent={accent}
         description="Analisis data teknologi pendidikan daerah Manjung — dikemas kini oleh pentadbir USTP."

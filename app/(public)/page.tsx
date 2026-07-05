@@ -1,14 +1,22 @@
 import Link from "next/link";
 import { withDbTimeout } from "@/lib/db";
 import { HOME_MODULES } from "@/lib/home-modules";
+import { getAnalisisHomeSummary } from "@/lib/analisis/summary";
 import { getDpdSummary } from "@/lib/stats/dpd";
 import { getPssSummary } from "@/lib/stats/pss";
 import { HomeAmbientScene } from "@/components/home/HomeAmbientScene";
+import HomeAnalisisBand from "@/components/home/HomeAnalisisBand";
 import { HeroVisual } from "@/components/home/HeroVisual";
 import { HomeModuleIcon } from "@/components/home/HomeModuleIcon";
 import { ModuleCard } from "@/components/home/ModuleCard";
 
 export const dynamic = "force-dynamic";
+
+/**
+ * Petak statistik DPD/PSS disorok buat sementara — pelaporan 2026 masih
+ * menggunakan Looker Studio. Tukar kepada true selepas migrasi statistik.
+ */
+const SHOW_LAPORAN_TILES: boolean = false;
 
 function AssuranceIcon() {
   return (
@@ -37,15 +45,26 @@ export default async function HomePage() {
    * papar angka palsu — papar notis "statistik tidak tersedia" secara jujur,
    * dan log ralat sebenar ke log Vercel untuk diagnosis.
    */
-  const [dpd, pss] = await Promise.all([
-    withDbTimeout(getDpdSummary()).catch((e) => {
-      console.error("[home] getDpdSummary gagal:", e instanceof Error ? e.message : e);
+  const [analisis, dpd, pss] = await Promise.all([
+    withDbTimeout(getAnalisisHomeSummary()).catch((e) => {
+      console.error(
+        "[home] getAnalisisHomeSummary gagal:",
+        e instanceof Error ? e.message : e,
+      );
       return null;
     }),
-    withDbTimeout(getPssSummary()).catch((e) => {
-      console.error("[home] getPssSummary gagal:", e instanceof Error ? e.message : e);
-      return null;
-    }),
+    SHOW_LAPORAN_TILES
+      ? withDbTimeout(getDpdSummary()).catch((e) => {
+          console.error("[home] getDpdSummary gagal:", e instanceof Error ? e.message : e);
+          return null;
+        })
+      : Promise.resolve(null),
+    SHOW_LAPORAN_TILES
+      ? withDbTimeout(getPssSummary()).catch((e) => {
+          console.error("[home] getPssSummary gagal:", e instanceof Error ? e.message : e);
+          return null;
+        })
+      : Promise.resolve(null),
   ]);
   const statsOk = dpd !== null && pss !== null;
   const tiles = statsOk
@@ -88,7 +107,7 @@ export default async function HomePage() {
             aria-label="Ringkasan portal"
           >
             {[
-              { value: "07", label: "MODUL DIGITAL" },
+              { value: "05", label: "MODUL DIGITAL" },
               { value: "05", label: "PKG DAERAH" },
               { value: "01", label: "PINTU MASUK" },
             ].map((item, i) => (
@@ -120,29 +139,38 @@ export default async function HomePage() {
         <div className="mx-auto max-w-6xl">
           <div className="flex items-end justify-between gap-3">
             <h2 className="text-sm font-semibold uppercase tracking-[0.7px] text-graphite">
-              Statistik Semasa
+              Analisis Semasa
             </h2>
-            <Link href="/statistik" className="link-blue text-sm">
-              Lihat statistik penuh
+            <Link href="/analisis" className="link-blue text-sm">
+              Lihat analisis penuh
             </Link>
           </div>
-          {statsOk ? (
-            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-              {tiles.map((t) => (
-                <div key={t.label} className="card p-4">
-                  <p className="text-2xl font-semibold tabular-nums tracking-tight text-primary">
-                    {t.value.toLocaleString("ms-MY")}
-                  </p>
-                  <p className="mt-1 text-xs leading-snug text-graphite">{t.label}</p>
-                </div>
-              ))}
-            </div>
+          {analisis ? (
+            <HomeAnalisisBand modules={analisis} />
           ) : (
             <div className="card mt-3 p-4 text-sm text-graphite">
-              Statistik tidak dapat dimuatkan buat masa ini. Sila muat semula halaman
+              Analisis tidak dapat dimuatkan buat masa ini. Sila muat semula halaman
               sebentar lagi.
             </div>
           )}
+          {SHOW_LAPORAN_TILES ? (
+            statsOk ? (
+              <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+                {tiles.map((t) => (
+                  <div key={t.label} className="card p-4">
+                    <p className="text-2xl font-semibold tabular-nums tracking-tight text-primary">
+                      {t.value.toLocaleString("ms-MY")}
+                    </p>
+                    <p className="mt-1 text-xs leading-snug text-graphite">{t.label}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="card mt-3 p-4 text-sm text-graphite">
+                Statistik laporan tidak dapat dimuatkan buat masa ini.
+              </div>
+            )
+          ) : null}
         </div>
       </section>
 
@@ -153,7 +181,7 @@ export default async function HomePage() {
               {"// 01 — MODUL"}
             </p>
             <h2 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
-              Satu portal, tujuh laluan kerja.
+              Satu portal, lima laluan kerja.
             </h2>
           </div>
           <p className="max-w-sm text-sm leading-relaxed text-graphite">

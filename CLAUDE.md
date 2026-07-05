@@ -41,8 +41,15 @@ GPICT/DELIMa/GPM, Tempahan PKG, Portal Sumber/Analisis/Maklumat Asas). Sumber as
 - **TIADA Supabase Storage** — imej statik dalam `public/`, fail luaran kekal
   sebagai URL (Drive/Canva/YouTube); gambar bilik tempahan (Fasa D) juga guna
   saluran GAS→Drive, bukan bucket.
-- `lib/stats/` — satu statistik satu fungsi; carta recharts hanya di
-  `/statistik` & `/analisis`, JANGAN masuk halaman utama.
+- `lib/stats/` — satu statistik satu fungsi; carta recharts di `/statistik`,
+  `/analisis` dan modal Analisis halaman utama (`HomeAnalisisBand`, dimuat
+  malas via `next/dynamic` — JANGAN import recharts terus dalam halaman utama).
+- **OSC (One Stop Center):** `/osc` ialah hub yang menaungi `/sumber`,
+  `/analisis`, `/maklumat-asas`. Halaman utama papar 5 kad (`HOME_MODULES`);
+  senarai penuh + tema warna dalam `lib/module-theme.ts` (`MODULES`,
+  `OSC_SECTIONS`).
+- Petak statistik DPD/PSS halaman utama disorok (`SHOW_LAPORAN_TILES=false`
+  dalam `app/(public)/page.tsx`) — pelaporan 2026 masih guna Looker Studio.
 
 ## Selepas setiap fasa
 

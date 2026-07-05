@@ -21,7 +21,7 @@ export default async function SumberPage() {
   return (
     <PublicPageShell>
       <PageHeader
-        eyebrow="Sumber USTP"
+        eyebrow="OSC USTP · Sumber"
         title="Sumber USTP"
         accent={accent}
         description="Bahan rasmi Unit Sumber Teknologi Pendidikan PPD Manjung — kertas kerja, laporan, hebahan dan bahan sokongan, dikemas kini oleh pentadbir."

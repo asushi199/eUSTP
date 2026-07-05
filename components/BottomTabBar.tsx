@@ -46,12 +46,19 @@ const TABS: Tab[] = [
     ),
   },
   {
-    href: "/sumber",
-    label: "Sumber",
-    match: (p) => p.startsWith("/sumber") || p.startsWith("/analisis"),
+    href: "/osc",
+    label: "OSC",
+    match: (p) =>
+      p.startsWith("/osc") ||
+      p.startsWith("/sumber") ||
+      p.startsWith("/analisis") ||
+      p.startsWith("/maklumat-asas"),
     icon: (
       <svg {...iconProps}>
-        <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+        <rect x="3" y="3" width="8" height="8" rx="1.5" />
+        <rect x="13" y="3" width="8" height="8" rx="1.5" />
+        <rect x="3" y="13" width="8" height="8" rx="1.5" />
+        <path d="M17 13v8M13 17h8" />
       </svg>
     ),
   },

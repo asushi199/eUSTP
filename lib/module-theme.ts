@@ -9,6 +9,18 @@ export type ModuleTheme = {
 const dpdEntry = resolveLaporanModuleHref("dpd", "/laporan-dpd");
 const pssEntry = resolveLaporanModuleHref("pss", "/laporan-pss");
 
+/** Hub OSC (One Stop Center) — menggabungkan Sumber, Analisis & Maklumat Asas. */
+const OSC_MODULE = {
+  href: "/osc",
+  internalHref: "/osc",
+  external: false,
+  title: "OSC USTP",
+  description:
+    "One Stop Center USTP — sumber, analisis dan maklumat asas dalam satu pusat.",
+  accent: "#0EA5C9",
+  iconKey: "osc" as const,
+} as const;
+
 export const MODULES = [
   {
     href: dpdEntry.href,
@@ -50,6 +62,7 @@ export const MODULES = [
     accent: "#D97706",
     iconKey: "tempahan" as const,
   },
+  OSC_MODULE,
   {
     href: "/sumber",
     internalHref: "/sumber",
@@ -82,8 +95,18 @@ export const MODULES = [
   },
 ] as const;
 
-/** @deprecated Use MODULES from module-theme */
-export const HOME_MODULES = MODULES;
+/** Sub-modul yang dinaungi OSC — dipapar dalam hub /osc. */
+export const OSC_SECTIONS = MODULES.filter((m) =>
+  ["/sumber", "/analisis", "/maklumat-asas"].includes(m.internalHref),
+);
+
+/**
+ * Kad halaman utama: 5 laluan — Sumber/Analisis/Maklumat Asas digabung
+ * di bawah satu kad OSC (One Stop Center).
+ */
+export const HOME_MODULES = MODULES.filter(
+  (m) => !OSC_SECTIONS.some((s) => s.internalHref === m.internalHref),
+);
 
 export function getModuleThemeForPath(path: string): ModuleTheme {
   const sorted = [...MODULES].sort(

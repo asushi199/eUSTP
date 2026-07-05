@@ -52,7 +52,7 @@ export default async function MaklumatAsasPage() {
   return (
     <PublicPageShell>
       <PageHeader
-        eyebrow="Maklumat Asas"
+        eyebrow="OSC USTP · Maklumat Asas"
         title="Maklumat Asas"
         accent={accent}
         description="Organisasi, kemudahan dan takwim Unit Sumber Teknologi Pendidikan PPD Manjung."
