@@ -2,6 +2,14 @@
 
 Log keputusan & konteks untuk sesi AI akan datang. Tambah entri terbaru di atas.
 
+## 2026-07-05 — Kemaskini ikon PWA jenama baharu
+
+- `public/icons/icon-192.png`, `icon-512.png`, `apple-touch-icon.png` ditukar
+  kepada logo "e" gradien biru-ungu + 4 modul (jenama eUSTP Manjung terkini).
+  Sumber logo diresize guna `sharp` (192/512/180px), `app/manifest.ts` dan
+  `app/layout.tsx` (apple icon) tidak berubah — laluan fail kekal sama.
+- `npm run typecheck` + `npm run build` lulus selepas tukar.
+
 ## 2026-07-05 — Migrasi data Direktori dari DashboardGPMICT (SELESAI)
 
 - Skrip: `scripts/migrate-direktori.ts` (sokong `--dry-run`). Sumber = Supabase
