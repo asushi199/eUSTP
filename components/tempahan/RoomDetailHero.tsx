@@ -41,17 +41,22 @@ export default function RoomDetailHero({
             <p className="text-[10px] font-semibold uppercase tracking-wide text-primary">{category}</p>
           )}
           <h1 className="truncate text-lg font-semibold tracking-tight">{titleCase(name)}</h1>
-          <RoomCapacityBadge capacity={capacity} prominent className="mt-1" />
-          {amenities.length > 0 && (
-            <button
-              type="button"
-              className="mt-1 text-xs font-medium text-primary hover:underline"
-              onClick={() => setAmenitiesOpen((v) => !v)}
-              aria-expanded={amenitiesOpen}
-            >
-              {amenities.length} kemudahan {amenitiesOpen ? "▴" : "▾"}
-            </button>
-          )}
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            <RoomCapacityBadge capacity={capacity} prominent />
+            {amenities.length > 0 && (
+              <>
+                <span aria-hidden className="h-4 w-px bg-fog" />
+                <button
+                  type="button"
+                  className="text-xs font-medium text-primary hover:underline"
+                  onClick={() => setAmenitiesOpen((v) => !v)}
+                  aria-expanded={amenitiesOpen}
+                >
+                  {amenities.length} kemudahan {amenitiesOpen ? "▴" : "▾"}
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </section>
 
