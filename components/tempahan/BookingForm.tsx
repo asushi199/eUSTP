@@ -10,6 +10,7 @@ import {
   type BookingLike,
   type Slot,
 } from "@/lib/tempahan/booking-rules";
+import { cn } from "@/lib/cn";
 
 type RoomOption = {
   slug: string;
@@ -30,6 +31,10 @@ export default function BookingForm({
   prefillDate,
   prefillSlot,
   prefillLabel,
+  variant = "embedded",
+  open = true,
+  onClose,
+  formId = "tempah",
 }: {
   pkgId: string;
   rooms: RoomOption[];
@@ -38,6 +43,10 @@ export default function BookingForm({
   prefillDate?: string;
   prefillSlot?: Slot;
   prefillLabel?: string;
+  variant?: "embedded" | "sheet";
+  open?: boolean;
+  onClose?: () => void;
+  formId?: string;
 }) {
   const [state, formAction, pending] = useActionState(createBookingAction, initialState);
   const [room, setRoom] = useState(defaultRoomSlug ?? rooms[0]?.slug ?? "");
@@ -54,24 +63,24 @@ export default function BookingForm({
     return getConflictingBooking(bookings, room, date, slot);
   }, [bookings, date, room, slot]);
 
-  return (
-    <section id="tempah" className="card scroll-mt-24 p-4 sm:p-6">
+  const body = (
+    <>
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
+        <div className="pr-8">
           <p className="text-xs font-semibold uppercase tracking-wide text-primary">Tempahan baharu</p>
-          <h2 className="mt-1 text-lg font-semibold sm:text-xl">Permohonan Baharu</h2>
+          <h2 className="mt-1 text-lg font-semibold lg:text-xl">Permohonan Baharu</h2>
         </div>
-        <span className="status-badge">
+        <span className="status-badge shrink-0">
           <span className="status-dot bg-amber-400" />
           Perlu kelulusan
         </span>
       </div>
-      <p className="mt-2 text-xs text-graphite sm:text-sm">
+      <p className="mt-2 text-xs text-graphite lg:text-sm">
         Selepas permohonan dihantar, klik butang WhatsApp untuk maklumkan admin.
       </p>
 
       {prefillLabel && (
-        <p className="mt-3 rounded-md border border-primary/25 bg-primary-soft/20 px-3 py-2 text-xs font-medium text-primary-deep sm:text-sm">
+        <p className="mt-3 rounded-md border border-primary/25 bg-primary-soft/20 px-3 py-2 text-xs font-medium text-primary-deep lg:text-sm">
           Slot dipilih: {prefillLabel}
         </p>
       )}
@@ -86,29 +95,35 @@ export default function BookingForm({
               href={state.whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-primary inline-flex w-full justify-center sm:w-auto"
+              className="btn-primary inline-flex w-full justify-center"
             >
               Hantar ke WhatsApp
             </a>
           )}
         </div>
       ) : (
-        <form action={formAction} className="mt-4 space-y-4 sm:mt-5">
+        <form action={formAction} className="mt-4 space-y-4 lg:mt-5">
           <input type="hidden" name="pkg" value={pkgId} />
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 lg:grid-cols-1">
             <div>
-              <label className="label" htmlFor="name">
+              <label className="label" htmlFor={`${formId}-name`}>
                 Nama *
               </label>
-              <input id="name" name="name" className="input" placeholder="Nama pemohon" required />
+              <input
+                id={`${formId}-name`}
+                name="name"
+                className="input"
+                placeholder="Nama pemohon"
+                required
+              />
             </div>
             <div>
-              <label className="label" htmlFor="school_or_unit">
+              <label className="label" htmlFor={`${formId}-school`}>
                 Sekolah / Unit *
               </label>
               <input
-                id="school_or_unit"
+                id={`${formId}-school`}
                 name="school_or_unit"
                 className="input"
                 placeholder="Contoh: SK Sitiawan"
@@ -118,11 +133,11 @@ export default function BookingForm({
           </div>
 
           <div>
-            <label className="label" htmlFor="purpose">
+            <label className="label" htmlFor={`${formId}-purpose`}>
               Tujuan *
             </label>
             <input
-              id="purpose"
+              id={`${formId}-purpose`}
               name="purpose"
               className="input"
               placeholder="Contoh: Mesyuarat kurikulum"
@@ -131,11 +146,11 @@ export default function BookingForm({
           </div>
 
           <div>
-            <label className="label" htmlFor="contact">
+            <label className="label" htmlFor={`${formId}-contact`}>
               Nombor telefon *
             </label>
             <input
-              id="contact"
+              id={`${formId}-contact`}
               name="contact"
               className="input"
               inputMode="tel"
@@ -144,13 +159,13 @@ export default function BookingForm({
             />
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 lg:grid-cols-1">
             <div>
-              <label className="label" htmlFor="date">
+              <label className="label" htmlFor={`${formId}-date`}>
                 Tarikh *
               </label>
               <input
-                id="date"
+                id={`${formId}-date`}
                 name="date"
                 type="date"
                 className="input"
@@ -160,11 +175,11 @@ export default function BookingForm({
               />
             </div>
             <div>
-              <label className="label" htmlFor="room">
+              <label className="label" htmlFor={`${formId}-room`}>
                 Bilik *
               </label>
               <select
-                id="room"
+                id={`${formId}-room`}
                 name="room"
                 className="input"
                 value={room}
@@ -180,11 +195,11 @@ export default function BookingForm({
           </div>
 
           <div>
-            <label className="label" htmlFor="slot">
+            <label className="label" htmlFor={`${formId}-slot`}>
               Slot *
             </label>
             <select
-              id="slot"
+              id={`${formId}-slot`}
               name="slot"
               className="input"
               value={slot}
@@ -213,13 +228,56 @@ export default function BookingForm({
 
           <button
             type="submit"
-            className="btn-primary w-full sm:w-auto"
+            className="btn-primary w-full"
             disabled={pending || Boolean(conflict)}
           >
             {pending ? "Menghantar…" : "Hantar Permohonan"}
           </button>
         </form>
       )}
+    </>
+  );
+
+  if (variant === "sheet") {
+    if (!open) return null;
+
+    return (
+      <>
+        <button
+          type="button"
+          aria-label="Tutup borang tempahan"
+          className="fixed inset-0 z-50 bg-ink/45 backdrop-blur-[1px]"
+          onClick={onClose}
+        />
+        <section
+          id={formId}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={`${formId}-title`}
+          className={cn(
+            "booking-sheet fixed bottom-0 left-0 right-0 z-[60] max-h-[92vh] overflow-y-auto",
+            "rounded-t-2xl border-t border-fog bg-white p-5 pb-8 shadow-modal",
+          )}
+        >
+          {onClose && (
+            <button
+              type="button"
+              aria-label="Tutup"
+              className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full border hairline bg-cloud text-lg text-graphite hover:text-ink"
+              onClick={onClose}
+            >
+              ×
+            </button>
+          )}
+          <div id={`${formId}-title`}>{body}</div>
+        </section>
+      </>
+    );
+  }
+
+  return (
+    <section id={formId} className="card scroll-mt-24 p-4 lg:p-6">
+      {body}
     </section>
   );
 }

@@ -61,6 +61,18 @@
   .link-blue {
     @apply font-medium text-primary hover:text-primary-deep hover:underline;
   }
+  .booking-sheet {
+    animation: booking-sheet-up 280ms cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+}
+
+@keyframes booking-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
 }
 
 @media print {
