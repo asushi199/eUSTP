@@ -3,7 +3,7 @@ import { withDbTimeout } from "@/lib/db";
 import { HOME_MODULES } from "@/lib/home-modules";
 import { getDpdSummary } from "@/lib/stats/dpd";
 import { getPssSummary } from "@/lib/stats/pss";
-import { AmbientScene } from "@/components/home/AmbientScene";
+import { HomeAmbientScene } from "@/components/home/HomeAmbientScene";
 import { HeroVisual } from "@/components/home/HeroVisual";
 import { HomeModuleIcon } from "@/components/home/HomeModuleIcon";
 import { ModuleCard } from "@/components/home/ModuleCard";
@@ -60,13 +60,13 @@ export default async function HomePage() {
 
   return (
     <>
-      <AmbientScene />
+      <HomeAmbientScene />
 
-      <section className="portal-home mx-auto grid max-w-6xl items-center gap-10 px-4 pb-8 pt-12 sm:px-8 sm:pt-16 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12 lg:pb-10">
-        <div>
-          <p className="portal-home-hero-delay-1 mb-4 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-            <span className="h-0.5 w-7 rounded bg-primary" aria-hidden />
-            PPD Manjung · Unit Sumber dan Teknologi Pendidikan
+      <section className="portal-home mx-auto grid w-full max-w-6xl items-center gap-10 overflow-x-clip px-4 pb-8 pt-12 sm:px-8 sm:pt-16 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12 lg:pb-10">
+        <div className="min-w-0">
+          <p className="portal-home-hero-delay-1 mb-4 flex max-w-full items-center gap-3 text-[10px] font-semibold uppercase leading-snug tracking-[0.1em] text-primary sm:text-xs sm:tracking-[0.14em]">
+            <span className="h-0.5 w-7 shrink-0 rounded bg-primary" aria-hidden />
+            <span>PPD Manjung · Unit Sumber dan Teknologi Pendidikan</span>
           </p>
           <h1 className="portal-home-hero-delay-2 max-w-2xl text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl lg:text-[3.25rem]">
             <span className="block text-graphite">Portal Digital</span>
@@ -84,7 +84,7 @@ export default async function HomePage() {
             <span aria-hidden>↓</span>
           </a>
           <div
-            className="portal-home-hero-delay-3 mt-10 flex flex-wrap gap-0 border-l-0 sm:gap-0"
+            className="portal-home-hero-delay-3 mt-10 flex max-w-full flex-wrap gap-y-4"
             aria-label="Ringkasan portal"
           >
             {[
@@ -94,7 +94,7 @@ export default async function HomePage() {
             ].map((item, i) => (
               <div
                 key={item.label}
-                className={`px-6 py-0 ${i === 0 ? "pl-0" : "border-l-2 border-primary/12"}`}
+                className={`min-w-0 py-0 ${i === 0 ? "pr-4 sm:pr-6" : "border-l-2 border-primary/12 px-4 sm:px-6"}`}
               >
                 <p className="text-2xl font-bold tabular-nums text-primary">{item.value}</p>
                 <p className="mt-1 text-[10px] font-semibold tracking-[0.16em] text-graphite">

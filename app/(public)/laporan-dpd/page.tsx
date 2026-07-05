@@ -1,18 +1,24 @@
 import LaporanDpdForm from "@/components/laporan/LaporanDpdForm";
+import PageHeader from "@/components/PageHeader";
+import PublicPageShell from "@/components/PublicPageShell";
+import { getModuleAccent } from "@/lib/module-theme";
 
 export const metadata = { title: "Laporan DPD — eUSTP Manjung" };
 
 export default function LaporanDpdPage() {
+  const accent = getModuleAccent("/laporan-dpd");
+
   return (
-    <div className="mx-auto max-w-3xl px-4 py-12 sm:px-8">
-      <h1 className="text-3xl font-medium tracking-tight">Laporan DPD</h1>
-      <p className="mt-2 text-graphite">
-        Laporan Program Pendigitalan Sekolah, PPD Manjung. Laporan web dijana
-        serta-merta selepas hantaran — boleh dicetak atau disimpan sebagai PDF.
-      </p>
+    <PublicPageShell narrow>
+      <PageHeader
+        eyebrow="Laporan DPD"
+        title="Laporan DPD"
+        accent={accent}
+        description="Laporan Program Pendigitalan Sekolah, PPD Manjung. Laporan web dijana serta-merta selepas hantaran — boleh dicetak atau disimpan sebagai PDF."
+      />
       <div className="mt-8">
         <LaporanDpdForm />
       </div>
-    </div>
+    </PublicPageShell>
   );
 }

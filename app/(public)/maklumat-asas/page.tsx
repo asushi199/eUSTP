@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import PageHeader from "@/components/PageHeader";
+import PublicPageShell from "@/components/PublicPageShell";
 import { getSettings, listPegawaiAktif } from "@/lib/maklumat/queries";
 import { driveFilePreviewUrl, driveImageUrl } from "@/lib/kandungan/embed-urls";
+import { getModuleAccent } from "@/lib/module-theme";
 import TakwimEmbed from "@/components/maklumat/TakwimEmbed";
 
 export const dynamic = "force-dynamic";
@@ -44,14 +47,16 @@ export default async function MaklumatAsasPage() {
   ]);
   const s = (k: string) => settings.get(k) ?? "";
 
+  const accent = getModuleAccent("/maklumat-asas");
+
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-8">
-      <header>
-        <h1 className="text-3xl font-medium tracking-tight sm:text-4xl">Maklumat Asas</h1>
-        <p className="mt-2 max-w-xl leading-relaxed text-graphite">
-          Organisasi, kemudahan dan takwim Unit Sumber Teknologi Pendidikan PPD Manjung.
-        </p>
-      </header>
+    <PublicPageShell>
+      <PageHeader
+        eyebrow="Maklumat Asas"
+        title="Maklumat Asas"
+        accent={accent}
+        description="Organisasi, kemudahan dan takwim Unit Sumber Teknologi Pendidikan PPD Manjung."
+      />
 
       {/* Carta organisasi + Maklumat PKG */}
       <div className="mt-8 grid gap-4 lg:grid-cols-2">
@@ -121,6 +126,6 @@ export default async function MaklumatAsasPage() {
           </div>
         </section>
       ) : null}
-    </div>
+    </PublicPageShell>
   );
 }

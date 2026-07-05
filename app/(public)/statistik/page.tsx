@@ -1,7 +1,10 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import PageHeader from "@/components/PageHeader";
+import PublicPageShell from "@/components/PublicPageShell";
 import { getDpdByTeras, getDpdKpiTiles, getDpdMonthly } from "@/lib/stats/dpd";
 import { getPssByDimensi, getPssKpiTiles, getPssMonthly, listPssPublic } from "@/lib/stats/pss";
+import { getModuleAccent } from "@/lib/module-theme";
 import StatKpiTiles from "@/components/stats/StatKpiTiles";
 import MonthlyLineChart from "@/components/stats/MonthlyLineChart";
 import BreakdownBarChart from "@/components/stats/BreakdownBarChart";
@@ -27,17 +30,16 @@ export default async function StatistikPage() {
       listPssPublic(1, 10),
     ]);
 
+  const accent = getModuleAccent("/statistik");
+
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-8">
-      <header>
-        <h1 className="text-3xl font-medium tracking-tight sm:text-4xl">
-          Statistik Laporan {tahun}
-        </h1>
-        <p className="mt-2 max-w-xl leading-relaxed text-graphite">
-          Data dikira terus daripada laporan yang dihantar oleh sekolah — dikemas
-          kini serta-merta selepas setiap hantaran.
-        </p>
-      </header>
+    <PublicPageShell>
+      <PageHeader
+        eyebrow="Statistik"
+        title={`Statistik Laporan ${tahun}`}
+        accent={accent}
+        description="Data dikira terus daripada laporan yang dihantar oleh sekolah — dikemas kini serta-merta selepas setiap hantaran."
+      />
 
       {/* ---------- DPD ---------- */}
       <section className="mt-10">
@@ -120,6 +122,6 @@ export default async function StatistikPage() {
           </Link>
         </div>
       </section>
-    </div>
+    </PublicPageShell>
   );
 }

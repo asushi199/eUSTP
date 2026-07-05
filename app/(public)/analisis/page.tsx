@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import { getAnalisisData, metricNum, metricText } from "@/lib/analisis/queries";
 import AnalisisKpiTiles from "@/components/analisis/AnalisisKpiTiles";
 import DelimaTrendChart from "@/components/analisis/DelimaTrendChart";
+import PageHeader from "@/components/PageHeader";
+import PublicPageShell from "@/components/PublicPageShell";
 import MonthlyLineChart from "@/components/stats/MonthlyLineChart";
 import BreakdownBarChart from "@/components/stats/BreakdownBarChart";
+import { getModuleAccent } from "@/lib/module-theme";
 
 export const dynamic = "force-dynamic";
 
@@ -112,19 +115,19 @@ export default async function AnalisisPage() {
     { label: "KPI Kebangsaan", value: pct(metricNum(optik.metrics, "kpi_kebangsaan")) },
   ];
 
-  return (
-    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-8">
-      <header>
-        <h1 className="text-3xl font-medium tracking-tight sm:text-4xl">Analisis USTP</h1>
-        <p className="mt-2 max-w-xl leading-relaxed text-graphite">
-          Analisis data teknologi pendidikan daerah Manjung — dikemas kini oleh
-          pentadbir USTP.
-        </p>
-      </header>
+  const accent = getModuleAccent("/analisis");
 
-      {/* Sub-navigasi sauh */}
+  return (
+    <PublicPageShell>
+      <PageHeader
+        eyebrow="Analisis USTP"
+        title="Analisis USTP"
+        accent={accent}
+        description="Analisis data teknologi pendidikan daerah Manjung — dikemas kini oleh pentadbir USTP."
+      />
+
       <nav
-        className="hairline sticky top-16 z-10 -mx-4 mt-6 overflow-x-auto border-b bg-white px-4 py-2 sm:-mx-8 sm:px-8"
+        className="hairline sticky top-16 z-10 mt-6 w-full overflow-x-auto border-b bg-white/90 py-2 backdrop-blur-sm"
         aria-label="Bahagian analisis"
       >
         <ul className="flex gap-4 whitespace-nowrap text-sm">
@@ -255,6 +258,6 @@ export default async function AnalisisPage() {
           label={metricText(optik.metrics, "source_label") || "Buka sumber OPTIK"}
         />
       </section>
-    </div>
+    </PublicPageShell>
   );
 }

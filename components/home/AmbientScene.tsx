@@ -2,8 +2,15 @@
 
 import { useEffect } from "react";
 
-export function AmbientScene() {
+type AmbientSceneProps = {
+  /** Pointer-follow glow — homepage only */
+  interactive?: boolean;
+};
+
+export function AmbientScene({ interactive = false }: AmbientSceneProps) {
   useEffect(() => {
+    if (!interactive) return;
+
     const canTrackPointer = window.matchMedia(
       "(pointer: fine) and (prefers-reduced-motion: no-preference)",
     );
@@ -24,14 +31,14 @@ export function AmbientScene() {
     }
 
     return () => window.removeEventListener("pointermove", updatePointer);
-  }, []);
+  }, [interactive]);
 
   return (
     <div className="portal-ambient" aria-hidden="true">
       <div className="portal-ambient-mesh" />
       <div className="portal-ambient-blob portal-ambient-blob-one" />
       <div className="portal-ambient-blob portal-ambient-blob-two" />
-      <div className="portal-pointer-glow" />
+      {interactive ? <div className="portal-pointer-glow" /> : null}
     </div>
   );
 }

@@ -4,9 +4,20 @@
 
 /* hp design language: kanvas putih, dakwat hampir-hitam, biru elektrik sebagai isyarat tunggal. */
 @layer base {
+  html {
+    overflow-x: clip;
+    max-width: 100%;
+  }
+
   html,
   body {
     @apply bg-white text-ink antialiased;
+    max-width: 100%;
+  }
+
+  body {
+    overflow-x: clip;
+    background-color: var(--portal-canvas, #f4f8fb);
   }
 }
 
@@ -35,6 +46,23 @@
   }
   .card {
     @apply rounded-xl border border-fog/70 bg-white shadow-lift;
+  }
+  .card-accent {
+    @apply card relative overflow-hidden pl-[calc(1.5rem+4px)];
+  }
+  .card-accent::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    border-radius: 16px 0 0 16px;
+    background: var(--card-accent, #024ad8);
+    transition: width 0.2s ease;
+  }
+  .card-accent:hover::before {
+    width: 6px;
   }
   .card-cloud {
     @apply rounded-xl bg-cloud;
@@ -95,6 +123,22 @@
   --portal-footer: #0f3d5c;
   --portal-pointer-x: 72vw;
   --portal-pointer-y: 16vh;
+}
+
+.portal-public-shell {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.portal-page-enter {
+  animation: portal-page-fade 0.35s ease both;
+}
+
+.portal-full-bleed {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .portal-ambient {
@@ -173,9 +217,17 @@
 .portal-hero-visual {
   position: relative;
   width: min(100%, 420px);
+  max-width: 100%;
   aspect-ratio: 1;
-  justify-self: end;
+  justify-self: center;
+  overflow: hidden;
   animation: portal-scale-in 1s 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@media (min-width: 1024px) {
+  .portal-hero-visual {
+    justify-self: end;
+  }
 }
 
 .portal-hero-visual::before {
@@ -286,34 +338,53 @@
 
 .portal-stat-pill-one {
   top: 20%;
-  right: -2%;
+  right: 0;
+  max-width: calc(100% - 1rem);
   animation: portal-float-pill 6s ease-in-out infinite alternate;
 }
 
 .portal-stat-pill-two {
   bottom: 18%;
-  left: -2%;
+  left: 0;
+  max-width: calc(100% - 1rem);
   animation: portal-float-pill 7s ease-in-out infinite alternate-reverse;
 }
 
 .portal-hero-wave {
-  width: 100vw;
-  margin-left: calc(50% - 50vw);
+  width: 100%;
+  max-width: 100%;
   line-height: 0;
   color: var(--portal-surface-muted);
+  overflow: hidden;
 }
 
 .portal-hero-wave svg {
   display: block;
   width: 100%;
   height: 48px;
-  animation: portal-wave-sway 8s ease-in-out infinite alternate;
+}
+
+@media (min-width: 769px) {
+  .portal-hero-wave svg {
+    animation: portal-wave-sway 8s ease-in-out infinite alternate;
+  }
+
+  .portal-stat-pill-one {
+    right: -2%;
+    max-width: none;
+  }
+
+  .portal-stat-pill-two {
+    left: -2%;
+    max-width: none;
+  }
 }
 
 .portal-stats-band {
   background: var(--portal-surface-muted);
-  width: 100vw;
-  margin-left: calc(50% - 50vw);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .portal-module-card {
@@ -383,6 +454,13 @@
   border: 1px solid color-mix(in srgb, var(--module-accent), transparent 75%);
 }
 
+@keyframes portal-page-fade {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
 @keyframes portal-gradient-shift {
   0% {
     transform: translate(0, 0) scale(1);
@@ -443,16 +521,13 @@
     justify-self: center;
   }
 
-  .portal-stat-pill-one {
-    right: 0;
-  }
-
-  .portal-stat-pill-two {
-    left: 0;
-  }
-
   .portal-module-card:hover {
     transform: translateY(0);
+  }
+
+  .portal-stat-pill {
+    font-size: 7px;
+    padding: 8px 10px;
   }
 }
 
@@ -467,7 +542,8 @@
   .portal-home-hero-delay-1,
   .portal-home-hero-delay-2,
   .portal-home-hero-delay-3,
-  .portal-hero-visual {
+  .portal-hero-visual,
+  .portal-page-enter {
     animation: none !important;
   }
 
