@@ -154,6 +154,14 @@ export async function createKhidmatBantuAction(
       whatsappUrl,
     };
   } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    if (msg.includes("khidmat_bantu_requests") && msg.includes("does not exist")) {
+      return {
+        ok: false,
+        message:
+          "Pangkalan data belum dikemaskini untuk modul Khidmat Bantu. Sila hubungi pentadbir USTP.",
+      };
+    }
     return {
       ok: false,
       message: error instanceof Error ? error.message : "Gagal menghantar permohonan.",

@@ -94,7 +94,7 @@ function RequestTable({
 
 export default async function AdminKhidmatBantuPage() {
   await requireKandunganAccess();
-  const { pending, others } = await listAdminKhidmatBantuRequests();
+  const { pending, others, dbNotReady } = await listAdminKhidmatBantuRequests();
 
   return (
     <>
@@ -112,15 +112,28 @@ export default async function AdminKhidmatBantuPage() {
         </Link>
       </div>
 
-      <section className="mt-6">
-        <h2 className="text-lg font-semibold">Menunggu Kelulusan ({pending.length})</h2>
-        <RequestTable rows={pending} emptyText="Tiada permohonan menunggu." />
-      </section>
+      {dbNotReady ? (
+        <div className="card mt-6 border-amber-200 bg-amber-50/80 p-6 text-sm leading-relaxed text-graphite">
+          <p className="font-semibold text-ink">Jadual pangkalan data belum sedia</p>
+          <p className="mt-2">
+            Modul Khidmat Bantu memerlukan migrasi <code className="text-xs">0006_khidmat_bantu</code>.
+            Jalankan <code className="text-xs">npm run db:migrate</code> pada pangkalan data
+            production (Supabase / Vercel Postgres), kemudian muat semula halaman ini.
+          </p>
+        </div>
+      ) : (
+        <>
+          <section className="mt-6">
+            <h2 className="text-lg font-semibold">Menunggu Kelulusan ({pending.length})</h2>
+            <RequestTable rows={pending} emptyText="Tiada permohonan menunggu." />
+          </section>
 
-      <section className="mt-8">
-        <h2 className="text-lg font-semibold">Sejarah Permohonan</h2>
-        <RequestTable rows={others} emptyText="Tiada rekod permohonan." />
-      </section>
+          <section className="mt-8">
+            <h2 className="text-lg font-semibold">Sejarah Permohonan</h2>
+            <RequestTable rows={others} emptyText="Tiada rekod permohonan." />
+          </section>
+        </>
+      )}
     </>
   );
 }

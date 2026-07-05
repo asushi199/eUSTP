@@ -19,6 +19,22 @@ export default function DirektoriPage() {
         description="Rujukan terkini GPM, GPICT dan GP DELIMa bagi semua sekolah daerah Manjung. Pilih peranan untuk melihat senarai."
       />
 
+      <AccentCard
+        accent={accent}
+        className="mt-8 flex flex-col items-start justify-between gap-4 p-6 sm:flex-row sm:items-center"
+      >
+        <div>
+          <p className="font-semibold">Maklumat sekolah anda berubah?</p>
+          <p className="mt-1 text-sm text-graphite">
+            Kemas kini nama dan nombor telefon guru penyelaras melalui borang awam —
+            tiada log masuk diperlukan.
+          </p>
+        </div>
+        <Link href="/direktori/kemaskini" className="btn-primary shrink-0">
+          Kemas Kini
+        </Link>
+      </AccentCard>
+
       <div className="mt-8 grid gap-4 sm:grid-cols-3">
         {ROLE_ORDER.map((role) => {
           const info = ROLE_INFO[role];
@@ -32,19 +48,6 @@ export default function DirektoriPage() {
           );
         })}
       </div>
-
-      <AccentCard accent={accent} className="mt-10 flex flex-col items-start justify-between gap-4 p-6 sm:flex-row sm:items-center">
-        <div>
-          <p className="font-semibold">Maklumat sekolah anda berubah?</p>
-          <p className="mt-1 text-sm text-graphite">
-            Kemas kini nama dan nombor telefon guru penyelaras melalui borang awam —
-            tiada log masuk diperlukan.
-          </p>
-        </div>
-        <Link href="/direktori/kemaskini" className="btn-primary shrink-0">
-          Kemas Kini
-        </Link>
-      </AccentCard>
     </PublicPageShell>
   );
 }

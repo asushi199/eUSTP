@@ -56,17 +56,26 @@ export async function getKhidmatBantuRequest(id: string): Promise<KhidmatBantuRo
 export async function listAdminKhidmatBantuRequests(): Promise<{
   pending: KhidmatBantuRow[];
   others: KhidmatBantuRow[];
+  dbNotReady?: boolean;
 }> {
-  const rows = await db
-    .select()
-    .from(khidmatBantuRequests)
-    .orderBy(desc(khidmatBantuRequests.createdAt));
+  try {
+    const rows = await db
+      .select()
+      .from(khidmatBantuRequests)
+      .orderBy(desc(khidmatBantuRequests.createdAt));
 
-  const mapped = rows.map(mapRow);
-  return {
-    pending: mapped.filter((r) => r.status === "pending"),
-    others: mapped.filter((r) => r.status !== "pending"),
-  };
+    const mapped = rows.map(mapRow);
+    return {
+      pending: mapped.filter((r) => r.status === "pending"),
+      others: mapped.filter((r) => r.status !== "pending"),
+    };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    if (msg.includes("khidmat_bantu_requests") && msg.includes("does not exist")) {
+      return { pending: [], others: [], dbNotReady: true };
+    }
+    throw error;
+  }
 }
 
 export async function getKhidmatBantuWhatsappAdmin(): Promise<string> {
