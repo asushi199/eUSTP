@@ -65,6 +65,11 @@ export default async function AdminOverviewPage() {
       title: "Direktori",
       description: "Sejarah versi, pemulihan dan eksport CSV.",
     });
+    perkhidmatan.push({
+      href: "/admin/khidmat-bantu",
+      title: "Khidmat Bantu",
+      description: "Kelulusan permohonan ceramah, bengkel dan perkhidmatan MCP.",
+    });
   }
   perkhidmatan.push({
     href: "/admin/tempahan",

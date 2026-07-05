@@ -20,7 +20,7 @@ export default async function PkgTempahanPage({
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-8">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <Link href="/tempahan" className="text-sm text-graphite hover:text-ink">
+          <Link href="/tempahan/bilik" className="text-sm text-graphite hover:text-ink">
             ← Semua PKG
           </Link>
           <div className="mt-2 flex items-center gap-3">

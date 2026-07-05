@@ -68,6 +68,23 @@ export function HomeModuleIcon({ iconKey }: { iconKey: IconKey }) {
           <path d="M8 3v4M16 3v4M4 10h16" />
         </svg>
       );
+    case "khidmat":
+      return (
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.6}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={iconClass}
+        >
+          <path d="M12 3v12" />
+          <path d="M8 7h8" />
+          <rect x="4" y="15" width="16" height="6" rx="2" />
+          <path d="M10 18h4" />
+        </svg>
+      );
     case "sumber":
       return (
         <svg

@@ -446,3 +446,50 @@ export const attendees = pgTable(
     bookingIdx: index("attendees_booking_idx").on(t.pkgId, t.bookingId, t.createdAt),
   }),
 );
+
+/* ==================== Modul Khidmat Bantu ==================== */
+
+export type KhidmatProgramDetails = {
+  tajuk: string;
+  tarikhCadangan: string;
+  masaCadangan: string;
+  lokasi: string;
+  bilPeserta: string;
+  catatan: string;
+};
+
+export type KhidmatMcpDetails = {
+  tajukProgram: string;
+  tarikh: string;
+  masa: string;
+  lokasi: string;
+  platform: string;
+  catatanTeknikal: string;
+};
+
+export type KhidmatBantuDetails = KhidmatProgramDetails | KhidmatMcpDetails;
+
+export const khidmatBantuRequests = pgTable(
+  "khidmat_bantu_requests",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    serviceType: text("service_type").notNull(),
+    applicantType: text("applicant_type").notNull(),
+    schoolCode: text("school_code").references(() => schools.code, { onDelete: "set null" }),
+    orgName: text("org_name").notNull(),
+    applicantName: text("applicant_name").notNull(),
+    contact: text("contact").notNull(),
+    contactNormalized: text("contact_normalized").notNull().default(""),
+    email: text("email"),
+    details: jsonb("details").$type<KhidmatBantuDetails>().notNull(),
+    status: bookingStatus("status").notNull().default("pending"),
+    approvalTokenHash: text("approval_token_hash"),
+    approvedAt: timestamp("approved_at", { withTimezone: true }),
+    rejectedAt: timestamp("rejected_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    statusIdx: index("khidmat_bantu_status_idx").on(t.status, t.createdAt),
+    contactIdx: index("khidmat_bantu_contact_idx").on(t.contactNormalized, t.status),
+  }),
+);

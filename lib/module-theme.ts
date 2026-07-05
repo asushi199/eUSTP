@@ -21,6 +21,18 @@ const OSC_MODULE = {
   iconKey: "osc" as const,
 } as const;
 
+/** Hub Tempahan — menggabungkan Tempahan PKG & Permohonan Khidmat Bantu. */
+const TEMPAHAN_HUB = {
+  href: "/tempahan",
+  internalHref: "/tempahan",
+  external: false,
+  title: "Tempahan & Perkhidmatan",
+  description:
+    "Tempahan bilik PKG dan permohonan khidmat bantu — ceramah, bengkel dan perkhidmatan MCP.",
+  accent: "#D97706",
+  iconKey: "tempahan" as const,
+} as const;
+
 export const MODULES = [
   {
     href: dpdEntry.href,
@@ -52,15 +64,26 @@ export const MODULES = [
     accent: "#0D9488",
     iconKey: "direktori" as const,
   },
+  TEMPAHAN_HUB,
   {
-    href: "/tempahan",
-    internalHref: "/tempahan",
+    href: "/tempahan/bilik",
+    internalHref: "/tempahan/bilik",
     external: false,
     title: "Tempahan PKG",
     description:
       "Tempah bilik dan kemudahan di 5 Pusat Kegiatan Guru daerah Manjung.",
     accent: "#D97706",
     iconKey: "tempahan" as const,
+  },
+  {
+    href: "/khidmat-bantu",
+    internalHref: "/khidmat-bantu",
+    external: false,
+    title: "Permohonan Khidmat Bantu",
+    description:
+      "Mohon ceramah, bengkel atau perkhidmatan MCP (siaran langsung & rakaman video) dari USTP.",
+    accent: "#059669",
+    iconKey: "khidmat" as const,
   },
   OSC_MODULE,
   {
@@ -100,12 +123,19 @@ export const OSC_SECTIONS = MODULES.filter((m) =>
   ["/sumber", "/analisis", "/maklumat-asas"].includes(m.internalHref),
 );
 
+/** Sub-modul di bawah hub /tempahan — dipapar dalam halaman tempahan. */
+export const TEMPAHAN_SECTIONS = MODULES.filter((m) =>
+  ["/tempahan/bilik", "/khidmat-bantu"].includes(m.internalHref),
+);
+
 /**
- * Kad halaman utama: 5 laluan — Sumber/Analisis/Maklumat Asas digabung
- * di bawah satu kad OSC (One Stop Center).
+ * Kad halaman utama — sub-modul OSC & Tempahan digabung di hub masing-masing.
+ * Bilangan kad = HOME_MODULES.length.
  */
 export const HOME_MODULES = MODULES.filter(
-  (m) => !OSC_SECTIONS.some((s) => s.internalHref === m.internalHref),
+  (m) =>
+    !OSC_SECTIONS.some((s) => s.internalHref === m.internalHref) &&
+    !TEMPAHAN_SECTIONS.some((s) => s.internalHref === m.internalHref),
 );
 
 export function getModuleThemeForPath(path: string): ModuleTheme {
@@ -119,6 +149,13 @@ export function getModuleThemeForPath(path: string): ModuleTheme {
   }
   if (path.startsWith("/laporan")) {
     return { accent: "#DB2777", eyebrow: "Pelaporan", title: "Pelaporan" };
+  }
+  if (path.startsWith("/tempahan")) {
+    return {
+      accent: TEMPAHAN_HUB.accent,
+      eyebrow: TEMPAHAN_HUB.title,
+      title: TEMPAHAN_HUB.title,
+    };
   }
   if (path.startsWith("/statistik")) {
     return {

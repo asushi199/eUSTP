@@ -92,8 +92,9 @@ export default async function HomePage() {
             <span className="block text-ink">eUSTP Manjung</span>
           </h1>
           <p className="portal-home-hero-delay-3 mt-5 max-w-xl text-lg leading-relaxed text-graphite">
-            Platform setempat untuk laporan, sumber, direktori dan tempahan —
-            perkhidmatan teknologi pendidikan untuk semua sekolah daerah Manjung.
+            Platform setempat untuk laporan, sumber, direktori, tempahan dan khidmat
+            bantu — perkhidmatan teknologi pendidikan untuk semua sekolah daerah
+            Manjung.
           </p>
           <a
             href="#modul"
@@ -107,7 +108,10 @@ export default async function HomePage() {
             aria-label="Ringkasan portal"
           >
             {[
-              { value: "05", label: "MODUL DIGITAL" },
+              {
+                value: String(HOME_MODULES.length).padStart(2, "0"),
+                label: "MODUL DIGITAL",
+              },
               { value: "05", label: "PKG DAERAH" },
               { value: "01", label: "PINTU MASUK" },
             ].map((item, i) => (
@@ -181,7 +185,7 @@ export default async function HomePage() {
               {"// 01 — MODUL"}
             </p>
             <h2 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
-              Satu portal, lima laluan kerja.
+              Satu portal, pelbagai perkhidmatan.
             </h2>
           </div>
           <p className="max-w-sm text-sm leading-relaxed text-graphite">

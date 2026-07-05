@@ -1,46 +1,73 @@
+import type { Metadata } from "next";
 import AccentCard from "@/components/AccentCard";
 import PageHeader from "@/components/PageHeader";
 import PublicPageShell from "@/components/PublicPageShell";
-import { listPkgs } from "@/lib/tempahan/queries";
-import { getModuleAccent } from "@/lib/module-theme";
+import { HomeModuleIcon } from "@/components/home/HomeModuleIcon";
+import { TEMPAHAN_SECTIONS, getModuleAccent } from "@/lib/module-theme";
 
-export const dynamic = "force-dynamic";
+export const metadata: Metadata = {
+  title: "Tempahan & Perkhidmatan — eUSTP Manjung",
+  description:
+    "Tempahan bilik PKG dan permohonan khidmat bantu USTP — ceramah, bengkel dan perkhidmatan MCP.",
+};
 
-export const metadata = { title: "Tempahan PKG — eUSTP Manjung" };
+const SECTION_TAG: Record<string, string> = {
+  "/tempahan/bilik": "Bilik & Kemudahan PKG",
+  "/khidmat-bantu": "Ceramah · Bengkel · MCP",
+};
 
-export default async function TempahanPage() {
-  const pkgList = await listPkgs();
+export default function TempahanHubPage() {
   const accent = getModuleAccent("/tempahan");
 
   return (
     <PublicPageShell>
       <PageHeader
-        eyebrow="Tempahan PKG"
-        title="Tempahan Bilik PKG"
+        eyebrow="Tempahan & Perkhidmatan"
+        title="Pilih Perkhidmatan"
         accent={accent}
-        description="Tempah bilik dan kemudahan di Pusat Kegiatan Guru daerah Manjung. Pilih PKG anda untuk melihat bilik dan slot yang tersedia."
+        description="Tempah bilik di Pusat Kegiatan Guru, atau mohon khidmat bantu USTP untuk ceramah, bengkel dan perkhidmatan Media Centre PKG (MCP)."
       />
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {pkgList.length === 0 && (
-          <div className="card p-6 text-graphite sm:col-span-2 lg:col-span-3">
-            Tiada PKG berdaftar lagi. Sila hubungi pentadbir USTP.
-          </div>
-        )}
-        {pkgList.map((pkg) => (
-          <AccentCard key={pkg.id} href={`/tempahan/${pkg.id}`} accent={accent} className="p-6">
-            <div className="flex items-center gap-3">
-              {pkg.logoSrc && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={pkg.logoSrc}
-                  alt=""
-                  className="h-10 w-10 shrink-0 rounded-lg border border-fog bg-white object-contain"
-                />
-              )}
-              <p className="text-lg font-semibold">{pkg.name}</p>
-            </div>
-            <span className="link-blue mt-3 inline-block text-sm">Lihat bilik & tempah →</span>
+      <div className="mt-8 grid gap-4">
+        {TEMPAHAN_SECTIONS.map((s) => (
+          <AccentCard
+            key={s.internalHref}
+            href={s.href}
+            accent={s.accent}
+            className="flex items-start gap-4 p-6"
+          >
+            <span
+              className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"
+              style={{ backgroundColor: `${s.accent}14`, color: s.accent }}
+              aria-hidden
+            >
+              <HomeModuleIcon iconKey={s.iconKey} />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="flex items-center justify-between gap-2">
+                <span className="font-semibold text-ink">{s.title}</span>
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke={s.accent}
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-5 w-5 shrink-0 transition group-hover:translate-x-0.5"
+                >
+                  <path d="M5 12h14M13 6l6 6-6 6" />
+                </svg>
+              </span>
+              <span
+                className="mt-0.5 block text-[11px] font-semibold uppercase tracking-[0.12em]"
+                style={{ color: s.accent }}
+              >
+                {SECTION_TAG[s.internalHref]}
+              </span>
+              <span className="mt-1.5 block text-sm leading-relaxed text-graphite">
+                {s.description}
+              </span>
+            </span>
           </AccentCard>
         ))}
       </div>
