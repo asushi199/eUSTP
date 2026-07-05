@@ -38,6 +38,7 @@ export default async function AdminRoomsPage({
             name: r.name,
             shortName: r.shortName,
             category: r.category,
+            capacity: r.capacity,
             amenities: r.amenities,
             sortOrder: r.sortOrder,
             active: r.active,

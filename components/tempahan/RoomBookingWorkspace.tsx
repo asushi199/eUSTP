@@ -7,6 +7,7 @@ import { formatMalayDate } from "@/lib/tempahan/date";
 import { cn } from "@/lib/cn";
 import BookingForm from "./BookingForm";
 import CalendarBoard from "./CalendarBoard";
+import RoomCapacityBadge from "./RoomCapacityBadge";
 
 type ViewRange = "week" | "month";
 
@@ -32,6 +33,7 @@ export default function RoomBookingWorkspace({
   pkgId,
   roomSlug,
   roomName,
+  roomCapacity,
   bookings,
   dates,
   today,
@@ -45,6 +47,7 @@ export default function RoomBookingWorkspace({
   pkgId: string;
   roomSlug: string;
   roomName: string;
+  roomCapacity: number | null;
   bookings: BookingLike[];
   dates: string[];
   today: string;
@@ -75,6 +78,7 @@ export default function RoomBookingWorkspace({
     defaultRoomSlug: roomSlug,
     rooms: [{ slug: roomSlug, name: roomName }],
     bookings,
+    roomCapacity,
     prefillDate: prefill?.date,
     prefillSlot: prefill?.slot,
     prefillLabel,
@@ -116,7 +120,10 @@ export default function RoomBookingWorkspace({
           <p className="text-xs font-semibold uppercase tracking-wide text-primary">
             Status tempahan
           </p>
-          <h2 className="mt-0.5 text-lg font-semibold xl:text-xl">Jadual Bilik</h2>
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="mt-0.5 text-lg font-semibold xl:text-xl">Jadual Bilik</h2>
+            <RoomCapacityBadge capacity={roomCapacity} prominent />
+          </div>
           <p className="mt-0.5 text-xs text-graphite xl:text-sm">
             {view === "week" && displayDates.length > 0
               ? `${formatMalayDate(displayDates[0])} – ${formatMalayDate(displayDates[displayDates.length - 1])}`
@@ -248,9 +255,21 @@ export default function RoomBookingWorkspace({
       <button
         type="button"
         onClick={() => openSheet()}
-        className="fixed bottom-24 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-sm font-bold uppercase tracking-wide text-white shadow-modal transition hover:bg-primary-bright active:scale-95 xl:hidden"
+        className="fixed bottom-24 right-4 z-40 flex h-12 items-center gap-1.5 whitespace-nowrap rounded-full bg-primary px-4 text-xs font-bold text-white shadow-modal transition hover:bg-primary-bright active:scale-95 xl:hidden"
         aria-label="Tempah bilik"
       >
+        <svg
+          aria-hidden
+          className="h-4 w-4 shrink-0"
+          fill="none"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2.2}
+          viewBox="0 0 24 24"
+        >
+          <path d="M12 5v14M5 12h14" />
+        </svg>
         Tempah
       </button>
     </>

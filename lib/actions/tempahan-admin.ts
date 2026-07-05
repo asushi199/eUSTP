@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { pkgs, rooms } from "@/lib/schema";
 import { requireTempahanAccess } from "@/lib/rbac";
 import { slugifyRoomName } from "@/lib/tempahan/booking-rules";
+import { parseCapacityInput } from "@/lib/tempahan/room-capacity";
 import { getRoomBySlug } from "@/lib/tempahan/queries";
 import { uploadRoomPhoto } from "@/lib/tempahan/room-photos";
 import {
@@ -91,6 +92,10 @@ export async function saveRoom(pkgId: string, formData: FormData): Promise<Actio
   }
   const data = parsed.data;
   const existingSlug = String(formData.get("slug") ?? "").trim();
+  const capacity = parseCapacityInput(formData.get("capacity"));
+  if (!capacity) {
+    return { ok: false, error: "Kapasiti (pax) diperlukan." };
+  }
 
   // Gambar (pilihan)
   let imageSrc: string | undefined;
@@ -115,6 +120,7 @@ export async function saveRoom(pkgId: string, formData: FormData): Promise<Actio
     name: data.name,
     shortName: data.shortName || data.name.slice(0, 30),
     category: data.category,
+    capacity,
     amenities: parseAmenities(formData),
     sortOrder: data.sortOrder,
     ...(imageSrc ? { imageSrc } : {}),

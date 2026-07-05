@@ -369,6 +369,8 @@ export const rooms = pgTable(
     name: text("name").notNull(),
     shortName: text("short_name").notNull(),
     category: text("category").notNull().default(""),
+    /** Kapasiti bilik (bilangan orang). Paparan awam: "10 pax". */
+    capacity: integer("capacity"),
     imageSrc: text("image_src"),
     amenities: jsonb("amenities").$type<string[]>().notNull().default([]),
     active: boolean("active").notNull().default(true),

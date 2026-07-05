@@ -4,13 +4,16 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toggleRoomActive } from "@/lib/actions/tempahan-admin";
 import { resolveAmenities } from "@/lib/tempahan/amenities";
+import { formatCapacity } from "@/lib/tempahan/room-capacity";
 import RoomForm from "./RoomForm";
+import RoomCapacityBadge from "./RoomCapacityBadge";
 
 type RoomData = {
   slug: string;
   name: string;
   shortName: string;
   category: string;
+  capacity: number | null;
   amenities: string[];
   sortOrder: number;
   active: boolean;
@@ -73,6 +76,9 @@ export default function RoomAdminList({
               <div>
                 <p className="font-medium">
                   {room.name}
+                  {formatCapacity(room.capacity) && (
+                    <RoomCapacityBadge capacity={room.capacity} className="ml-2 align-middle" />
+                  )}
                   {!room.active && (
                     <span className="status-badge ml-2">
                       <span className="status-dot bg-graphite" />

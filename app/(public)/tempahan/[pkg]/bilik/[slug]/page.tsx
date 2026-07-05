@@ -60,6 +60,7 @@ export default async function RoomDetailPage({
       <RoomDetailHero
         name={room.name}
         category={room.category}
+        capacity={room.capacity}
         imageSrc={room.imageSrc}
         amenities={amenities}
       />
@@ -68,6 +69,7 @@ export default async function RoomDetailPage({
         pkgId={pkgId}
         roomSlug={room.slug}
         roomName={room.name}
+        roomCapacity={room.capacity}
         bookings={bookingRows}
         dates={dates}
         today={today}

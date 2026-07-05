@@ -10,6 +10,7 @@ type RoomData = {
   name: string;
   shortName: string;
   category: string;
+  capacity: number | null;
   amenities: string[];
   sortOrder: number;
 };
@@ -66,6 +67,20 @@ export default function RoomForm({
             placeholder="cth. Bilik Mesyuarat"
             defaultValue={room?.category ?? ""}
           />
+        </div>
+        <div>
+          <label className="label">Kapasiti (pax) *</label>
+          <input
+            name="capacity"
+            type="number"
+            min={1}
+            max={9999}
+            className="input"
+            placeholder="cth. 10"
+            required
+            defaultValue={room?.capacity ?? ""}
+          />
+          <p className="mt-1 text-xs text-graphite">Dipaparkan semasa tempahan, contoh: 10 pax</p>
         </div>
         <div>
           <label className="label">Susunan</label>

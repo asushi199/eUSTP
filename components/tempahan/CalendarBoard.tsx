@@ -116,17 +116,36 @@ export default function CalendarBoard({
                 "xl:grid xl:grid-cols-[88px_minmax(0,1fr)_minmax(0,1fr)] xl:gap-2 xl:rounded-none xl:border-0 xl:border-b xl:py-2 xl:last:border-0",
               )}
             >
-              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b hairline bg-cloud/60 px-3 py-2 xl:block xl:border-0 xl:bg-transparent xl:px-0 xl:py-2">
-                <strong className="text-sm">{formatDayName(date)}</strong>
-                <span className="text-xs text-graphite tabular-nums">
-                  {formatMalayDate(date, { year: undefined })}
-                </span>
+              <div className="border-b hairline bg-cloud/60 px-3 py-2 xl:block xl:border-0 xl:bg-transparent xl:px-0 xl:py-2">
+                <div className="flex items-baseline gap-2">
+                  <strong className="text-sm">{formatDayName(date)}</strong>
+                  <span className="text-xs text-graphite tabular-nums">
+                    {formatMalayDate(date, { year: undefined })}
+                  </span>
+                </div>
                 {canBookFullDay && (
                   <button
                     type="button"
-                    className="ml-auto text-[11px] font-semibold text-primary hover:underline xl:mt-1 xl:ml-0 xl:block xl:text-left"
+                    className={cn(
+                      "mt-2 flex w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-md border border-primary/35 bg-white px-3 py-2 text-xs font-semibold text-primary-deep shadow-sm transition",
+                      "hover:border-primary/50 hover:bg-primary-soft/25 active:scale-[0.98]",
+                      "xl:mt-1 xl:inline-flex xl:w-auto xl:border-0 xl:bg-transparent xl:p-0 xl:text-[11px] xl:text-primary xl:shadow-none xl:hover:bg-transparent xl:hover:underline",
+                    )}
                     onClick={() => handleSelect!("full_day")}
                   >
+                    <svg
+                      aria-hidden
+                      className="h-3.5 w-3.5 shrink-0 opacity-80 xl:hidden"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      viewBox="0 0 24 24"
+                    >
+                      <rect height="18" rx="2" width="18" x="3" y="4" />
+                      <path d="M16 2v4M8 2v4M3 10h18" />
+                    </svg>
                     Tempah penuh hari
                   </button>
                 )}

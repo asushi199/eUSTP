@@ -11,6 +11,7 @@ import {
   type Slot,
 } from "@/lib/tempahan/booking-rules";
 import { cn } from "@/lib/cn";
+import RoomCapacityBadge from "./RoomCapacityBadge";
 
 type RoomOption = {
   slug: string;
@@ -31,6 +32,7 @@ export default function BookingForm({
   prefillDate,
   prefillSlot,
   prefillLabel,
+  roomCapacity,
   variant = "embedded",
   open = true,
   onClose,
@@ -43,6 +45,7 @@ export default function BookingForm({
   prefillDate?: string;
   prefillSlot?: Slot;
   prefillLabel?: string;
+  roomCapacity?: number | null;
   variant?: "embedded" | "sheet";
   open?: boolean;
   onClose?: () => void;
@@ -78,6 +81,8 @@ export default function BookingForm({
       <p className="mt-2 text-xs text-graphite xl:text-sm">
         Selepas permohonan dihantar, klik butang WhatsApp untuk maklumkan admin.
       </p>
+
+      <RoomCapacityBadge capacity={roomCapacity} prominent className="mt-3" />
 
       {prefillLabel && (
         <p className="mt-3 rounded-md border border-primary/25 bg-primary-soft/20 px-3 py-2 text-xs font-medium text-primary-deep xl:text-sm">

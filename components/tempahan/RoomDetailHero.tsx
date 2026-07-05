@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { ResolvedAmenity } from "@/lib/tempahan/amenities";
 import AmenityIcon from "./AmenityIcon";
+import RoomCapacityBadge from "./RoomCapacityBadge";
 
 function titleCase(value: string) {
   return value.replace(/\b\w/g, (c) => c.toUpperCase());
@@ -11,11 +12,13 @@ function titleCase(value: string) {
 export default function RoomDetailHero({
   name,
   category,
+  capacity,
   imageSrc,
   amenities,
 }: {
   name: string;
   category: string;
+  capacity: number | null;
   imageSrc: string | null;
   amenities: ResolvedAmenity[];
 }) {
@@ -38,6 +41,7 @@ export default function RoomDetailHero({
             <p className="text-[10px] font-semibold uppercase tracking-wide text-primary">{category}</p>
           )}
           <h1 className="truncate text-lg font-semibold tracking-tight">{titleCase(name)}</h1>
+          <RoomCapacityBadge capacity={capacity} prominent className="mt-1" />
           {amenities.length > 0 && (
             <button
               type="button"
@@ -84,6 +88,7 @@ export default function RoomDetailHero({
             <p className="text-xs font-semibold uppercase tracking-wide text-primary">{category}</p>
           )}
           <h1 className="mt-1 text-3xl font-medium tracking-tight">{titleCase(name)}</h1>
+          <RoomCapacityBadge capacity={capacity} prominent className="mt-2" />
           <div className="mt-4">
             <h2 className="text-sm font-semibold">Kemudahan</h2>
             {amenities.length > 0 ? (

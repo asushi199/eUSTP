@@ -46,6 +46,7 @@ export default async function PkgTempahanPage({
               slug: r.slug,
               name: r.name,
               category: r.category,
+              capacity: r.capacity,
               imageSrc: r.imageSrc,
               amenities: r.amenities,
             }))}

@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { amenityCardLayout } from "@/lib/tempahan/amenities";
 import AmenityIcon from "./AmenityIcon";
+import RoomCapacityBadge from "./RoomCapacityBadge";
 
 export type RoomGalleryItem = {
   slug: string;
   name: string;
   category: string;
+  capacity: number | null;
   imageSrc: string | null;
   amenities: string[];
 };
@@ -54,9 +56,17 @@ export default function RoomGallery({
                   {room.category}
                 </span>
               )}
+              <RoomCapacityBadge
+                capacity={room.capacity}
+                prominent
+                className="absolute bottom-3 right-3 shadow-sm"
+              />
             </div>
             <div className="space-y-3 p-5">
-              <h2 className="text-lg font-semibold">{titleCase(room.name)}</h2>
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="text-lg font-semibold">{titleCase(room.name)}</h2>
+                <RoomCapacityBadge capacity={room.capacity} prominent className="xl:hidden" />
+              </div>
               {hasAmenities && (
                 <div className="space-y-2">
                   {card.textChips.length > 0 && (
