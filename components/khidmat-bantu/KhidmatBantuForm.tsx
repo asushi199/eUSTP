@@ -9,6 +9,7 @@ import {
   createKhidmatBantuAction,
   type KhidmatBantuFormState,
 } from "@/lib/actions/khidmat-bantu";
+import SuratPermohonanInput from "@/components/khidmat-bantu/SuratPermohonanInput";
 import type { SchoolOption } from "@/lib/direktori/queries";
 
 const initialState: KhidmatBantuFormState = { ok: false, message: "" };
@@ -283,18 +284,7 @@ export default function KhidmatBantuForm({ schools }: { schools: SchoolOption[] 
               <label className="label" htmlFor="suratPermohonan">
                 Muat naik surat permohonan
               </label>
-              <input
-                id="suratPermohonan"
-                name="suratPermohonan"
-                type="file"
-                className="input file:mr-3 file:rounded file:border-0 file:bg-cloud file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-ink"
-                accept="application/pdf,image/jpeg,image/png,image/webp"
-                required
-              />
-              <p className="mt-1 text-xs text-graphite">
-                PDF atau imej (JPG/PNG/WebP), maksimum 8 MB. Fail disimpan mengikut nama
-                sekolah/unit dan bulan dalam Google Drive.
-              </p>
+              <SuratPermohonanInput disabled={pending} />
             </div>
           </fieldset>
 
