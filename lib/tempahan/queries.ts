@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, desc, eq, gte, inArray } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, inArray } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { attendees, bookings, pkgs, rooms } from "@/lib/schema";
 
@@ -16,6 +16,19 @@ export async function listPkgs(): Promise<PkgRow[]> {
 export async function getPkg(pkgId: string): Promise<PkgRow | null> {
   const row = await db.query.pkgs.findFirst({ where: eq(pkgs.id, pkgId) });
   return row && row.active ? row : null;
+}
+
+/**
+ * Bilangan tempahan menunggu kelulusan — untuk lencana notifikasi admin.
+ * `pkgIds` mengehadkan kiraan (mis. PKG_Admin hanya nampak PKG sendiri);
+ * senarai kosong bermakna tiada skop, jadi pulangkan 0.
+ */
+export async function countPendingBookings(pkgIds?: string[] | null): Promise<number> {
+  if (pkgIds && pkgIds.length === 0) return 0;
+  const base = eq(bookings.status, "pending");
+  const where = pkgIds ? and(base, inArray(bookings.pkgId, pkgIds)) : base;
+  const rows = await db.select({ n: count() }).from(bookings).where(where);
+  return rows[0]?.n ?? 0;
 }
 
 export async function listRooms(pkgId: string, includeInactive = false): Promise<RoomRow[]> {

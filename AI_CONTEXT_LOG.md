@@ -2,6 +2,18 @@
 
 Log keputusan & konteks untuk sesi AI akan datang. Tambah entri terbaru di atas.
 
+## 2026-07-06 — Admin overview: Perkhidmatan di atas + lencana notifikasi
+
+- Kumpulan **Perkhidmatan** dinaikkan ke atas dalam `/admin` (modul dengan
+  permohonan menunggu tindakan dilihat dahulu).
+- **Lencana merah** bilangan permohonan menunggu pada kad Khidmat Bantu &
+  Tempahan PKG. Dikira di pelayan (halaman `force-dynamic`) — bukan polling
+  client — jadi selepas admin proses & kembali ke `/admin`, kiraan segar dan
+  lencana hilang bila 0.
+- Query kiraan baharu: `countPendingKhidmatBantu()`
+  (`lib/khidmat-bantu/queries.ts`, `dbNotReady` → 0) dan
+  `countPendingBookings(pkgIds?)` (`lib/tempahan/queries.ts`, skop PKG_Admin).
+
 ## 2026-07-06 — Admin Khidmat Bantu: senarai terkumpul + kalendar
 
 Reka semula `/admin/khidmat-bantu` untuk selesaikan scroll mendatar jadual di

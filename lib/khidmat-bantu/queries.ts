@@ -1,6 +1,6 @@
 import "server-only";
 
-import { desc, eq } from "drizzle-orm";
+import { count, desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { khidmatBantuRequests } from "@/lib/schema";
 import type { KhidmatBantuDetails } from "@/lib/schema";
@@ -73,6 +73,23 @@ export async function listAdminKhidmatBantuRequests(): Promise<{
     const msg = error instanceof Error ? error.message : String(error);
     if (msg.includes("khidmat_bantu_requests") && msg.includes("does not exist")) {
       return { pending: [], others: [], dbNotReady: true };
+    }
+    throw error;
+  }
+}
+
+/** Bilangan permohonan menunggu kelulusan — untuk lencana notifikasi admin. */
+export async function countPendingKhidmatBantu(): Promise<number> {
+  try {
+    const rows = await db
+      .select({ n: count() })
+      .from(khidmatBantuRequests)
+      .where(eq(khidmatBantuRequests.status, "pending"));
+    return rows[0]?.n ?? 0;
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    if (msg.includes("khidmat_bantu_requests") && msg.includes("does not exist")) {
+      return 0;
     }
     throw error;
   }
