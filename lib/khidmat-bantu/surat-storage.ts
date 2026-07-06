@@ -27,9 +27,3 @@ export async function uploadSuratBuffer(
   );
   return { storagePath: uploaded.path, fileName };
 }
-
-/** Pautan paparan surat Drive (storagePath: drive/{fileId}). */
-export function suratPermohonanViewUrl(storagePath: string): string | null {
-  const m = /^drive\/(.+)$/.exec(storagePath);
-  return m ? `https://drive.google.com/file/d/${m[1]}/view` : null;
-}

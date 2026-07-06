@@ -9,14 +9,14 @@ import {
 import { getKhidmatBantuRequest } from "@/lib/khidmat-bantu/queries";
 import { formatBookingStatus } from "@/lib/tempahan/booking-rules";
 import { verifyApprovalToken } from "@/lib/tempahan/approval-token";
-import { suratPermohonanViewUrl } from "@/lib/khidmat-bantu/surat-storage";
+import { driveViewUrl } from "@/lib/gas-upload";
 import type { KhidmatMcpDetails, KhidmatProgramDetails } from "@/lib/schema";
 
 export const dynamic = "force-dynamic";
 
 function formatDetails(serviceType: string, details: KhidmatProgramDetails | KhidmatMcpDetails) {
   const suratUrl = details.suratPermohonan
-    ? suratPermohonanViewUrl(details.suratPermohonan.storagePath)
+    ? driveViewUrl(details.suratPermohonan.storagePath)
     : null;
 
   const suratCell = suratUrl ? (
