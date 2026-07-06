@@ -27,7 +27,7 @@ export default async function KhidmatBantuPage() {
         eyebrow="Khidmat Bantu"
         title="Permohonan Khidmat Bantu"
         accent={accent}
-        description="Sekolah dan pegawai boleh mohon ceramah, bengkel, atau perkhidmatan Media Centre PKG (MCP) — siaran langsung dan rakaman video."
+        description="Sekolah dan pegawai boleh mohon ceramah, bengkel, atau perkhidmatan Multiple Camera Product (MCP) — siaran langsung dan rakaman video."
         className="mt-2"
       />
       <div className="mt-8">

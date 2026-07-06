@@ -1,9 +1,18 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { semakTempahanAction, type CheckBookingState } from "@/lib/actions/tempahan";
+import { formatBookingStatus, formatSlot, type Slot } from "@/lib/tempahan/booking-rules";
+import { formatMalayDate } from "@/lib/tempahan/date";
+import { cn } from "@/lib/cn";
 
 const initialState: CheckBookingState = { ok: false, message: "", bookings: [] };
+
+const STATUS_DOT: Record<string, string> = {
+  pending: "bg-graphite",
+  approved: "bg-primary",
+};
 
 export default function SemakForm({
   pkgId,
@@ -37,33 +46,61 @@ export default function SemakForm({
       </form>
 
       {state.message && (
-        <p className="text-sm text-graphite">{state.message}</p>
+        <p
+          className={cn(
+            "text-sm",
+            state.ok ? "text-graphite" : "text-bloom-deep",
+          )}
+        >
+          {state.message}
+        </p>
       )}
 
       {state.bookings.length > 0 && (
-        <div className="card overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-b hairline text-xs uppercase tracking-wide text-graphite">
-                <th className="px-4 py-3 font-semibold">Tarikh</th>
-                <th className="px-4 py-3 font-semibold">Bilik</th>
-                <th className="px-4 py-3 font-semibold">Slot</th>
-                <th className="px-4 py-3 font-semibold">Tujuan</th>
-                <th className="px-4 py-3 font-semibold">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {state.bookings.map((b) => (
-                <tr key={b.id} className="border-b hairline last:border-0">
-                  <td className="px-4 py-3 whitespace-nowrap">{b.date}</td>
-                  <td className="px-4 py-3">{roomNames[b.roomSlug] ?? b.roomSlug}</td>
-                  <td className="px-4 py-3">{b.slot}</td>
-                  <td className="px-4 py-3">{b.purpose}</td>
-                  <td className="px-4 py-3">{b.status}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="space-y-3">
+          {state.bookings.map((b) => {
+            const roomName = roomNames[b.roomSlug] ?? b.roomSlug;
+            const meta = [formatMalayDate(b.date), formatSlot(b.slot as Slot)]
+              .filter(Boolean)
+              .join(" · ");
+
+            return (
+              <div key={b.id} className="card p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-xs text-graphite">{roomName}</p>
+                    <p className="mt-0.5 font-semibold leading-snug">{b.purpose}</p>
+                  </div>
+                  <span className="status-badge shrink-0">
+                    <span
+                      className={cn("status-dot", STATUS_DOT[b.status] ?? "bg-graphite")}
+                    />
+                    {formatBookingStatus(b.status)}
+                  </span>
+                </div>
+
+                {meta && <p className="mt-2 text-sm text-graphite">{meta}</p>}
+
+                <div className="mt-3 space-y-2">
+                  {b.whatsappUrl ? (
+                    <a
+                      href={b.whatsappUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn-outline-ink inline-flex w-full justify-center"
+                    >
+                      Hantar WhatsApp kepada admin
+                    </a>
+                  ) : null}
+                  {b.manageUrl ? (
+                    <Link href={b.manageUrl} className="btn-primary inline-flex w-full justify-center">
+                      Urus kehadiran
+                    </Link>
+                  ) : null}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

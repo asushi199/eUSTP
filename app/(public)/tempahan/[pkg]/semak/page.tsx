@@ -24,7 +24,10 @@ export default async function SemakPage({
       </Link>
       <h1 className="mt-2 text-3xl font-medium tracking-tight">Semak Tempahan Saya</h1>
       <p className="mt-2 text-graphite">
-        Masukkan nombor telefon yang digunakan semasa membuat tempahan.
+        Masukkan nombor telefon yang digunakan semasa membuat tempahan. Untuk permohonan
+        menunggu kelulusan, anda boleh hantar semula mesej WhatsApp kepada admin. Tempahan
+        yang diluluskan akan memaparkan butang «Urus kehadiran» untuk pautan pendaftaran dan
+        kod QR.
       </p>
       <div className="mt-6">
         <SemakForm pkgId={pkgId} roomNames={roomNames} />

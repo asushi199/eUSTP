@@ -1,6 +1,7 @@
 "use server";
 
 import { randomUUID } from "crypto";
+import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -14,7 +15,6 @@ import {
   verifyApprovalToken,
 } from "@/lib/tempahan/approval-token";
 import {
-  formatBookingStatus,
   formatSlot,
   getConflictingBooking,
   normalizePhoneNumber,
@@ -27,12 +27,14 @@ import {
   getPkg,
   listActiveBookings,
   listAttendees,
-  listBookingsByContact,
+  listApprovedBookingsByContact,
+  listPendingBookingsByContact,
   listRooms,
 } from "@/lib/tempahan/queries";
 import {
   approveBookingCore,
   cancelBookingCore,
+  ensureAttendanceTokens,
   friendlyBookingError,
   rejectBookingCore,
 } from "@/lib/tempahan/service";
@@ -167,7 +169,9 @@ export type CheckBookingState = {
     roomSlug: string;
     slot: string;
     purpose: string;
-    status: string;
+    status: "pending" | "approved";
+    whatsappUrl?: string;
+    manageUrl?: string;
   }[];
 };
 
@@ -184,27 +188,89 @@ export async function semakTempahanAction(
     return { ok: false, message: "Sila masukkan nombor telefon.", bookings: [] };
   }
 
-  const rows = await listBookingsByContact(pkgId, contact);
-  if (rows.length === 0) {
+  try {
+    const [pendingBookings, approvedBookings, rooms] = await Promise.all([
+      listPendingBookingsByContact(pkgId, contact),
+      listApprovedBookingsByContact(pkgId, contact),
+      listRooms(pkgId, true),
+    ]);
+    const adminPhone = pkg.whatsappAdminPhone?.trim() || "";
+    const roomName = (slug: string) => rooms.find((r) => r.slug === slug)?.name ?? slug;
+
+    if (pendingBookings.length === 0 && approvedBookings.length === 0) {
+      return {
+        ok: true,
+        message: "Tiada permohonan dijumpai untuk nombor ini.",
+        bookings: [],
+      };
+    }
+
+    const baseUrl = await resolveBaseUrl();
+
+    const pendingResults = await Promise.all(
+      pendingBookings.map(async (booking) => {
+        const { token, hash } = await createApprovalToken(booking.id);
+        await db
+          .update(bookings)
+          .set({ approvalTokenHash: hash })
+          .where(and(eq(bookings.pkgId, pkgId), eq(bookings.id, booking.id)));
+
+        const approvalUrl = `${baseUrl}/tempahan/${pkgId}/approve/${booking.id}?token=${encodeURIComponent(token)}`;
+
+        return {
+          id: booking.id,
+          date: booking.date,
+          roomSlug: booking.roomSlug,
+          slot: booking.slot,
+          purpose: booking.purpose,
+          status: "pending" as const,
+          whatsappUrl: adminPhone
+            ? buildWhatsAppShareUrl(adminPhone, {
+                name: booking.name,
+                room: roomName(booking.roomSlug),
+                date: formatMalayDate(booking.date),
+                slot: formatSlot(booking.slot),
+                purpose: booking.purpose,
+                approvalUrl,
+              })
+            : undefined,
+        };
+      }),
+    );
+
+    const approvedResults = await Promise.all(
+      approvedBookings.map(async (booking) => {
+        const withTokens = await ensureAttendanceTokens(pkgId, booking.id);
+        return {
+          id: booking.id,
+          date: booking.date,
+          roomSlug: booking.roomSlug,
+          slot: booking.slot,
+          purpose: booking.purpose,
+          status: "approved" as const,
+          manageUrl: withTokens.attendanceManageToken
+            ? `/tempahan/${pkgId}/urus-hadir/${withTokens.attendanceManageToken}`
+            : undefined,
+        };
+      }),
+    );
+
+    const hasApproved = approvedResults.length > 0;
+
     return {
       ok: true,
-      message: "Tiada tempahan dijumpai untuk nombor ini.",
+      message: hasApproved
+        ? "Permohonan dijumpai. Untuk tempahan yang diluluskan, klik «Urus kehadiran» untuk pautan pendaftaran dan kod QR."
+        : "Permohonan dijumpai. Hantar semula mesej WhatsApp kepada admin untuk kelulusan.",
+      bookings: [...pendingResults, ...approvedResults],
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "Permohonan tidak dapat disemak.",
       bookings: [],
     };
   }
-
-  return {
-    ok: true,
-    message: `${rows.length} tempahan dijumpai.`,
-    bookings: rows.map((b) => ({
-      id: b.id,
-      date: formatMalayDate(b.date),
-      roomSlug: b.roomSlug,
-      slot: formatSlot(b.slot),
-      purpose: b.purpose,
-      status: formatBookingStatus(b.status),
-    })),
-  };
 }
 
 /* --------------------------- kehadiran --------------------------- */

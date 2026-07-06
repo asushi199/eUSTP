@@ -3,7 +3,7 @@ import Link from "next/link";
 const MESSAGES: Record<string, { title: string; body: string }> = {
   approved: {
     title: "Tempahan diluluskan ✓",
-    body: "Pemohon boleh menyemak status melalui halaman Semak Tempahan.",
+    body: "Pemohon boleh menyemak status dan mengurus kehadiran (pautan + QR) melalui halaman Semak Tempahan.",
   },
   rejected: {
     title: "Tempahan ditolak",

@@ -25,7 +25,7 @@ export default function TempahanHubPage() {
         eyebrow="Tempahan & Perkhidmatan"
         title="Pilih Perkhidmatan"
         accent={accent}
-        description="Tempah bilik di Pusat Kegiatan Guru, atau mohon khidmat bantu USTP untuk ceramah, bengkel dan perkhidmatan Media Centre PKG (MCP)."
+        description="Tempah bilik di Pusat Kegiatan Guru, atau mohon khidmat bantu USTP untuk ceramah, bengkel dan perkhidmatan Multiple Camera Product (MCP)."
       />
 
       <div className="mt-8 grid gap-4">

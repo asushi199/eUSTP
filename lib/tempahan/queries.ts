@@ -83,6 +83,42 @@ export async function listBookingsByContact(
     .orderBy(desc(bookings.date));
 }
 
+/** Permohonan menunggu kelulusan bagi satu nombor telefon — untuk Semak. */
+export async function listPendingBookingsByContact(
+  pkgId: string,
+  contactNormalized: string,
+): Promise<BookingRow[]> {
+  return db
+    .select()
+    .from(bookings)
+    .where(
+      and(
+        eq(bookings.pkgId, pkgId),
+        eq(bookings.contactNormalized, contactNormalized),
+        eq(bookings.status, "pending"),
+      ),
+    )
+    .orderBy(asc(bookings.date));
+}
+
+/** Tempahan diluluskan bagi satu nombor telefon — untuk Semak + pautan kehadiran. */
+export async function listApprovedBookingsByContact(
+  pkgId: string,
+  contactNormalized: string,
+): Promise<BookingRow[]> {
+  return db
+    .select()
+    .from(bookings)
+    .where(
+      and(
+        eq(bookings.pkgId, pkgId),
+        eq(bookings.contactNormalized, contactNormalized),
+        eq(bookings.status, "approved"),
+      ),
+    )
+    .orderBy(asc(bookings.date));
+}
+
 /** Tempahan menunggu kelulusan (mana-mana tarikh) — gilir tindakan admin. */
 export async function listPendingBookings(pkgId: string): Promise<BookingRow[]> {
   return db
