@@ -12,7 +12,7 @@ import {
 } from "@/lib/khidmat-bantu/date-group";
 import { formatBookingStatus } from "@/lib/tempahan/booking-rules";
 import { formatMalayDate } from "@/lib/tempahan/date";
-import { driveViewUrl } from "@/lib/gas-upload";
+import { suratPermohonanViewUrl } from "@/lib/khidmat-bantu/surat-storage";
 import { cn } from "@/lib/cn";
 import type { KhidmatBantuRow } from "@/lib/khidmat-bantu/queries";
 
@@ -39,7 +39,7 @@ export default function KhidmatRequestCard({
 }) {
   const date = getServiceDate(row);
   const surat = getSuratPermohonan(row);
-  const suratUrl = surat ? driveViewUrl(surat.storagePath) : null;
+  const suratUrl = surat ? suratPermohonanViewUrl(surat.storagePath) : null;
   const meta = [
     showDate && date ? formatMalayDate(date) : null,
     getServiceTime(row) || null,

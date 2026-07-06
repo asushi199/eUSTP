@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { uploadSuratPermohonanAction } from "@/lib/actions/khidmat-bantu";
 import { compressImageForLaporan } from "@/lib/client/compress-image";
+import { isAllowedSuratMime } from "@/lib/khidmat-bantu/surat-mime";
 import { cn } from "@/lib/cn";
 import type { KhidmatSuratPermohonan } from "@/lib/schema";
 
@@ -40,6 +41,7 @@ export default function SuratPermohonanInput({
   const [notice, setNotice] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [uploading, startUpload] = useTransition();
+  const uploadedMetaRef = useRef<string | null>(null);
 
   const metaKey = `${orgName}|${activityDate}|${serviceType}`;
 
@@ -47,13 +49,18 @@ export default function SuratPermohonanInput({
     onReadyChange?.(!!uploaded && !uploading);
   }, [uploaded, uploading, onReadyChange]);
 
+  // Jangan reset semasa upload sedang berjalan; beritahu jika medan berubah selepas berjaya.
   useEffect(() => {
+    if (uploading) return;
+    if (!uploaded || !uploadedMetaRef.current) return;
+    if (metaKey === uploadedMetaRef.current) return;
     setSelected(null);
     setUploaded(null);
-    setError(null);
+    uploadedMetaRef.current = null;
     setNotice(null);
+    setError("Tarikh, sekolah/unit atau jenis perkhidmatan berubah — sila muat naik surat semula.");
     if (inputRef.current) inputRef.current.value = "";
-  }, [metaKey]);
+  }, [metaKey, uploaded, uploading]);
 
   function canUploadMeta(): string | null {
     if (!orgName.trim()) return "Sila isi nama sekolah/unit dahulu.";
@@ -64,8 +71,7 @@ export default function SuratPermohonanInput({
   function validateFile(file: File | null): string | null {
     if (!file) return "Fail tidak sah.";
     if (file.size > MAX_BYTES) return "Fail melebihi 8 MB. Sila pilih fail lebih kecil.";
-    const allowed = ACCEPT.split(",").map((s) => s.trim());
-    if (!allowed.includes(file.type)) {
+    if (!isAllowedSuratMime(file.name, file.type)) {
       return "Format tidak disokong. Sila muat naik PDF atau imej (JPG/PNG/WebP).";
     }
     return null;
@@ -116,6 +122,7 @@ export default function SuratPermohonanInput({
         }
 
         setUploaded(res.surat);
+        uploadedMetaRef.current = metaKey;
         setNotice(
           compressNotice
             ? `${compressNotice} Fail berjaya dimuat naik.`
@@ -146,6 +153,7 @@ export default function SuratPermohonanInput({
   function clearFile() {
     setSelected(null);
     setUploaded(null);
+    uploadedMetaRef.current = null;
     setError(null);
     setNotice(null);
     if (inputRef.current) inputRef.current.value = "";
@@ -262,8 +270,8 @@ export default function SuratPermohonanInput({
       )}
 
       <p className="mt-2 text-xs text-graphite">
-        PDF atau imej (JPG/PNG/WebP), maksimum 8 MB. Fail dimuat naik serta-merta selepas dipilih
-        (imej akan dimampatkan). Pastikan tarikh cadangan dan nama unit/sekolah sudah diisi.
+        PDF atau imej (JPG/PNG/WebP), maksimum 8 MB. Muat naik surat selepas pilih tarikh
+        cadangan. Fail disimpan ke Google Drive melalui GAS.
       </p>
       {notice && !error && <p className="mt-1 text-xs text-primary">{notice}</p>}
       {error && <p className="mt-1 text-xs text-bloom-deep">{error}</p>}

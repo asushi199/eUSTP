@@ -23,7 +23,7 @@ export default function KhidmatBantuForm({ schools }: { schools: SchoolOption[] 
   const [serviceType, setServiceType] = useState<(typeof SERVICE_TYPES)[number]["id"]>("ceramah");
   const [query, setQuery] = useState("");
   const [schoolCode, setSchoolCode] = useState(schools[0]?.code ?? "");
-  const [orgName, setOrgName] = useState("");
+  const [orgName, setOrgName] = useState(() => schools[0]?.name ?? "");
   const [activityDate, setActivityDate] = useState("");
   const [suratReady, setSuratReady] = useState(false);
 
@@ -224,20 +224,6 @@ export default function KhidmatBantuForm({ schools }: { schools: SchoolOption[] 
             <legend className="text-sm font-semibold text-ink">Perkhidmatan Dimohon</legend>
 
             <div>
-              <label className="label" htmlFor="tajukProgram">
-                Tajuk program
-              </label>
-              <input
-                id="tajukProgram"
-                name="tajukProgram"
-                className="input"
-                required
-                maxLength={300}
-                placeholder="cth. Bengkel STEM Tahun 6"
-              />
-            </div>
-
-            <div>
               <label className="label" htmlFor="serviceType">
                 Jenis perkhidmatan
               </label>
@@ -256,6 +242,20 @@ export default function KhidmatBantuForm({ schools }: { schools: SchoolOption[] 
                   </option>
                 ))}
               </select>
+            </div>
+
+            <div>
+              <label className="label" htmlFor="tajukProgram">
+                Tajuk program
+              </label>
+              <input
+                id="tajukProgram"
+                name="tajukProgram"
+                className="input"
+                required
+                maxLength={300}
+                placeholder="cth. Bengkel STEM Tahun 6"
+              />
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
