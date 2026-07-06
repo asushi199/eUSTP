@@ -108,6 +108,11 @@ export async function createKhidmatBantuAction(
     return { ok: false, message: "Sila lengkapkan maklumat program/perkhidmatan." };
   }
 
+  const rawActivityDate = isProgramService(serviceType)
+    ? (details as KhidmatProgramDetails).tarikhCadangan
+    : (details as KhidmatMcpDetails).tarikh;
+  const activityDate = /^\d{4}-\d{2}-\d{2}$/.test(rawActivityDate) ? rawActivityDate : null;
+
   try {
     const requestId = randomUUID();
     const { token, hash } = await createApprovalToken(requestId);
@@ -123,6 +128,7 @@ export async function createKhidmatBantuAction(
       contactNormalized,
       email: email || null,
       details,
+      activityDate,
       status: "pending",
       approvalTokenHash: hash,
     });

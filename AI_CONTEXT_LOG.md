@@ -2,6 +2,32 @@
 
 Log keputusan & konteks untuk sesi AI akan datang. Tambah entri terbaru di atas.
 
+## 2026-07-06 — Khidmat Bantu: lajur activity_date + query per-bulan (migrasi 0007)
+
+Khidmat Bantu kini seni bina sama seperti Tempahan: tarikh aktiviti jadi lajur DB
+sebenar, jadi tak perlu lagi muat semua rekod ke klien.
+
+- **Skema:** tambah `activity_date date` (nullable) + indeks
+  `khidmat_bantu_activity_date_idx (status, activity_date)`.
+- **Migrasi `0007_shallow_scarlet_witch.sql`** — DITULIS SEMULA secara manual.
+  drizzle-kit `generate` menghasilkan SQL BAHAYA (`CREATE TABLE IF NOT EXISTS`
+  untuk jadual sedia ada → lajur takkan ditambah di production; + `rooms ADD
+  capacity` yang sudah wujud). Punca: snapshot meta drizzle sudah lapuk (0005/0006
+  migrasi custom tanpa kemas kini snapshot). SQL diganti dengan idempotent:
+  `ALTER TABLE ADD COLUMN IF NOT EXISTS` + backfill dari `details`
+  (`COALESCE(->>'tarikhCadangan', ->>'tarikh')`, dijaga regex ISO) + indeks.
+  Migrator rasmi guna .sql (bukan snapshot) jadi selamat untuk apply. Snapshot
+  0007 kini penuh → `generate` akan datang sepatutnya lebih bersih.
+- **Insert action** menetapkan `activityDate` daripada details.
+- **Query:** `loadKhidmatBantuAdmin(year, month)` (pending mana-mana tarikh +
+  bukan-pending bulan itu). `listAdminKhidmatBantuRequests` dibuang.
+  `isKhidmatDbNotReady` juga kesan lajur `activity_date` hilang → kad "jalankan
+  migrasi" sehingga `db:migrate` dijalankan.
+- **View & page** Khidmat Bantu kini per-bulan server-driven (`?bulan`), sama
+  seperti Tempahan; guna MonthSection yang sama.
+- **PENTING:** selepas deploy, jalankan `npm run db:migrate` pada production
+  sebelum modul berfungsi (sebelum itu ia papar kad "belum sedia").
+
 ## 2026-07-06 — Seragamkan admin Khidmat Bantu + Tempahan (berskop-bulan)
 
 Satu corak paparan admin dikongsi kedua modul: gilir tunggu-kelulusan di atas +

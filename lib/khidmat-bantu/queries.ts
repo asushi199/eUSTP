@@ -1,6 +1,6 @@
 import "server-only";
 
-import { count, desc, eq } from "drizzle-orm";
+import { and, asc, count, eq, gte, lt, ne } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { khidmatBantuRequests } from "@/lib/schema";
 import type { KhidmatBantuDetails } from "@/lib/schema";
@@ -16,6 +16,7 @@ export type KhidmatBantuRow = {
   contactNormalized: string;
   email: string | null;
   details: KhidmatBantuDetails;
+  activityDate: string | null;
   status: "pending" | "approved" | "rejected" | "cancelled";
   approvalTokenHash: string | null;
   approvedAt: Date | null;
@@ -35,6 +36,7 @@ function mapRow(row: typeof khidmatBantuRequests.$inferSelect): KhidmatBantuRow 
     contactNormalized: row.contactNormalized,
     email: row.email,
     details: row.details,
+    activityDate: row.activityDate,
     status: row.status,
     approvalTokenHash: row.approvalTokenHash,
     approvedAt: row.approvedAt,
@@ -53,26 +55,50 @@ export async function getKhidmatBantuRequest(id: string): Promise<KhidmatBantuRo
   return row ? mapRow(row) : null;
 }
 
-export async function listAdminKhidmatBantuRequests(): Promise<{
-  pending: KhidmatBantuRow[];
-  others: KhidmatBantuRow[];
-  dbNotReady?: boolean;
-}> {
-  try {
-    const rows = await db
-      .select()
-      .from(khidmatBantuRequests)
-      .orderBy(desc(khidmatBantuRequests.createdAt));
+function isKhidmatDbNotReady(error: unknown): boolean {
+  const msg = error instanceof Error ? error.message : String(error);
+  return (
+    msg.includes("does not exist") &&
+    (msg.includes("khidmat_bantu_requests") || msg.includes("activity_date"))
+  );
+}
 
-    const mapped = rows.map(mapRow);
-    return {
-      pending: mapped.filter((r) => r.status === "pending"),
-      others: mapped.filter((r) => r.status !== "pending"),
-    };
+/**
+ * Data panel admin bagi satu bulan: gilir tunggu-kelulusan (mana-mana tarikh) +
+ * rekod bukan-pending pada bulan (ikut activity_date). `dbNotReady` benar jika
+ * jadual/lajur belum wujud (migrasi belum dijalankan).
+ */
+export async function loadKhidmatBantuAdmin(
+  year: number,
+  month: number,
+): Promise<{ pending: KhidmatBantuRow[]; monthRows: KhidmatBantuRow[]; dbNotReady?: boolean }> {
+  const first = `${year}-${String(month + 1).padStart(2, "0")}-01`;
+  const next = new Date(year, month + 1, 1);
+  const nextFirst = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, "0")}-01`;
+
+  try {
+    const [pending, monthRows] = await Promise.all([
+      db
+        .select()
+        .from(khidmatBantuRequests)
+        .where(eq(khidmatBantuRequests.status, "pending"))
+        .orderBy(asc(khidmatBantuRequests.activityDate)),
+      db
+        .select()
+        .from(khidmatBantuRequests)
+        .where(
+          and(
+            ne(khidmatBantuRequests.status, "pending"),
+            gte(khidmatBantuRequests.activityDate, first),
+            lt(khidmatBantuRequests.activityDate, nextFirst),
+          ),
+        )
+        .orderBy(asc(khidmatBantuRequests.activityDate)),
+    ]);
+    return { pending: pending.map(mapRow), monthRows: monthRows.map(mapRow) };
   } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
-    if (msg.includes("khidmat_bantu_requests") && msg.includes("does not exist")) {
-      return { pending: [], others: [], dbNotReady: true };
+    if (isKhidmatDbNotReady(error)) {
+      return { pending: [], monthRows: [], dbNotReady: true };
     }
     throw error;
   }

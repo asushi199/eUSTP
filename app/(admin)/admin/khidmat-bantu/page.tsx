@@ -1,13 +1,20 @@
 import Link from "next/link";
 import KhidmatBantuAdminView from "@/components/khidmat-bantu/KhidmatBantuAdminView";
-import { listAdminKhidmatBantuRequests } from "@/lib/khidmat-bantu/queries";
+import { loadKhidmatBantuAdmin } from "@/lib/khidmat-bantu/queries";
 import { requireKandunganAccess } from "@/lib/rbac";
+import { parseBulan, todayParts } from "@/lib/month-view";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminKhidmatBantuPage() {
+export default async function AdminKhidmatBantuPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ bulan?: string; view?: string }>;
+}) {
   await requireKandunganAccess();
-  const { pending, others, dbNotReady } = await listAdminKhidmatBantuRequests();
+  const { bulan, view } = await searchParams;
+  const { year, month } = parseBulan(bulan) ?? todayParts();
+  const { pending, monthRows, dbNotReady } = await loadKhidmatBantuAdmin(year, month);
 
   return (
     <>
@@ -29,13 +36,20 @@ export default async function AdminKhidmatBantuPage() {
         <div className="card mt-6 border-amber-200 bg-amber-50/80 p-6 text-sm leading-relaxed text-graphite">
           <p className="font-semibold text-ink">Jadual pangkalan data belum sedia</p>
           <p className="mt-2">
-            Modul Khidmat Bantu memerlukan migrasi <code className="text-xs">0006_khidmat_bantu</code>.
-            Jalankan <code className="text-xs">npm run db:migrate</code> pada pangkalan data
+            Modul Khidmat Bantu memerlukan migrasi terkini (termasuk lajur{" "}
+            <code className="text-xs">activity_date</code>). Jalankan{" "}
+            <code className="text-xs">npm run db:migrate</code> pada pangkalan data
             production (Supabase / Vercel Postgres), kemudian muat semula halaman ini.
           </p>
         </div>
       ) : (
-        <KhidmatBantuAdminView pending={pending} others={others} />
+        <KhidmatBantuAdminView
+          pending={pending}
+          monthRows={monthRows}
+          year={year}
+          month={month}
+          initialView={view === "senarai" ? "senarai" : "kalendar"}
+        />
       )}
     </>
   );

@@ -482,6 +482,8 @@ export const khidmatBantuRequests = pgTable(
     contactNormalized: text("contact_normalized").notNull().default(""),
     email: text("email"),
     details: jsonb("details").$type<KhidmatBantuDetails>().notNull(),
+    /** Tarikh aktiviti (yyyy-MM-dd) diekstrak dari details — untuk query & kalendar per-bulan. */
+    activityDate: date("activity_date"),
     status: bookingStatus("status").notNull().default("pending"),
     approvalTokenHash: text("approval_token_hash"),
     approvedAt: timestamp("approved_at", { withTimezone: true }),
@@ -491,5 +493,6 @@ export const khidmatBantuRequests = pgTable(
   (t) => ({
     statusIdx: index("khidmat_bantu_status_idx").on(t.status, t.createdAt),
     contactIdx: index("khidmat_bantu_contact_idx").on(t.contactNormalized, t.status),
+    activityDateIdx: index("khidmat_bantu_activity_date_idx").on(t.status, t.activityDate),
   }),
 );
