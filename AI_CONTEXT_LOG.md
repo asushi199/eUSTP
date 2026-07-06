@@ -2,6 +2,33 @@
 
 Log keputusan & konteks untuk sesi AI akan datang. Tambah entri terbaru di atas.
 
+## 2026-07-06 — Admin Khidmat Bantu: senarai terkumpul + kalendar
+
+Reka semula `/admin/khidmat-bantu` untuk selesaikan scroll mendatar jadual di
+telefon + beri pandangan bulanan. Spec penuh:
+`docs/superpowers/specs/2026-07-06-khidmat-bantu-admin-kalendar-design.md`.
+
+- **Punca scroll:** dua `<table>` 6-lajur dibalut `overflow-x-auto` → digantikan
+  kad responsif, tiada lagi scroll mendatar.
+- **Satu halaman, dua pandangan** (suis diingat via `?view=kalendar`):
+  - `Senarai` — gilir "Menunggu kelulusan" kekal di atas (isih ikut tarikh
+    aktiviti terdekat), rekod lain dikumpul **Tahun › Bulan › Hari**; tahun
+    semasa dibuka lalai, tahun lain terkumpul. Tapis status + carian.
+  - `Kalendar` — hanya `approved`, ikut tarikh aktiviti. Desktop grid bulanan
+    (klik hari → butiran); telefon turun taraf ke aliran agenda bertindan.
+- **Fail baharu:** `lib/khidmat-bantu/date-group.ts` (fungsi tulen:
+  `getServiceDate/Title/Time/Lokasi`, `groupByServiceDate`, `indexByServiceDate`,
+  `buildMonthGrid`), komponen `KhidmatBantuAdminView` / `KhidmatRequestCard` /
+  `GroupedRequestList` / `ApprovedCalendar`.
+- Tarikh aktiviti dibaca dari `details.tarikhCadangan` (program) / `details.tarikh`
+  (mcp) — kedua `<input type="date">` jadi ISO `YYYY-MM-DD` yang boleh dipercayai.
+  Tarikh tak sah dikumpul di seksyen "Tarikh tidak sah", tidak masuk kalendar.
+- **Tiada** perubahan DB / skema / borang awam. Guna semula
+  `listAdminKhidmatBantuRequests()`, `AdminKhidmatActions`, utiliti
+  `lib/tempahan/date.ts`.
+- Disahkan: `npm run typecheck` + `npm run build` lulus. Smoke penuh halaman
+  admin perlu sesi log masuk + DB — tertangguh (gate build ikut konvensi projek).
+
 ## 2026-07-05 — Penambahbaikan UI halaman butiran bilik (tempahan)
 
 Tiga polish visual pada aliran `/tempahan/[pkg]/bilik/[slug]` (semua komponen
