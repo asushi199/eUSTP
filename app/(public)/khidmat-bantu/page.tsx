@@ -13,6 +13,8 @@ export const metadata: Metadata = {
 };
 
 export const dynamic = "force-dynamic";
+/** Muat naik surat melalui GAS boleh >10s (cold start); lalai Vercel Hobby hanya 10s. */
+export const maxDuration = 60;
 
 export default async function KhidmatBantuPage() {
   const accent = getModuleAccent("/khidmat-bantu");

@@ -5,6 +5,7 @@ import { listSchoolOptions } from "@/lib/direktori/queries";
 import { getModuleAccent } from "@/lib/module-theme";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 export const metadata = { title: "Laporan PSS — eUSTP Manjung" };
 

@@ -6,6 +6,8 @@
 import { buildLaporanPhotoNaming, type LaporanPhotoMeta } from "@/lib/laporan/photos";
 
 const MAX_BYTES = 8 * 1024 * 1024; // elak timeout GAS
+/** GAS Web App (terutama cold start) boleh >10s; padankan maxDuration halaman. */
+const GAS_FETCH_TIMEOUT_MS = 55_000;
 
 export function isGasStorageConfigured(): boolean {
   return !!(
@@ -29,18 +31,34 @@ export async function uploadFileViaGas(
     throw new Error("Saiz fail melebihi 8 MB. Sila pilih fail lebih kecil.");
   }
 
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      secret,
-      fileName: opts.fileName,
-      subPath: opts.subPath,
-      mimeType: file.type || "application/octet-stream",
-      dataBase64: file.buffer.toString("base64"),
-    }),
-    redirect: "follow",
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), GAS_FETCH_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        secret,
+        fileName: opts.fileName,
+        subPath: opts.subPath,
+        mimeType: file.type || "application/octet-stream",
+        dataBase64: file.buffer.toString("base64"),
+      }),
+      redirect: "follow",
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error(
+        "Muat naik mengambil masa terlalu lama (GAS tidak membalas dalam 55 saat). " +
+          "Fail mungkin sudah ada di Google Drive — sila cuba sekali lagi atau hubungi admin USTP.",
+      );
+    }
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
 
   const text = await res.text();
   let json: {

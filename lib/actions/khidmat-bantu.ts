@@ -29,6 +29,7 @@ import { createApprovalToken, verifyApprovalToken } from "@/lib/tempahan/approva
 import { normalizePhoneNumber } from "@/lib/tempahan/booking-rules";
 import { approveKhidmatCore, rejectKhidmatCore } from "@/lib/khidmat-bantu/service";
 import { uploadSuratPermohonan } from "@/lib/khidmat-bantu/surat-permohonan";
+import { isGasStorageConfigured } from "@/lib/gas-upload";
 
 function requiredText(formData: FormData, key: string, max = 500): string {
   return String(formData.get(key) ?? "")
@@ -71,6 +72,58 @@ function parseMcpDetails(
   return { tarikh, masa, lokasi, suratPermohonan };
 }
 
+function parseSuratFromForm(formData: FormData): KhidmatSuratPermohonan | null {
+  const storagePath = requiredText(formData, "suratStoragePath", 200);
+  const fileName = requiredText(formData, "suratFileName", 200);
+  const originalName = requiredText(formData, "suratOriginalName", 300);
+  if (!storagePath.startsWith("drive/") || !fileName || !originalName) return null;
+  return { storagePath, fileName, originalName };
+}
+
+export type UploadSuratPermohonanResult =
+  | { ok: false; error: string }
+  | { ok: true; surat: KhidmatSuratPermohonan };
+
+/** Muat naik surat secara berasingan (corak OPR) — elak timeout bila hantar borang. */
+export async function uploadSuratPermohonanAction(
+  formData: FormData,
+): Promise<UploadSuratPermohonanResult> {
+  if (!isGasStorageConfigured()) {
+    return {
+      ok: false,
+      error: "GAS belum dikonfigurasi: set GAS_WEB_APP_URL dan GAS_UPLOAD_SECRET.",
+    };
+  }
+
+  const file = formData.get("file");
+  const orgName = requiredText(formData, "orgName", 300);
+  const activityDate = requiredText(formData, "activityDate", 20);
+  const serviceType = requiredText(formData, "serviceType", 50);
+
+  if (!(file instanceof File) || file.size === 0) {
+    return { ok: false, error: "Fail tidak sah." };
+  }
+  if (!orgName) {
+    return { ok: false, error: "Sila isi nama sekolah/unit dahulu." };
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(activityDate)) {
+    return { ok: false, error: "Sila pilih tarikh cadangan dahulu." };
+  }
+  if (!SERVICE_TYPES.some((s) => s.id === serviceType)) {
+    return { ok: false, error: "Jenis perkhidmatan tidak sah." };
+  }
+
+  try {
+    const surat = await uploadSuratPermohonan(file, { orgName, activityDate, serviceType });
+    return { ok: true, surat };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Gagal memuat naik surat permohonan.",
+    };
+  }
+}
+
 export type KhidmatBantuFormState = {
   ok: boolean;
   message: string;
@@ -108,22 +161,11 @@ export async function createKhidmatBantuAction(
     return { ok: false, message: "Sila pilih tarikh cadangan." };
   }
 
-  const suratFile = formData.get("suratPermohonan");
-  if (!(suratFile instanceof File) || suratFile.size === 0) {
-    return { ok: false, message: "Sila muat naik surat permohonan." };
-  }
-
-  let suratPermohonan: KhidmatSuratPermohonan;
-  try {
-    suratPermohonan = await uploadSuratPermohonan(suratFile, {
-      orgName,
-      activityDate,
-      serviceType,
-    });
-  } catch (error) {
+  const suratPermohonan = parseSuratFromForm(formData);
+  if (!suratPermohonan) {
     return {
       ok: false,
-      message: error instanceof Error ? error.message : "Gagal memuat naik surat permohonan.",
+      message: "Sila muat naik surat permohonan dan tunggu sehingga selesai.",
     };
   }
 

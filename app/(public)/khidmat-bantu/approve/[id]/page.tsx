@@ -19,6 +19,14 @@ function formatDetails(serviceType: string, details: KhidmatProgramDetails | Khi
     ? driveViewUrl(details.suratPermohonan.storagePath)
     : null;
 
+  const suratCell = suratUrl ? (
+    <Link href={suratUrl} className="link-blue" target="_blank" rel="noopener noreferrer">
+      {details.suratPermohonan?.originalName ?? "Buka fail"}
+    </Link>
+  ) : (
+    "—"
+  );
+
   if (isMcpService(serviceType)) {
     const d = details as KhidmatMcpDetails;
     return [
@@ -27,13 +35,7 @@ function formatDetails(serviceType: string, details: KhidmatProgramDetails | Khi
       ["Lokasi", d.lokasi],
       [
         "Surat permohonan",
-        suratUrl ? (
-          <Link href={suratUrl} className="link-blue" target="_blank" rel="noopener noreferrer">
-            {d.suratPermohonan?.originalName ?? "Buka fail"}
-          </Link>
-        ) : (
-          "—"
-        ),
+        suratCell,
       ],
       ...(d.tajukProgram ? ([["Tajuk program (rekod lama)", d.tajukProgram]] as const) : []),
     ] as const;
@@ -46,13 +48,7 @@ function formatDetails(serviceType: string, details: KhidmatProgramDetails | Khi
     ["Lokasi", d.lokasi],
     [
       "Surat permohonan",
-      suratUrl ? (
-        <Link href={suratUrl} className="link-blue" target="_blank" rel="noopener noreferrer">
-          {d.suratPermohonan?.originalName ?? "Buka fail"}
-        </Link>
-      ) : (
-        "—"
-      ),
+      suratCell,
     ],
     ...(d.tajuk ? ([["Tajuk (rekod lama)", d.tajuk]] as const) : []),
   ] as const;

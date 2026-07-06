@@ -24,6 +24,8 @@ export default function KhidmatBantuForm({ schools }: { schools: SchoolOption[] 
   const [query, setQuery] = useState("");
   const [schoolCode, setSchoolCode] = useState(schools[0]?.code ?? "");
   const [orgName, setOrgName] = useState("");
+  const [activityDate, setActivityDate] = useState("");
+  const [suratReady, setSuratReady] = useState(false);
 
   const filteredSchools = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -53,11 +55,7 @@ export default function KhidmatBantuForm({ schools }: { schools: SchoolOption[] 
   }, [applicantType, schoolCode, schools]);
 
   return (
-    <form
-      action={formAction}
-      encType="multipart/form-data"
-      className="card space-y-6 p-6"
-    >
+    <form action={formAction} className="card space-y-6 p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-primary">
@@ -257,6 +255,8 @@ export default function KhidmatBantuForm({ schools }: { schools: SchoolOption[] 
                   type="date"
                   className="input"
                   required
+                  value={activityDate}
+                  onChange={(e) => setActivityDate(e.target.value)}
                 />
               </div>
               <div>
@@ -281,14 +281,24 @@ export default function KhidmatBantuForm({ schools }: { schools: SchoolOption[] 
             </div>
 
             <div>
-              <label className="label" htmlFor="suratPermohonan">
+              <label className="label" htmlFor="surat-upload">
                 Muat naik surat permohonan
               </label>
-              <SuratPermohonanInput disabled={pending} />
+              <SuratPermohonanInput
+                disabled={pending}
+                orgName={orgName}
+                activityDate={activityDate}
+                serviceType={serviceType}
+                onReadyChange={setSuratReady}
+              />
             </div>
           </fieldset>
 
-          <button type="submit" className="btn-primary w-full sm:w-auto" disabled={pending}>
+          <button
+            type="submit"
+            className="btn-primary w-full sm:w-auto"
+            disabled={pending || !suratReady}
+          >
             {pending ? "Menghantar…" : "Hantar Permohonan"}
           </button>
         </>
