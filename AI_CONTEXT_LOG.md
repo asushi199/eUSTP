@@ -10,10 +10,11 @@ telefon + beri pandangan bulanan. Spec penuh:
 
 - **Punca scroll:** dua `<table>` 6-lajur dibalut `overflow-x-auto` → digantikan
   kad responsif, tiada lagi scroll mendatar.
-- **Satu halaman, dua pandangan** (suis diingat via `?view=kalendar`):
+- **Satu halaman, dua pandangan** (Kalendar = lalai; Senarai via `?view=senarai`):
   - `Senarai` — gilir "Menunggu kelulusan" kekal di atas (isih ikut tarikh
     aktiviti terdekat), rekod lain dikumpul **Tahun › Bulan › Hari**; tahun
-    semasa dibuka lalai, tahun lain terkumpul. Tapis status + carian.
+    semasa dibuka lalai, **bulan boleh dilipat** (bulan semasa dibuka lalai)
+    supaya banyak bulan tidak berselerak. Tapis status + carian.
   - `Kalendar` — hanya `approved`, ikut tarikh aktiviti. Desktop grid bulanan
     (klik hari → butiran); telefon turun taraf ke aliran agenda bertindan.
 - **Fail baharu:** `lib/khidmat-bantu/date-group.ts` (fungsi tulen:

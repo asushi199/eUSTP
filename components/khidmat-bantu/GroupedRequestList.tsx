@@ -20,8 +20,12 @@ const STATUS_FILTERS = [
 export default function GroupedRequestList({ rows }: { rows: KhidmatBantuRow[] }) {
   const [status, setStatus] = useState<string>("semua");
   const [query, setQuery] = useState("");
-  const currentYear = new Date().getFullYear();
+  const now = new Date();
+  const currentYear = now.getFullYear();
   const [openYears, setOpenYears] = useState<Set<number>>(() => new Set([currentYear]));
+  const [openMonths, setOpenMonths] = useState<Set<string>>(
+    () => new Set([`${currentYear}-${now.getMonth()}`]),
+  );
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -41,6 +45,15 @@ export default function GroupedRequestList({ rows }: { rows: KhidmatBantuRow[] }
       const next = new Set(prev);
       if (next.has(year)) next.delete(year);
       else next.add(year);
+      return next;
+    });
+  }
+
+  function toggleMonth(key: string) {
+    setOpenMonths((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
       return next;
     });
   }
@@ -106,28 +119,58 @@ export default function GroupedRequestList({ rows }: { rows: KhidmatBantuRow[] }
                   </span>
                 </button>
                 {open && (
-                  <div className="space-y-5 border-t hairline px-4 py-4">
-                    {yg.months.map((mg) => (
-                      <div key={mg.month}>
-                        <p className="text-sm font-semibold text-graphite">
-                          {mg.label} · {mg.total}
-                        </p>
-                        <div className="mt-2 space-y-4">
-                          {mg.days.map((dg) => (
-                            <div key={dg.date}>
-                              <p className="mb-1.5 text-xs font-medium text-graphite">
-                                {formatDayName(dg.date)}, {formatMalayDate(dg.date)}
-                              </p>
-                              <div className="space-y-2">
-                                {dg.rows.map((row) => (
-                                  <KhidmatRequestCard key={row.id} row={row} bare showDate={false} />
-                                ))}
-                              </div>
+                  <div className="space-y-2 border-t hairline px-4 py-4">
+                    {yg.months.map((mg) => {
+                      const monthKey = `${yg.year}-${mg.month}`;
+                      const monthOpen = openMonths.has(monthKey);
+                      return (
+                        <div key={mg.month} className="rounded-lg border border-fog/60">
+                          <button
+                            type="button"
+                            onClick={() => toggleMonth(monthKey)}
+                            className="flex w-full items-center justify-between px-3 py-2 text-left hover:bg-cloud/40"
+                          >
+                            <span className="text-sm font-semibold">{mg.label}</span>
+                            <span className="flex items-center gap-2 text-xs text-graphite">
+                              {mg.total}
+                              <svg
+                                aria-hidden
+                                className={cn("h-4 w-4 transition", monthOpen && "rotate-180")}
+                                fill="none"
+                                stroke="currentColor"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                viewBox="0 0 24 24"
+                              >
+                                <path d="M6 9l6 6 6-6" />
+                              </svg>
+                            </span>
+                          </button>
+                          {monthOpen && (
+                            <div className="space-y-4 border-t hairline px-3 py-3">
+                              {mg.days.map((dg) => (
+                                <div key={dg.date}>
+                                  <p className="mb-1.5 text-xs font-medium text-graphite">
+                                    {formatDayName(dg.date)}, {formatMalayDate(dg.date)}
+                                  </p>
+                                  <div className="space-y-2">
+                                    {dg.rows.map((row) => (
+                                      <KhidmatRequestCard
+                                        key={row.id}
+                                        row={row}
+                                        bare
+                                        showDate={false}
+                                      />
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
                             </div>
-                          ))}
+                          )}
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>

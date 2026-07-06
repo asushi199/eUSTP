@@ -25,13 +25,13 @@ export default function KhidmatBantuAdminView({
   const pathname = usePathname();
   const params = useSearchParams();
   const [view, setViewState] = useState<View>(
-    params.get("view") === "kalendar" ? "kalendar" : "senarai",
+    params.get("view") === "senarai" ? "senarai" : "kalendar",
   );
 
   function setView(next: View) {
     setViewState(next);
     const p = new URLSearchParams(window.location.search);
-    if (next === "senarai") p.delete("view");
+    if (next === "kalendar") p.delete("view");
     else p.set("view", next);
     const qs = p.toString();
     window.history.replaceState(null, "", qs ? `${pathname}?${qs}` : pathname);

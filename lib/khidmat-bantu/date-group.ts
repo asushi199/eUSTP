@@ -51,6 +51,13 @@ export function monthLabelOf(year: number, month: number): string {
   });
 }
 
+/** "Julai" sahaja (tahun sudah ditunjuk oleh akordion tahun). */
+export function monthNameOf(year: number, month: number): string {
+  return fromIsoDate(`${year}-${pad(month + 1)}-01`).toLocaleDateString("ms-MY", {
+    month: "long",
+  });
+}
+
 export type DayGroup = { date: string; rows: KhidmatBantuRow[] };
 export type MonthGroup = { month: number; label: string; total: number; days: DayGroup[] };
 export type YearGroup = { year: number; total: number; months: MonthGroup[] };
@@ -101,7 +108,7 @@ export function groupByServiceDate(rows: KhidmatBantuRow[]): GroupedRequests {
             .map(([date, dayRows]) => ({ date, rows: dayRows }));
           const total = days.reduce((n, day) => n + day.rows.length, 0);
           yearTotal += total;
-          return { month, label: monthLabelOf(year, month), total, days };
+          return { month, label: monthNameOf(year, month), total, days };
         });
       return { year, total: yearTotal, months: monthGroups };
     });
