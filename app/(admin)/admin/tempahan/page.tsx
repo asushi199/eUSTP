@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/rbac";
-import { listPkgs } from "@/lib/tempahan/queries";
+import { countPendingBookingsByPkg, listPkgs } from "@/lib/tempahan/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +9,7 @@ export default async function AdminTempahanPage() {
   const all = await listPkgs();
   const visible =
     user.peranan === "PKG_Admin" ? all.filter((p) => p.id === user.pkgId) : all;
+  const pendingCounts = await countPendingBookingsByPkg(visible.map((p) => p.id));
 
   return (
     <>
@@ -21,18 +22,29 @@ export default async function AdminTempahanPage() {
             Tiada PKG untuk akaun anda. Hubungi Pentadbir Sistem.
           </div>
         )}
-        {visible.map((pkg) => (
-          <Link
-            key={pkg.id}
-            href={`/admin/tempahan/${pkg.id}`}
-            className="card p-5 transition hover:-translate-y-0.5 hover:shadow-modal"
-          >
-            <p className="font-semibold">{pkg.name}</p>
-            <p className="mt-1 text-sm text-graphite">
-              WhatsApp: {pkg.whatsappAdminPhone || "belum ditetapkan"}
-            </p>
-          </Link>
-        ))}
+        {visible.map((pkg) => {
+          const pending = pendingCounts[pkg.id] ?? 0;
+          return (
+            <Link
+              key={pkg.id}
+              href={`/admin/tempahan/${pkg.id}`}
+              className="card relative p-5 transition hover:-translate-y-0.5 hover:shadow-modal"
+            >
+              {pending > 0 ? (
+                <span
+                  className="absolute right-3 top-3 inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-bold leading-5 text-white"
+                  aria-label={`${pending} permohonan baharu menunggu tindakan`}
+                >
+                  {pending > 9 ? "9+" : pending}
+                </span>
+              ) : null}
+              <p className="font-semibold">{pkg.name}</p>
+              <p className="mt-1 text-sm text-graphite">
+                WhatsApp: {pkg.whatsappAdminPhone || "belum ditetapkan"}
+              </p>
+            </Link>
+          );
+        })}
       </div>
     </>
   );

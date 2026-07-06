@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, count, desc, eq, gte, inArray } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, inArray, lt, ne } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { attendees, bookings, pkgs, rooms } from "@/lib/schema";
 
@@ -83,25 +83,51 @@ export async function listBookingsByContact(
     .orderBy(desc(bookings.date));
 }
 
-/** Senarai untuk panel admin: menunggu kelulusan + akan datang. */
-export async function listAdminBookings(pkgId: string, fromDate: string) {
-  const pending = await db
+/** Tempahan menunggu kelulusan (mana-mana tarikh) — gilir tindakan admin. */
+export async function listPendingBookings(pkgId: string): Promise<BookingRow[]> {
+  return db
     .select()
     .from(bookings)
     .where(and(eq(bookings.pkgId, pkgId), eq(bookings.status, "pending")))
     .orderBy(asc(bookings.date));
-  const upcoming = await db
+}
+
+/** Tempahan bukan-pending (approved/rejected/cancelled) bagi satu bulan. */
+export async function listPkgMonthBookings(
+  pkgId: string,
+  year: number,
+  month: number,
+): Promise<BookingRow[]> {
+  const first = `${year}-${String(month + 1).padStart(2, "0")}-01`;
+  const next = new Date(year, month + 1, 1);
+  const nextFirst = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, "0")}-01`;
+  return db
     .select()
     .from(bookings)
     .where(
       and(
         eq(bookings.pkgId, pkgId),
-        eq(bookings.status, "approved"),
-        gte(bookings.date, fromDate),
+        ne(bookings.status, "pending"),
+        gte(bookings.date, first),
+        lt(bookings.date, nextFirst),
       ),
     )
     .orderBy(asc(bookings.date));
-  return { pending, upcoming };
+}
+
+/** Kiraan tempahan menunggu bagi setiap PKG — untuk lencana senarai PKG. */
+export async function countPendingBookingsByPkg(
+  pkgIds: string[],
+): Promise<Record<string, number>> {
+  if (pkgIds.length === 0) return {};
+  const rows = await db
+    .select({ pkgId: bookings.pkgId, n: count() })
+    .from(bookings)
+    .where(and(eq(bookings.status, "pending"), inArray(bookings.pkgId, pkgIds)))
+    .groupBy(bookings.pkgId);
+  const map: Record<string, number> = {};
+  for (const r of rows) map[r.pkgId] = r.n;
+  return map;
 }
 
 export async function getBookingByAttendanceToken(

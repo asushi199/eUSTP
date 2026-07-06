@@ -1,19 +1,18 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import KhidmatRequestCard from "./KhidmatRequestCard";
-import GroupedRequestList from "./GroupedRequestList";
-import ApprovedCalendar from "./ApprovedCalendar";
-import { getServiceDate } from "@/lib/khidmat-bantu/date-group";
-import { cn } from "@/lib/cn";
+import MonthSection, { type MonthItem } from "@/components/admin-month/MonthSection";
+import { getServiceDate, getServiceTitle } from "@/lib/khidmat-bantu/date-group";
+import { inMonth, shiftMonth, todayParts } from "@/lib/month-view";
 import type { KhidmatBantuRow } from "@/lib/khidmat-bantu/queries";
 
-type View = "senarai" | "kalendar";
-
 /**
- * Kawalan pandangan admin: gilir tunggu-kelulusan (sentiasa di atas) +
- * suis Senarai/Kalendar untuk rekod. Pilihan pandangan diingat via ?view.
+ * Pandangan admin Khidmat Bantu: gilir tunggu-kelulusan di atas + seksyen
+ * berskop-bulan (Kalendar/Senarai). Volum kecil → semua rekod dimuat di pelayan
+ * dan bulan ditapis di klien (tarikh dalam JSONB tidak sesuai untuk query SQL
+ * per-bulan).
  */
 export default function KhidmatBantuAdminView({
   pending,
@@ -22,20 +21,9 @@ export default function KhidmatBantuAdminView({
   pending: KhidmatBantuRow[];
   others: KhidmatBantuRow[];
 }) {
-  const pathname = usePathname();
   const params = useSearchParams();
-  const [view, setViewState] = useState<View>(
-    params.get("view") === "senarai" ? "senarai" : "kalendar",
-  );
-
-  function setView(next: View) {
-    setViewState(next);
-    const p = new URLSearchParams(window.location.search);
-    if (next === "kalendar") p.delete("view");
-    else p.set("view", next);
-    const qs = p.toString();
-    window.history.replaceState(null, "", qs ? `${pathname}?${qs}` : pathname);
-  }
+  const initialView = params.get("view") === "senarai" ? "senarai" : "kalendar";
+  const [cursor, setCursor] = useState(() => todayParts());
 
   const sortedPending = useMemo(
     () =>
@@ -44,7 +32,21 @@ export default function KhidmatBantuAdminView({
       ),
     [pending],
   );
-  const approved = useMemo(() => others.filter((r) => r.status === "approved"), [others]);
+
+  const monthItems = useMemo<MonthItem[]>(() => {
+    return others
+      .map((row) => ({ row, date: getServiceDate(row) }))
+      .filter((x): x is { row: KhidmatBantuRow; date: string } =>
+        x.date != null && inMonth(x.date, cursor.year, cursor.month),
+      )
+      .map(({ row, date }) => ({
+        id: row.id,
+        date,
+        status: row.status,
+        chip: getServiceTitle(row),
+        card: <KhidmatRequestCard key={row.id} row={row} bare showDate={false} />,
+      }));
+  }, [others, cursor]);
 
   return (
     <div className="mt-6 space-y-8">
@@ -64,32 +66,16 @@ export default function KhidmatBantuAdminView({
       </section>
 
       <section>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold">
-            {view === "kalendar" ? "Kalendar diluluskan" : "Rekod permohonan"}
-          </h2>
-          <div className="inline-flex rounded-full border border-fog p-0.5">
-            {(["senarai", "kalendar"] as View[]).map((v) => (
-              <button
-                key={v}
-                type="button"
-                onClick={() => setView(v)}
-                className={cn(
-                  "rounded-full px-4 py-1.5 text-xs font-medium transition",
-                  view === v ? "bg-primary text-white" : "text-graphite hover:text-ink",
-                )}
-              >
-                {v === "senarai" ? "Senarai" : "Kalendar"}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {view === "kalendar" ? (
-          <ApprovedCalendar rows={approved} />
-        ) : (
-          <GroupedRequestList rows={others} />
-        )}
+        <h2 className="text-lg font-semibold">Rekod mengikut bulan</h2>
+        <MonthSection
+          year={cursor.year}
+          month={cursor.month}
+          items={monthItems}
+          onPrevMonth={() => setCursor((c) => shiftMonth(c.year, c.month, -1))}
+          onNextMonth={() => setCursor((c) => shiftMonth(c.year, c.month, 1))}
+          initialView={initialView}
+          syncViewToUrl
+        />
       </section>
     </div>
   );

@@ -2,6 +2,32 @@
 
 Log keputusan & konteks untuk sesi AI akan datang. Tambah entri terbaru di atas.
 
+## 2026-07-06 — Seragamkan admin Khidmat Bantu + Tempahan (berskop-bulan)
+
+Satu corak paparan admin dikongsi kedua modul: gilir tunggu-kelulusan di atas +
+seksyen **berskop-bulan** (navigasi bulan `‹ Julai 2026 ›` + suis Kalendar/Senarai
++ tapis status). Menggantikan akordion Tahun›Bulan›Hari Khidmat Bantu.
+
+- **Komponen kongsi:** `components/admin-month/MonthSection.tsx` (presentasi tulen —
+  terima `MonthItem[]` + kad yang telah dirender) dan `lib/month-view.ts` (fungsi
+  tulen: `buildMonthGrid`, `groupByDay`, `indexByDay`, `parseBulan/formatBulan`,
+  `shiftMonth`, `monthLabelOf`, `inMonth`, `todayParts`).
+- **Kalendar sentiasa papar approved**; Senarai tapis status (lalai Diluluskan,
+  boleh Ditolak/Semua). Desktop = grid, telefon = agenda bertindan.
+- **Khidmat Bantu:** tarikh dalam JSONB → tak sesuai query SQL per-bulan, jadi
+  muat semua (volum kecil) + tapis bulan di klien; navigasi bulan = state klien.
+  `GroupedRequestList` & `ApprovedCalendar` DIPADAM (diganti MonthSection).
+  `date-group.ts` kini hanya pengekstrak medan (getService*).
+- **Tempahan:** tarikh = lajur DB → query per-bulan sebenar `?bulan=YYYY-MM`
+  (`listPkgMonthBookings`), navigasi bulan tukar param (server refetch). Gilir
+  guna `listPendingBookings`. Kad baharu `BookingCard` (kekalkan pautan Urus
+  kehadiran/QR + AdminBookingActions) — TIDAK guna semula KhidmatRequestCard.
+  `listAdminBookings` lama dibuang.
+- **Senarai PKG** (`/admin/tempahan`): lencana merah bilangan menunggu per PKG
+  (`countPendingBookingsByPkg`).
+- Tukar ganti: Senarai kini berskop-bulan (bukan merentas tahun) — akibat
+  semula jadi pemuatan per-bulan. typecheck + build lulus.
+
 ## 2026-07-06 — Admin overview: Perkhidmatan di atas + lencana notifikasi
 
 - Kumpulan **Perkhidmatan** dinaikkan ke atas dalam `/admin` (modul dengan
