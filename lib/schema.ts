@@ -460,7 +460,7 @@ export type KhidmatProgramDetails = {
   masaCadangan: string;
   lokasi: string;
   suratPermohonan: KhidmatSuratPermohonan;
-  /** Rekod lama sebelum ringkasan borang */
+  /** Tajuk program — untuk paparan admin & integrasi takwim akan datang */
   tajuk?: string;
   bilPeserta?: string;
   catatan?: string;

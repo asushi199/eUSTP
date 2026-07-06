@@ -1,5 +1,5 @@
 import { normalizePhoneNumber } from "@/lib/tempahan/booking-rules";
-import type { KhidmatBantuDetails } from "@/lib/schema";
+import type { KhidmatBantuDetails, KhidmatProgramDetails } from "@/lib/schema";
 import { getApplicantTypeLabel, getServiceTypeLabel, isMcpService } from "./config";
 
 export type WhatsAppKhidmatDetails = {
@@ -35,6 +35,7 @@ export function buildRequestSummary(serviceType: string, details: KhidmatBantuDe
   if (isMcpService(serviceType)) {
     const d = details as Extract<KhidmatBantuDetails, { tarikh: string }>;
     const parts = [
+      d.tajukProgram && `Tajuk: ${d.tajukProgram}`,
       d.tarikh && `Tarikh: ${d.tarikh}`,
       d.masa && `Masa: ${d.masa}`,
       d.lokasi && `Lokasi: ${d.lokasi}`,
@@ -43,8 +44,9 @@ export function buildRequestSummary(serviceType: string, details: KhidmatBantuDe
     return parts.join(" · ") || "—";
   }
 
-  const d = details as Extract<KhidmatBantuDetails, { tarikhCadangan: string }>;
+  const d = details as KhidmatProgramDetails;
   const parts = [
+    d.tajuk && `Tajuk: ${d.tajuk}`,
     d.tarikhCadangan && `Tarikh: ${d.tarikhCadangan}`,
     d.masaCadangan && `Masa: ${d.masaCadangan}`,
     d.lokasi && `Lokasi: ${d.lokasi}`,

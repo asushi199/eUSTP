@@ -30,6 +30,7 @@ function formatDetails(serviceType: string, details: KhidmatProgramDetails | Khi
   if (isMcpService(serviceType)) {
     const d = details as KhidmatMcpDetails;
     return [
+      ["Tajuk program", d.tajukProgram || "—"],
       ["Tarikh", d.tarikh],
       ["Masa", d.masa],
       ["Lokasi", d.lokasi],
@@ -37,12 +38,12 @@ function formatDetails(serviceType: string, details: KhidmatProgramDetails | Khi
         "Surat permohonan",
         suratCell,
       ],
-      ...(d.tajukProgram ? ([["Tajuk program (rekod lama)", d.tajukProgram]] as const) : []),
     ] as const;
   }
 
   const d = details as KhidmatProgramDetails;
   return [
+    ["Tajuk program", d.tajuk || "—"],
     ["Tarikh cadangan", d.tarikhCadangan],
     ["Masa cadangan", d.masaCadangan],
     ["Lokasi", d.lokasi],
@@ -50,7 +51,6 @@ function formatDetails(serviceType: string, details: KhidmatProgramDetails | Khi
       "Surat permohonan",
       suratCell,
     ],
-    ...(d.tajuk ? ([["Tajuk (rekod lama)", d.tajuk]] as const) : []),
   ] as const;
 }
 

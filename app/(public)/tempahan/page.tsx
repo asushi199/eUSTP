@@ -8,7 +8,7 @@ import { TEMPAHAN_SECTIONS, getModuleAccent } from "@/lib/module-theme";
 export const metadata: Metadata = {
   title: "Tempahan & Perkhidmatan — eUSTP Manjung",
   description:
-    "Tempahan bilik PKG dan permohonan khidmat bantu USTP — ceramah, bengkel dan perkhidmatan MCP.",
+    "Tempahan bilik PKG dan permohonan khidmat bantu USTP — ceramah, bengkel, MCP dan lain-lain.",
 };
 
 const SECTION_TAG: Record<string, string> = {
@@ -25,7 +25,7 @@ export default function TempahanHubPage() {
         eyebrow="Tempahan & Perkhidmatan"
         title="Pilih Perkhidmatan"
         accent={accent}
-        description="Tempah bilik di Pusat Kegiatan Guru, atau mohon khidmat bantu USTP untuk ceramah, bengkel dan perkhidmatan Multiple Camera Product (MCP)."
+        description="Tempah bilik di Pusat Kegiatan Guru, atau mohon khidmat bantu USTP untuk ceramah, bengkel, MCP dan lain-lain."
       />
 
       <div className="mt-8 grid gap-4">

@@ -33,7 +33,7 @@ export default async function AdminOverviewPage() {
     perkhidmatan.push({
       href: "/admin/khidmat-bantu",
       title: "Khidmat Bantu",
-      description: "Kelulusan permohonan ceramah, bengkel dan perkhidmatan MCP.",
+      description: "Kelulusan permohonan ceramah, bengkel, MCP dan lain-lain.",
       badge: khidmatPending,
     });
   }

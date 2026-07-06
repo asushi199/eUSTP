@@ -53,10 +53,11 @@ function parseProgramDetails(
   const tarikhCadangan = requiredText(formData, "activityDate", 20);
   const masaCadangan = requiredText(formData, "activityTime", 50);
   const lokasi = requiredText(formData, "lokasi", 300);
+  const tajuk = requiredText(formData, "tajukProgram", 300);
 
-  if (!tarikhCadangan || !masaCadangan || !lokasi) return null;
+  if (!tarikhCadangan || !masaCadangan || !lokasi || !tajuk) return null;
 
-  return { tarikhCadangan, masaCadangan, lokasi, suratPermohonan };
+  return { tarikhCadangan, masaCadangan, lokasi, suratPermohonan, tajuk };
 }
 
 function parseMcpDetails(
@@ -66,10 +67,11 @@ function parseMcpDetails(
   const tarikh = requiredText(formData, "activityDate", 20);
   const masa = requiredText(formData, "activityTime", 50);
   const lokasi = requiredText(formData, "lokasi", 300);
+  const tajukProgram = requiredText(formData, "tajukProgram", 300);
 
-  if (!tarikh || !masa || !lokasi) return null;
+  if (!tarikh || !masa || !lokasi || !tajukProgram) return null;
 
-  return { tarikh, masa, lokasi, suratPermohonan };
+  return { tarikh, masa, lokasi, suratPermohonan, tajukProgram };
 }
 
 function parseSuratFromForm(formData: FormData): KhidmatSuratPermohonan | null {
@@ -177,7 +179,10 @@ export async function createKhidmatBantuAction(
   }
 
   if (!details) {
-    return { ok: false, message: "Sila lengkapkan tarikh, masa dan lokasi." };
+    return {
+      ok: false,
+      message: "Sila lengkapkan tajuk program, tarikh, masa dan lokasi.",
+    };
   }
 
   try {

@@ -9,7 +9,7 @@ import { getModuleAccent } from "@/lib/module-theme";
 export const metadata: Metadata = {
   title: "Permohonan Khidmat Bantu — eUSTP Manjung",
   description:
-    "Mohon ceramah, bengkel atau perkhidmatan MCP (siaran langsung & rakaman video) dari Unit Sumber dan Teknologi Pendidikan PPD Manjung.",
+    "Mohon ceramah, bengkel, perkhidmatan MCP (siaran langsung & rakaman video), atau lain-lain dari USTP PPD Manjung.",
 };
 
 export const dynamic = "force-dynamic";
@@ -29,7 +29,7 @@ export default async function KhidmatBantuPage() {
         eyebrow="Khidmat Bantu"
         title="Permohonan Khidmat Bantu"
         accent={accent}
-        description="Sekolah dan pegawai boleh mohon ceramah, bengkel, atau perkhidmatan Multiple Camera Product (MCP) — siaran langsung dan rakaman video."
+        description="Sekolah dan pegawai boleh mohon ceramah, bengkel, perkhidmatan MCP (siaran langsung & rakaman video), atau lain-lain daripada USTP."
         className="mt-2"
       />
       <div className="mt-8">

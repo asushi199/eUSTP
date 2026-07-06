@@ -28,7 +28,7 @@ const TEMPAHAN_HUB = {
   external: false,
   title: "Tempahan & Perkhidmatan",
   description:
-    "Tempahan bilik PKG dan permohonan khidmat bantu — ceramah, bengkel dan perkhidmatan MCP.",
+    "Tempahan bilik PKG dan permohonan khidmat bantu — ceramah, bengkel, MCP dan lain-lain.",
   accent: "#D97706",
   iconKey: "tempahan" as const,
 } as const;
@@ -81,7 +81,7 @@ export const MODULES = [
     external: false,
     title: "Permohonan Khidmat Bantu",
     description:
-      "Mohon ceramah, bengkel atau perkhidmatan MCP (siaran langsung & rakaman video) dari USTP.",
+      "Mohon ceramah, bengkel, perkhidmatan MCP (siaran langsung & rakaman video), atau lain-lain daripada USTP.",
     accent: "#059669",
     iconKey: "khidmat" as const,
   },
