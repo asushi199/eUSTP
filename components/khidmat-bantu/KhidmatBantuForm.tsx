@@ -4,7 +4,6 @@ import { useActionState, useEffect, useMemo, useState } from "react";
 import {
   APPLICANT_TYPES,
   SERVICE_TYPES,
-  getServiceGroup,
 } from "@/lib/khidmat-bantu/config";
 import {
   createKhidmatBantuAction,
@@ -24,8 +23,6 @@ export default function KhidmatBantuForm({ schools }: { schools: SchoolOption[] 
   const [query, setQuery] = useState("");
   const [schoolCode, setSchoolCode] = useState(schools[0]?.code ?? "");
   const [orgName, setOrgName] = useState("");
-
-  const serviceGroup = getServiceGroup(serviceType);
 
   const filteredSchools = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -55,7 +52,11 @@ export default function KhidmatBantuForm({ schools }: { schools: SchoolOption[] 
   }, [applicantType, schoolCode, schools]);
 
   return (
-    <form action={formAction} className="card space-y-6 p-6">
+    <form
+      action={formAction}
+      encType="multipart/form-data"
+      className="card space-y-6 p-6"
+    >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-primary">
@@ -244,124 +245,57 @@ export default function KhidmatBantuForm({ schools }: { schools: SchoolOption[] 
               </select>
             </div>
 
-            {serviceGroup === "program" ? (
-              <>
-                <div>
-                  <label className="label" htmlFor="tajuk">
-                    Tajuk ceramah / bengkel
-                  </label>
-                  <input id="tajuk" name="tajuk" className="input" required />
-                </div>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="label" htmlFor="tarikhCadangan">
-                      Tarikh cadangan
-                    </label>
-                    <input
-                      id="tarikhCadangan"
-                      name="tarikhCadangan"
-                      type="date"
-                      className="input"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="label" htmlFor="masaCadangan">
-                      Masa cadangan
-                    </label>
-                    <input
-                      id="masaCadangan"
-                      name="masaCadangan"
-                      className="input"
-                      required
-                      placeholder="cth. 9:00 pagi – 12:00 tengah hari"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="label" htmlFor="lokasi">
-                    Lokasi / venue
-                  </label>
-                  <input id="lokasi" name="lokasi" className="input" required />
-                </div>
-                <div>
-                  <label className="label" htmlFor="bilPeserta">
-                    Anggaran bilangan peserta
-                  </label>
-                  <input
-                    id="bilPeserta"
-                    name="bilPeserta"
-                    className="input"
-                    inputMode="numeric"
-                    placeholder="cth. 80"
-                  />
-                </div>
-                <div>
-                  <label className="label" htmlFor="catatan">
-                    Catatan tambahan
-                  </label>
-                  <textarea id="catatan" name="catatan" className="textarea" rows={3} />
-                </div>
-              </>
-            ) : (
-              <>
-                <div>
-                  <label className="label" htmlFor="tajukProgram">
-                    Tajuk program
-                  </label>
-                  <input id="tajukProgram" name="tajukProgram" className="input" required />
-                </div>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="label" htmlFor="tarikh">
-                      Tarikh
-                    </label>
-                    <input id="tarikh" name="tarikh" type="date" className="input" required />
-                  </div>
-                  <div>
-                    <label className="label" htmlFor="masa">
-                      Masa
-                    </label>
-                    <input
-                      id="masa"
-                      name="masa"
-                      className="input"
-                      required
-                      placeholder="cth. 2:00 petang"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="label" htmlFor="lokasi-mcp">
-                    Lokasi siaran / rakaman
-                  </label>
-                  <input id="lokasi-mcp" name="lokasi" className="input" required />
-                </div>
-                <div>
-                  <label className="label" htmlFor="platform">
-                    Platform (opsyenal)
-                  </label>
-                  <input
-                    id="platform"
-                    name="platform"
-                    className="input"
-                    placeholder="cth. YouTube, Facebook Live"
-                  />
-                </div>
-                <div>
-                  <label className="label" htmlFor="catatanTeknikal">
-                    Keperluan teknikal / catatan
-                  </label>
-                  <textarea
-                    id="catatanTeknikal"
-                    name="catatanTeknikal"
-                    className="textarea"
-                    rows={3}
-                    placeholder="cth. Rakaman penuh + potongan klip, mikrofon tanpa wayar, dll."
-                  />
-                </div>
-              </>
-            )}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="label" htmlFor="activityDate">
+                  Tarikh cadangan
+                </label>
+                <input
+                  id="activityDate"
+                  name="activityDate"
+                  type="date"
+                  className="input"
+                  required
+                />
+              </div>
+              <div>
+                <label className="label" htmlFor="activityTime">
+                  Masa cadangan
+                </label>
+                <input
+                  id="activityTime"
+                  name="activityTime"
+                  className="input"
+                  required
+                  placeholder="cth. 9:00 pagi – 12:00 tengah hari"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="label" htmlFor="lokasi">
+                Lokasi / venue
+              </label>
+              <input id="lokasi" name="lokasi" className="input" required />
+            </div>
+
+            <div>
+              <label className="label" htmlFor="suratPermohonan">
+                Muat naik surat permohonan
+              </label>
+              <input
+                id="suratPermohonan"
+                name="suratPermohonan"
+                type="file"
+                className="input file:mr-3 file:rounded file:border-0 file:bg-cloud file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-ink"
+                accept="application/pdf,image/jpeg,image/png,image/webp"
+                required
+              />
+              <p className="mt-1 text-xs text-graphite">
+                PDF atau imej (JPG/PNG/WebP), maksimum 8 MB. Fail disimpan mengikut nama
+                sekolah/unit dan bulan dalam Google Drive.
+              </p>
+            </div>
           </fieldset>
 
           <button type="submit" className="btn-primary w-full sm:w-auto" disabled={pending}>

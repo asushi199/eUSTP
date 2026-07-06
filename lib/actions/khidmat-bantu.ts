@@ -18,11 +18,17 @@ import {
 } from "@/lib/khidmat-bantu/whatsapp";
 import { getSessionUser } from "@/lib/rbac";
 import { canManageKandungan } from "@/lib/roles";
-import type { KhidmatBantuDetails, KhidmatMcpDetails, KhidmatProgramDetails } from "@/lib/schema";
+import type {
+  KhidmatBantuDetails,
+  KhidmatMcpDetails,
+  KhidmatProgramDetails,
+  KhidmatSuratPermohonan,
+} from "@/lib/schema";
 import { khidmatBantuRequests } from "@/lib/schema";
 import { createApprovalToken, verifyApprovalToken } from "@/lib/tempahan/approval-token";
 import { normalizePhoneNumber } from "@/lib/tempahan/booking-rules";
 import { approveKhidmatCore, rejectKhidmatCore } from "@/lib/khidmat-bantu/service";
+import { uploadSuratPermohonan } from "@/lib/khidmat-bantu/surat-permohonan";
 
 function requiredText(formData: FormData, key: string, max = 500): string {
   return String(formData.get(key) ?? "")
@@ -39,30 +45,30 @@ async function resolveBaseUrl(): Promise<string> {
   return `${proto}://${host}`;
 }
 
-function parseProgramDetails(formData: FormData): KhidmatProgramDetails | null {
-  const tajuk = requiredText(formData, "tajuk", 300);
-  const tarikhCadangan = requiredText(formData, "tarikhCadangan", 20);
-  const masaCadangan = requiredText(formData, "masaCadangan", 50);
+function parseProgramDetails(
+  formData: FormData,
+  suratPermohonan: KhidmatSuratPermohonan,
+): KhidmatProgramDetails | null {
+  const tarikhCadangan = requiredText(formData, "activityDate", 20);
+  const masaCadangan = requiredText(formData, "activityTime", 50);
   const lokasi = requiredText(formData, "lokasi", 300);
-  const bilPeserta = requiredText(formData, "bilPeserta", 20);
-  const catatan = requiredText(formData, "catatan", 1000);
 
-  if (!tajuk || !tarikhCadangan || !masaCadangan || !lokasi) return null;
+  if (!tarikhCadangan || !masaCadangan || !lokasi) return null;
 
-  return { tajuk, tarikhCadangan, masaCadangan, lokasi, bilPeserta, catatan };
+  return { tarikhCadangan, masaCadangan, lokasi, suratPermohonan };
 }
 
-function parseMcpDetails(formData: FormData): KhidmatMcpDetails | null {
-  const tajukProgram = requiredText(formData, "tajukProgram", 300);
-  const tarikh = requiredText(formData, "tarikh", 20);
-  const masa = requiredText(formData, "masa", 50);
+function parseMcpDetails(
+  formData: FormData,
+  suratPermohonan: KhidmatMcpDetails["suratPermohonan"],
+): KhidmatMcpDetails | null {
+  const tarikh = requiredText(formData, "activityDate", 20);
+  const masa = requiredText(formData, "activityTime", 50);
   const lokasi = requiredText(formData, "lokasi", 300);
-  const platform = requiredText(formData, "platform", 200);
-  const catatanTeknikal = requiredText(formData, "catatanTeknikal", 1000);
 
-  if (!tajukProgram || !tarikh || !masa || !lokasi) return null;
+  if (!tarikh || !masa || !lokasi) return null;
 
-  return { tajukProgram, tarikh, masa, lokasi, platform, catatanTeknikal };
+  return { tarikh, masa, lokasi, suratPermohonan };
 }
 
 export type KhidmatBantuFormState = {
@@ -97,21 +103,40 @@ export async function createKhidmatBantuAction(
     return { ok: false, message: "Sila pilih sekolah." };
   }
 
+  const activityDate = requiredText(formData, "activityDate", 20);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(activityDate)) {
+    return { ok: false, message: "Sila pilih tarikh cadangan." };
+  }
+
+  const suratFile = formData.get("suratPermohonan");
+  if (!(suratFile instanceof File) || suratFile.size === 0) {
+    return { ok: false, message: "Sila muat naik surat permohonan." };
+  }
+
+  let suratPermohonan: KhidmatSuratPermohonan;
+  try {
+    suratPermohonan = await uploadSuratPermohonan(suratFile, {
+      orgName,
+      activityDate,
+      serviceType,
+    });
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "Gagal memuat naik surat permohonan.",
+    };
+  }
+
   let details: KhidmatBantuDetails | null = null;
   if (isProgramService(serviceType)) {
-    details = parseProgramDetails(formData);
+    details = parseProgramDetails(formData, suratPermohonan);
   } else if (isMcpService(serviceType)) {
-    details = parseMcpDetails(formData);
+    details = parseMcpDetails(formData, suratPermohonan);
   }
 
   if (!details) {
-    return { ok: false, message: "Sila lengkapkan maklumat program/perkhidmatan." };
+    return { ok: false, message: "Sila lengkapkan tarikh, masa dan lokasi." };
   }
-
-  const rawActivityDate = isProgramService(serviceType)
-    ? (details as KhidmatProgramDetails).tarikhCadangan
-    : (details as KhidmatMcpDetails).tarikh;
-  const activityDate = /^\d{4}-\d{2}-\d{2}$/.test(rawActivityDate) ? rawActivityDate : null;
 
   try {
     const requestId = randomUUID();
@@ -136,7 +161,7 @@ export async function createKhidmatBantuAction(
     const baseUrl = await resolveBaseUrl();
     const approvalUrl = `${baseUrl}/khidmat-bantu/approve/${requestId}?token=${encodeURIComponent(token)}`;
     const adminPhone = await getKhidmatBantuWhatsappAdmin();
-    const summary = buildRequestSummary(serviceType, details as Record<string, string>);
+    const summary = buildRequestSummary(serviceType, details);
     const whatsappUrl = adminPhone
       ? buildWhatsAppShareUrl(adminPhone, {
           applicantName,

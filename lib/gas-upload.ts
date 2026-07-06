@@ -13,9 +13,9 @@ export function isGasStorageConfigured(): boolean {
   );
 }
 
-export async function uploadLaporanPhotoViaGas(
+export async function uploadFileViaGas(
   file: { name: string; type: string; buffer: Buffer },
-  meta: LaporanPhotoMeta,
+  opts: { fileName: string; subPath: string[] },
 ): Promise<{ path: string; publicUrl: string }> {
   const url = process.env.GAS_WEB_APP_URL?.trim();
   const secret = process.env.GAS_UPLOAD_SECRET?.trim();
@@ -26,18 +26,16 @@ export async function uploadLaporanPhotoViaGas(
   }
 
   if (file.buffer.byteLength > MAX_BYTES) {
-    throw new Error("Saiz gambar melebihi 8 MB. Sila mampatkan atau pilih fail lebih kecil.");
+    throw new Error("Saiz fail melebihi 8 MB. Sila pilih fail lebih kecil.");
   }
-
-  const { fileName, subPath } = buildLaporanPhotoNaming(meta, file.name);
 
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       secret,
-      fileName,
-      subPath,
+      fileName: opts.fileName,
+      subPath: opts.subPath,
       mimeType: file.type || "application/octet-stream",
       dataBase64: file.buffer.toString("base64"),
     }),
@@ -72,10 +70,24 @@ export async function uploadLaporanPhotoViaGas(
   return { path: json.path, publicUrl: json.publicUrl };
 }
 
+export async function uploadLaporanPhotoViaGas(
+  file: { name: string; type: string; buffer: Buffer },
+  meta: LaporanPhotoMeta,
+): Promise<{ path: string; publicUrl: string }> {
+  const { fileName, subPath } = buildLaporanPhotoNaming(meta, file.name);
+  return uploadFileViaGas(file, { fileName, subPath });
+}
+
 /** id Drive daripada storagePath "drive/{fileId}". */
 export function driveFileIdFromPath(storagePath: string): string | null {
   const m = /^drive\/(.+)$/.exec(storagePath);
   return m ? m[1] : null;
+}
+
+/** Pautan paparan fail Drive (PDF / dokumen). */
+export function driveViewUrl(storagePath: string): string | null {
+  const fileId = driveFileIdFromPath(storagePath);
+  return fileId ? `https://drive.google.com/file/d/${fileId}/view` : null;
 }
 
 /**

@@ -8,9 +8,11 @@ import {
   getServiceLokasi,
   getServiceTime,
   getServiceTitle,
+  getSuratPermohonan,
 } from "@/lib/khidmat-bantu/date-group";
 import { formatBookingStatus } from "@/lib/tempahan/booking-rules";
 import { formatMalayDate } from "@/lib/tempahan/date";
+import { driveViewUrl } from "@/lib/gas-upload";
 import { cn } from "@/lib/cn";
 import type { KhidmatBantuRow } from "@/lib/khidmat-bantu/queries";
 
@@ -36,6 +38,8 @@ export default function KhidmatRequestCard({
   showDate?: boolean;
 }) {
   const date = getServiceDate(row);
+  const surat = getSuratPermohonan(row);
+  const suratUrl = surat ? driveViewUrl(surat.storagePath) : null;
   const meta = [
     showDate && date ? formatMalayDate(date) : null,
     getServiceTime(row) || null,
@@ -68,6 +72,14 @@ export default function KhidmatRequestCard({
           {row.orgName} · {row.contact}
         </span>
       </p>
+
+      {suratUrl && (
+        <p className="mt-2">
+          <a href={suratUrl} className="link-blue text-xs" target="_blank" rel="noopener noreferrer">
+            Surat permohonan
+          </a>
+        </p>
+      )}
 
       {row.status === "pending" && (
         <div className="mt-3">

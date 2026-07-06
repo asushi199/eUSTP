@@ -1,5 +1,6 @@
 import { normalizePhoneNumber } from "@/lib/tempahan/booking-rules";
-import { getApplicantTypeLabel, getServiceTypeLabel } from "./config";
+import type { KhidmatBantuDetails } from "@/lib/schema";
+import { getApplicantTypeLabel, getServiceTypeLabel, isMcpService } from "./config";
 
 export type WhatsAppKhidmatDetails = {
   applicantName: string;
@@ -30,25 +31,24 @@ export function buildWhatsAppShareUrl(phone: string, details: WhatsAppKhidmatDet
   return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
 }
 
-export function buildRequestSummary(
-  serviceType: string,
-  details: Record<string, string>,
-): string {
-  if (serviceType === "ceramah" || serviceType === "bengkel") {
+export function buildRequestSummary(serviceType: string, details: KhidmatBantuDetails): string {
+  if (isMcpService(serviceType)) {
+    const d = details as Extract<KhidmatBantuDetails, { tarikh: string }>;
     const parts = [
-      details.tajuk && `Tajuk: ${details.tajuk}`,
-      details.tarikhCadangan && `Tarikh: ${details.tarikhCadangan}`,
-      details.masaCadangan && `Masa: ${details.masaCadangan}`,
-      details.lokasi && `Lokasi: ${details.lokasi}`,
+      d.tarikh && `Tarikh: ${d.tarikh}`,
+      d.masa && `Masa: ${d.masa}`,
+      d.lokasi && `Lokasi: ${d.lokasi}`,
+      d.suratPermohonan?.originalName && `Surat: ${d.suratPermohonan.originalName}`,
     ].filter(Boolean);
     return parts.join(" · ") || "—";
   }
 
+  const d = details as Extract<KhidmatBantuDetails, { tarikhCadangan: string }>;
   const parts = [
-    details.tajukProgram && `Program: ${details.tajukProgram}`,
-    details.tarikh && `Tarikh: ${details.tarikh}`,
-    details.masa && `Masa: ${details.masa}`,
-    details.lokasi && `Lokasi: ${details.lokasi}`,
+    d.tarikhCadangan && `Tarikh: ${d.tarikhCadangan}`,
+    d.masaCadangan && `Masa: ${d.masaCadangan}`,
+    d.lokasi && `Lokasi: ${d.lokasi}`,
+    d.suratPermohonan?.originalName && `Surat: ${d.suratPermohonan.originalName}`,
   ].filter(Boolean);
   return parts.join(" · ") || "—";
 }

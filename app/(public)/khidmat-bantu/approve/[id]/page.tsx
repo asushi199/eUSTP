@@ -1,38 +1,60 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { approveKhidmatByTokenAction } from "@/lib/actions/khidmat-bantu";
 import {
   getApplicantTypeLabel,
   getServiceTypeLabel,
   isMcpService,
-  isProgramService,
 } from "@/lib/khidmat-bantu/config";
 import { getKhidmatBantuRequest } from "@/lib/khidmat-bantu/queries";
 import { formatBookingStatus } from "@/lib/tempahan/booking-rules";
 import { verifyApprovalToken } from "@/lib/tempahan/approval-token";
+import { driveViewUrl } from "@/lib/gas-upload";
 import type { KhidmatMcpDetails, KhidmatProgramDetails } from "@/lib/schema";
 
 export const dynamic = "force-dynamic";
 
 function formatDetails(serviceType: string, details: KhidmatProgramDetails | KhidmatMcpDetails) {
-  if (isProgramService(serviceType)) {
-    const d = details as KhidmatProgramDetails;
+  const suratUrl = details.suratPermohonan
+    ? driveViewUrl(details.suratPermohonan.storagePath)
+    : null;
+
+  if (isMcpService(serviceType)) {
+    const d = details as KhidmatMcpDetails;
     return [
-      ["Tajuk", d.tajuk],
-      ["Tarikh cadangan", d.tarikhCadangan],
-      ["Masa cadangan", d.masaCadangan],
+      ["Tarikh", d.tarikh],
+      ["Masa", d.masa],
       ["Lokasi", d.lokasi],
-      ["Bil. peserta", d.bilPeserta || "—"],
-      ["Catatan", d.catatan || "—"],
+      [
+        "Surat permohonan",
+        suratUrl ? (
+          <Link href={suratUrl} className="link-blue" target="_blank" rel="noopener noreferrer">
+            {d.suratPermohonan?.originalName ?? "Buka fail"}
+          </Link>
+        ) : (
+          "—"
+        ),
+      ],
+      ...(d.tajukProgram ? ([["Tajuk program (rekod lama)", d.tajukProgram]] as const) : []),
     ] as const;
   }
-  const d = details as KhidmatMcpDetails;
+
+  const d = details as KhidmatProgramDetails;
   return [
-    ["Tajuk program", d.tajukProgram],
-    ["Tarikh", d.tarikh],
-    ["Masa", d.masa],
+    ["Tarikh cadangan", d.tarikhCadangan],
+    ["Masa cadangan", d.masaCadangan],
     ["Lokasi", d.lokasi],
-    ["Platform", d.platform || "—"],
-    ["Catatan teknikal", d.catatanTeknikal || "—"],
+    [
+      "Surat permohonan",
+      suratUrl ? (
+        <Link href={suratUrl} className="link-blue" target="_blank" rel="noopener noreferrer">
+          {d.suratPermohonan?.originalName ?? "Buka fail"}
+        </Link>
+      ) : (
+        "—"
+      ),
+    ],
+    ...(d.tajuk ? ([["Tajuk (rekod lama)", d.tajuk]] as const) : []),
   ] as const;
 }
 

@@ -1,9 +1,4 @@
-/**
- * Pengekstrakan medan aktiviti dari `details` permohonan Khidmat Bantu.
- * Fungsi tulen (tiada IO). Logik grid/kumpulan bulan berada di `@/lib/month-view`.
- */
-
-import { getServiceGroup } from "@/lib/khidmat-bantu/config";
+import { getServiceGroup, getServiceTypeLabel } from "@/lib/khidmat-bantu/config";
 import type { KhidmatBantuRow } from "@/lib/khidmat-bantu/queries";
 import type { KhidmatMcpDetails, KhidmatProgramDetails } from "@/lib/schema";
 
@@ -26,7 +21,14 @@ export function getServiceDate(row: KhidmatBantuRow): string | null {
 }
 
 export function getServiceTitle(row: KhidmatBantuRow): string {
-  return isMcp(row) ? asMcp(row).tajukProgram : asProgram(row).tajuk;
+  if (isMcp(row)) {
+    const legacy = asMcp(row).tajukProgram?.trim();
+    if (legacy) return legacy;
+  } else {
+    const legacy = asProgram(row).tajuk?.trim();
+    if (legacy) return legacy;
+  }
+  return getServiceTypeLabel(row.serviceType);
 }
 
 export function getServiceTime(row: KhidmatBantuRow): string {
@@ -35,4 +37,8 @@ export function getServiceTime(row: KhidmatBantuRow): string {
 
 export function getServiceLokasi(row: KhidmatBantuRow): string {
   return (row.details as KhidmatProgramDetails | KhidmatMcpDetails).lokasi ?? "";
+}
+
+export function getSuratPermohonan(row: KhidmatBantuRow) {
+  return (row.details as KhidmatProgramDetails | KhidmatMcpDetails).suratPermohonan ?? null;
 }

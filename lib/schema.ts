@@ -449,22 +449,32 @@ export const attendees = pgTable(
 
 /* ==================== Modul Khidmat Bantu ==================== */
 
+export type KhidmatSuratPermohonan = {
+  storagePath: string;
+  fileName: string;
+  originalName: string;
+};
+
 export type KhidmatProgramDetails = {
-  tajuk: string;
   tarikhCadangan: string;
   masaCadangan: string;
   lokasi: string;
-  bilPeserta: string;
-  catatan: string;
+  suratPermohonan: KhidmatSuratPermohonan;
+  /** Rekod lama sebelum ringkasan borang */
+  tajuk?: string;
+  bilPeserta?: string;
+  catatan?: string;
 };
 
 export type KhidmatMcpDetails = {
-  tajukProgram: string;
   tarikh: string;
   masa: string;
   lokasi: string;
-  platform: string;
-  catatanTeknikal: string;
+  suratPermohonan: KhidmatSuratPermohonan;
+  /** Rekod lama sebelum ringkasan borang */
+  tajukProgram?: string;
+  platform?: string;
+  catatanTeknikal?: string;
 };
 
 export type KhidmatBantuDetails = KhidmatProgramDetails | KhidmatMcpDetails;
