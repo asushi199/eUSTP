@@ -2,6 +2,14 @@
 
 Log keputusan & konteks untuk sesi AI akan datang. Tambah entri terbaru di atas.
 
+## 2026-07-06 — MonthSection: pemilih bulan/tahun (popover)
+
+Klik label bulan `Julai 2026 ⌄` → popover: penukar tahun `‹ 2026 ›` + grid 12
+bulan, klik terus lompat ke mana-mana bulan (untuk semak rekod lama pantas).
+Dikongsi kedua modul. API navigasi MonthSection dipermudah: `onPrevMonth` +
+`onNextMonth` → satu `onNavigate(year, month)`; anak panah kira sendiri guna
+`shiftMonth`. Popover tutup bila klik-luar / Esc / pilih bulan.
+
 ## 2026-07-06 — Khidmat Bantu: lajur activity_date + query per-bulan (migrasi 0007)
 
 Khidmat Bantu kini seni bina sama seperti Tempahan: tarikh aktiviti jadi lajur DB

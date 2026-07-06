@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import BookingCard from "./BookingCard";
 import MonthSection, { type MonthItem } from "@/components/admin-month/MonthSection";
 import { formatSlot } from "@/lib/tempahan/booking-rules";
-import { formatBulan, shiftMonth } from "@/lib/month-view";
+import { formatBulan } from "@/lib/month-view";
 import type { BookingRow } from "@/lib/tempahan/queries";
 
 /**
@@ -33,10 +33,9 @@ export default function TempahanAdminView({
   const router = useRouter();
   const pathname = usePathname();
 
-  function goMonth(delta: number) {
-    const next = shiftMonth(year, month, delta);
+  function goTo(y: number, m: number) {
     const p = new URLSearchParams(window.location.search);
-    p.set("bulan", formatBulan(next.year, next.month));
+    p.set("bulan", formatBulan(y, m));
     router.push(`${pathname}?${p.toString()}`, { scroll: false });
   }
 
@@ -94,8 +93,7 @@ export default function TempahanAdminView({
           year={year}
           month={month}
           items={monthItems}
-          onPrevMonth={() => goMonth(-1)}
-          onNextMonth={() => goMonth(1)}
+          onNavigate={goTo}
           initialView={initialView}
           syncViewToUrl
         />

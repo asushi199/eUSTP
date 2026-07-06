@@ -1,14 +1,19 @@
 "use client";
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   buildMonthGrid,
   groupByDay,
   indexByDay,
   monthLabelOf,
+  shiftMonth,
 } from "@/lib/month-view";
 import { formatDayName, formatMalayDate } from "@/lib/tempahan/date";
 import { cn } from "@/lib/cn";
+
+const MONTH_SHORTS = Array.from({ length: 12 }, (_, m) =>
+  new Date(2000, m, 1).toLocaleDateString("ms-MY", { month: "short" }),
+);
 
 export type MonthItem = {
   id: string;
@@ -40,22 +45,25 @@ export default function MonthSection({
   year,
   month,
   items,
-  onPrevMonth,
-  onNextMonth,
+  onNavigate,
   initialView = "kalendar",
   syncViewToUrl = false,
 }: {
   year: number;
   month: number;
   items: MonthItem[];
-  onPrevMonth: () => void;
-  onNextMonth: () => void;
+  onNavigate: (year: number, month: number) => void;
   initialView?: View;
   syncViewToUrl?: boolean;
 }) {
   const [view, setViewState] = useState<View>(initialView);
   const [statusId, setStatusId] = useState<string>("diluluskan");
   const [selected, setSelected] = useState<string | null>(null);
+
+  function navigate(y: number, m: number) {
+    setSelected(null);
+    onNavigate(y, m);
+  }
 
   function setView(next: View) {
     setViewState(next);
@@ -82,24 +90,24 @@ export default function MonthSection({
   return (
     <div className="mt-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => {
-              setSelected(null);
-              onPrevMonth();
+              const p = shiftMonth(year, month, -1);
+              navigate(p.year, p.month);
             }}
             className="btn-outline-ink btn-sm"
             aria-label="Bulan sebelumnya"
           >
             ‹
           </button>
-          <p className="min-w-[9rem] text-center font-semibold">{monthLabelOf(year, month)}</p>
+          <MonthPicker year={year} month={month} onPick={navigate} />
           <button
             type="button"
             onClick={() => {
-              setSelected(null);
-              onNextMonth();
+              const p = shiftMonth(year, month, 1);
+              navigate(p.year, p.month);
             }}
             className="btn-outline-ink btn-sm"
             aria-label="Bulan seterusnya"
@@ -290,6 +298,111 @@ function MonthList({
               <div className="space-y-2">{g.items.map((it) => it.card)}</div>
             </div>
           ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MonthPicker({
+  year,
+  month,
+  onPick,
+}: {
+  year: number;
+  month: number;
+  onPick: (year: number, month: number) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [pickerYear, setPickerYear] = useState(year);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (open) setPickerYear(year);
+  }, [open, year]);
+
+  useEffect(() => {
+    if (!open) return;
+    function onDocMouseDown(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", onDocMouseDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDocMouseDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex min-w-[9rem] items-center justify-center gap-1 rounded-md px-2 py-1.5 font-semibold hover:bg-cloud/60"
+        aria-haspopup="dialog"
+        aria-expanded={open}
+      >
+        {monthLabelOf(year, month)}
+        <svg
+          aria-hidden
+          className={cn("h-4 w-4 text-graphite transition", open && "rotate-180")}
+          fill="none"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="absolute left-0 top-full z-20 mt-2 w-64 rounded-xl border border-fog bg-white p-3 shadow-modal">
+          <div className="flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => setPickerYear((y) => y - 1)}
+              className="btn-outline-ink btn-sm"
+              aria-label="Tahun sebelumnya"
+            >
+              ‹
+            </button>
+            <span className="font-semibold tabular-nums">{pickerYear}</span>
+            <button
+              type="button"
+              onClick={() => setPickerYear((y) => y + 1)}
+              className="btn-outline-ink btn-sm"
+              aria-label="Tahun seterusnya"
+            >
+              ›
+            </button>
+          </div>
+          <div className="mt-3 grid grid-cols-3 gap-1.5">
+            {MONTH_SHORTS.map((label, m) => {
+              const active = pickerYear === year && m === month;
+              return (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => {
+                    onPick(pickerYear, m);
+                    setOpen(false);
+                  }}
+                  className={cn(
+                    "rounded-md px-2 py-2 text-sm font-medium transition",
+                    active ? "bg-primary text-white" : "text-ink hover:bg-cloud/70",
+                  )}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>
