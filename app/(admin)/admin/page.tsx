@@ -64,7 +64,7 @@ export default async function AdminOverviewPage() {
 
     groups.push({
       heading: "OSC One Stop Center",
-      blurb: "Kandungan halaman awam /osc — sumber, analisis dan maklumat asas.",
+      blurb: "Kandungan OSC (dalaman) — sumber, analisis dan maklumat asas.",
       cards: [
         {
           href: "/admin/kandungan",

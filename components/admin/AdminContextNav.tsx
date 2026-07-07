@@ -30,10 +30,35 @@ const ADMIN_HOME_ICON = (
   </svg>
 );
 
+const TEMPAHAN_ICON = (
+  <svg {...iconProps}>
+    <rect x="4" y="5" width="16" height="16" rx="2" />
+    <path d="M8 3v4M16 3v4M4 10h16" />
+  </svg>
+);
+
+const OSC_ICON = (
+  <svg {...iconProps}>
+    <rect x="3" y="3" width="8" height="8" rx="1.5" />
+    <rect x="13" y="3" width="8" height="8" rx="1.5" />
+    <rect x="3" y="13" width="8" height="8" rx="1.5" />
+    <rect x="13" y="13" width="8" height="8" rx="1.5" />
+  </svg>
+);
+
 function useAdminNav() {
   const pathname = usePathname();
   return { onAdminHome: pathname === "/admin" };
 }
+
+/** Rangkaian laluan yang dikira sebagai "OSC" untuk sorotan tab. */
+const OSC_PATHS = [
+  "/admin/osc",
+  "/admin/kandungan",
+  "/admin/analisis",
+  "/admin/pegawai",
+  "/admin/tetapan",
+];
 
 /** Pautan konteks admin dalam header (desktop). */
 export function AdminDesktopNav() {
@@ -63,34 +88,69 @@ export function AdminDesktopNav() {
   );
 }
 
-/** Bar bawah tetap — portal awam & papan utama (mudah alih). */
-export function AdminMobileNav() {
-  const { onAdminHome } = useAdminNav();
+/**
+ * Bar bawah tetap (mudah alih) — tab konteks admin.
+ * `showOsc` dihantar dari layout mengikut peranan (PKG_Admin tiada OSC).
+ */
+export function AdminMobileNav({ showOsc }: { showOsc: boolean }) {
+  const pathname = usePathname();
+
+  const tabs = [
+    {
+      href: "/admin",
+      label: "Papan",
+      icon: ADMIN_HOME_ICON,
+      active: pathname === "/admin",
+    },
+    {
+      href: "/admin/tempahan",
+      label: "Tempahan",
+      icon: TEMPAHAN_ICON,
+      active: pathname.startsWith("/admin/tempahan"),
+    },
+    ...(showOsc
+      ? [
+          {
+            href: "/admin/osc",
+            label: "OSC",
+            icon: OSC_ICON,
+            active: OSC_PATHS.some(
+              (p) => pathname === p || pathname.startsWith(`${p}/`),
+            ),
+          },
+        ]
+      : []),
+    {
+      href: "/",
+      label: "Portal",
+      icon: PORTAL_ICON,
+      active: false,
+    },
+  ];
 
   return (
     <nav
       aria-label="Navigasi admin"
       className="fixed inset-x-0 bottom-0 z-40 border-t hairline bg-white pb-[env(safe-area-inset-bottom)] md:hidden no-print"
     >
-      <div className="grid grid-cols-2">
-        <Link
-          href="/"
-          className="flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-medium text-graphite hover:text-ink"
-        >
-          {PORTAL_ICON}
-          Portal
-        </Link>
-        <Link
-          href="/admin"
-          aria-current={onAdminHome ? "page" : undefined}
-          className={cn(
-            "flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-medium",
-            onAdminHome ? "text-primary" : "text-graphite hover:text-ink",
-          )}
-        >
-          {ADMIN_HOME_ICON}
-          Papan Admin
-        </Link>
+      <div
+        className="grid"
+        style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}
+      >
+        {tabs.map((tab) => (
+          <Link
+            key={tab.href}
+            href={tab.href}
+            aria-current={tab.active ? "page" : undefined}
+            className={cn(
+              "flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-medium",
+              tab.active ? "text-primary" : "text-graphite hover:text-ink",
+            )}
+          >
+            {tab.icon}
+            {tab.label}
+          </Link>
+        ))}
       </div>
     </nav>
   );

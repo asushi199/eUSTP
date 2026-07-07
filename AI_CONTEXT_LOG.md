@@ -2,6 +2,78 @@
 
 Log keputusan & konteks untuk sesi AI akan datang. Tambah entri terbaru di atas.
 
+## 2026-07-07 — OSC jadi dalaman + tab admin mudah alih
+
+**Arahan pengurusan:** "OSC tidak boleh dilihat orang luar." Keputusan: OSC jadi
+**dalaman sahaja** (sesiapa yang log masuk boleh lihat — tiada skop peranan tambahan).
+
+- **Gating:** `middleware.ts` — `PROTECTED_PREFIXES` kini termasuk `/osc`,
+  `/sumber`, `/analisis`, `/maklumat-asas` (matcher + redirect ke
+  `/login?from=…`, sama corak dengan `/admin`). Disahkan: keempat-empat laluan
+  redirect ke login; `/direktori` dll kekal awam.
+- **Log masuk → mendarat di `/admin/tempahan`** (bukan `/admin`): tukar di
+  `middleware.ts`, `login/page.tsx` (callbackUrl default), `LoginForm.tsx`.
+- **Buang entri OSC dari permukaan awam:** kad halaman utama
+  (`module-theme.ts` HOME_MODULES kini tapis `/osc`; OSC_MODULE dikekalkan dlm
+  MODULES utk carian tema), `TopNav`, `BottomTabBar` (5→4 kolum). Dua pautan
+  "Lihat analisis penuh" → `/analisis` dibuang (`(public)/page.tsx` +
+  `HomeAnalisisBand.tsx`) sebab awam tak boleh capai lagi.
+- **KEPUTUSAN pengguna:** jalur "Analisis Semasa" halaman utama (kad ringkasan +
+  modal carta penuh) **kekal awam** — walaupun `/analisis` kini dalaman, data
+  ringkasan dibenarkan awam.
+- **Tab admin mudah alih:** `AdminMobileNav` kini bar 4-tab ikut peranan —
+  Papan / Tempahan / OSC / Portal; PKG_Admin tanpa OSC (3 tab). `showOsc`
+  dihantar dari `(admin)/layout.tsx` (`canManageKandungan`). Desktop tidak
+  berubah.
+- **Baharu:** `/admin/osc` (sub-hub OSC: 4 kad urus kandungan + pautan lihat
+  halaman OSC), guard `requireKandunganAccess`. Sasaran tab OSC mudah alih.
+- Disahkan: `npm run typecheck` + `npm run build` lulus; smoke gating via
+  preview (tanpa DB). Tab admin & `/admin/osc` disahkan compile sahaja
+  (perlu log masuk untuk semak visual).
+
+## 2026-07-06 — Khidmat Bantu: muat naik surat gagal ("Access denied: DriveApp.")
+
+**Gejala:** muat naik surat permohonan gagal — fail MASUK ke Google Drive tetapi
+permohonan TIDAK ditulis ke Supabase. Ralat pada UI sama setiap kali:
+`Access denied: DriveApp.`
+
+**Punca (bukan Vercel, bukan kebenaran OAuth):** dalam `gas/Code.gs`,
+`file.createFile(blob)` berjaya (sebab itu fail nampak di Drive), tetapi baris
+seterusnya `file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, …)` dilontar
+`Access denied: DriveApp.` kerana dasar domain Google Workspace (akaun MOE)
+menyekat perkongsian "sesiapa yang ada pautan". Catch di `doPost` memulangkan
+`{ok:false}` → klien tak dapat `storagePath` → borang tak submit → Supabase kosong.
+Jadi bukan isahan OAuth (kalau OAuth gagal, `createFile` sendiri takkan jadi).
+Bukan juga timeout Vercel 10s — ralat itu datang dari GAS, bukan AbortError.
+
+**Baiki:** jadikan `setSharing` best-effort dalam `gas/Code.gs` — cuba
+`ANYONE_WITH_LINK`, fallback `DOMAIN_WITH_LINK`, jika kedua-dua disekat biarkan
+fail kekal peribadi; JANGAN gagalkan muat naik. Perlu **redeploy GAS versi baharu**
+(Manage deployments → New version); `/exec` URL & `.env.local` tak berubah.
+
+**Sahkan:** POST diagnostik ke `/exec` (pixel PNG kecil) →
+sebelum: `{"ok":false,"error":"Access denied: DriveApp."}` (~12s, cold start);
+selepas redeploy: `{"ok":true,"path":"drive/…"}` (~5s). Berjaya.
+
+**Kesan sampingan:** `publicUrl` = pautan thumbnail Drive. Jika domain sekat semua
+perkongsian pautan, gambar Laporan DPD/PSS yang dipapar dalam `<img>` mungkin tak
+render (limitasi dasar domain, bukan akibat perubahan ini). Surat khidmat-bantu
+guna pautan `/view` — tak terjejas.
+
+**Bug ke-2 (folder cache → fail masuk Trash):** `resolveFolderPath_` cache ID
+folder dalam CacheService (6 jam). Bila pengguna PADAM folder subPath (ke Trash),
+`DriveApp.getFolderById(cachedId)` MASIH pulangkan folder yang dalam Trash (tak
+lontar ralat), jadi `createFile` cipta fail DI DALAM folder Trash → "berjaya" tapi
+fail hilang dari pandangan. Baiki: semak `!cachedFolder.isTrashed()` sebelum guna
+ID cache; jika trashed → `cache.remove` + bina semula. (Laluan `getFoldersByName`
+tak pulangkan folder Trash, jadi ia sudah betul — hanya jalan pintas cache yang
+pincang.)
+
+**Tambahan:** `action:"info"` dalam `gas/Code.gs` — diagnostik pulangkan
+`rootFolderUrl` + `targetFolderUrl` + senarai fail, untuk sahkan DI MANA fail
+sebenarnya disimpan tanpa teka folder ID. Semua perubahan GAS perlu **redeploy
+versi baharu** baru berkesan.
+
 ## 2026-07-06 — MonthSection: pemilih bulan/tahun (popover)
 
 Klik label bulan `Julai 2026 ⌄` → popover: penukar tahun `‹ 2026 ›` + grid 12

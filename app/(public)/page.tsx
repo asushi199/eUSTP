@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { withDbTimeout } from "@/lib/db";
 import { HOME_MODULES } from "@/lib/home-modules";
 import { getAnalisisHomeSummary } from "@/lib/analisis/summary";
@@ -145,9 +144,6 @@ export default async function HomePage() {
             <h2 className="text-sm font-semibold uppercase tracking-[0.7px] text-graphite">
               Analisis Semasa
             </h2>
-            <Link href="/analisis" className="link-blue text-sm">
-              Lihat analisis penuh
-            </Link>
           </div>
           {analisis ? (
             <HomeAnalisisBand modules={analisis} />

@@ -29,7 +29,7 @@ export default function LoginForm({
       setBusy(false);
       return;
     }
-    window.location.href = callbackUrl || "/admin";
+    window.location.href = callbackUrl || "/admin/tempahan";
   }
 
   return (

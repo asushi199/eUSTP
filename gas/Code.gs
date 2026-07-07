@@ -57,9 +57,16 @@ function resolveFolderPath_(rootId, segments) {
   var cachedId = cache.get(cacheKey);
   if (cachedId) {
     try {
-      return DriveApp.getFolderById(cachedId);
+      var cachedFolder = DriveApp.getFolderById(cachedId);
+      // PENTING: getFolderById MASIH memulangkan folder yang berada dalam Trash
+      // (tak melontar ralat). Tanpa semakan ini, fail akan dicipta di dalam folder
+      // yang sudah dibuang → masuk Trash. Sahkan ia belum dibuang dahulu.
+      if (!cachedFolder.isTrashed()) {
+        return cachedFolder;
+      }
+      cache.remove(cacheKey); // ID lapuk (folder dalam Trash) — bina semula di bawah
     } catch (ignore) {
-      // folder dipadam — bina semula di bawah
+      // folder dipadam kekal — bina semula di bawah
     }
   }
 
@@ -72,6 +79,35 @@ function resolveFolderPath_(rootId, segments) {
   }
   cache.put(cacheKey, folder.getId(), 21600); // 6 jam
   return folder;
+}
+
+/**
+ * Diagnostik: laporkan folder akar sebenar + folder sasaran subPath (nama, URL,
+ * bilangan fail). Guna untuk sahkan DI MANA fail sebenarnya disimpan.
+ * Panggil: { secret, action:"info", subPath:["2026","2026-07","Khidmat-Bantu"] }
+ */
+function handleInfo_(config, payload) {
+  var root = DriveApp.getFolderById(config.folderId);
+  var target = resolveFolderPath_(config.folderId, payload.subPath);
+
+  var files = [];
+  var it = target.getFiles();
+  while (it.hasNext() && files.length < 20) {
+    var f = it.next();
+    files.push({ id: f.getId(), name: f.getName() });
+  }
+
+  return jsonResponse_({
+    ok: true,
+    rootFolderId: root.getId(),
+    rootFolderName: root.getName(),
+    rootFolderUrl: root.getUrl(),
+    targetFolderId: target.getId(),
+    targetFolderUrl: target.getUrl(),
+    targetFolderPath: (payload.subPath || []).join("/"),
+    fileCount: files.length,
+    files: files,
+  });
 }
 
 function handleDelete_(payload) {
@@ -104,6 +140,10 @@ function doPost(e) {
       return handleDelete_(payload);
     }
 
+    if (payload.action === "info") {
+      return handleInfo_(config, payload);
+    }
+
     if (!payload.dataBase64 || !payload.fileName) {
       return jsonResponse_({ ok: false, error: "dataBase64 dan fileName diperlukan" });
     }
@@ -119,7 +159,21 @@ function doPost(e) {
     var folder = resolveFolderPath_(config.folderId, payload.subPath);
     var file = folder.createFile(blob);
 
-    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    // Perkongsian "sesiapa yang ada pautan" kerap disekat oleh dasar domain
+    // Google Workspace (cth. akaun MOE) → setSharing melontar "Access denied: DriveApp."
+    // walaupun fail SUDAH berjaya disimpan. Jadikan ia best-effort: cuba pautan
+    // awam, jika gagal cuba perkongsian dalam domain, dan jangan sekali-kali
+    // gagalkan muat naik hanya kerana perkongsian ditolak.
+    try {
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    } catch (shareErr) {
+      try {
+        file.setSharing(DriveApp.Access.DOMAIN_WITH_LINK, DriveApp.Permission.VIEW);
+      } catch (shareErr2) {
+        // Dasar domain sekat semua perkongsian pautan — fail kekal peribadi.
+        // Pentadbir masih boleh buka melalui pautan Drive dalam domain.
+      }
+    }
 
     var fileId = file.getId();
     // thumbnail URL — boleh dipapar dalam <img> (bukan uc?export=view)

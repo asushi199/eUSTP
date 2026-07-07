@@ -21,7 +21,7 @@ export default async function LoginPage({
         Log masuk untuk pentadbir dan pegawai sahaja. Halaman awam tidak
         memerlukan akaun.
       </p>
-      <LoginForm callbackUrl={sp.from ?? "/admin"} initialError={sp.error} />
+      <LoginForm callbackUrl={sp.from ?? "/admin/tempahan"} initialError={sp.error} />
       <p className="mt-6 text-xs text-graphite">
         Lupa kata laluan? Hubungi Pentadbir Sistem USTP.
       </p>

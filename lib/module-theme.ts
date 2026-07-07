@@ -130,10 +130,14 @@ export const TEMPAHAN_SECTIONS = MODULES.filter((m) =>
 
 /**
  * Kad halaman utama — sub-modul OSC & Tempahan digabung di hub masing-masing.
+ * OSC (/osc) kini dalaman sahaja (perlu log masuk) — jadi tidak dipapar
+ * sebagai kad awam; diuruskan melalui /admin/osc. OSC_MODULE dikekalkan dalam
+ * MODULES supaya carian tema (getModuleAccent/getModuleThemeForPath) berfungsi.
  * Bilangan kad = HOME_MODULES.length.
  */
 export const HOME_MODULES = MODULES.filter(
   (m) =>
+    m.internalHref !== "/osc" &&
     !OSC_SECTIONS.some((s) => s.internalHref === m.internalHref) &&
     !TEMPAHAN_SECTIONS.some((s) => s.internalHref === m.internalHref),
 );

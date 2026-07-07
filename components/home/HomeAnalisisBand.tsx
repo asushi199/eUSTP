@@ -1,7 +1,6 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import AnalisisKpiTiles from "@/components/analisis/AnalisisKpiTiles";
 import KpiGroups from "@/components/analisis/KpiGroups";
@@ -173,12 +172,6 @@ export default function HomeAnalisisBand({ modules }: { modules: AnalisisHomeMod
                 Data modul ini belum tersedia. Sila semak semula kemudian.
               </p>
             )}
-
-            <div className="mt-5 border-t border-fog pt-4">
-              <Link href="/analisis" className="link-blue text-sm">
-                Lihat halaman Analisis penuh
-              </Link>
-            </div>
           </div>
         </div>
       ) : null}
