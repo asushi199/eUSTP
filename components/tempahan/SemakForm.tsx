@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
+import PhoneInput from "@/components/PhoneInput";
 import { semakTempahanAction, type CheckBookingState } from "@/lib/actions/tempahan";
 import { formatBookingStatus, formatSlot, type Slot } from "@/lib/tempahan/booking-rules";
 import { formatMalayDate } from "@/lib/tempahan/date";
@@ -31,11 +32,9 @@ export default function SemakForm({
           <label className="label" htmlFor="contact">
             No. Telefon (semasa tempahan)
           </label>
-          <input
+          <PhoneInput
             id="contact"
             name="contact"
-            className="input"
-            inputMode="tel"
             placeholder="cth. 0123456789"
             required
           />

@@ -5,6 +5,7 @@ import { pegawai } from "@/lib/schema";
 import { deletePegawai, savePegawai } from "@/lib/actions/pegawai";
 import ActionForm from "@/components/admin/ActionForm";
 import DeleteButton from "@/components/admin/DeleteButton";
+import PhoneInput from "@/components/PhoneInput";
 
 export const dynamic = "force-dynamic";
 
@@ -32,10 +33,10 @@ export default async function AdminPegawaiPage() {
                 className="input w-72"
                 placeholder="jawatan"
               />
-              <input
+              <PhoneInput
                 name="telefon"
                 defaultValue={p.telefon}
-                className="input w-44"
+                className="w-44"
                 placeholder="telefon"
               />
               <input
@@ -65,7 +66,7 @@ export default async function AdminPegawaiPage() {
           >
             <input name="nama" placeholder="Nama" className="input w-56" required />
             <input name="jawatan" placeholder="Jawatan" className="input w-72" />
-            <input name="telefon" placeholder="Telefon" className="input w-44" />
+            <PhoneInput name="telefon" placeholder="Telefon" className="w-44" />
             <input name="photoUrl" placeholder="URL foto" className="input w-56" />
             <input name="sort" type="number" placeholder="susunan" className="input w-24" />
             <input type="hidden" name="aktif" value="true" />

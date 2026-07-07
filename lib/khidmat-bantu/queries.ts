@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, count, eq, gte, lt, ne } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, lt, ne } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { khidmatBantuRequests } from "@/lib/schema";
 import type { KhidmatBantuDetails } from "@/lib/schema";
@@ -117,6 +117,42 @@ export async function countPendingKhidmatBantu(): Promise<number> {
     if (msg.includes("khidmat_bantu_requests") && msg.includes("does not exist")) {
       return 0;
     }
+    throw error;
+  }
+}
+
+/** Semak sendiri: permohonan ikut nombor telefon (dinormalkan). Terbaru dahulu. */
+export async function listKhidmatByContact(
+  contactNormalized: string,
+): Promise<KhidmatBantuRow[]> {
+  if (!contactNormalized) return [];
+  try {
+    const rows = await db
+      .select()
+      .from(khidmatBantuRequests)
+      .where(eq(khidmatBantuRequests.contactNormalized, contactNormalized))
+      .orderBy(desc(khidmatBantuRequests.activityDate));
+    return rows.map(mapRow);
+  } catch (error) {
+    if (isKhidmatDbNotReady(error)) return [];
+    throw error;
+  }
+}
+
+/** Semak sendiri: permohonan ikut kod sekolah. Terbaru dahulu. */
+export async function listKhidmatBySchoolCode(
+  schoolCode: string,
+): Promise<KhidmatBantuRow[]> {
+  if (!schoolCode) return [];
+  try {
+    const rows = await db
+      .select()
+      .from(khidmatBantuRequests)
+      .where(eq(khidmatBantuRequests.schoolCode, schoolCode))
+      .orderBy(desc(khidmatBantuRequests.activityDate));
+    return rows.map(mapRow);
+  } catch (error) {
+    if (isKhidmatDbNotReady(error)) return [];
     throw error;
   }
 }

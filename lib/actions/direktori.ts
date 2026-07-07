@@ -10,6 +10,7 @@ import {
   TEACHER_ROLES,
   cleanSchoolDisplayName,
   normalizeSchoolCode,
+  toTitleCaseName,
 } from "@/lib/direktori/config";
 
 const roleSchema = z.object({
@@ -68,7 +69,7 @@ export async function createDirektoriSubmission(
       TEACHER_ROLES.map((role) => ({
         versionId: version.id,
         role,
-        teacherName: data.roles[role].teacherName,
+        teacherName: toTitleCaseName(data.roles[role].teacherName),
         phone: data.roles[role].phone,
       })),
     );

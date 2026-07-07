@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createDirektoriSubmission } from "@/lib/actions/direktori";
+import PhoneInput from "@/components/PhoneInput";
 import { ROLE_ORDER, ROLE_INFO, type TeacherRole } from "@/lib/direktori/config";
 import type { PublicDirectoryRow, SchoolOption } from "@/lib/direktori/queries";
 
@@ -163,10 +164,8 @@ export default function KemaskiniForm({
                   <label className="label" htmlFor={`${role}-tel`}>
                     No. Telefon
                   </label>
-                  <input
+                  <PhoneInput
                     id={`${role}-tel`}
-                    className="input"
-                    inputMode="tel"
                     placeholder="cth. 0123456789"
                     value={roleState[role].phone}
                     onChange={(e) =>
@@ -202,10 +201,8 @@ export default function KemaskiniForm({
             <label className="label" htmlFor="penghantar-tel">
               No. Telefon Anda
             </label>
-            <input
+            <PhoneInput
               id="penghantar-tel"
-              className="input"
-              inputMode="tel"
               value={submitterPhone}
               onChange={(e) => setSubmitterPhone(e.target.value)}
             />

@@ -32,7 +32,13 @@ export default async function KhidmatBantuPage() {
         description="Sekolah dan pegawai boleh mohon ceramah, bengkel, perkhidmatan MCP (siaran langsung & rakaman video), atau lain-lain daripada USTP."
         className="mt-2"
       />
-      <div className="mt-8">
+      <div className="mt-4 rounded-lg border border-fog bg-cloud/60 px-4 py-3 text-sm">
+        <span className="text-graphite">Sudah menghantar permohonan? </span>
+        <Link href="/khidmat-bantu/semak" className="link-blue font-medium">
+          Semak permohonan saya
+        </Link>
+      </div>
+      <div className="mt-6">
         <KhidmatBantuForm schools={schools} />
       </div>
     </PublicPageShell>

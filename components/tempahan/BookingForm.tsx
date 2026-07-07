@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useMemo, useState } from "react";
+import PhoneInput from "@/components/PhoneInput";
 import { createBookingAction, type BookingFormState } from "@/lib/actions/tempahan";
 import {
   formatRoom,
@@ -154,11 +155,9 @@ export default function BookingForm({
             <label className="label" htmlFor={`${formId}-contact`}>
               Nombor telefon *
             </label>
-            <input
+            <PhoneInput
               id={`${formId}-contact`}
               name="contact"
-              className="input"
-              inputMode="tel"
               placeholder="Contoh: 0123456789"
               required
             />

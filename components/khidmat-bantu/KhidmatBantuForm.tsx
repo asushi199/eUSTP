@@ -10,6 +10,7 @@ import {
   type KhidmatBantuFormState,
 } from "@/lib/actions/khidmat-bantu";
 import SuratPermohonanInput from "@/components/khidmat-bantu/SuratPermohonanInput";
+import PhoneInput from "@/components/PhoneInput";
 import type { SchoolOption } from "@/lib/direktori/queries";
 
 const initialState: KhidmatBantuFormState = { ok: false, message: "" };
@@ -195,12 +196,10 @@ export default function KhidmatBantuForm({ schools }: { schools: SchoolOption[] 
                 <label className="label" htmlFor="contact">
                   No. telefon
                 </label>
-                <input
+                <PhoneInput
                   id="contact"
                   name="contact"
-                  className="input"
                   required
-                  inputMode="tel"
                   autoComplete="tel"
                   placeholder="cth. 0123456789"
                 />

@@ -1,6 +1,7 @@
 "use server";
 
 import { randomUUID } from "crypto";
+import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -8,10 +9,17 @@ import { db } from "@/lib/db";
 import {
   APPLICANT_TYPES,
   SERVICE_TYPES,
+  getServiceTypeLabel,
   isMcpService,
   isProgramService,
 } from "@/lib/khidmat-bantu/config";
-import { getKhidmatBantuRequest, getKhidmatBantuWhatsappAdmin } from "@/lib/khidmat-bantu/queries";
+import {
+  getKhidmatBantuRequest,
+  getKhidmatBantuWhatsappAdmin,
+  listKhidmatByContact,
+  listKhidmatBySchoolCode,
+} from "@/lib/khidmat-bantu/queries";
+import { getServiceTitle } from "@/lib/khidmat-bantu/date-group";
 import {
   buildRequestSummary,
   buildWhatsAppShareUrl,
@@ -294,4 +302,96 @@ export async function approveKhidmatByTokenAction(formData: FormData) {
   }
 
   redirect(`${resultBase}?status=invalid`);
+}
+
+/* --------------------------- semak sendiri --------------------------- */
+
+export type SemakKhidmatResult = {
+  id: string;
+  title: string;
+  serviceLabel: string;
+  orgName: string;
+  applicantName: string;
+  activityDate: string | null;
+  status: "pending" | "approved" | "rejected" | "cancelled";
+  whatsappUrl?: string;
+};
+
+export type SemakKhidmatState = {
+  ok: boolean;
+  message: string;
+  results: SemakKhidmatResult[];
+};
+
+/**
+ * Semak permohonan khidmat bantu sendiri ikut nombor telefon atau kod sekolah.
+ * Untuk permohonan yang masih menunggu, token kelulusan baharu dijana (token
+ * lama dibatalkan) supaya butang WhatsApp boleh dihantar semula kepada admin —
+ * berguna jika mesej asal gagal dihantar (cth. talian terputus).
+ */
+export async function semakKhidmatBantuAction(
+  _previousState: SemakKhidmatState,
+  formData: FormData,
+): Promise<SemakKhidmatState> {
+  const mode = requiredText(formData, "mode", 20);
+  const contact = normalizePhoneNumber(requiredText(formData, "contact", 30));
+  const schoolCode = requiredText(formData, "schoolCode", 20);
+
+  let rows;
+  if (mode === "sekolah") {
+    if (!schoolCode) return { ok: false, message: "Sila pilih sekolah.", results: [] };
+    rows = await listKhidmatBySchoolCode(schoolCode);
+  } else {
+    if (!contact) {
+      return { ok: false, message: "Sila masukkan nombor telefon.", results: [] };
+    }
+    rows = await listKhidmatByContact(contact);
+  }
+
+  if (rows.length === 0) {
+    return { ok: true, message: "Tiada permohonan dijumpai.", results: [] };
+  }
+
+  const baseUrl = await resolveBaseUrl();
+  const adminPhone = await getKhidmatBantuWhatsappAdmin();
+
+  const results: SemakKhidmatResult[] = await Promise.all(
+    rows.map(async (row) => {
+      let whatsappUrl: string | undefined;
+      if (row.status === "pending" && adminPhone) {
+        const { token, hash } = await createApprovalToken(row.id);
+        await db
+          .update(khidmatBantuRequests)
+          .set({ approvalTokenHash: hash })
+          .where(eq(khidmatBantuRequests.id, row.id));
+
+        const approvalUrl = `${baseUrl}/khidmat-bantu/approve/${row.id}?token=${encodeURIComponent(token)}`;
+        whatsappUrl = buildWhatsAppShareUrl(adminPhone, {
+          applicantName: row.applicantName,
+          orgName: row.orgName,
+          serviceType: row.serviceType,
+          applicantType: row.applicantType,
+          contact: row.contactNormalized,
+          summary: buildRequestSummary(row.serviceType, row.details),
+          approvalUrl,
+        });
+      }
+      return {
+        id: row.id,
+        title: getServiceTitle(row),
+        serviceLabel: getServiceTypeLabel(row.serviceType),
+        orgName: row.orgName,
+        applicantName: row.applicantName,
+        activityDate: row.activityDate,
+        status: row.status,
+        whatsappUrl,
+      };
+    }),
+  );
+
+  return {
+    ok: true,
+    message: `${results.length} permohonan dijumpai.`,
+    results,
+  };
 }

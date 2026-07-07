@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import PhoneInput from "@/components/PhoneInput";
 import { updatePkgSettings } from "@/lib/actions/tempahan-admin";
 
 export default function PkgSettingsForm({
@@ -40,11 +41,9 @@ export default function PkgSettingsForm({
         <label className="label" htmlFor="whatsappAdminPhone">
           No. WhatsApp Admin (untuk mesej kelulusan)
         </label>
-        <input
+        <PhoneInput
           id="whatsappAdminPhone"
           name="whatsappAdminPhone"
-          className="input"
-          inputMode="tel"
           placeholder="cth. 60123456789"
           defaultValue={whatsappAdminPhone}
         />
