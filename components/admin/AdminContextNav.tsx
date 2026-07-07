@@ -46,6 +46,14 @@ const OSC_ICON = (
   </svg>
 );
 
+const PELAPORAN_ICON = (
+  <svg {...iconProps}>
+    <path d="M7 3h8l4 4v14H7z" />
+    <path d="M15 3v4h4" />
+    <path d="M10 12h6M10 16h6" />
+  </svg>
+);
+
 /** Rangkaian laluan yang dikira sebagai "OSC" untuk sorotan tab. */
 const OSC_PATHS = [
   "/admin/osc",
@@ -55,12 +63,19 @@ const OSC_PATHS = [
   "/admin/tetapan",
 ];
 
-function isOscPath(pathname: string): boolean {
-  return OSC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+/** Rangkaian laluan yang dikira sebagai "Pelaporan" untuk sorotan tab. */
+const PELAPORAN_PATHS = [
+  "/admin/pelaporan",
+  "/admin/laporan-dpd",
+  "/admin/laporan-pss",
+];
+
+function matchPath(pathname: string, paths: string[]): boolean {
+  return paths.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
-/** Pautan konteks admin dalam header (desktop). `showOsc` ikut peranan. */
-export function AdminDesktopNav({ showOsc }: { showOsc: boolean }) {
+/** Pautan konteks admin dalam header (desktop). `showContent` ikut peranan. */
+export function AdminDesktopNav({ showContent }: { showContent: boolean }) {
   const pathname = usePathname();
 
   const linkCls = (active: boolean) =>
@@ -78,8 +93,19 @@ export function AdminDesktopNav({ showOsc }: { showOsc: boolean }) {
       label: "Tempahan",
       active: pathname.startsWith("/admin/tempahan"),
     },
-    ...(showOsc
-      ? [{ href: "/admin/osc", label: "OSC", active: isOscPath(pathname) }]
+    ...(showContent
+      ? [
+          {
+            href: "/admin/osc",
+            label: "OSC",
+            active: matchPath(pathname, OSC_PATHS),
+          },
+          {
+            href: "/admin/pelaporan",
+            label: "Pelaporan",
+            active: matchPath(pathname, PELAPORAN_PATHS),
+          },
+        ]
       : []),
   ];
 
@@ -107,9 +133,10 @@ export function AdminDesktopNav({ showOsc }: { showOsc: boolean }) {
 
 /**
  * Bar bawah tetap (mudah alih) — tab konteks admin.
- * `showOsc` dihantar dari layout mengikut peranan (PKG_Admin tiada OSC).
+ * `showContent` dihantar dari layout mengikut peranan
+ * (PKG_Admin tiada OSC/Pelaporan).
  */
-export function AdminMobileNav({ showOsc }: { showOsc: boolean }) {
+export function AdminMobileNav({ showContent }: { showContent: boolean }) {
   const pathname = usePathname();
 
   const tabs = [
@@ -125,13 +152,19 @@ export function AdminMobileNav({ showOsc }: { showOsc: boolean }) {
       icon: TEMPAHAN_ICON,
       active: pathname.startsWith("/admin/tempahan"),
     },
-    ...(showOsc
+    ...(showContent
       ? [
           {
             href: "/admin/osc",
             label: "OSC",
             icon: OSC_ICON,
-            active: isOscPath(pathname),
+            active: matchPath(pathname, OSC_PATHS),
+          },
+          {
+            href: "/admin/pelaporan",
+            label: "Lapor",
+            icon: PELAPORAN_ICON,
+            active: matchPath(pathname, PELAPORAN_PATHS),
           },
         ]
       : []),

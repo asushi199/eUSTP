@@ -18,9 +18,11 @@ function initials(nama: string): string {
 export default function AdminUserMenu({
   nama,
   peranan,
+  canManageUsers = false,
 }: {
   nama: string;
   peranan: string;
+  canManageUsers?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -78,6 +80,16 @@ export default function AdminUserMenu({
             <p className="mt-0.5 text-xs text-graphite">{peranan}</p>
           </div>
           <div className="py-1">
+            {canManageUsers ? (
+              <Link
+                role="menuitem"
+                href="/admin/users"
+                onClick={() => setOpen(false)}
+                className="block px-4 py-2.5 text-sm text-ink hover:bg-cloud"
+              >
+                Pengguna
+              </Link>
+            ) : null}
             <Link
               role="menuitem"
               href="/tukar-kata-laluan"

@@ -1,90 +1,31 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/rbac";
-import { canManageKandungan, canManageUsers } from "@/lib/roles";
+import { canManageKandungan } from "@/lib/roles";
 import { countPendingKhidmatBantu } from "@/lib/khidmat-bantu/queries";
-import { countPendingBookings } from "@/lib/tempahan/queries";
 
 export const dynamic = "force-dynamic";
 
 type AdminCard = { href: string; title: string; description: string; badge?: number };
-type AdminGroup = { heading: string; blurb?: string; cards: AdminCard[] };
 
 export default async function AdminOverviewPage() {
   const user = await requireUser();
   const urusKandungan = canManageKandungan(user.peranan);
+  const khidmatPending = urusKandungan ? await countPendingKhidmatBantu() : 0;
 
-  const pkgScope =
-    user.peranan === "PKG_Admin" ? (user.pkgId ? [user.pkgId] : []) : undefined;
-  const [khidmatPending, tempahanPending] = await Promise.all([
-    urusKandungan ? countPendingKhidmatBantu() : Promise.resolve(0),
-    countPendingBookings(pkgScope),
-  ]);
-
-  const groups: AdminGroup[] = [];
-
-  // Perkhidmatan diletak dahulu — modul dengan permohonan menunggu tindakan.
-  const perkhidmatan: AdminCard[] = [];
+  // Papan hanya memaparkan perkhidmatan yang tiada tab sendiri.
+  // Tempahan, OSC dan Pelaporan berada di menu atas / bar bawah.
+  const cards: AdminCard[] = [];
   if (urusKandungan) {
-    perkhidmatan.push({
+    cards.push({
       href: "/admin/direktori",
       title: "Direktori",
       description: "Sejarah versi, pemulihan dan eksport CSV.",
     });
-    perkhidmatan.push({
+    cards.push({
       href: "/admin/khidmat-bantu",
       title: "Khidmat Bantu",
       description: "Kelulusan permohonan ceramah, bengkel, MCP dan lain-lain.",
       badge: khidmatPending,
-    });
-  }
-  perkhidmatan.push({
-    href: "/admin/tempahan",
-    title: "Tempahan PKG",
-    description: "Kelulusan tempahan dan pengurusan bilik.",
-    badge: tempahanPending,
-  });
-  groups.push({ heading: "Perkhidmatan", cards: perkhidmatan });
-
-  if (urusKandungan) {
-    groups.push({
-      heading: "Pelaporan",
-      cards: [
-        {
-          href: "/admin/laporan-dpd",
-          title: "Laporan DPD",
-          description: "Semak dan urus laporan program pendigitalan.",
-        },
-        {
-          href: "/admin/laporan-pss",
-          title: "Laporan PSS",
-          description: "Arkib bulanan dan statistik pelaporan PSS.",
-        },
-      ],
-    });
-
-    groups.push({
-      heading: "OSC One Stop Center",
-      blurb: "Kandungan OSC (dalaman) — sumber, analisis dan maklumat asas.",
-      cards: [
-        {
-          href: "/admin/osc",
-          title: "OSC USTP",
-          description: "Lihat hab OSC atau urus kandungannya (sumber, analisis, pegawai, tetapan).",
-        },
-      ],
-    });
-  }
-
-  if (canManageUsers(user.peranan)) {
-    groups.push({
-      heading: "Sistem",
-      cards: [
-        {
-          href: "/admin/users",
-          title: "Pengguna",
-          description: "Urus akaun pentadbir dan pegawai.",
-        },
-      ],
     });
   }
 
@@ -94,18 +35,16 @@ export default async function AdminOverviewPage() {
         Selamat datang, {user.nama}
       </h1>
       <p className="mt-1 text-sm text-graphite">
-        Pilih modul untuk diurus.
+        Tempahan, OSC dan Pelaporan berada di menu di atas.
       </p>
-      {groups.map((group) => (
-        <section key={group.heading} className="mt-8">
+
+      {cards.length > 0 ? (
+        <section className="mt-8">
           <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-graphite">
-            {group.heading}
+            Perkhidmatan
           </h2>
-          {group.blurb ? (
-            <p className="mt-1 text-sm text-graphite">{group.blurb}</p>
-          ) : null}
           <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {group.cards.map((c) => (
+            {cards.map((c) => (
               <Link
                 key={c.href}
                 href={c.href}
@@ -125,7 +64,12 @@ export default async function AdminOverviewPage() {
             ))}
           </div>
         </section>
-      ))}
+      ) : (
+        <div className="card mt-8 p-6 text-sm text-graphite">
+          Gunakan <span className="font-semibold text-ink">Tempahan</span> di menu
+          di atas untuk mengurus tempahan PKG anda.
+        </div>
+      )}
     </>
   );
 }

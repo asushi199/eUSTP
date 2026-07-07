@@ -2,10 +2,11 @@ import BrandWordmark from "@/components/BrandWordmark";
 import { AdminDesktopNav, AdminMobileNav } from "@/components/admin/AdminContextNav";
 import AdminUserMenu from "@/components/admin/AdminUserMenu";
 import { requireUser } from "@/lib/rbac";
-import { canManageKandungan, PERANAN_LABEL } from "@/lib/roles";
+import { canManageKandungan, canManageUsers, PERANAN_LABEL } from "@/lib/roles";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
+  const showContent = canManageKandungan(user.peranan);
   return (
     <div className="flex min-h-screen flex-col bg-cloud">
       <header className="sticky top-0 z-40 h-16 border-b hairline bg-white no-print">
@@ -16,14 +17,18 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               Admin
             </span>
           </div>
-          <AdminDesktopNav showOsc={canManageKandungan(user.peranan)} />
-          <AdminUserMenu nama={user.nama} peranan={PERANAN_LABEL[user.peranan]} />
+          <AdminDesktopNav showContent={showContent} />
+          <AdminUserMenu
+            nama={user.nama}
+            peranan={PERANAN_LABEL[user.peranan]}
+            canManageUsers={canManageUsers(user.peranan)}
+          />
         </div>
       </header>
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 pb-24 sm:px-8 md:pb-8">
         {children}
       </main>
-      <AdminMobileNav showOsc={canManageKandungan(user.peranan)} />
+      <AdminMobileNav showContent={showContent} />
     </div>
   );
 }
