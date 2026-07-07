@@ -67,24 +67,9 @@ export default async function AdminOverviewPage() {
       blurb: "Kandungan OSC (dalaman) — sumber, analisis dan maklumat asas.",
       cards: [
         {
-          href: "/admin/kandungan",
-          title: "Sumber USTP",
-          description: "Kad bahan — kertas kerja, laporan dan hebahan untuk /sumber.",
-        },
-        {
-          href: "/admin/analisis",
-          title: "Analisis USTP",
-          description: "Nombor DELIMa, DCS, Ains, Pensijilan dan OPTIK.",
-        },
-        {
-          href: "/admin/pegawai",
-          title: "Pegawai USTP",
-          description: "Senarai pegawai halaman Maklumat Asas.",
-        },
-        {
-          href: "/admin/tetapan",
-          title: "Tetapan Maklumat Asas",
-          description: "Carta organisasi, imej PKG dan takwim.",
+          href: "/admin/osc",
+          title: "OSC USTP",
+          description: "Lihat hab OSC atau urus kandungannya (sumber, analisis, pegawai, tetapan).",
         },
       ],
     });

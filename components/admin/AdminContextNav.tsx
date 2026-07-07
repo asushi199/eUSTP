@@ -46,11 +46,6 @@ const OSC_ICON = (
   </svg>
 );
 
-function useAdminNav() {
-  const pathname = usePathname();
-  return { onAdminHome: pathname === "/admin" };
-}
-
 /** Rangkaian laluan yang dikira sebagai "OSC" untuk sorotan tab. */
 const OSC_PATHS = [
   "/admin/osc",
@@ -60,9 +55,33 @@ const OSC_PATHS = [
   "/admin/tetapan",
 ];
 
-/** Pautan konteks admin dalam header (desktop). */
-export function AdminDesktopNav() {
-  const { onAdminHome } = useAdminNav();
+function isOscPath(pathname: string): boolean {
+  return OSC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+}
+
+/** Pautan konteks admin dalam header (desktop). `showOsc` ikut peranan. */
+export function AdminDesktopNav({ showOsc }: { showOsc: boolean }) {
+  const pathname = usePathname();
+
+  const linkCls = (active: boolean) =>
+    cn(
+      "rounded-md px-3 py-2 text-sm",
+      active
+        ? "bg-cloud font-medium text-ink"
+        : "text-graphite hover:bg-cloud hover:text-ink",
+    );
+
+  const items = [
+    { href: "/admin", label: "Papan Admin", active: pathname === "/admin" },
+    {
+      href: "/admin/tempahan",
+      label: "Tempahan",
+      active: pathname.startsWith("/admin/tempahan"),
+    },
+    ...(showOsc
+      ? [{ href: "/admin/osc", label: "OSC", active: isOscPath(pathname) }]
+      : []),
+  ];
 
   return (
     <nav aria-label="Navigasi admin" className="hidden items-center gap-1 md:flex">
@@ -72,18 +91,16 @@ export function AdminDesktopNav() {
       >
         Portal Pengguna
       </Link>
-      <Link
-        href="/admin"
-        aria-current={onAdminHome ? "page" : undefined}
-        className={cn(
-          "rounded-md px-3 py-2 text-sm",
-          onAdminHome
-            ? "bg-cloud font-medium text-ink"
-            : "text-graphite hover:bg-cloud hover:text-ink",
-        )}
-      >
-        Papan Admin
-      </Link>
+      {items.map((item) => (
+        <Link
+          key={item.href}
+          href={item.href}
+          aria-current={item.active ? "page" : undefined}
+          className={linkCls(item.active)}
+        >
+          {item.label}
+        </Link>
+      ))}
     </nav>
   );
 }
@@ -114,9 +131,7 @@ export function AdminMobileNav({ showOsc }: { showOsc: boolean }) {
             href: "/admin/osc",
             label: "OSC",
             icon: OSC_ICON,
-            active: OSC_PATHS.some(
-              (p) => pathname === p || pathname.startsWith(`${p}/`),
-            ),
+            active: isOscPath(pathname),
           },
         ]
       : []),

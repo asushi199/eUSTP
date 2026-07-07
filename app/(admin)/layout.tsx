@@ -16,7 +16,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               Admin
             </span>
           </div>
-          <AdminDesktopNav />
+          <AdminDesktopNav showOsc={canManageKandungan(user.peranan)} />
           <AdminUserMenu nama={user.nama} peranan={PERANAN_LABEL[user.peranan]} />
         </div>
       </header>
