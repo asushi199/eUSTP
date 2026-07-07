@@ -51,14 +51,15 @@ export function cleanSchoolDisplayName(value: string | null | undefined): string
 /**
  * Nama guru: seragamkan ke format "Huruf Besar Setiap Perkataan" tanpa mengira
  * cara input (huruf besar/kecil bercampur). Huruf besar selepas ruang, sempang,
- * garis miring dan koma kanan (cth. "ahmad a/l bakar" -> "Ahmad A/L Bakar").
+ * garis miring, noktah dan '@' (cth. "ahmad a/l bakar" -> "Ahmad A/L Bakar";
+ * "daud@che mud" -> "Daud@Che Mud").
  */
 export function toTitleCaseName(value: string | null | undefined): string {
   return String(value ?? "")
     .trim()
     .replace(/\s+/g, " ")
     .toLowerCase()
-    .replace(/(^|[\s\-/'.])([a-zà-ÿ])/g, (_, sep, ch: string) => sep + ch.toUpperCase());
+    .replace(/(^|[\s\-/'.@])([a-zà-ÿ])/g, (_, sep, ch: string) => sep + ch.toUpperCase());
 }
 
 export function csvCell(value: string): string {
