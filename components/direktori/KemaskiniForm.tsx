@@ -40,7 +40,9 @@ export default function KemaskiniForm({
   const [error, setError] = useState<string | null>(null);
 
   const [query, setQuery] = useState("");
-  const [schoolCode, setSchoolCode] = useState(schools[0]?.code ?? "");
+  // Sengaja kosong pada mula — paksa guru pilih sekolah sendiri supaya
+  // tiada kemas kini tersilap ke atas sekolah pertama.
+  const [schoolCode, setSchoolCode] = useState("");
   const [submitterName, setSubmitterName] = useState("");
   const [submitterPhone, setSubmitterPhone] = useState("");
   const [roleState, setRoleState] = useState<RoleState>(emptyRoleState);
@@ -53,13 +55,11 @@ export default function KemaskiniForm({
     );
   }, [query, schools]);
 
+  // Jika sekolah terpilih tidak lagi muncul dalam hasil carian, kosongkan
+  // pilihan — jangan auto-pilih sekolah lain.
   useEffect(() => {
-    if (filteredSchools.length === 0) {
+    if (schoolCode && !filteredSchools.some((s) => s.code === schoolCode)) {
       setSchoolCode("");
-      return;
-    }
-    if (!filteredSchools.some((s) => s.code === schoolCode)) {
-      setSchoolCode(filteredSchools[0].code);
     }
   }, [filteredSchools, schoolCode]);
 
@@ -118,6 +118,9 @@ export default function KemaskiniForm({
               disabled={filteredSchools.length === 0}
               onChange={(e) => setSchoolCode(e.target.value)}
             >
+              <option value="" disabled>
+                — Pilih sekolah —
+              </option>
               {filteredSchools.map((s) => (
                 <option key={s.code} value={s.code}>
                   {s.code} — {s.name}
@@ -134,6 +137,11 @@ export default function KemaskiniForm({
         <p className="mt-1 text-sm text-graphite">
           Isi peranan yang berubah sahaja — maklumat sedia ada dipaparkan di bawah.
         </p>
+        {!schoolCode ? (
+          <p className="mt-4 rounded-lg border hairline bg-fog/40 px-4 py-3 text-sm text-graphite">
+            Sila pilih sekolah dahulu sebelum mengisi maklumat guru.
+          </p>
+        ) : (
         <div className="mt-4 space-y-5">
           {ROLE_ORDER.map((role) => (
             <fieldset key={role} className="rounded-lg border hairline p-4">
@@ -180,6 +188,7 @@ export default function KemaskiniForm({
             </fieldset>
           ))}
         </div>
+        )}
       </section>
 
       {/* Maklumat penghantar */}
