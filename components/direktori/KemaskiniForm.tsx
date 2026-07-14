@@ -55,16 +55,16 @@ export default function KemaskiniForm({
     );
   }, [query, schools]);
 
-  // Jika sekolah terpilih tidak lagi muncul dalam hasil carian, kosongkan
-  // pilihan. Bila carian menyempit kepada satu sekolah sahaja, auto-pilih ia
-  // (guru sudah berniat memilih — selamat, tidak seperti auto-pilih sekolah
-  // pertama tanpa carian).
+  // Sebelum menaip apa-apa, biar kosong supaya guru tidak tersilap ubah
+  // sekolah pertama. Sebaik sahaja guru mula menaip carian, auto-pilih hasil
+  // pertama supaya penapis kelihatan mengikut input (maklum balas jelas).
   useEffect(() => {
-    if (schoolCode && !filteredSchools.some((s) => s.code === schoolCode)) {
+    if (query.trim() === "") return;
+    if (filteredSchools.length === 0) {
       setSchoolCode("");
       return;
     }
-    if (!schoolCode && query.trim() !== "" && filteredSchools.length === 1) {
+    if (!filteredSchools.some((s) => s.code === schoolCode)) {
       setSchoolCode(filteredSchools[0].code);
     }
   }, [filteredSchools, schoolCode, query]);
