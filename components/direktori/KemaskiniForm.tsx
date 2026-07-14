@@ -56,12 +56,34 @@ export default function KemaskiniForm({
   }, [query, schools]);
 
   // Jika sekolah terpilih tidak lagi muncul dalam hasil carian, kosongkan
-  // pilihan — jangan auto-pilih sekolah lain.
+  // pilihan. Bila carian menyempit kepada satu sekolah sahaja, auto-pilih ia
+  // (guru sudah berniat memilih — selamat, tidak seperti auto-pilih sekolah
+  // pertama tanpa carian).
   useEffect(() => {
     if (schoolCode && !filteredSchools.some((s) => s.code === schoolCode)) {
       setSchoolCode("");
+      return;
     }
-  }, [filteredSchools, schoolCode]);
+    if (!schoolCode && query.trim() !== "" && filteredSchools.length === 1) {
+      setSchoolCode(filteredSchools[0].code);
+    }
+  }, [filteredSchools, schoolCode, query]);
+
+  const selectedSchool = useMemo(
+    () => schools.find((s) => s.code === schoolCode) ?? null,
+    [schools, schoolCode],
+  );
+
+  // Ringkasan maklumat sedia ada bagi sekolah terpilih (untuk pengesahan guru).
+  const currentSummary = useMemo(() => {
+    if (!schoolCode) return null;
+    return ROLE_ORDER.map((role) => {
+      const row = currentRows.find(
+        (r) => r.schoolCode === schoolCode && r.role === role,
+      );
+      return { role, teacherName: row?.teacherName ?? "", phone: row?.phone ?? "" };
+    });
+  }, [currentRows, schoolCode]);
 
   useEffect(() => {
     setRoleState(buildRoleStateForSchool(currentRows, schoolCode));
@@ -129,6 +151,36 @@ export default function KemaskiniForm({
             </select>
           </div>
         </div>
+
+        {selectedSchool && currentSummary && (
+          <div className="mt-4 rounded-lg border border-primary/40 bg-primary-soft/40 p-4">
+            <p className="text-sm font-semibold text-ink">
+              ✓ Sekolah dipilih: {selectedSchool.code} — {selectedSchool.name}
+            </p>
+            <p className="mt-1 text-xs text-graphite">
+              Maklumat sedia ada — sila sahkan ini sekolah anda sebelum mengubah:
+            </p>
+            <dl className="mt-3 space-y-1.5 text-sm">
+              {currentSummary.map(({ role, teacherName, phone }) => (
+                <div key={role} className="flex flex-wrap gap-x-2">
+                  <dt className="font-medium text-graphite">
+                    {ROLE_INFO[role].short}:
+                  </dt>
+                  <dd className="text-ink">
+                    {teacherName ? (
+                      <>
+                        {teacherName}
+                        {phone ? ` — ${phone}` : ""}
+                      </>
+                    ) : (
+                      <span className="text-steel">Belum diisi</span>
+                    )}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        )}
       </section>
 
       {/* Maklumat peranan */}
