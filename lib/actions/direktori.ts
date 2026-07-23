@@ -29,6 +29,7 @@ const submissionSchema = z.object({
     PK_PENTADBIRAN: roleSchema,
     PK_HEM: roleSchema,
     PK_KOKURIKULUM: roleSchema,
+    PK_PETANG: roleSchema,
     PK_PPKI: roleSchema,
     GPICT: roleSchema,
     DELIMA: roleSchema,

@@ -14,6 +14,7 @@ const emptyRoleState: RoleState = {
   PK_PENTADBIRAN: { teacherName: "", phone: "" },
   PK_HEM: { teacherName: "", phone: "" },
   PK_KOKURIKULUM: { teacherName: "", phone: "" },
+  PK_PETANG: { teacherName: "", phone: "" },
   PK_PPKI: { teacherName: "", phone: "" },
   GPICT: { teacherName: "", phone: "" },
   DELIMA: { teacherName: "", phone: "" },

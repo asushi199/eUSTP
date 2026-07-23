@@ -53,6 +53,7 @@ export const teacherRole = pgEnum("teacher_role", [
   "PK_PENTADBIRAN",
   "PK_HEM",
   "PK_KOKURIKULUM",
+  "PK_PETANG",
   "PK_PPKI",
   "GPICT",
   "DELIMA",

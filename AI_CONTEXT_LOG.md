@@ -452,5 +452,10 @@ Corak berselang = instance sihat vs beracun.
   `contact_roles.phone_normalized` (format `60...`). Paparan awam tidak lagi
   mencetak nombor penuh; ia memberi tindakan Telefon / WhatsApp. Tapis penerima
   WhatsApp pukal masa depan hendaklah menggunakan `phone_normalized`.
-- BELUM dilaksana ke DB atau diimport: perlukan kebenaran khusus sebelum migrasi
-  DB dan kemasukan nombor sekolah sebenar. Nombor bukan mudah alih akan dikosongkan.
+- Dilaksana ke DB pada 2026-07-23: migrasi berjaya, kemudian 162 rekod sumber
+  PGB/PK sekolah menengah dan PGB sekolah rendah diimport ke 100 sekolah
+  (tiada kod sekolah tertinggal). Sebanyak 161 nombor mudah alih dinormalkan;
+  satu nombor talian tetap dikosongkan. Susulan semakan sheet Excel, 214 rekod
+  PK sekolah rendah turut diimport ke 81 sekolah; `PK_PETANG` ditambah sebagai
+  jawatan kesembilan. Setiap sekolah menerima versi kenalan baharu supaya
+  sejarah asal kekal boleh dipulihkan.
