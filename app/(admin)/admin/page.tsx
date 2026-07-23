@@ -18,8 +18,8 @@ export default async function AdminOverviewPage() {
   if (urusKandungan) {
     cards.push({
       href: "/admin/direktori",
-      title: "Direktori",
-      description: "Sejarah versi, pemulihan dan eksport CSV.",
+      title: "CoE Direktori",
+      description: "Maklumat perhubungan sekolah, sejarah versi dan eksport CSV.",
     });
     cards.push({
       href: "/admin/khidmat-bantu",

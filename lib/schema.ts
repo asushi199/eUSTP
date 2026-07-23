@@ -44,7 +44,20 @@ export const users = pgTable(
 
 /* ==================== Modul Direktori (jadual induk sekolah dikongsi) ==================== */
 
-export const teacherRole = pgEnum("teacher_role", ["GPICT", "DELIMA", "GPM"]);
+/**
+ * Kod jawatan Direktori. Nama enum lama dikekalkan supaya migrasi pangkalan data
+ * tidak memutuskan rekod GPICT/DELIMa/GPM yang sedia ada.
+ */
+export const teacherRole = pgEnum("teacher_role", [
+  "PGB",
+  "PK_PENTADBIRAN",
+  "PK_HEM",
+  "PK_KOKURIKULUM",
+  "PK_PPKI",
+  "GPICT",
+  "DELIMA",
+  "GPM",
+]);
 
 /** Jadual induk sekolah — dikongsi oleh modul Direktori dan Laporan PSS. */
 export const schools = pgTable(
@@ -100,7 +113,10 @@ export const contactRoles = pgTable(
       .references(() => contactVersions.id, { onDelete: "cascade" }),
     role: teacherRole("role").notNull(),
     teacherName: text("teacher_name").notNull().default(""),
+    /** Nombor paparan (format tempatan, cth. 0123456789). */
     phone: text("phone").notNull().default(""),
+    /** Nombor mudah alih Malaysia dalam format 60XXXXXXXXX untuk pautan WhatsApp/filter. */
+    phoneNormalized: text("phone_normalized").notNull().default(""),
   },
   (t) => ({
     pk: primaryKey({ columns: [t.versionId, t.role] }),

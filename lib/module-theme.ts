@@ -58,7 +58,7 @@ export const MODULES = [
     href: "/direktori",
     internalHref: "/direktori",
     external: false,
-    title: "Direktori GPICT",
+    title: "CoE Direktori",
     description:
       "Direktori Guru Penyelaras ICT, GP DELIMa dan GPM sekolah — cari dan kemas kini.",
     accent: "#0D9488",

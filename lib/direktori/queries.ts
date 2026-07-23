@@ -3,18 +3,24 @@ import "server-only";
 import { desc, eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { contactRoles, contactVersions, schools } from "@/lib/schema";
-import { ROLE_ORDER, type TeacherRole } from "./config";
+import { ROLE_ORDER, type DirectoryRole } from "./config";
 
-export type RoleContact = { role: TeacherRole; teacherName: string; phone: string };
+export type RoleContact = {
+  role: DirectoryRole;
+  teacherName: string;
+  phone: string;
+  phoneNormalized: string;
+};
 
 export type PublicDirectoryRow = {
   schoolCode: string;
   schoolName: string;
   zone: string;
   website: string;
-  role: TeacherRole;
+  role: DirectoryRole;
   teacherName: string;
   phone: string;
+  phoneNormalized: string;
 };
 
 export type SchoolOption = { code: string; name: string; zone: string };
@@ -47,7 +53,7 @@ function sortRoles(roles: RoleContact[]): RoleContact[] {
 }
 
 /** Direktori awam: peranan daripada versi semasa setiap sekolah. */
-export async function listPublicDirectory(role?: TeacherRole): Promise<PublicDirectoryRow[]> {
+export async function listPublicDirectory(role?: DirectoryRole): Promise<PublicDirectoryRow[]> {
   const rows = await db
     .select({
       schoolCode: schools.code,
@@ -57,6 +63,7 @@ export async function listPublicDirectory(role?: TeacherRole): Promise<PublicDir
       role: contactRoles.role,
       teacherName: contactRoles.teacherName,
       phone: contactRoles.phone,
+      phoneNormalized: contactRoles.phoneNormalized,
     })
     .from(schools)
     .innerJoin(contactVersions, eq(schools.currentVersionId, contactVersions.id))
@@ -84,7 +91,12 @@ async function rolesByVersionIds(ids: string[]): Promise<Map<string, RoleContact
     .where(inArray(contactRoles.versionId, ids));
   for (const r of rows) {
     const list = map.get(r.versionId) ?? [];
-    list.push({ role: r.role, teacherName: r.teacherName, phone: r.phone });
+    list.push({
+      role: r.role as DirectoryRole,
+      teacherName: r.teacherName,
+      phone: r.phone,
+      phoneNormalized: r.phoneNormalized,
+    });
     map.set(r.versionId, list);
   }
   for (const [k, v] of map) map.set(k, sortRoles(v));

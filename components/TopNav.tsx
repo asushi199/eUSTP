@@ -9,7 +9,7 @@ const pssNav = resolveLaporanModuleHref("pss", "/laporan-pss");
 const NAV_LINKS = [
   { href: dpdNav.href, label: "Laporan DPD", external: dpdNav.external },
   { href: pssNav.href, label: "Laporan PSS", external: pssNav.external },
-  { href: "/direktori", label: "Direktori", external: false },
+  { href: "/direktori", label: "CoE Direktori", external: false },
   { href: "/tempahan", label: "Tempahan", external: false },
 ] as const;
 

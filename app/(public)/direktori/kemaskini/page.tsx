@@ -18,7 +18,7 @@ export default async function KemaskiniPage() {
         ← Direktori
       </Link>
       <h1 className="mt-2 text-3xl font-medium tracking-tight">
-        Kemas Kini Maklumat Guru Penyelaras
+        Kemas Kini Maklumat Perhubungan Sekolah
       </h1>
       <p className="mt-2 text-graphite">
         Kemaskini akan terus dipaparkan dalam direktori. Rekod lama disimpan

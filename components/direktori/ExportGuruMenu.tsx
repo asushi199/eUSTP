@@ -44,7 +44,7 @@ export default function ExportGuruMenu() {
         aria-expanded={open}
         className="btn-outline-ink btn-sm"
       >
-        CSV Guru
+        CSV Direktori
         <svg
           viewBox="0 0 24 24"
           fill="none"

@@ -438,3 +438,19 @@ Corak berselang = instance sihat vs beracun.
 - Laporan DPD/PSS: data ke Supabase, gambar ke Google Drive via GAS (fasa C);
   output = laman web + cetak PDF, tiada lagi Google Docs/Slides.
 - Rancangan penuh: `C:\Users\asush\.claude\plans\template-ustp-pwa-needtocombine-ustp-cozy-aho.md`
+
+## 2026-07-23 — CoE Direktori
+
+- Nama paparan Direktori GPICT ditukar kepada **CoE Direktori**. Halaman awam
+  kekal mengikut jawatan, dibahagikan kepada `Pengurusan Sekolah` (PGB, PK
+  Pentadbiran, PK HEM, PK Kokurikulum, PK Pendidikan Khas) dan `Penyelaras
+  Sekolah` (GPM, GPICT, GP DELIMa).
+- Kemaskini dibuat mengikut satu sekolah dan memaparkan semua lapan jawatan;
+  admin melihat ringkasan isi serta sejarah versi terperinci, bukan jadual lapan
+  lajur yang sukar diselenggara.
+- Migrasi `0008_coe_direktori` menambah lima kod jawatan dan
+  `contact_roles.phone_normalized` (format `60...`). Paparan awam tidak lagi
+  mencetak nombor penuh; ia memberi tindakan Telefon / WhatsApp. Tapis penerima
+  WhatsApp pukal masa depan hendaklah menggunakan `phone_normalized`.
+- BELUM dilaksana ke DB atau diimport: perlukan kebenaran khusus sebelum migrasi
+  DB dan kemasukan nombor sekolah sebenar. Nombor bukan mudah alih akan dikosongkan.

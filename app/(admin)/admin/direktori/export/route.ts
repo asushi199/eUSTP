@@ -39,7 +39,7 @@ export async function GET(request: Request) {
       r.schoolName,
       r.zone,
       r.submittedAt ? r.submittedAt.toISOString() : "",
-      `${r.roles.filter((c) => c.teacherName || c.phone).length}/3`,
+      `${r.roles.filter((c) => c.teacherName || c.phone).length}/${ROLE_ORDER.length}`,
     ]);
     csv = [header, ...rows].map((row) => row.map(csvCell).join(",")).join("\n");
   } else {

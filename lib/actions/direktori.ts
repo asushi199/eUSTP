@@ -9,6 +9,8 @@ import { requireKandunganAccess } from "@/lib/rbac";
 import {
   TEACHER_ROLES,
   cleanSchoolDisplayName,
+  displayMobile,
+  normalizeMalaysianMobile,
   normalizeSchoolCode,
   toTitleCaseName,
 } from "@/lib/direktori/config";
@@ -23,6 +25,11 @@ const submissionSchema = z.object({
   submitterName: z.string().trim().max(200).default(""),
   submitterPhone: z.string().trim().max(30).default(""),
   roles: z.object({
+    PGB: roleSchema,
+    PK_PENTADBIRAN: roleSchema,
+    PK_HEM: roleSchema,
+    PK_KOKURIKULUM: roleSchema,
+    PK_PPKI: roleSchema,
     GPICT: roleSchema,
     DELIMA: roleSchema,
     GPM: roleSchema,
@@ -66,12 +73,16 @@ export async function createDirektoriSubmission(
       .returning({ id: contactVersions.id });
 
     await tx.insert(contactRoles).values(
-      TEACHER_ROLES.map((role) => ({
-        versionId: version.id,
-        role,
-        teacherName: toTitleCaseName(data.roles[role].teacherName),
-        phone: data.roles[role].phone,
-      })),
+      TEACHER_ROLES.map((role) => {
+        const normalized = normalizeMalaysianMobile(data.roles[role].phone);
+        return {
+          versionId: version.id,
+          role,
+          teacherName: toTitleCaseName(data.roles[role].teacherName),
+          phone: displayMobile(normalized),
+          phoneNormalized: normalized,
+        };
+      }),
     );
 
     await tx
