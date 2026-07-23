@@ -456,6 +456,7 @@ Corak berselang = instance sihat vs beracun.
   PGB/PK sekolah menengah dan PGB sekolah rendah diimport ke 100 sekolah
   (tiada kod sekolah tertinggal). Sebanyak 161 nombor mudah alih dinormalkan;
   satu nombor talian tetap dikosongkan. Susulan semakan sheet Excel, 214 rekod
-  PK sekolah rendah turut diimport ke 81 sekolah; `PK_PETANG` ditambah sebagai
-  jawatan kesembilan. Setiap sekolah menerima versi kenalan baharu supaya
-  sejarah asal kekal boleh dipulihkan.
+  PK sekolah rendah turut diimport ke 81 sekolah. `PK_PETANG` telah dibuang
+  daripada paparan, input dan rekod hubungan atas arahan pengguna; nilai enum
+  DB dikekalkan demi keselamatan migrasi. Setiap sekolah menerima versi kenalan
+  baharu supaya sejarah asal kekal boleh dipulihkan.

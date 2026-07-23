@@ -3,7 +3,6 @@ export const DIRECTORY_ROLES = [
   "PK_PENTADBIRAN",
   "PK_HEM",
   "PK_KOKURIKULUM",
-  "PK_PETANG",
   "PK_PPKI",
   "GPM",
   "GPICT",
@@ -30,7 +29,7 @@ export const ROLE_GROUPS: RoleGroup[] = [
     id: "pengurusan",
     title: "Pengurusan Sekolah",
     description: "Maklumat perhubungan pentadbir sekolah.",
-    roles: ["PGB", "PK_PENTADBIRAN", "PK_HEM", "PK_KOKURIKULUM", "PK_PETANG", "PK_PPKI"],
+    roles: ["PGB", "PK_PENTADBIRAN", "PK_HEM", "PK_KOKURIKULUM", "PK_PPKI"],
   },
   {
     id: "penyelaras",
@@ -67,12 +66,6 @@ export const ROLE_INFO: Record<
     label: "Penolong Kanan Kokurikulum",
     slug: "pk-kokurikulum",
     description: "Rujukan Penolong Kanan Kokurikulum sekolah.",
-  },
-  PK_PETANG: {
-    short: "PK Petang",
-    label: "Penolong Kanan Petang",
-    slug: "pk-petang",
-    description: "Rujukan Penolong Kanan Petang sekolah.",
   },
   PK_PPKI: {
     short: "PK Pendidikan Khas",
