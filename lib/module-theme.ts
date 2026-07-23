@@ -60,7 +60,7 @@ export const MODULES = [
     external: false,
     title: "CoE Direktori",
     description:
-      "Direktori Guru Penyelaras ICT, GP DELIMa dan GPM sekolah — cari dan kemas kini.",
+      "Direktori pentadbir dan penyelaras sekolah — cari dan kemas kini.",
     accent: "#0D9488",
     iconKey: "direktori" as const,
   },
