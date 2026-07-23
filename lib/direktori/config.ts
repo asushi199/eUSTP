@@ -27,8 +27,8 @@ export type RoleGroup = {
 export const ROLE_GROUPS: RoleGroup[] = [
   {
     id: "pengurusan",
-    title: "Pengurusan Sekolah",
-    description: "Maklumat perhubungan pentadbir sekolah.",
+    title: "Pentadbir Sekolah",
+    description: "Hubungi pentadbir sekolah.",
     roles: ["PGB", "PK_PENTADBIRAN", "PK_HEM", "PK_KOKURIKULUM", "PK_PPKI"],
   },
   {
