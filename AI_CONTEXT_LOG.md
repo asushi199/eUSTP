@@ -460,3 +460,9 @@ Corak berselang = instance sihat vs beracun.
   daripada paparan, input dan rekod hubungan atas arahan pengguna; nilai enum
   DB dikekalkan demi keselamatan migrasi. Setiap sekolah menerima versi kenalan
   baharu supaya sejarah asal kekal boleh dipulihkan.
+
+## 2026-07-23 — Pembetulan nama sekolah ABA1031
+
+- Nama rasmi ialah **SK PANGKALAN TLDM II** (angka Rom `II`), bukan
+  `SK PANGKALAN TLDM 11`. Nama dalam jadual `schools` dan semua versi direktori
+  diseragamkan; peraturan kekal direkodkan dalam `AGENTS.md`.

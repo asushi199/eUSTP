@@ -8,3 +8,6 @@ Panduan ringkas untuk agen AI. Baca `CLAUDE.md` untuk peraturan penuh.
 - Skema: `lib/schema.ts` (Drizzle). Migrasi: `npm run db:generate` + `npm run db:migrate`.
 - Verifikasi minimum sebelum tuntut siap: `npm run build` + `npm run typecheck`.
 - Catat keputusan besar dalam `AI_CONTEXT_LOG.md`.
+- Data sekolah: `ABA1031` mesti dipaparkan sebagai **SK PANGKALAN TLDM II**
+  (angka Rom `II`, bukan angka `11`). Kekalkan ejaan ini dalam jadual `schools`,
+  semua versi direktori dan mana-mana import akan datang.
