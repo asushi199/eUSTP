@@ -12,7 +12,8 @@ export default function DirektoriPage() {
   const accent = getModuleAccent("/direktori");
 
   return (
-    <PublicPageShell>
+    <>
+      <PublicPageShell className="pb-16 sm:pb-12">
       <PageHeader
         eyebrow="CoE Direktori"
         title="Direktori Perhubungan Sekolah"
@@ -81,7 +82,8 @@ export default function DirektoriPage() {
         ))}
       </div>
 
+      </PublicPageShell>
       <MobileUpdateButton />
-    </PublicPageShell>
+    </>
   );
 }
