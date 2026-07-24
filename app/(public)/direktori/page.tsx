@@ -1,5 +1,6 @@
 import Link from "next/link";
 import AccentCard from "@/components/AccentCard";
+import MobileUpdateButton from "@/components/direktori/MobileUpdateButton";
 import PageHeader from "@/components/PageHeader";
 import PublicPageShell from "@/components/PublicPageShell";
 import { ROLE_GROUPS, ROLE_INFO } from "@/lib/direktori/config";
@@ -19,18 +20,20 @@ export default function DirektoriPage() {
         description="Rujukan perhubungan pengurusan dan penyelaras sekolah daerah Manjung. Pilih jawatan untuk melihat senarai."
       />
 
-      <AccentCard
-        accent={accent}
-        className="mt-8 flex flex-col items-start justify-between gap-4 p-6 sm:flex-row sm:items-center"
-      >
-        <div>
-          <p className="font-semibold">Maklumat sekolah anda berubah?</p>
-          <p className="mt-1 text-sm text-graphite">
-            Kemas kini nama dan nombor telefon mudah alih pengurusan atau penyelaras sekolah melalui borang awam.
-          </p>
-        </div>
-        <Link href="/direktori/kemaskini" className="btn-primary shrink-0">Kemas Kini</Link>
-      </AccentCard>
+      <div id="direktori-kemaskini">
+        <AccentCard
+          accent={accent}
+          className="mt-8 flex flex-col items-start justify-between gap-4 p-6 sm:flex-row sm:items-center"
+        >
+          <div>
+            <p className="font-semibold">Maklumat sekolah anda berubah?</p>
+            <p className="mt-1 text-sm text-graphite">
+              Kemas kini nama dan nombor telefon mudah alih pengurusan atau penyelaras sekolah melalui borang awam.
+            </p>
+          </div>
+          <Link href="/direktori/kemaskini" className="btn-primary shrink-0">Kemas Kini</Link>
+        </AccentCard>
+      </div>
 
       <nav
         aria-label="Pilih kategori direktori"
@@ -77,6 +80,8 @@ export default function DirektoriPage() {
           </section>
         ))}
       </div>
+
+      <MobileUpdateButton />
     </PublicPageShell>
   );
 }
