@@ -32,7 +32,10 @@ export default function DirektoriPage() {
         <Link href="/direktori/kemaskini" className="btn-primary shrink-0">Kemas Kini</Link>
       </AccentCard>
 
-      <nav aria-label="Pilih kategori direktori" className="mt-6 grid grid-cols-2 gap-3 sm:hidden">
+      <nav
+        aria-label="Pilih kategori direktori"
+        className="sticky top-16 z-30 -mx-4 mt-6 grid grid-cols-2 gap-3 border-y hairline bg-white/95 px-4 py-2 backdrop-blur-sm sm:hidden"
+      >
         {ROLE_GROUPS.map((group) => (
           <Link
             key={group.id}
@@ -50,7 +53,7 @@ export default function DirektoriPage() {
             key={group.id}
             id={`direktori-${group.id}`}
             aria-labelledby={`direktori-${group.id}-title`}
-            className="scroll-mt-24"
+            className="scroll-mt-32"
           >
             <div className="mb-4 sm:border-b sm:pb-3">
               <h2 id={`direktori-${group.id}-title`} className="sr-only sm:not-sr-only sm:text-xl sm:font-semibold">
