@@ -21,14 +21,14 @@ const OSC_MODULE = {
   iconKey: "osc" as const,
 } as const;
 
-/** Hub Tempahan — menggabungkan Tempahan PKG & Permohonan Khidmat Bantu. */
+/** Hub CoE Booking — menggabungkan perkhidmatan tempahan USTP. */
 const TEMPAHAN_HUB = {
   href: "/tempahan",
   internalHref: "/tempahan",
   external: false,
-  title: "Tempahan & Perkhidmatan",
+  title: "CoE Booking",
   description:
-    "Tempahan bilik PKG dan permohonan khidmat bantu — ceramah, bengkel, MCP dan lain-lain.",
+    "Tempahan bilik PKG, permohonan khidmat bantu dan peminjaman peralatan USTP.",
   accent: "#D97706",
   iconKey: "tempahan" as const,
 } as const;
@@ -85,6 +85,15 @@ export const MODULES = [
     accent: "#059669",
     iconKey: "khidmat" as const,
   },
+  {
+    href: "/tempahan/peralatan",
+    internalHref: "/tempahan/peralatan",
+    external: false,
+    title: "Peminjaman Peralatan",
+    description: "Perkhidmatan peminjaman peralatan USTP akan disediakan tidak lama lagi.",
+    accent: "#7C3AED",
+    iconKey: "peralatan" as const,
+  },
   OSC_MODULE,
   {
     href: "/sumber",
@@ -125,7 +134,7 @@ export const OSC_SECTIONS = MODULES.filter((m) =>
 
 /** Sub-modul di bawah hub /tempahan — dipapar dalam halaman tempahan. */
 export const TEMPAHAN_SECTIONS = MODULES.filter((m) =>
-  ["/tempahan/bilik", "/khidmat-bantu"].includes(m.internalHref),
+  ["/tempahan/bilik", "/khidmat-bantu", "/tempahan/peralatan"].includes(m.internalHref),
 );
 
 /**

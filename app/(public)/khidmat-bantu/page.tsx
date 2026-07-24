@@ -23,7 +23,7 @@ export default async function KhidmatBantuPage() {
   return (
     <PublicPageShell narrow>
       <Link href="/tempahan" className="text-sm text-graphite hover:text-ink">
-        ← Tempahan & Perkhidmatan
+        ← CoE Booking
       </Link>
       <PageHeader
         eyebrow="Khidmat Bantu"

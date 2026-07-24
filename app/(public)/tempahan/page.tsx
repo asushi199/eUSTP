@@ -6,14 +6,15 @@ import { HomeModuleIcon } from "@/components/home/HomeModuleIcon";
 import { TEMPAHAN_SECTIONS, getModuleAccent } from "@/lib/module-theme";
 
 export const metadata: Metadata = {
-  title: "Tempahan & Perkhidmatan — eUSTP Manjung",
+  title: "CoE Booking — eUSTP Manjung",
   description:
-    "Tempahan bilik PKG dan permohonan khidmat bantu USTP — ceramah, bengkel, MCP dan lain-lain.",
+    "Tempahan bilik PKG, permohonan khidmat bantu dan peminjaman peralatan USTP.",
 };
 
 const SECTION_TAG: Record<string, string> = {
   "/tempahan/bilik": "Bilik & Kemudahan PKG",
   "/khidmat-bantu": "Ceramah · Bengkel · MCP",
+  "/tempahan/peralatan": "Akan datang",
 };
 
 export default function TempahanHubPage() {
@@ -22,10 +23,10 @@ export default function TempahanHubPage() {
   return (
     <PublicPageShell>
       <PageHeader
-        eyebrow="Tempahan & Perkhidmatan"
+        eyebrow="CoE Booking"
         title="Pilih Perkhidmatan"
         accent={accent}
-        description="Tempah bilik di Pusat Kegiatan Guru, atau mohon khidmat bantu USTP untuk ceramah, bengkel, MCP dan lain-lain."
+        description="Pilih tempahan bilik PKG, permohonan khidmat bantu atau peminjaman peralatan USTP."
       />
 
       <div className="mt-8 grid gap-4">

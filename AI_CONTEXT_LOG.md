@@ -466,3 +466,9 @@ Corak berselang = instance sihat vs beracun.
 - Nama rasmi ialah **SK PANGKALAN TLDM II** (angka Rom `II`), bukan
   `SK PANGKALAN TLDM 11`. Nama dalam jadual `schools` dan semua versi direktori
   diseragamkan; peraturan kekal direkodkan dalam `AGENTS.md`.
+
+## 2026-07-24 — CoE Booking
+
+- Hub `/tempahan` dinamakan **CoE Booking** dan menghimpunkan Tempahan Bilik
+  PKG, Permohonan Khidmat Bantu serta Peminjaman Peralatan. Peminjaman
+  Peralatan kini merupakan halaman placeholder awam dengan status “Akan datang”.

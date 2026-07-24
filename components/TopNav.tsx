@@ -10,7 +10,7 @@ const NAV_LINKS = [
   { href: dpdNav.href, label: "Laporan DPD", external: dpdNav.external },
   { href: pssNav.href, label: "Laporan PSS", external: pssNav.external },
   { href: "/direktori", label: "CoE Direktori", external: false },
-  { href: "/tempahan", label: "Tempahan", external: false },
+  { href: "/tempahan", label: "CoE Booking", external: false },
 ] as const;
 
 const navLinkClass = "rounded-md px-4 py-2 text-[15px] text-ink hover:bg-cloud";
