@@ -32,12 +32,31 @@ export default function DirektoriPage() {
         <Link href="/direktori/kemaskini" className="btn-primary shrink-0">Kemas Kini</Link>
       </AccentCard>
 
-      <div className="mt-8 space-y-10">
+      <nav aria-label="Pilih kategori direktori" className="mt-6 grid grid-cols-2 gap-3 sm:hidden">
         {ROLE_GROUPS.map((group) => (
-          <section key={group.id} aria-labelledby={`direktori-${group.id}`}>
-            <div className="mb-4 border-b hairline pb-3">
-              <h2 id={`direktori-${group.id}`} className="text-xl font-semibold">{group.title}</h2>
-              <p className="mt-1 text-sm text-graphite">{group.description}</p>
+          <Link
+            key={group.id}
+            href={`#direktori-${group.id}`}
+            className="btn-outline h-auto min-h-11 px-3 py-2.5 text-center normal-case tracking-normal"
+          >
+            {group.title}
+          </Link>
+        ))}
+      </nav>
+
+      <div className="mt-6 space-y-10 sm:mt-8">
+        {ROLE_GROUPS.map((group) => (
+          <section
+            key={group.id}
+            id={`direktori-${group.id}`}
+            aria-labelledby={`direktori-${group.id}-title`}
+            className="scroll-mt-24"
+          >
+            <div className="mb-4 sm:border-b sm:pb-3">
+              <h2 id={`direktori-${group.id}-title`} className="sr-only sm:not-sr-only sm:text-xl sm:font-semibold">
+                {group.title}
+              </h2>
+              <p className="mt-1 hidden text-sm text-graphite sm:block">{group.description}</p>
             </div>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {group.roles.map((role) => {
