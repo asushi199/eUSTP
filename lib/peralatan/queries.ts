@@ -47,7 +47,7 @@ export async function listEquipmentSchools(): Promise<EquipmentSchool[]> {
   return db
     .select({ code: schools.code, name: schools.name })
     .from(schools)
-    .orderBy(asc(schools.name));
+    .orderBy(asc(schools.code));
 }
 
 export async function listEquipmentCatalog(

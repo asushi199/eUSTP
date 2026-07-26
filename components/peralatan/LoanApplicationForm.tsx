@@ -11,6 +11,7 @@ import type {
   EquipmentPkg,
   EquipmentSchool,
 } from "@/lib/peralatan/types";
+import { filterEquipmentSchools } from "@/lib/peralatan/school-search";
 
 type Quantities = Record<string, number>;
 
@@ -54,8 +55,15 @@ export default function LoanApplicationForm({
   const [applicantType, setApplicantType] = useState<"sekolah" | "pegawai">(
     "sekolah",
   );
+  const [schoolQuery, setSchoolQuery] = useState("");
+  const [schoolCode, setSchoolCode] = useState("");
   const [quantities, setQuantities] = useState<Quantities>(() =>
     defaultItemId && defaultItemAvailable ? { [defaultItemId]: 1 } : {},
+  );
+
+  const filteredSchools = useMemo(
+    () => filterEquipmentSchools(schools, schoolQuery),
+    [schoolQuery, schools],
   );
 
   const pkgNames = useMemo(
@@ -183,27 +191,44 @@ export default function LoanApplicationForm({
                 required
               />
             </div>
-            <div>
+            <div className={applicantType === "sekolah" ? "sm:col-span-2" : undefined}>
               <label className="label" htmlFor="loan-org">
                 {applicantType === "sekolah" ? "Sekolah *" : "Bahagian / Unit *"}
               </label>
               {applicantType === "sekolah" ? (
-                <select
-                  id="loan-org"
-                  name="schoolCode"
-                  className="input"
-                  required
-                  defaultValue=""
-                >
-                  <option value="" disabled>
-                    Pilih sekolah
-                  </option>
-                  {schools.map((school) => (
-                    <option key={school.code} value={school.code}>
-                      {school.name}
+                <>
+                  <label className="sr-only" htmlFor="loan-school-search">
+                    Cari sekolah
+                  </label>
+                  <input
+                    id="loan-school-search"
+                    className="input mb-2"
+                    placeholder="Cari kod atau nama sekolah"
+                    value={schoolQuery}
+                    onChange={(event) => setSchoolQuery(event.target.value)}
+                  />
+                  <p className="mb-2 text-xs text-graphite">
+                    {filteredSchools.length} sekolah sepadan
+                  </p>
+                  <select
+                    id="loan-org"
+                    name="schoolCode"
+                    className="input"
+                    required
+                    value={schoolCode}
+                    disabled={filteredSchools.length === 0}
+                    onChange={(event) => setSchoolCode(event.target.value)}
+                  >
+                    <option value="" disabled>
+                      Pilih sekolah
                     </option>
-                  ))}
-                </select>
+                    {filteredSchools.map((school) => (
+                      <option key={school.code} value={school.code}>
+                        {school.code} — {school.name}
+                      </option>
+                    ))}
+                  </select>
+                </>
               ) : (
                 <input
                   id="loan-org"
