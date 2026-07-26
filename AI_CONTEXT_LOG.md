@@ -472,3 +472,66 @@ Corak berselang = instance sihat vs beracun.
 - Hub `/tempahan` dinamakan **CoE Booking** dan menghimpunkan Tempahan Bilik
   PKG, Permohonan Khidmat Bantu serta Peminjaman Peralatan. Peminjaman
   Peralatan kini merupakan halaman placeholder awam dengan status “Akan datang”.
+
+## 2026-07-26 — Pratonton UI Peminjaman Peralatan
+
+- Placeholder Peminjaman Peralatan diganti dengan prototaip UI berdata olok-olok:
+  inventori awam di `/tempahan/peralatan`, permohonan di
+  `/tempahan/peralatan/mohon`, dan pratonton kelulusan di
+  `/tempahan/peralatan/pratonton-kelulusan`.
+- Inventori disatukan untuk lima PKG tetapi setiap stok tetap memaparkan PKG
+  pemilik. Satu permohonan hanya boleh memilih satu PKG.
+- Pemohon memilih jenis dan kuantiti peralatan; nombor siri hanya diperuntukkan
+  oleh pentadbir ketika kelulusan. Stok belum dianggap dipinjam pada peringkat
+  permohonan.
+- Tandatangan tidak dibuat semasa kelulusan. Aliran tandatangan digital akan
+  bermula ketika serahan fizikal dan disambung ketika pemulangan.
+- Catatan prototaip ini digantikan oleh pelaksanaan Fasa 1 di bawah pada hari yang
+  sama.
+
+## 2026-07-26 — Carian Katalog dan Peraturan Inventori
+
+- Tiga kad statistik awam (`Jenis peralatan`, `Unit tersedia`, `Lokasi pinjaman`)
+  dibuang kerana tidak membantu pemohon membuat tindakan. Katalog kini terus
+  memaparkan carian, tapisan PKG dan senarai peralatan.
+- Carian katalog menyokong alias Inggeris tersembunyi tanpa mengubah UI Bahasa
+  Melayu. Contoh yang telah diuji: `laptop` memadankan `Komputer riba`. Alias
+  turut disediakan untuk 3D printer, remote control car, microcontroller dan set
+  elektronik.
+- Diputuskan bahawa pentadbir akan boleh menambah jenis peralatan dan unit
+  fizikal, termasuk nombor siri, nombor aset, PKG pemilik dan status. Senarai
+  nombor siri juga perlu menyokong import Excel secara pukal.
+- Jumlah stok tidak akan diedit secara manual. Stok tersedia akan dikira daripada
+  rekod dan status unit untuk mengelakkan percanggahan inventori.
+- Skop akses: pentadbir PKG mengurus PKG sendiri; pentadbir utama mengurus semua
+  lima PKG. Metrik operasi seperti menunggu kelulusan, sedang dipinjam, lewat dan
+  penyelenggaraan akan diletakkan di dashboard pentadbir, bukan katalog awam.
+
+## 2026-07-26 — Pelaksanaan Fasa 1 Peminjaman Peralatan
+
+- Prototaip diganti dengan modul berasaskan Drizzle/Supabase. Migrasi
+  `0011_equipment_loans` menambah jenis peralatan, unit fizikal, permohonan,
+  item permohonan, peruntukan nombor siri, jejak audit dan maklumat pegawai
+  peralatan pada jadual `pkgs`.
+- Migrasi menyemai enam jenis peralatan daripada SAP Maker Lab tetapi tidak
+  mencipta stok rekaan. Stok awam hanya muncul selepas unit sebenar berserta
+  nombor siri didaftarkan.
+- Borang awam `/tempahan/peralatan/mohon` menyimpan permohonan sebenar, menyemak
+  stok tersedia dan menghasilkan pautan WhatsApp kepada pegawai PKG. Satu
+  permohonan kekal terhad kepada satu PKG.
+- Kawasan log masuk `/admin/peralatan` membenarkan pentadbir menambah jenis,
+  mendaftar unit, mengubah status bukan pinjaman, mengemas kini pegawai,
+  mengimport Excel/CSV dan memproses permohonan.
+- Kelulusan wajib memperuntukkan bilangan unit sebenar yang tepat. Transaksi
+  pangkalan data menukar unit daripada `available` kepada `reserved`; kemas kini
+  bersyarat mencegah dua pentadbir menempah unit yang sama serentak.
+- Templat import tersedia di `/templates/import-peralatan.csv`. No. siri
+  peralatan wajib, manakala no. aset kerajaan kekal pilihan sehingga senarai
+  rasmi diterima.
+- Pratonton kelulusan awam telah dibuang. Kelulusan sebenar hanya boleh dicapai
+  melalui kawasan pentadbir dan mengikut skop PKG pengguna.
+- Tandatangan digital, serahan/pemulangan dan penjanaan KEW.PA-9 belum
+  dilaksanakan; skema status dan jejak audit telah disediakan untuk Fasa 2.
+- Migrasi telah dijana dan disemak tetapi **belum dijalankan pada Supabase
+  produksi**. Jalankan `npm run db:migrate` selepas semakan sebelum menggunakan
+  modul.

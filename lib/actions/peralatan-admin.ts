@@ -1,0 +1,433 @@
+"use server";
+
+import { and, eq, inArray } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import { db } from "@/lib/db";
+import { requireTempahanAccess } from "@/lib/rbac";
+import {
+  equipmentLoanAllocations,
+  equipmentLoanEvents,
+  equipmentLoanItems,
+  equipmentLoanRequests,
+  equipmentTypes,
+  equipmentUnits,
+  pkgs,
+} from "@/lib/schema";
+import { normalizePhoneNumber } from "@/lib/tempahan/booking-rules";
+
+export type EquipmentAdminActionResult = {
+  ok: boolean;
+  error?: string;
+  imported?: number;
+};
+
+const unitStatuses = [
+  "available",
+  "maintenance",
+  "retired",
+  "lost",
+] as const;
+
+function text(formData: FormData, key: string, max = 500): string {
+  return String(formData.get(key) ?? "")
+    .trim()
+    .slice(0, max);
+}
+
+function refreshEquipmentPaths(pkgId: string, requestId?: string) {
+  revalidatePath("/tempahan/peralatan");
+  revalidatePath("/admin/peralatan");
+  revalidatePath(`/admin/peralatan/${pkgId}`);
+  if (requestId) {
+    revalidatePath(`/admin/peralatan/${pkgId}/permohonan/${requestId}`);
+  }
+}
+
+export async function saveEquipmentType(
+  pkgId: string,
+  formData: FormData,
+): Promise<EquipmentAdminActionResult> {
+  await requireTempahanAccess(pkgId);
+  const code = text(formData, "code", 20).toUpperCase();
+  const name = text(formData, "name", 200);
+  const model = text(formData, "model", 300);
+  const description = text(formData, "description", 1000);
+  const searchAliases = text(formData, "searchAliases", 1000)
+    .split(/[\n,]/)
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean);
+
+  if (!code || !name) return { ok: false, error: "Kod dan nama peralatan diperlukan." };
+  try {
+    await db.insert(equipmentTypes).values({
+      code,
+      name,
+      model,
+      description,
+      searchAliases: Array.from(new Set(searchAliases)).slice(0, 30),
+    });
+    refreshEquipmentPaths(pkgId);
+    return { ok: true };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return {
+      ok: false,
+      error: message.includes("equipment_types_code_idx")
+        ? "Kod peralatan ini sudah digunakan."
+        : "Peralatan tidak dapat disimpan.",
+    };
+  }
+}
+
+export async function addEquipmentUnit(
+  pkgId: string,
+  formData: FormData,
+): Promise<EquipmentAdminActionResult> {
+  await requireTempahanAccess(pkgId);
+  const equipmentTypeId = text(formData, "equipmentTypeId", 80);
+  const serialNo = text(formData, "serialNo", 200);
+  const governmentAssetNo = text(formData, "governmentAssetNo", 200);
+  const notes = text(formData, "notes", 500);
+  if (!z.string().uuid().safeParse(equipmentTypeId).success || !serialNo) {
+    return { ok: false, error: "Jenis dan nombor siri peralatan diperlukan." };
+  }
+
+  const type = await db.query.equipmentTypes.findFirst({
+    where: eq(equipmentTypes.id, equipmentTypeId),
+  });
+  if (!type) return { ok: false, error: "Jenis peralatan tidak dijumpai." };
+
+  try {
+    await db.insert(equipmentUnits).values({
+      equipmentTypeId,
+      pkgId,
+      serialNo,
+      governmentAssetNo: governmentAssetNo || null,
+      notes,
+    });
+    refreshEquipmentPaths(pkgId);
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "Nombor siri atau nombor aset ini sudah digunakan." };
+  }
+}
+
+function normalizedRow(row: Record<string, unknown>): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(row).map(([key, value]) => [
+      key.trim().toLowerCase().replace(/[\s-]+/g, "_"),
+      String(value ?? "").trim(),
+    ]),
+  );
+}
+
+function firstValue(row: Record<string, string>, keys: string[]) {
+  return keys.map((key) => row[key]).find(Boolean) ?? "";
+}
+
+export async function importEquipmentUnits(
+  pkgId: string,
+  formData: FormData,
+): Promise<EquipmentAdminActionResult> {
+  await requireTempahanAccess(pkgId);
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) {
+    return { ok: false, error: "Pilih fail Excel atau CSV." };
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    return { ok: false, error: "Fail import melebihi 5 MB." };
+  }
+
+  try {
+    const XLSX = await import("xlsx");
+    const workbook = XLSX.read(Buffer.from(await file.arrayBuffer()), { type: "buffer" });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    if (!sheet) return { ok: false, error: "Fail tidak mempunyai lembaran data." };
+    const rawRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, {
+      defval: "",
+    });
+    if (rawRows.length === 0) return { ok: false, error: "Fail import kosong." };
+    if (rawRows.length > 1000) {
+      return { ok: false, error: "Maksimum 1,000 unit bagi setiap import." };
+    }
+
+    const typeRows = await db
+      .select({ id: equipmentTypes.id, code: equipmentTypes.code })
+      .from(equipmentTypes);
+    const typeByCode = new Map(typeRows.map((type) => [type.code.toUpperCase(), type.id]));
+    const parsed = rawRows.map(normalizedRow).map((row, index) => {
+      const typeCode = firstValue(row, [
+        "kod_peralatan",
+        "type_code",
+        "code",
+        "kod",
+      ]).toUpperCase();
+      const serialNo = firstValue(row, [
+        "no_siri_peralatan",
+        "nombor_siri",
+        "serial_no",
+        "serial",
+      ]);
+      const governmentAssetNo = firstValue(row, [
+        "no_siri_aset_kerajaan",
+        "nombor_aset",
+        "government_asset_no",
+        "asset_no",
+      ]);
+      const notes = firstValue(row, ["catatan", "notes"]);
+      const equipmentTypeId = typeByCode.get(typeCode);
+      if (!equipmentTypeId || !serialNo) {
+        throw new Error(
+          `Baris ${index + 2}: kod peralatan atau nombor siri tidak sah.`,
+        );
+      }
+      return {
+        equipmentTypeId,
+        pkgId,
+        serialNo,
+        governmentAssetNo: governmentAssetNo || null,
+        notes,
+      };
+    });
+
+    const duplicateKeys = new Set<string>();
+    for (const row of parsed) {
+      const key = `${row.equipmentTypeId}:${row.serialNo.toLowerCase()}`;
+      if (duplicateKeys.has(key)) {
+        return { ok: false, error: `Nombor siri berulang dalam fail: ${row.serialNo}` };
+      }
+      duplicateKeys.add(key);
+    }
+
+    await db.insert(equipmentUnits).values(parsed);
+    refreshEquipmentPaths(pkgId);
+    return { ok: true, imported: parsed.length };
+  } catch (error) {
+    return {
+      ok: false,
+      error:
+        error instanceof Error && error.message.startsWith("Baris ")
+          ? error.message
+          : "Import gagal. Semak tajuk lajur dan nombor siri berulang.",
+    };
+  }
+}
+
+export async function updateEquipmentUnitStatus(
+  pkgId: string,
+  unitId: string,
+  formData: FormData,
+): Promise<EquipmentAdminActionResult> {
+  await requireTempahanAccess(pkgId);
+  const status = text(formData, "status", 30);
+  if (!unitStatuses.includes(status as (typeof unitStatuses)[number])) {
+    return { ok: false, error: "Status tidak sah." };
+  }
+  const unit = await db.query.equipmentUnits.findFirst({
+    where: and(eq(equipmentUnits.id, unitId), eq(equipmentUnits.pkgId, pkgId)),
+  });
+  if (!unit) return { ok: false, error: "Unit tidak dijumpai." };
+  if (unit.status === "reserved" || unit.status === "borrowed") {
+    return {
+      ok: false,
+      error: "Unit yang ditempah atau dipinjam mesti dikemas kini melalui aliran pinjaman.",
+    };
+  }
+  await db
+    .update(equipmentUnits)
+    .set({ status: status as (typeof unitStatuses)[number], updatedAt: new Date() })
+    .where(and(eq(equipmentUnits.id, unitId), eq(equipmentUnits.pkgId, pkgId)));
+  refreshEquipmentPaths(pkgId);
+  return { ok: true };
+}
+
+export async function updateEquipmentManager(
+  pkgId: string,
+  formData: FormData,
+): Promise<EquipmentAdminActionResult> {
+  await requireTempahanAccess(pkgId);
+  const name = text(formData, "name", 200);
+  const position = text(formData, "position", 300);
+  const rawPhone = text(formData, "phone", 30);
+  const phone = normalizePhoneNumber(rawPhone);
+  if (!name || !position || !phone) {
+    return { ok: false, error: "Nama, jawatan dan nombor telefon diperlukan." };
+  }
+  await db
+    .update(pkgs)
+    .set({
+      equipmentManagerName: name,
+      equipmentManagerPosition: position,
+      equipmentManagerPhone: phone,
+    })
+    .where(eq(pkgs.id, pkgId));
+  refreshEquipmentPaths(pkgId);
+  return { ok: true };
+}
+
+const allocationsSchema = z.array(
+  z.object({
+    requestItemId: z.string().uuid(),
+    unitIds: z.array(z.string().uuid()).min(1).max(120),
+  }),
+);
+
+export async function approveEquipmentLoan(
+  pkgId: string,
+  requestId: string,
+  formData: FormData,
+): Promise<EquipmentAdminActionResult> {
+  const user = await requireTempahanAccess(pkgId);
+  const decisionNote = text(formData, "decisionNote", 1000);
+  let allocations: z.infer<typeof allocationsSchema>;
+  try {
+    allocations = allocationsSchema.parse(
+      JSON.parse(text(formData, "allocations", 50_000)),
+    );
+  } catch {
+    return { ok: false, error: "Lengkapkan semua peruntukan nombor siri." };
+  }
+
+  try {
+    await db.transaction(async (tx) => {
+      const request = await tx.query.equipmentLoanRequests.findFirst({
+        where: and(
+          eq(equipmentLoanRequests.id, requestId),
+          eq(equipmentLoanRequests.pkgId, pkgId),
+        ),
+      });
+      if (!request || request.status !== "pending") {
+        throw new Error("Permohonan ini tidak lagi menunggu kelulusan.");
+      }
+
+      const items = await tx
+        .select()
+        .from(equipmentLoanItems)
+        .where(eq(equipmentLoanItems.requestId, requestId));
+      const allocationByItem = new Map(
+        allocations.map((allocation) => [allocation.requestItemId, allocation.unitIds]),
+      );
+      const allUnitIds = allocations.flatMap((allocation) => allocation.unitIds);
+      if (new Set(allUnitIds).size !== allUnitIds.length) {
+        throw new Error("Nombor siri yang sama dipilih lebih daripada sekali.");
+      }
+      if (
+        items.length !== allocations.length ||
+        items.some(
+          (item) => allocationByItem.get(item.id)?.length !== item.quantity,
+        )
+      ) {
+        throw new Error("Bilangan unit yang diperuntukkan tidak mencukupi.");
+      }
+
+      const unitRows = await tx
+        .select()
+        .from(equipmentUnits)
+        .where(
+          and(
+            eq(equipmentUnits.pkgId, pkgId),
+            eq(equipmentUnits.status, "available"),
+            inArray(equipmentUnits.id, allUnitIds),
+          ),
+        );
+      if (unitRows.length !== allUnitIds.length) {
+        throw new Error("Satu atau lebih unit tidak lagi tersedia.");
+      }
+      for (const item of items) {
+        const selected = allocationByItem.get(item.id) ?? [];
+        const valid = selected.every(
+          (unitId) =>
+            unitRows.find((unit) => unit.id === unitId)?.equipmentTypeId ===
+            item.equipmentTypeId,
+        );
+        if (!valid) throw new Error("Jenis unit yang dipilih tidak sepadan.");
+      }
+
+      for (const unitId of allUnitIds) {
+        const updated = await tx
+          .update(equipmentUnits)
+          .set({ status: "reserved", updatedAt: new Date() })
+          .where(
+            and(
+              eq(equipmentUnits.id, unitId),
+              eq(equipmentUnits.status, "available"),
+            ),
+          )
+          .returning({ id: equipmentUnits.id });
+        if (updated.length !== 1) {
+          throw new Error("Stok berubah semasa kelulusan. Muat semula halaman.");
+        }
+      }
+
+      await tx.insert(equipmentLoanAllocations).values(
+        allocations.flatMap((allocation) =>
+          allocation.unitIds.map((unitId) => ({
+            requestItemId: allocation.requestItemId,
+            unitId,
+            allocatedByUserId: Number(user.id),
+          })),
+        ),
+      );
+      await tx
+        .update(equipmentLoanRequests)
+        .set({
+          status: "approved",
+          decisionNote,
+          approvedByUserId: Number(user.id),
+          approvedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(equipmentLoanRequests.id, requestId));
+      await tx.insert(equipmentLoanEvents).values({
+        requestId,
+        action: "application_approved",
+        actorUserId: Number(user.id),
+        details: { allocatedUnitIds: allUnitIds, decisionNote },
+      });
+    });
+    refreshEquipmentPaths(pkgId, requestId);
+    return { ok: true };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Kelulusan gagal.",
+    };
+  }
+}
+
+export async function rejectEquipmentLoan(
+  pkgId: string,
+  requestId: string,
+  formData: FormData,
+): Promise<EquipmentAdminActionResult> {
+  const user = await requireTempahanAccess(pkgId);
+  const decisionNote = text(formData, "decisionNote", 1000);
+  const updated = await db
+    .update(equipmentLoanRequests)
+    .set({
+      status: "rejected",
+      decisionNote,
+      rejectedAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(equipmentLoanRequests.id, requestId),
+        eq(equipmentLoanRequests.pkgId, pkgId),
+        eq(equipmentLoanRequests.status, "pending"),
+      ),
+    )
+    .returning({ id: equipmentLoanRequests.id });
+  if (updated.length !== 1) {
+    return { ok: false, error: "Permohonan ini tidak lagi menunggu tindakan." };
+  }
+  await db.insert(equipmentLoanEvents).values({
+    requestId,
+    action: "application_rejected",
+    actorUserId: Number(user.id),
+    details: { decisionNote },
+  });
+  refreshEquipmentPaths(pkgId, requestId);
+  return { ok: true };
+}

@@ -2,6 +2,10 @@ import Link from "next/link";
 import { requireUser } from "@/lib/rbac";
 import { canManageKandungan } from "@/lib/roles";
 import { countPendingKhidmatBantu } from "@/lib/khidmat-bantu/queries";
+import {
+  countPendingEquipmentLoansByPkg,
+  listEquipmentPkgs,
+} from "@/lib/peralatan/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -11,10 +15,32 @@ export default async function AdminOverviewPage() {
   const user = await requireUser();
   const urusKandungan = canManageKandungan(user.peranan);
   const khidmatPending = urusKandungan ? await countPendingKhidmatBantu() : 0;
+  let equipmentPending = 0;
+  try {
+    const allPkgs = await listEquipmentPkgs();
+    const visiblePkgIds =
+      user.peranan === "PKG_Admin"
+        ? allPkgs.filter((pkg) => pkg.id === user.pkgId).map((pkg) => pkg.id)
+        : allPkgs.map((pkg) => pkg.id);
+    const pendingByPkg = await countPendingEquipmentLoansByPkg(visiblePkgIds);
+    equipmentPending = Object.values(pendingByPkg).reduce(
+      (sum, total) => sum + total,
+      0,
+    );
+  } catch {
+    // Modul belum dimigrasi; kad kekal boleh dibuka untuk arahan pengaktifan.
+  }
 
   // Papan hanya memaparkan perkhidmatan yang tiada tab sendiri.
   // Tempahan, OSC dan Pelaporan berada di menu atas / bar bawah.
-  const cards: AdminCard[] = [];
+  const cards: AdminCard[] = [
+    {
+      href: "/admin/peralatan",
+      title: "Peminjaman Peralatan",
+      description: "Inventori fizikal, nombor siri dan kelulusan pinjaman Maker Lab.",
+      badge: equipmentPending,
+    },
+  ];
   if (urusKandungan) {
     cards.push({
       href: "/admin/direktori",
@@ -35,7 +61,7 @@ export default async function AdminOverviewPage() {
         Selamat datang, {user.nama}
       </h1>
       <p className="mt-1 text-sm text-graphite">
-        Tempahan, OSC dan Pelaporan berada di menu di atas.
+        Tempahan, peralatan, OSC dan pelaporan berada di menu di atas.
       </p>
 
       {cards.length > 0 ? (

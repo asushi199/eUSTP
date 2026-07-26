@@ -37,6 +37,13 @@ const TEMPAHAN_ICON = (
   </svg>
 );
 
+const PERALATAN_ICON = (
+  <svg {...iconProps}>
+    <path d="M4 8.5 12 4l8 4.5-8 4.5z" />
+    <path d="M4 8.5V16l8 4 8-4V8.5M12 13v7" />
+  </svg>
+);
+
 const OSC_ICON = (
   <svg {...iconProps}>
     <rect x="3" y="3" width="8" height="8" rx="1.5" />
@@ -92,6 +99,11 @@ export function AdminDesktopNav({ showContent }: { showContent: boolean }) {
       href: "/admin/tempahan",
       label: "Tempahan",
       active: pathname.startsWith("/admin/tempahan"),
+    },
+    {
+      href: "/admin/peralatan",
+      label: "Peralatan",
+      active: pathname.startsWith("/admin/peralatan"),
     },
     ...(showContent
       ? [
@@ -151,6 +163,12 @@ export function AdminMobileNav({ showContent }: { showContent: boolean }) {
       label: "Tempahan",
       icon: TEMPAHAN_ICON,
       active: pathname.startsWith("/admin/tempahan"),
+    },
+    {
+      href: "/admin/peralatan",
+      label: "Aset",
+      icon: PERALATAN_ICON,
+      active: pathname.startsWith("/admin/peralatan"),
     },
     ...(showContent
       ? [

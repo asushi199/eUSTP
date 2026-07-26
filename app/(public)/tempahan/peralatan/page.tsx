@@ -1,35 +1,63 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import EquipmentCatalog from "@/components/peralatan/EquipmentCatalog";
 import PageHeader from "@/components/PageHeader";
 import PublicPageShell from "@/components/PublicPageShell";
-import { getModuleAccent } from "@/lib/module-theme";
+import {
+  listEquipmentCatalog,
+  listEquipmentPkgs,
+} from "@/lib/peralatan/queries";
+import type {
+  EquipmentCatalogItem,
+  EquipmentPkg,
+} from "@/lib/peralatan/types";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Peminjaman Peralatan — CoE Booking — eUSTP Manjung",
-  description: "Perkhidmatan peminjaman peralatan USTP akan disediakan tidak lama lagi.",
+  title: "Inventori Peralatan — CoE Booking — eUSTP Manjung",
+  description:
+    "Semak ketersediaan dan mohon pinjaman peralatan Maker Lab di lima PKG daerah Manjung.",
 };
 
-export default function PeminjamanPeralatanPage() {
-  const accent = getModuleAccent("/tempahan/peralatan");
+export default async function PeminjamanPeralatanPage() {
+  let items: EquipmentCatalogItem[] = [];
+  let pkgs: EquipmentPkg[] = [];
+  let unavailable = false;
+  try {
+    [items, pkgs] = await Promise.all([
+      listEquipmentCatalog(),
+      listEquipmentPkgs(),
+    ]);
+  } catch {
+    unavailable = true;
+  }
 
   return (
-    <PublicPageShell narrow>
+    <PublicPageShell>
       <Link href="/tempahan" className="text-sm text-graphite hover:text-ink">
         ← CoE Booking
       </Link>
       <PageHeader
-        eyebrow="CoE Booking"
-        title="Peminjaman Peralatan"
-        accent={accent}
-        description="Perkhidmatan peminjaman peralatan USTP akan disediakan tidak lama lagi."
+        eyebrow="Peminjaman Peralatan"
+        title="Inventori Peralatan"
+        accent="#024AD8"
+        description="Semak stok di semua PKG, kemudian pilih satu lokasi untuk menghantar permohonan pinjaman."
         className="mt-2"
+        actions={
+          <Link href="/tempahan/peralatan/mohon" className="btn-primary">
+            Mohon pinjaman
+          </Link>
+        }
       />
-      <div className="card mt-8 p-6 text-center">
-        <p className="text-lg font-semibold text-ink">Akan datang</p>
-        <p className="mt-2 text-sm text-graphite">
-          Sila kembali semula untuk menggunakan perkhidmatan ini.
-        </p>
-      </div>
+      {unavailable ? (
+        <div className="card mt-8 p-5 text-sm leading-relaxed text-graphite">
+          Modul inventori sedang disediakan. Pentadbir perlu menjalankan migrasi
+          pangkalan data sebelum stok boleh dipaparkan.
+        </div>
+      ) : (
+        <EquipmentCatalog items={items} pkgs={pkgs} />
+      )}
     </PublicPageShell>
   );
 }

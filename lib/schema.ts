@@ -369,6 +369,9 @@ export const pkgs = pgTable("pkgs", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   whatsappAdminPhone: text("whatsapp_admin_phone"),
+  equipmentManagerName: text("equipment_manager_name"),
+  equipmentManagerPosition: text("equipment_manager_position"),
+  equipmentManagerPhone: text("equipment_manager_phone"),
   logoSrc: text("logo_src"),
   active: boolean("active").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -461,6 +464,207 @@ export const attendees = pgTable(
   },
   (t) => ({
     bookingIdx: index("attendees_booking_idx").on(t.pkgId, t.bookingId, t.createdAt),
+  }),
+);
+
+/* ==================== Peminjaman Peralatan Maker Lab ==================== */
+
+export const equipmentUnitStatus = pgEnum("equipment_unit_status", [
+  "available",
+  "reserved",
+  "borrowed",
+  "maintenance",
+  "retired",
+  "lost",
+]);
+
+export const equipmentLoanStatus = pgEnum("equipment_loan_status", [
+  "pending",
+  "approved",
+  "rejected",
+  "cancelled",
+  "handed_over",
+  "returned",
+]);
+
+/** Jenis/model peralatan yang dikongsi oleh semua PKG. */
+export const equipmentTypes = pgTable(
+  "equipment_types",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    code: text("code").notNull(),
+    name: text("name").notNull(),
+    model: text("model").notNull().default(""),
+    description: text("description").notNull().default(""),
+    /** Alias carian tersembunyi, termasuk istilah Inggeris. */
+    searchAliases: jsonb("search_aliases").$type<string[]>().notNull().default([]),
+    /** Komponen yang membentuk satu set, jika berkenaan. */
+    components: jsonb("components").$type<string[]>().notNull().default([]),
+    unitPriceCents: integer("unit_price_cents"),
+    receivedDate: date("received_date"),
+    receiptDocumentUrl: text("receipt_document_url"),
+    active: boolean("active").notNull().default(true),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    codeIdx: uniqueIndex("equipment_types_code_idx").on(t.code),
+    activeIdx: index("equipment_types_active_idx").on(t.active, t.sortOrder, t.name),
+  }),
+);
+
+/** Satu baris mewakili satu unit/set fizikal sebenar. */
+export const equipmentUnits = pgTable(
+  "equipment_units",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    equipmentTypeId: uuid("equipment_type_id")
+      .notNull()
+      .references(() => equipmentTypes.id, { onDelete: "restrict" }),
+    pkgId: text("pkg_id")
+      .notNull()
+      .references(() => pkgs.id, { onDelete: "restrict" }),
+    serialNo: text("serial_no").notNull(),
+    /** Belum wajib sehingga nombor aset kerajaan diterima. */
+    governmentAssetNo: text("government_asset_no"),
+    status: equipmentUnitStatus("status").notNull().default("available"),
+    notes: text("notes").notNull().default(""),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    typeSerialIdx: uniqueIndex("equipment_units_type_serial_idx").on(
+      t.equipmentTypeId,
+      t.serialNo,
+    ),
+    governmentAssetIdx: uniqueIndex("equipment_units_government_asset_idx").on(
+      t.governmentAssetNo,
+    ),
+    pkgStatusIdx: index("equipment_units_pkg_status_idx").on(
+      t.pkgId,
+      t.status,
+      t.equipmentTypeId,
+    ),
+  }),
+);
+
+export const equipmentLoanRequests = pgTable(
+  "equipment_loan_requests",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    referenceNo: text("reference_no").notNull(),
+    pkgId: text("pkg_id")
+      .notNull()
+      .references(() => pkgs.id, { onDelete: "restrict" }),
+    applicantType: text("applicant_type").notNull(),
+    schoolCode: text("school_code").references(() => schools.code, {
+      onDelete: "set null",
+    }),
+    orgName: text("org_name").notNull(),
+    applicantName: text("applicant_name").notNull(),
+    position: text("position").notNull().default(""),
+    contact: text("contact").notNull(),
+    contactNormalized: text("contact_normalized").notNull(),
+    purpose: text("purpose").notNull(),
+    usageLocation: text("usage_location").notNull(),
+    borrowDate: date("borrow_date").notNull(),
+    expectedReturnDate: date("expected_return_date").notNull(),
+    status: equipmentLoanStatus("status").notNull().default("pending"),
+    decisionNote: text("decision_note").notNull().default(""),
+    approvedByUserId: integer("approved_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    approvedAt: timestamp("approved_at", { withTimezone: true }),
+    rejectedAt: timestamp("rejected_at", { withTimezone: true }),
+    handedOverAt: timestamp("handed_over_at", { withTimezone: true }),
+    returnedAt: timestamp("returned_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    referenceIdx: uniqueIndex("equipment_loan_requests_reference_idx").on(t.referenceNo),
+    pkgStatusIdx: index("equipment_loan_requests_pkg_status_idx").on(
+      t.pkgId,
+      t.status,
+      t.createdAt,
+    ),
+    contactIdx: index("equipment_loan_requests_contact_idx").on(
+      t.contactNormalized,
+      t.createdAt,
+    ),
+  }),
+);
+
+export const equipmentLoanItems = pgTable(
+  "equipment_loan_items",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    requestId: uuid("request_id")
+      .notNull()
+      .references(() => equipmentLoanRequests.id, { onDelete: "cascade" }),
+    equipmentTypeId: uuid("equipment_type_id")
+      .notNull()
+      .references(() => equipmentTypes.id, { onDelete: "restrict" }),
+    quantity: integer("quantity").notNull(),
+  },
+  (t) => ({
+    requestTypeIdx: uniqueIndex("equipment_loan_items_request_type_idx").on(
+      t.requestId,
+      t.equipmentTypeId,
+    ),
+  }),
+);
+
+/** Unit sebenar yang diperuntukkan semasa kelulusan. */
+export const equipmentLoanAllocations = pgTable(
+  "equipment_loan_allocations",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    requestItemId: uuid("request_item_id")
+      .notNull()
+      .references(() => equipmentLoanItems.id, { onDelete: "cascade" }),
+    unitId: uuid("unit_id")
+      .notNull()
+      .references(() => equipmentUnits.id, { onDelete: "restrict" }),
+    allocatedByUserId: integer("allocated_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    allocatedAt: timestamp("allocated_at", { withTimezone: true }).defaultNow().notNull(),
+    releasedAt: timestamp("released_at", { withTimezone: true }),
+  },
+  (t) => ({
+    requestUnitIdx: uniqueIndex("equipment_loan_allocations_request_unit_idx").on(
+      t.requestItemId,
+      t.unitId,
+    ),
+    unitHistoryIdx: index("equipment_loan_allocations_unit_history_idx").on(
+      t.unitId,
+      t.allocatedAt,
+    ),
+  }),
+);
+
+/** Jejak audit untuk permohonan, kelulusan, serahan, tandatangan dan pemulangan. */
+export const equipmentLoanEvents = pgTable(
+  "equipment_loan_events",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    requestId: uuid("request_id")
+      .notNull()
+      .references(() => equipmentLoanRequests.id, { onDelete: "cascade" }),
+    action: text("action").notNull(),
+    actorUserId: integer("actor_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    details: jsonb("details").$type<Record<string, unknown>>().notNull().default({}),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    requestIdx: index("equipment_loan_events_request_idx").on(
+      t.requestId,
+      t.createdAt,
+    ),
   }),
 );
 

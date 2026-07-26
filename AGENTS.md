@@ -11,3 +11,23 @@ Panduan ringkas untuk agen AI. Baca `CLAUDE.md` untuk peraturan penuh.
 - Data sekolah: `ABA1031` mesti dipaparkan sebagai **SK PANGKALAN TLDM II**
   (angka Rom `II`, bukan angka `11`). Kekalkan ejaan ini dalam jadual `schools`,
   semua versi direktori dan mana-mana import akan datang.
+
+## Peminjaman Peralatan
+
+- Katalog awam terus utamakan carian, tapisan PKG dan senarai peralatan. Jangan
+  paparkan kad statistik jumlah inventori pada bahagian atas halaman awam;
+  metrik operasi seperti menunggu kelulusan, sedang dipinjam, lewat dan
+  penyelenggaraan hanya sesuai di dashboard pentadbir.
+- UI dan nama peralatan kekal dalam Bahasa Melayu. Carian mesti turut menyokong
+  kata kunci Inggeris sebagai alias tersembunyi, contohnya `laptop` memadankan
+  `Komputer riba`, tanpa memaparkan istilah Inggeris tambahan pada UI.
+- Inventori lima PKG dipaparkan secara berpusat tetapi setiap unit mesti mempunyai
+  PKG pemilik. Satu permohonan hanya boleh melibatkan satu PKG.
+- Pentadbir boleh menambah jenis peralatan dan unit fizikal. Setiap unit hendaklah
+  merekodkan sekurang-kurangnya nombor siri, nombor aset apabila tersedia, PKG
+  pemilik dan status.
+- Stok tersedia mesti dikira daripada status unit fizikal; jangan sediakan medan
+  untuk mengubah jumlah stok agregat secara manual.
+- Pentadbir PKG hanya boleh mengurus inventori PKG sendiri, manakala pentadbir
+  utama boleh mengurus semua PKG. Sediakan laluan import pukal untuk nombor siri
+  apabila data rasmi diterima.

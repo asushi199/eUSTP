@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 const SECTION_TAG: Record<string, string> = {
   "/tempahan/bilik": "Bilik & Kemudahan PKG",
   "/khidmat-bantu": "Ceramah · Bengkel · MCP",
-  "/tempahan/peralatan": "Akan datang",
+  "/tempahan/peralatan": "Inventori · Pinjaman",
 };
 
 export default function TempahanHubPage() {

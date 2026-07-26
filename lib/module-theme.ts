@@ -90,8 +90,9 @@ export const MODULES = [
     internalHref: "/tempahan/peralatan",
     external: false,
     title: "Peminjaman Peralatan",
-    description: "Perkhidmatan peminjaman peralatan USTP akan disediakan tidak lama lagi.",
-    accent: "#7C3AED",
+    description:
+      "Semak inventori lima PKG dan mohon pinjaman peralatan Maker Lab secara dalam talian.",
+    accent: "#024AD8",
     iconKey: "peralatan" as const,
   },
   OSC_MODULE,
