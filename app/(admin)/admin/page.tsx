@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getAdminBookingNotificationCount } from "@/lib/admin/booking-hub";
 import { requireUser } from "@/lib/rbac";
 import { canManageKandungan } from "@/lib/roles";
 import { countPendingKhidmatBantu } from "@/lib/khidmat-bantu/queries";
@@ -6,6 +7,7 @@ import {
   countPendingEquipmentLoansByPkg,
   listEquipmentPkgs,
 } from "@/lib/peralatan/queries";
+import { countPendingBookings, listPkgs } from "@/lib/tempahan/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +17,17 @@ export default async function AdminOverviewPage() {
   const user = await requireUser();
   const urusKandungan = canManageKandungan(user.peranan);
   const khidmatPending = urusKandungan ? await countPendingKhidmatBantu() : 0;
+  let tempahanPending = 0;
+  try {
+    const allPkgs = await listPkgs();
+    const visiblePkgIds =
+      user.peranan === "PKG_Admin"
+        ? allPkgs.filter((pkg) => pkg.id === user.pkgId).map((pkg) => pkg.id)
+        : allPkgs.map((pkg) => pkg.id);
+    tempahanPending = await countPendingBookings(visiblePkgIds);
+  } catch {
+    // Kad kekal boleh dibuka jika data tempahan belum tersedia.
+  }
   let equipmentPending = 0;
   try {
     const allPkgs = await listEquipmentPkgs();
@@ -31,14 +44,20 @@ export default async function AdminOverviewPage() {
     // Modul belum dimigrasi; kad kekal boleh dibuka untuk arahan pengaktifan.
   }
 
-  // Papan hanya memaparkan perkhidmatan yang tiada tab sendiri.
-  // Tempahan, OSC dan Pelaporan berada di menu atas / bar bawah.
+  const bookingPending = getAdminBookingNotificationCount(urusKandungan, {
+    khidmatBantu: khidmatPending,
+    tempahanBilik: tempahanPending,
+    peralatan: equipmentPending,
+  });
+
   const cards: AdminCard[] = [
     {
-      href: "/admin/peralatan",
-      title: "Peminjaman Peralatan",
-      description: "Inventori fizikal, nombor siri dan kelulusan pinjaman Maker Lab.",
-      badge: equipmentPending,
+      href: "/admin/booking",
+      title: "CoE Booking",
+      description: urusKandungan
+        ? "Khidmat Bantu, Tempahan Bilik dan Aset dalam satu tempat."
+        : "Tempahan Bilik dan Aset dalam satu tempat.",
+      badge: bookingPending,
     },
   ];
   if (urusKandungan) {
@@ -46,12 +65,6 @@ export default async function AdminOverviewPage() {
       href: "/admin/direktori",
       title: "CoE Direktori",
       description: "Maklumat perhubungan sekolah, sejarah versi dan eksport CSV.",
-    });
-    cards.push({
-      href: "/admin/khidmat-bantu",
-      title: "Khidmat Bantu",
-      description: "Kelulusan permohonan ceramah, bengkel, MCP dan lain-lain.",
-      badge: khidmatPending,
     });
   }
 
@@ -61,7 +74,7 @@ export default async function AdminOverviewPage() {
         Selamat datang, {user.nama}
       </h1>
       <p className="mt-1 text-sm text-graphite">
-        Tempahan, peralatan, OSC dan pelaporan berada di menu di atas.
+        Pilih perkhidmatan untuk mula menguruskan urusan pentadbiran.
       </p>
 
       {cards.length > 0 ? (

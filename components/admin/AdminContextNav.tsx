@@ -37,10 +37,10 @@ const TEMPAHAN_ICON = (
   </svg>
 );
 
-const PERALATAN_ICON = (
+const DIREKTORI_ICON = (
   <svg {...iconProps}>
-    <path d="M4 8.5 12 4l8 4.5-8 4.5z" />
-    <path d="M4 8.5V16l8 4 8-4V8.5M12 13v7" />
+    <circle cx="12" cy="8" r="3.5" />
+    <path d="M5 20c1.5-3.5 4-5 7-5s5.5 1.5 7 5" />
   </svg>
 );
 
@@ -159,19 +159,23 @@ export function AdminMobileNav({ showContent }: { showContent: boolean }) {
       active: pathname === "/admin",
     },
     {
-      href: "/admin/tempahan",
-      label: "Tempahan",
+      href: "/admin/booking",
+      label: "CoE Booking",
       icon: TEMPAHAN_ICON,
-      active: pathname.startsWith("/admin/tempahan"),
-    },
-    {
-      href: "/admin/peralatan",
-      label: "Aset",
-      icon: PERALATAN_ICON,
-      active: pathname.startsWith("/admin/peralatan"),
+      active:
+        pathname.startsWith("/admin/booking") ||
+        pathname.startsWith("/admin/tempahan") ||
+        pathname.startsWith("/admin/peralatan") ||
+        pathname.startsWith("/admin/khidmat-bantu"),
     },
     ...(showContent
       ? [
+          {
+            href: "/admin/direktori",
+            label: "CoE Direktori",
+            icon: DIREKTORI_ICON,
+            active: pathname.startsWith("/admin/direktori"),
+          },
           {
             href: "/admin/osc",
             label: "OSC",
@@ -209,7 +213,7 @@ export function AdminMobileNav({ showContent }: { showContent: boolean }) {
             href={tab.href}
             aria-current={tab.active ? "page" : undefined}
             className={cn(
-              "flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-medium",
+              "flex flex-col items-center gap-0.5 py-2.5 text-[10px] font-medium whitespace-nowrap",
               tab.active ? "text-primary" : "text-graphite hover:text-ink",
             )}
           >
