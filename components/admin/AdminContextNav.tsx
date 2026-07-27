@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { getAdminDesktopNavigation } from "@/lib/admin/desktop-navigation";
 import { getAdminMobileNavigation } from "@/lib/admin/mobile-navigation";
 import { cn } from "@/lib/cn";
 
@@ -85,33 +86,13 @@ export function AdminDesktopNav({ showContent }: { showContent: boolean }) {
         : "text-graphite hover:bg-cloud hover:text-ink",
     );
 
-  const items = [
-    { href: "/admin", label: "Papan Admin", active: pathname === "/admin" },
-    {
-      href: "/admin/tempahan",
-      label: "Tempahan",
-      active: pathname.startsWith("/admin/tempahan"),
-    },
-    {
-      href: "/admin/peralatan",
-      label: "Peralatan",
-      active: pathname.startsWith("/admin/peralatan"),
-    },
-    ...(showContent
-      ? [
-          {
-            href: "/admin/osc",
-            label: "OSC",
-            active: matchPath(pathname, OSC_PATHS),
-          },
-          {
-            href: "/admin/pelaporan",
-            label: "Pelaporan",
-            active: matchPath(pathname, PELAPORAN_PATHS),
-          },
-        ]
-      : []),
-  ];
+  const items = getAdminDesktopNavigation(showContent).map((item) => ({
+    ...item,
+    active:
+      (item.href === "/admin" && pathname === "/admin") ||
+      (item.href === "/admin/osc" && matchPath(pathname, OSC_PATHS)) ||
+      (item.href === "/admin/pelaporan" && matchPath(pathname, PELAPORAN_PATHS)),
+  }));
 
   return (
     <nav aria-label="Navigasi admin" className="hidden items-center gap-1 md:flex">
