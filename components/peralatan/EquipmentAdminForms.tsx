@@ -251,6 +251,7 @@ export default function EquipmentAdminForms({
         <ActionForm
           action={updateEquipmentManager.bind(null, pkg.id)}
           submitLabel="Simpan pegawai"
+          submitClassName="btn-primary w-full sm:w-auto"
           className="card space-y-4 p-5"
         >
           <div>

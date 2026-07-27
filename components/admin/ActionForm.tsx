@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { getActionFormSubmitLabel } from "@/lib/admin/action-form";
 
 /**
  * Borang generik: hantar FormData ke server action, segarkan halaman.
@@ -11,11 +12,13 @@ export default function ActionForm({
   action,
   className,
   submitLabel = "Simpan",
+  submitClassName,
   children,
 }: {
   action: (fd: FormData) => Promise<{ ok: boolean; error?: string }>;
   className?: string;
   submitLabel?: string;
+  submitClassName?: string;
   children: React.ReactNode;
 }) {
   const router = useRouter();
@@ -42,9 +45,12 @@ export default function ActionForm({
       <button
         type="submit"
         disabled={pending}
-        className="text-sm font-medium text-ink underline-offset-2 hover:underline disabled:opacity-50"
+        className={
+          submitClassName ??
+          "text-sm font-medium text-ink underline-offset-2 hover:underline disabled:opacity-50"
+        }
       >
-        {pending ? "…" : submitLabel}
+        {getActionFormSubmitLabel(pending, submitLabel)}
       </button>
       {error ? <span className="text-xs text-bloom-deep">{error}</span> : null}
     </form>
