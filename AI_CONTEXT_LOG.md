@@ -1,5 +1,21 @@
 # AI Context Log — eUSTP Manjung
 
+## 2026-07-27 — Penyusunan navigasi Admin mengikut CoE
+
+- Hub baharu `/admin/booking` mengumpulkan pengurusan **Khidmat Bantu**,
+  **Tempahan Bilik** dan **Aset**. Admin/Pegawai melihat ketiga-tiganya;
+  `PKG_Admin` hanya melihat Tempahan Bilik dan Aset dalam skop PKG sendiri.
+- Lencana merah notifikasi dikekalkan: hub menunjukkan jumlah menunggu bagi
+  setiap urusan dan kad `CoE Booking` di `/admin` menunjukkan jumlah gabungan.
+- **Mudah alih:** buang tab `Papan` yang bertindih. Bar bawah kini
+  `CoE Booking`, `CoE Direktori`, `OSC`, `Lapor`, `Portal` (PKG_Admin hanya
+  `CoE Booking` dan `Portal`).
+- **Desktop:** buang pautan header `Tempahan` dan `Peralatan`; kedua-duanya
+  diakses melalui kad `CoE Booking` pada `Papan Admin`. `OSC` dan `Pelaporan`
+  kekal sebagai ruang kerja terus.
+- Dilindungi oleh ujian konfigurasi navigasi dan hub; perubahan UI dihantar
+  dalam commit `c018608`, `6db59c9` dan `cbb8083`.
+
 Log keputusan & konteks untuk sesi AI akan datang. Tambah entri terbaru di atas.
 
 ## 2026-07-07 — OSC jadi dalaman + tab admin mudah alih
