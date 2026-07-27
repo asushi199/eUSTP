@@ -7,6 +7,8 @@ import {
   listEquipmentPkgs,
   listEquipmentUnitsForPkg,
 } from "@/lib/peralatan/queries";
+import { loadEquipmentAdminPageData } from "@/lib/peralatan/admin-page-data";
+import { withDbTimeout } from "@/lib/db";
 import { EQUIPMENT_LOAN_STATUS_LABEL } from "@/lib/peralatan/status";
 import { requireTempahanAccess } from "@/lib/rbac";
 
@@ -20,12 +22,36 @@ export default async function AdminPkgPeralatanPage({
   const { pkg: pkgId } = await params;
   await requireTempahanAccess(pkgId);
 
-  const [pkgs, catalog, units, loans] = await Promise.all([
-    listEquipmentPkgs(),
-    listEquipmentCatalog(true),
-    listEquipmentUnitsForPkg(pkgId),
-    listEquipmentLoansForPkg(pkgId),
-  ]);
+  let pageData;
+  try {
+    pageData = await loadEquipmentAdminPageData(pkgId, {
+      listPkgs: listEquipmentPkgs,
+      listCatalog: () => listEquipmentCatalog(true),
+      listUnits: listEquipmentUnitsForPkg,
+      listLoans: listEquipmentLoansForPkg,
+    }, withDbTimeout);
+  } catch (error) {
+    console.error("[peralatan] Gagal memuatkan data admin", error);
+    return (
+      <section className="card p-6">
+        <h1 className="text-xl font-semibold text-ink">Peralatan tidak dapat dimuatkan</h1>
+        <p className="mt-2 text-sm text-graphite">
+          Pangkalan data mengambil masa terlalu lama untuk bertindak balas. Sila muat
+          semula halaman sebentar lagi.
+        </p>
+        <div className="mt-5 flex flex-wrap gap-3">
+          <a href={`/admin/peralatan/${pkgId}`} className="btn-primary btn-sm">
+            Cuba semula
+          </a>
+          <Link href="/admin/peralatan" className="btn-outline-ink btn-sm">
+            Semua PKG
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
+  const { pkgs, catalog, units, loans } = pageData;
   const pkg = pkgs.find((row) => row.id === pkgId);
   if (!pkg) notFound();
 
