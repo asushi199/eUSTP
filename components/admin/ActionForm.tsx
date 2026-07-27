@@ -2,7 +2,10 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { getActionFormSubmitLabel } from "@/lib/admin/action-form";
+import {
+  getActionFormSubmitLabel,
+  runActionFormAction,
+} from "@/lib/admin/action-form";
 
 /**
  * Borang generik: hantar FormData ke server action, segarkan halaman.
@@ -30,7 +33,7 @@ export default function ActionForm({
     setError(null);
     const fd = new FormData(e.currentTarget);
     startTransition(async () => {
-      const res = await action(fd);
+      const res = await runActionFormAction(action, fd);
       if (!res.ok) {
         setError(res.error ?? "Gagal menyimpan.");
         return;

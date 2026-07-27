@@ -8,6 +8,7 @@ import {
   updateEquipmentManager,
   updateEquipmentUnitStatus,
 } from "@/lib/actions/peralatan-admin";
+import { EQUIPMENT_ADMIN_SUBMIT_CLASS } from "@/lib/peralatan/admin-button-style";
 import { EQUIPMENT_UNIT_STATUS_LABEL } from "@/lib/peralatan/status";
 import type {
   EquipmentPkg,
@@ -44,6 +45,7 @@ export default function EquipmentAdminForms({
           <ActionForm
             action={addEquipmentUnit.bind(null, pkg.id)}
             submitLabel="Tambah unit"
+            submitClassName={EQUIPMENT_ADMIN_SUBMIT_CLASS.addUnit}
             className="card space-y-4 p-5"
           >
             <div>
@@ -98,6 +100,7 @@ export default function EquipmentAdminForms({
           <ActionForm
             action={importEquipmentUnits.bind(null, pkg.id)}
             submitLabel="Import unit"
+            submitClassName={EQUIPMENT_ADMIN_SUBMIT_CLASS.importUnits}
             className="card space-y-4 p-5"
           >
             <div>
@@ -110,7 +113,7 @@ export default function EquipmentAdminForms({
               <a
                 href="/templates/import-peralatan.csv"
                 download
-                className="mt-2 inline-block text-xs font-semibold text-primary hover:underline"
+                className="btn-outline btn-sm mt-3"
               >
                 Muat turun templat CSV
               </a>
@@ -176,6 +179,7 @@ export default function EquipmentAdminForms({
                   <ActionForm
                     action={updateEquipmentUnitStatus.bind(null, pkg.id, unit.id)}
                     submitLabel="Kemaskini"
+                    submitClassName={EQUIPMENT_ADMIN_SUBMIT_CLASS.updateStatus}
                     className="flex items-center gap-2 self-center"
                   >
                     <select name="status" className="input h-10 py-1 text-sm" defaultValue={unit.status}>
@@ -196,6 +200,7 @@ export default function EquipmentAdminForms({
         <ActionForm
           action={saveEquipmentType.bind(null, pkg.id)}
           submitLabel="Tambah jenis"
+          submitClassName={EQUIPMENT_ADMIN_SUBMIT_CLASS.addType}
           className="card space-y-4 p-5"
         >
           <div>
@@ -251,7 +256,7 @@ export default function EquipmentAdminForms({
         <ActionForm
           action={updateEquipmentManager.bind(null, pkg.id)}
           submitLabel="Simpan pegawai"
-          submitClassName="btn-primary w-full sm:w-auto"
+          submitClassName={EQUIPMENT_ADMIN_SUBMIT_CLASS.saveManager}
           className="card space-y-4 p-5"
         >
           <div>
