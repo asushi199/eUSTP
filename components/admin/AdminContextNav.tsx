@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { getAdminMobileNavigation } from "@/lib/admin/mobile-navigation";
 import { cn } from "@/lib/cn";
 
 const iconProps = {
@@ -18,15 +19,6 @@ const PORTAL_ICON = (
   <svg {...iconProps}>
     <path d="M3 10.5 12 3l9 7.5" />
     <path d="M5 9.5V21h14V9.5" />
-  </svg>
-);
-
-const ADMIN_HOME_ICON = (
-  <svg {...iconProps}>
-    <rect x="3" y="3" width="8" height="8" rx="1.5" />
-    <rect x="13" y="3" width="8" height="8" rx="1.5" />
-    <rect x="3" y="13" width="8" height="8" rx="1.5" />
-    <path d="M17 13v8M13 17h8" />
   </svg>
 );
 
@@ -150,53 +142,26 @@ export function AdminDesktopNav({ showContent }: { showContent: boolean }) {
  */
 export function AdminMobileNav({ showContent }: { showContent: boolean }) {
   const pathname = usePathname();
-
-  const tabs = [
-    {
-      href: "/admin",
-      label: "Papan",
-      icon: ADMIN_HOME_ICON,
-      active: pathname === "/admin",
-    },
-    {
-      href: "/admin/booking",
-      label: "CoE Booking",
-      icon: TEMPAHAN_ICON,
-      active:
-        pathname.startsWith("/admin/booking") ||
-        pathname.startsWith("/admin/tempahan") ||
-        pathname.startsWith("/admin/peralatan") ||
-        pathname.startsWith("/admin/khidmat-bantu"),
-    },
-    ...(showContent
-      ? [
-          {
-            href: "/admin/direktori",
-            label: "CoE Direktori",
-            icon: DIREKTORI_ICON,
-            active: pathname.startsWith("/admin/direktori"),
-          },
-          {
-            href: "/admin/osc",
-            label: "OSC",
-            icon: OSC_ICON,
-            active: matchPath(pathname, OSC_PATHS),
-          },
-          {
-            href: "/admin/pelaporan",
-            label: "Lapor",
-            icon: PELAPORAN_ICON,
-            active: matchPath(pathname, PELAPORAN_PATHS),
-          },
-        ]
-      : []),
-    {
-      href: "/",
-      label: "Portal",
-      icon: PORTAL_ICON,
-      active: false,
-    },
-  ];
+  const icons = {
+    booking: TEMPAHAN_ICON,
+    direktori: DIREKTORI_ICON,
+    osc: OSC_ICON,
+    pelaporan: PELAPORAN_ICON,
+    portal: PORTAL_ICON,
+  } as const;
+  const tabs = getAdminMobileNavigation(showContent).map((tab) => ({
+    ...tab,
+    icon: icons[tab.id],
+    active:
+      (tab.id === "booking" &&
+        (pathname.startsWith("/admin/booking") ||
+          pathname.startsWith("/admin/tempahan") ||
+          pathname.startsWith("/admin/peralatan") ||
+          pathname.startsWith("/admin/khidmat-bantu"))) ||
+      (tab.id === "direktori" && pathname.startsWith("/admin/direktori")) ||
+      (tab.id === "osc" && matchPath(pathname, OSC_PATHS)) ||
+      (tab.id === "pelaporan" && matchPath(pathname, PELAPORAN_PATHS)),
+  }));
 
   return (
     <nav
