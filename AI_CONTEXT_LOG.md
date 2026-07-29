@@ -1,5 +1,12 @@
 # AI Context Log — eUSTP Manjung
 
+## 2026-07-29 — Timeout pada action pinjaman awam
+
+Selepas fix halaman mohon: tambah `withDbTimeout` + query berurutan pada
+`createEquipmentLoanAction` / `checkEquipmentLoansAction` supaya hantar/semak
+borang tidak tergantung bila soket pooler mati. Admin hub kekal tanpa
+perubahan (trafik rendah).
+
 ## 2026-07-29 — Fix hang `/tempahan/peralatan/mohon` (5m timeout)
 
 **Gejala:** klik peralatan di katalog awam → tiada reaksi. Vercel log:
@@ -613,3 +620,24 @@ Corak berselang = instance sihat vs beracun.
 - Halaman awam `Semak Permohonan Saya` mencari rekod secara tepat menggunakan
   nombor telefon ternormal dan memaparkan status, PKG, tempoh, item serta
   catatan keputusan tanpa mendedahkan MyKad.
+
+## 2026-07-29 — Susun Semula Pengurusan Inventori dan Permohonan
+
+- Halaman PKG `/admin/peralatan/[pkg]` dijadikan ringkasan operasi. Halaman ini
+  hanya memaparkan metrik, pintasan pengurusan dan lima permohonan terkini;
+  senarai penuh tidak lagi dimuatkan pada halaman ringkasan.
+- Senarai unit dipindahkan ke `/admin/peralatan/[pkg]/unit` dengan carian nombor
+  siri/nombor aset, tapisan jenis dan status serta pemuatan 25 rekod setiap muka
+  surat. Borang daftar unit, import, jenis peralatan dan pegawai kekal bersama
+  konteks inventori.
+- Senarai permohonan dipindahkan ke
+  `/admin/peralatan/[pkg]/permohonan`. Tapisan menggunakan bulan tarikh pinjaman,
+  status, nombor rujukan, nama pemohon atau sekolah. Permohonan menunggu
+  kelulusan kekal dipaparkan sebagai barisan tindakan tanpa mengira bulan.
+- Borang awam pinjaman menggunakan empat langkah sebenar: maklumat pemohon,
+  tempoh dan tujuan, pilihan peralatan, kemudian akuan dan semakan. Data borang
+  dikekalkan apabila pemohon bergerak antara langkah dan hanya dihantar pada
+  langkah akhir.
+- Semakan awam kekal menggunakan nombor telefon, bukan nama sahaja, untuk
+  mengurangkan pendedahan rekod pemohon lain. Hasil carian kini boleh ditapis
+  dan dikumpulkan mengikut bulan permohonan.

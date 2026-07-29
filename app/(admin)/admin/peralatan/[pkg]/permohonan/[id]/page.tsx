@@ -20,7 +20,7 @@ export default async function AdminEquipmentLoanPage({
   return (
     <>
       <Link
-        href={`/admin/peralatan/${pkgId}`}
+        href={`/admin/peralatan/${pkgId}/permohonan`}
         className="text-sm text-graphite hover:text-ink"
       >
         ← Senarai permohonan

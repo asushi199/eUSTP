@@ -1,6 +1,12 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import {
+  type FormEvent,
+  useActionState,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import PhoneInput from "@/components/PhoneInput";
 import {
   createEquipmentLoanAction,
@@ -19,8 +25,15 @@ import type {
 import { filterEquipmentSchools } from "@/lib/peralatan/school-search";
 
 type Quantities = Record<string, number>;
+type FormField = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 
 const initialState: EquipmentApplicationState = { ok: false, message: "" };
+const STEPS = [
+  "Maklumat pemohon",
+  "Tempoh dan tujuan",
+  "Pilih peralatan",
+  "Akuan dan semakan",
+] as const;
 
 export default function LoanApplicationForm({
   items,
@@ -73,6 +86,10 @@ export default function LoanApplicationForm({
   );
   const [schoolQuery, setSchoolQuery] = useState("");
   const [schoolCode, setSchoolCode] = useState("");
+  const [step, setStep] = useState(1);
+  const [stepError, setStepError] = useState("");
+  const formRef = useRef<HTMLFormElement>(null);
+  const stepperRef = useRef<HTMLDivElement>(null);
   const [quantities, setQuantities] = useState<Quantities>(() =>
     defaultItemId && defaultItemAvailable ? { [defaultItemId]: 1 } : {},
   );
@@ -130,6 +147,56 @@ export default function LoanApplicationForm({
     );
   }
 
+  function fieldsForStep(stepNumber: number) {
+    const section = formRef.current?.querySelector<HTMLElement>(
+      `[data-loan-step="${stepNumber}"]`,
+    );
+    return section
+      ? Array.from(section.querySelectorAll<FormField>("input, select, textarea"))
+      : [];
+  }
+
+  function validateStep(stepNumber: number, showMessage = true) {
+    if (stepNumber === 3 && selectedItems.length === 0) {
+      if (showMessage) setStepError("Pilih sekurang-kurangnya satu peralatan.");
+      return false;
+    }
+    const invalidField = fieldsForStep(stepNumber).find(
+      (field) => !field.disabled && !field.checkValidity(),
+    );
+    if (invalidField) {
+      if (showMessage) {
+        setStepError("Lengkapkan maklumat yang diperlukan sebelum meneruskan.");
+        invalidField.reportValidity();
+      }
+      return false;
+    }
+    if (showMessage) setStepError("");
+    return true;
+  }
+
+  function moveToStep(nextStep: number) {
+    setStep(Math.max(1, Math.min(4, nextStep)));
+    setStepError("");
+    stepperRef.current?.scrollIntoView({ block: "start" });
+  }
+
+  function continueToNextStep() {
+    if (validateStep(step)) moveToStep(step + 1);
+  }
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    for (let stepNumber = 1; stepNumber <= 4; stepNumber += 1) {
+      if (!validateStep(stepNumber, false)) {
+        event.preventDefault();
+        moveToStep(stepNumber);
+        requestAnimationFrame(() => validateStep(stepNumber));
+        return;
+      }
+    }
+    setStepError("");
+  }
+
   if (pkgs.length === 0) {
     return (
       <div className="card mt-8 p-6 text-sm text-graphite">
@@ -141,7 +208,10 @@ export default function LoanApplicationForm({
 
   return (
     <form
+      ref={formRef}
       action={formAction}
+      noValidate
+      onSubmit={handleSubmit}
       className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]"
     >
       <input type="hidden" name="applicantType" value={applicantType} />
@@ -149,11 +219,60 @@ export default function LoanApplicationForm({
       <input type="hidden" name="items" value={serializedItems} />
 
       <div className="space-y-5">
-        <section className="card p-5 sm:p-6">
+        <div ref={stepperRef} className="card scroll-mt-24 p-4 sm:p-5">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.11em] text-graphite sm:hidden">
+            Langkah {step} daripada 4
+          </p>
+          <ol className="grid grid-cols-4 gap-2" aria-label="Kemajuan permohonan">
+            {STEPS.map((label, index) => {
+              const stepNumber = index + 1;
+              const completed = stepNumber < step;
+              const current = stepNumber === step;
+              return (
+                <li
+                  key={label}
+                  aria-current={current ? "step" : undefined}
+                  className="min-w-0"
+                >
+                  <div className="flex items-center">
+                    <span
+                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-sm font-semibold ${
+                        current
+                          ? "border-primary bg-primary text-white"
+                          : completed
+                            ? "border-ink bg-ink text-white"
+                            : "border-steel bg-white text-graphite"
+                      }`}
+                    >
+                      {completed ? "✓" : stepNumber}
+                    </span>
+                    {stepNumber < STEPS.length ? (
+                      <span
+                        className={`mx-2 h-px flex-1 ${
+                          completed ? "bg-ink" : "bg-fog"
+                        }`}
+                      />
+                    ) : null}
+                  </div>
+                  <p
+                    className={`mt-2 hidden truncate text-xs sm:block ${
+                      current ? "font-semibold text-ink" : "text-graphite"
+                    }`}
+                  >
+                    {label}
+                  </p>
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+
+        <section
+          data-loan-step="1"
+          hidden={step !== 1}
+          className="card p-5 sm:p-6"
+        >
           <div className="flex items-center gap-3">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink text-sm font-semibold text-white">
-              1
-            </span>
             <div>
               <h2 className="font-semibold text-ink">Maklumat pemohon</h2>
               <p className="text-sm text-graphite">Untuk sekolah dan pegawai sahaja.</p>
@@ -288,11 +407,12 @@ export default function LoanApplicationForm({
           </div>
         </section>
 
-        <section className="card p-5 sm:p-6">
+        <section
+          data-loan-step="2"
+          hidden={step !== 2}
+          className="card p-5 sm:p-6"
+        >
           <div className="flex items-center gap-3">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink text-sm font-semibold text-white">
-              2
-            </span>
             <div>
               <h2 className="font-semibold text-ink">Lokasi dan tempoh pinjaman</h2>
               <p className="text-sm text-graphite">Satu permohonan untuk satu PKG.</p>
@@ -368,11 +488,12 @@ export default function LoanApplicationForm({
           </div>
         </section>
 
-        <section className="card p-5 sm:p-6">
+        <section
+          data-loan-step="3"
+          hidden={step !== 3}
+          className="card p-5 sm:p-6"
+        >
           <div className="flex items-center gap-3">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink text-sm font-semibold text-white">
-              3
-            </span>
             <div>
               <h2 className="font-semibold text-ink">Pilih peralatan</h2>
               <p className="text-sm text-graphite">
@@ -428,17 +549,38 @@ export default function LoanApplicationForm({
           </div>
         </section>
 
-        <section className="card p-5 sm:p-6">
+        <section
+          data-loan-step="4"
+          hidden={step !== 4}
+          className="card p-5 sm:p-6"
+        >
           <div className="flex items-center gap-3">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink text-sm font-semibold text-white">
-              4
-            </span>
             <div>
               <h2 className="font-semibold text-ink">Akuan pemohon</h2>
               <p className="text-sm text-graphite">
                 Wajib dibaca sebelum permohonan dihantar.
               </p>
             </div>
+          </div>
+
+          <div className="mt-5 rounded-lg border border-fog p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.09em] text-graphite">
+              Semakan peralatan
+            </p>
+            <p className="mt-2 text-sm font-semibold text-ink">
+              {pkgNames[pkgId] ?? "PKG belum dipilih"}
+            </p>
+            <ul className="mt-3 space-y-2 text-sm text-charcoal">
+              {selectedItems.map(({ item, quantity }) => (
+                <li
+                  key={item.id}
+                  className="flex items-center justify-between gap-3"
+                >
+                  <span>{item.name}</span>
+                  <span className="font-semibold tabular-nums">×{quantity}</span>
+                </li>
+              ))}
+            </ul>
           </div>
 
           <div className="mt-5 rounded-xl border border-fog bg-cloud/60 p-4 text-sm leading-relaxed text-charcoal">
@@ -465,6 +607,46 @@ export default function LoanApplicationForm({
             </span>
           </label>
         </section>
+
+        {!state.ok ? (
+          <div className="card p-4 sm:p-5">
+            {stepError || state.message ? (
+              <p className="mb-4 rounded-lg bg-bloom-rose/30 p-3 text-sm text-bloom-deep">
+                {stepError || state.message}
+              </p>
+            ) : null}
+            <div className="flex items-center justify-between gap-3">
+              {step > 1 ? (
+                <button
+                  type="button"
+                  className="btn-outline-ink btn-sm"
+                  onClick={() => moveToStep(step - 1)}
+                >
+                  Kembali
+                </button>
+              ) : (
+                <span />
+              )}
+              {step < 4 ? (
+                <button
+                  type="button"
+                  className="btn-primary btn-sm"
+                  onClick={continueToNextStep}
+                >
+                  Teruskan
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  className="btn-primary btn-sm"
+                  disabled={pending}
+                >
+                  {pending ? "Menghantar…" : "Hantar permohonan"}
+                </button>
+              )}
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <aside className="lg:sticky lg:top-24 lg:self-start">
@@ -529,15 +711,6 @@ export default function LoanApplicationForm({
               </div>
             ) : null}
 
-            {!state.ok ? (
-              <button
-                type="submit"
-                className="btn-primary mt-5 w-full"
-                disabled={pending || selectedItems.length === 0}
-              >
-                {pending ? "Menghantar…" : "Hantar permohonan"}
-              </button>
-            ) : null}
             <p className="mt-3 text-center text-xs leading-relaxed text-graphite">
               Stok hanya ditempah selepas pentadbir meluluskan dan menetapkan unit.
             </p>

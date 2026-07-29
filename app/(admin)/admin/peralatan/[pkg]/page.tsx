@@ -1,13 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import EquipmentAdminForms from "@/components/peralatan/EquipmentAdminForms";
 import {
-  listEquipmentCatalog,
-  listEquipmentLoansForPkg,
+  getEquipmentAdminSummary,
   listEquipmentPkgs,
-  listEquipmentUnitsForPkg,
 } from "@/lib/peralatan/queries";
-import { loadEquipmentAdminPageData } from "@/lib/peralatan/admin-page-data";
 import { withDbTimeout } from "@/lib/db";
 import { EQUIPMENT_LOAN_STATUS_LABEL } from "@/lib/peralatan/status";
 import { requireTempahanAccess } from "@/lib/rbac";
@@ -22,14 +18,11 @@ export default async function AdminPkgPeralatanPage({
   const { pkg: pkgId } = await params;
   await requireTempahanAccess(pkgId);
 
-  let pageData;
+  let pkgs;
+  let summary;
   try {
-    pageData = await loadEquipmentAdminPageData(pkgId, {
-      listPkgs: listEquipmentPkgs,
-      listCatalog: () => listEquipmentCatalog(true),
-      listUnits: listEquipmentUnitsForPkg,
-      listLoans: listEquipmentLoansForPkg,
-    }, withDbTimeout);
+    pkgs = await withDbTimeout(listEquipmentPkgs());
+    summary = await withDbTimeout(getEquipmentAdminSummary(pkgId));
   } catch (error) {
     console.error("[peralatan] Gagal memuatkan data admin", error);
     return (
@@ -51,16 +44,8 @@ export default async function AdminPkgPeralatanPage({
     );
   }
 
-  const { pkgs, catalog, units, loans } = pageData;
   const pkg = pkgs.find((row) => row.id === pkgId);
   if (!pkg) notFound();
-
-  const pendingCount = loans.filter((loan) => loan.status === "pending").length;
-  const reservedCount = units.filter((unit) => unit.status === "reserved").length;
-  const borrowedCount = units.filter((unit) => unit.status === "borrowed").length;
-  const maintenanceCount = units.filter(
-    (unit) => unit.status === "maintenance",
-  ).length;
 
   return (
     <>
@@ -83,10 +68,10 @@ export default async function AdminPkgPeralatanPage({
 
       <section className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {[
-          ["Menunggu", pendingCount],
-          ["Ditempah", reservedCount],
-          ["Dipinjam", borrowedCount],
-          ["Penyelenggaraan", maintenanceCount],
+          ["Menunggu", summary.pendingCount],
+          ["Ditempah", summary.reservedCount],
+          ["Dipinjam", summary.borrowedCount],
+          ["Penyelenggaraan", summary.maintenanceCount],
         ].map(([label, value]) => (
           <div key={label} className="card p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-graphite">
@@ -97,20 +82,70 @@ export default async function AdminPkgPeralatanPage({
         ))}
       </section>
 
+      <section className="mt-8 grid gap-4 md:grid-cols-2">
+        <div className="card flex flex-col justify-between p-5">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.11em] text-graphite">
+              Operasi pinjaman
+            </p>
+            <h2 className="mt-2 text-lg font-semibold text-ink">
+              Senarai permohonan
+            </h2>
+            <p className="mt-1 text-sm leading-relaxed text-graphite">
+              Tapis mengikut bulan, status, nama pemohon atau sekolah.
+            </p>
+          </div>
+          <Link
+            href={`/admin/peralatan/${pkgId}/permohonan`}
+            className="btn-ink btn-sm mt-5 self-start"
+          >
+            Urus permohonan
+          </Link>
+        </div>
+        <div className="card flex flex-col justify-between p-5">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.11em] text-graphite">
+              Inventori fizikal
+            </p>
+            <h2 className="mt-2 text-lg font-semibold text-ink">
+              Senarai unit
+            </h2>
+            <p className="mt-1 text-sm leading-relaxed text-graphite">
+              {summary.totalUnits.toLocaleString("ms-MY")} unit direkodkan. Cari
+              nombor siri, kemas kini status atau import inventori.
+            </p>
+          </div>
+          <Link
+            href={`/admin/peralatan/${pkgId}/unit`}
+            className="btn-outline-ink btn-sm mt-5 self-start"
+          >
+            Urus unit
+          </Link>
+        </div>
+      </section>
+
       <section className="mt-8">
-        <div>
-          <h2 className="text-lg font-semibold text-ink">Permohonan pinjaman</h2>
-          <p className="mt-1 text-sm text-graphite">
-            Permohonan baharu dipaparkan dahulu untuk tindakan.
-          </p>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold text-ink">Permohonan terkini</h2>
+            <p className="mt-1 text-sm text-graphite">
+              Lima rekod terbaharu untuk semakan pantas.
+            </p>
+          </div>
+          <Link
+            href={`/admin/peralatan/${pkgId}/permohonan`}
+            className="text-sm font-semibold text-charcoal hover:text-ink"
+          >
+            Lihat semua
+          </Link>
         </div>
         <div className="mt-4 space-y-3">
-          {loans.length === 0 ? (
+          {summary.recentLoans.length === 0 ? (
             <div className="card p-6 text-sm text-graphite">
               Belum ada permohonan untuk {pkg.name}.
             </div>
           ) : (
-            loans.map((loan) => (
+            summary.recentLoans.map((loan) => (
               <Link
                 key={loan.id}
                 href={`/admin/peralatan/${pkgId}/permohonan/${loan.id}`}
@@ -147,18 +182,6 @@ export default async function AdminPkgPeralatanPage({
           )}
         </div>
       </section>
-
-      <div className="mt-10 border-t border-fog pt-8">
-        <EquipmentAdminForms
-          pkg={pkg}
-          types={catalog.map((item) => ({
-            id: item.id,
-            code: item.code,
-            name: item.name,
-          }))}
-          units={units}
-        />
-      </div>
     </>
   );
 }

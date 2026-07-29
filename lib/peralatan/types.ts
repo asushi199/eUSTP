@@ -28,6 +28,14 @@ export type EquipmentSchool = {
   name: string;
 };
 
+export type EquipmentUnitStatus =
+  | "available"
+  | "reserved"
+  | "borrowed"
+  | "maintenance"
+  | "retired"
+  | "lost";
+
 export type EquipmentUnitListItem = {
   id: string;
   equipmentTypeId: string;
@@ -35,15 +43,17 @@ export type EquipmentUnitListItem = {
   typeName: string;
   serialNo: string;
   governmentAssetNo: string;
-  status:
-    | "available"
-    | "reserved"
-    | "borrowed"
-    | "maintenance"
-    | "retired"
-    | "lost";
+  status: EquipmentUnitStatus;
   notes: string;
 };
+
+export type EquipmentLoanStatus =
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "cancelled"
+  | "handed_over"
+  | "returned";
 
 export type EquipmentLoanListItem = {
   id: string;
@@ -52,13 +62,7 @@ export type EquipmentLoanListItem = {
   applicantName: string;
   borrowDate: string;
   expectedReturnDate: string;
-  status:
-    | "pending"
-    | "approved"
-    | "rejected"
-    | "cancelled"
-    | "handed_over"
-    | "returned";
+  status: EquipmentLoanStatus;
   createdAt: Date;
   totalQuantity: number;
 };

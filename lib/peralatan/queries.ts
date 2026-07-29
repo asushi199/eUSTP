@@ -1,6 +1,18 @@
 import "server-only";
 
-import { and, asc, count, desc, eq, inArray, sql } from "drizzle-orm";
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  gte,
+  ilike,
+  inArray,
+  lt,
+  or,
+  sql,
+} from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
   equipmentLoanAllocations,
@@ -16,11 +28,48 @@ import type {
   EquipmentCatalogItem,
   EquipmentLoanDetail,
   EquipmentLoanListItem,
+  EquipmentLoanStatus,
   EquipmentLoanPublicResult,
   EquipmentPkg,
   EquipmentSchool,
   EquipmentUnitListItem,
+  EquipmentUnitStatus,
 } from "./types";
+
+const ADMIN_PAGE_SIZE = 25;
+
+export type EquipmentAdminListResult<T> = {
+  items: T[];
+  total: number;
+  page: number;
+  perPage: number;
+};
+
+export type EquipmentTypeOption = {
+  id: string;
+  code: string;
+  name: string;
+};
+
+function normalizedPage(value: number | undefined) {
+  return Number.isFinite(value) ? Math.max(1, Math.floor(value ?? 1)) : 1;
+}
+
+function monthRange(month: string | undefined) {
+  if (!month || !/^\d{4}-\d{2}$/.test(month)) return null;
+  const [year, monthNumber] = month.split("-").map(Number);
+  if (monthNumber < 1 || monthNumber > 12) return null;
+  const nextYear = monthNumber === 12 ? year + 1 : year;
+  const nextMonth = monthNumber === 12 ? 1 : monthNumber + 1;
+  return {
+    start: `${year.toString().padStart(4, "0")}-${monthNumber
+      .toString()
+      .padStart(2, "0")}-01`,
+    end: `${nextYear.toString().padStart(4, "0")}-${nextMonth
+      .toString()
+      .padStart(2, "0")}-01`,
+  };
+}
 
 export async function listEquipmentPkgs(): Promise<EquipmentPkg[]> {
   const rows = await db
@@ -99,9 +148,53 @@ export async function listEquipmentCatalog(
   });
 }
 
+export async function listEquipmentTypeOptions(): Promise<EquipmentTypeOption[]> {
+  return db
+    .select({
+      id: equipmentTypes.id,
+      code: equipmentTypes.code,
+      name: equipmentTypes.name,
+    })
+    .from(equipmentTypes)
+    .where(eq(equipmentTypes.active, true))
+    .orderBy(asc(equipmentTypes.sortOrder), asc(equipmentTypes.name));
+}
+
 export async function listEquipmentUnitsForPkg(
   pkgId: string,
-): Promise<EquipmentUnitListItem[]> {
+  filters: {
+    search?: string;
+    status?: EquipmentUnitStatus;
+    equipmentTypeId?: string;
+    page?: number;
+    perPage?: number;
+  } = {},
+): Promise<EquipmentAdminListResult<EquipmentUnitListItem>> {
+  const page = normalizedPage(filters.page);
+  const perPage = Math.min(100, Math.max(1, filters.perPage ?? ADMIN_PAGE_SIZE));
+  const search = filters.search?.trim().slice(0, 200) ?? "";
+  const conditions = [eq(equipmentUnits.pkgId, pkgId)];
+  if (filters.status) conditions.push(eq(equipmentUnits.status, filters.status));
+  if (filters.equipmentTypeId) {
+    conditions.push(eq(equipmentUnits.equipmentTypeId, filters.equipmentTypeId));
+  }
+  if (search) {
+    const searchCondition = or(
+      ilike(equipmentUnits.serialNo, `%${search}%`),
+      ilike(equipmentUnits.governmentAssetNo, `%${search}%`),
+      ilike(equipmentTypes.code, `%${search}%`),
+      ilike(equipmentTypes.name, `%${search}%`),
+    );
+    if (searchCondition) conditions.push(searchCondition);
+  }
+  const where = and(...conditions);
+  const totalRows = await db
+    .select({ total: count() })
+    .from(equipmentUnits)
+    .innerJoin(equipmentTypes, eq(equipmentUnits.equipmentTypeId, equipmentTypes.id))
+    .where(where);
+  const total = totalRows[0]?.total ?? 0;
+  const effectivePage = Math.min(page, Math.max(1, Math.ceil(total / perPage)));
   const rows = await db
     .select({
       id: equipmentUnits.id,
@@ -115,18 +208,57 @@ export async function listEquipmentUnitsForPkg(
     })
     .from(equipmentUnits)
     .innerJoin(equipmentTypes, eq(equipmentUnits.equipmentTypeId, equipmentTypes.id))
-    .where(eq(equipmentUnits.pkgId, pkgId))
-    .orderBy(asc(equipmentTypes.sortOrder), asc(equipmentUnits.serialNo));
+    .where(where)
+    .orderBy(asc(equipmentTypes.sortOrder), asc(equipmentUnits.serialNo))
+    .limit(perPage)
+    .offset((effectivePage - 1) * perPage);
 
-  return rows.map((row) => ({
-    ...row,
-    governmentAssetNo: row.governmentAssetNo ?? "",
-  }));
+  return {
+    items: rows.map((row) => ({
+      ...row,
+      governmentAssetNo: row.governmentAssetNo ?? "",
+    })),
+    total,
+    page: effectivePage,
+    perPage,
+  };
 }
 
 export async function listEquipmentLoansForPkg(
   pkgId: string,
-): Promise<EquipmentLoanListItem[]> {
+  filters: {
+    month?: string;
+    status?: EquipmentLoanStatus;
+    search?: string;
+    page?: number;
+    perPage?: number;
+  } = {},
+): Promise<EquipmentAdminListResult<EquipmentLoanListItem>> {
+  const page = normalizedPage(filters.page);
+  const perPage = Math.min(100, Math.max(1, filters.perPage ?? ADMIN_PAGE_SIZE));
+  const search = filters.search?.trim().slice(0, 200) ?? "";
+  const range = monthRange(filters.month);
+  const conditions = [eq(equipmentLoanRequests.pkgId, pkgId)];
+  if (filters.status) conditions.push(eq(equipmentLoanRequests.status, filters.status));
+  if (range) {
+    conditions.push(gte(equipmentLoanRequests.borrowDate, range.start));
+    conditions.push(lt(equipmentLoanRequests.borrowDate, range.end));
+  }
+  if (search) {
+    const searchCondition = or(
+      ilike(equipmentLoanRequests.referenceNo, `%${search}%`),
+      ilike(equipmentLoanRequests.applicantName, `%${search}%`),
+      ilike(equipmentLoanRequests.orgName, `%${search}%`),
+    );
+    if (searchCondition) conditions.push(searchCondition);
+  }
+  const where = and(...conditions);
+  const totalRows = await db
+    .select({ total: count() })
+    .from(equipmentLoanRequests)
+    .where(where);
+  const total = totalRows[0]?.total ?? 0;
+  const effectivePage = Math.min(page, Math.max(1, Math.ceil(total / perPage)));
   const rows = await db
     .select({
       id: equipmentLoanRequests.id,
@@ -144,11 +276,51 @@ export async function listEquipmentLoansForPkg(
       equipmentLoanItems,
       eq(equipmentLoanRequests.id, equipmentLoanItems.requestId),
     )
-    .where(eq(equipmentLoanRequests.pkgId, pkgId))
+    .where(where)
     .groupBy(equipmentLoanRequests.id)
-    .orderBy(desc(equipmentLoanRequests.createdAt));
+    .orderBy(desc(equipmentLoanRequests.createdAt))
+    .limit(perPage)
+    .offset((effectivePage - 1) * perPage);
 
-  return rows;
+  return {
+    items: rows,
+    total,
+    page: effectivePage,
+    perPage,
+  };
+}
+
+export async function getEquipmentAdminSummary(pkgId: string) {
+  const unitRows = await db
+    .select({ status: equipmentUnits.status, total: count() })
+    .from(equipmentUnits)
+    .where(eq(equipmentUnits.pkgId, pkgId))
+    .groupBy(equipmentUnits.status);
+  const pendingRows = await db
+    .select({ total: count() })
+    .from(equipmentLoanRequests)
+    .where(
+      and(
+        eq(equipmentLoanRequests.pkgId, pkgId),
+        eq(equipmentLoanRequests.status, "pending"),
+      ),
+    );
+  const recent = await listEquipmentLoansForPkg(pkgId, {
+    page: 1,
+    perPage: 5,
+  });
+  const unitCounts = Object.fromEntries(
+    unitRows.map((row) => [row.status, row.total]),
+  ) as Partial<Record<EquipmentUnitStatus, number>>;
+
+  return {
+    pendingCount: pendingRows[0]?.total ?? 0,
+    reservedCount: unitCounts.reserved ?? 0,
+    borrowedCount: unitCounts.borrowed ?? 0,
+    maintenanceCount: unitCounts.maintenance ?? 0,
+    totalUnits: unitRows.reduce((sum, row) => sum + row.total, 0),
+    recentLoans: recent.items,
+  };
 }
 
 export async function countPendingEquipmentLoansByPkg(
