@@ -1,5 +1,21 @@
 # AI Context Log — eUSTP Manjung
 
+## 2026-07-29 — Fix hang `/tempahan/peralatan/mohon` (5m timeout)
+
+**Gejala:** klik peralatan di katalog awam → tiada reaksi. Vercel log:
+`GET /tempahan/peralatan/mohon` Execution Duration **5m / 5m** (RSC dari
+`/tempahan/peralatan`). Bukan masalah tambah unit / catatan.
+
+**Punca:** halaman mohon guna `Promise.all` (catalog + pkgs + schools); catalog
+sendiri juga `Promise.all` 3 query. Pooler serverless ~3 sambungan → query
+tersekat pada soket mati, tunggu sehingga had Vercel.
+
+**Baiki:** sama seperti fix admin `cecd1f5` — query berurutan + `withDbTimeout`
++ UI fallback. Fail: `lib/peralatan/loan-form-data.ts`,
+`lib/peralatan/queries.ts` (`listEquipmentCatalog` serial),
+`app/(public)/tempahan/peralatan/mohon/page.tsx`, katalog awam juga
+dibungkus timeout.
+
 ## 2026-07-29 — Katalog awam peralatan: senarai ringkas
 
 Arahan pengurusan: halaman awam `/tempahan/peralatan` terlalu padat. Keputusan:

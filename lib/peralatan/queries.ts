@@ -53,21 +53,24 @@ export async function listEquipmentSchools(): Promise<EquipmentSchool[]> {
 export async function listEquipmentCatalog(
   includeInactive = false,
 ): Promise<EquipmentCatalogItem[]> {
-  const [typeRows, unitRows, pkgRows] = await Promise.all([
-    db
-      .select()
-      .from(equipmentTypes)
-      .where(includeInactive ? undefined : eq(equipmentTypes.active, true))
-      .orderBy(asc(equipmentTypes.sortOrder), asc(equipmentTypes.name)),
-    db
-      .select({
-        equipmentTypeId: equipmentUnits.equipmentTypeId,
-        pkgId: equipmentUnits.pkgId,
-        status: equipmentUnits.status,
-      })
-      .from(equipmentUnits),
-    db.select({ id: pkgs.id }).from(pkgs).where(eq(pkgs.active, true)),
-  ]);
+  // Sequential queries: serverless pooler only has ~3 connections per
+  // instance. Concurrent Promise.all here has hung /mohon for a full 5m.
+  const typeRows = await db
+    .select()
+    .from(equipmentTypes)
+    .where(includeInactive ? undefined : eq(equipmentTypes.active, true))
+    .orderBy(asc(equipmentTypes.sortOrder), asc(equipmentTypes.name));
+  const unitRows = await db
+    .select({
+      equipmentTypeId: equipmentUnits.equipmentTypeId,
+      pkgId: equipmentUnits.pkgId,
+      status: equipmentUnits.status,
+    })
+    .from(equipmentUnits);
+  const pkgRows = await db
+    .select({ id: pkgs.id })
+    .from(pkgs)
+    .where(eq(pkgs.active, true));
 
   const validPkgIds = new Set(pkgRows.map((pkg) => pkg.id));
   return typeRows.map((type) => {

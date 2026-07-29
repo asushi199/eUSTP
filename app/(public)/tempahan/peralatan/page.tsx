@@ -3,6 +3,7 @@ import Link from "next/link";
 import EquipmentCatalog from "@/components/peralatan/EquipmentCatalog";
 import PageHeader from "@/components/PageHeader";
 import PublicPageShell from "@/components/PublicPageShell";
+import { withDbTimeout } from "@/lib/db";
 import { listEquipmentCatalog } from "@/lib/peralatan/queries";
 import type { EquipmentCatalogItem } from "@/lib/peralatan/types";
 
@@ -18,7 +19,7 @@ export default async function PeminjamanPeralatanPage() {
   let items: EquipmentCatalogItem[] = [];
   let unavailable = false;
   try {
-    items = await listEquipmentCatalog();
+    items = await withDbTimeout(listEquipmentCatalog());
   } catch {
     unavailable = true;
   }
