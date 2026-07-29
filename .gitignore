@@ -11,9 +11,6 @@ secrets/
 .pnpm-store/
 tmp/
 
-# CodeGraph index (local, regenerated)
-.codegraph/
-
 # PWA (generated at build)
 public/sw.js
 public/sw.js.map
