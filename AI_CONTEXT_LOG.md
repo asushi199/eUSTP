@@ -642,3 +642,27 @@ Corak berselang = instance sihat vs beracun.
 - Semakan awam kekal menggunakan nombor telefon, bukan nama sahaja, untuk
   mengurangkan pendedahan rekod pemohon lain. Hasil carian kini boleh ditapis
   dan dikumpulkan mengikut bulan permohonan.
+
+## 2026-07-29 — Kategori, Model dan Unit Peralatan
+
+- Inventori peralatan kini mempunyai tiga aras: kategori umum yang dipilih
+  pemohon, model/kumpulan aset yang menyimpan kod dan spesifikasi, serta unit
+  fizikal bernombor siri. Pemohon memohon `Komputer riba`, bukan jenama tertentu.
+- Semasa kelulusan, pentadbir boleh memperuntukkan mana-mana model aktif dalam
+  kategori yang sama. Pilihan unit memaparkan model dan nombor siri; KEW.PA-9
+  menggunakan model unit yang benar-benar diperuntukkan.
+- Katalog awam menggabungkan stok semua model dalam satu kad kategori. Butiran
+  boleh dikembangkan untuk melihat setiap model, spesifikasi, kandungan dan
+  ketersediaan mengikut PKG.
+- Admin dan Pegawai boleh menambah atau mengubah kategori, model, kod aset,
+  spesifikasi, kandungan dan status aktif. PKG_Admin hanya mengurus unit fizikal
+  PKG sendiri dan tidak boleh mengubah metadata katalog global.
+- Lima jenis aset Lampiran C didaftarkan di bawah PKG Sitiawan dengan kuantiti
+  20/120/120/120/20. Nombor siri menggunakan pola `<kod aset>-<bilangan>`.
+- Dua komputer riba ASUS yang telah ditempah sebelum import dikekalkan ID dan
+  hubungan pinjamannya sebagai `001002002-1` dan `001002002-2`; nombor siri
+  pengilang disimpan dalam catatan. Jumlah komputer riba kekal 20.
+- Pemindahan unit antara PKG hanya dibenarkan untuk unit tersedia dan direkodkan
+  dalam `equipment_unit_transfers`. Migrasi `0014` hingga `0016` telah dijalankan
+  dan semakan integriti mengesahkan tiada jenis atau item permohonan tanpa
+  kategori.

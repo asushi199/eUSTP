@@ -15,6 +15,7 @@ import {
 } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
+  equipmentCategories,
   equipmentLoanAllocations,
   equipmentLoanDocuments,
   equipmentLoanItems,
@@ -26,12 +27,15 @@ import {
 } from "@/lib/schema";
 import type {
   EquipmentCatalogItem,
+  EquipmentCategoryOption,
+  EquipmentInventoryCard,
   EquipmentLoanDetail,
   EquipmentLoanListItem,
   EquipmentLoanStatus,
   EquipmentLoanPublicResult,
   EquipmentPkg,
   EquipmentSchool,
+  EquipmentTypeAdminDetail,
   EquipmentUnitListItem,
   EquipmentUnitStatus,
 } from "./types";
@@ -47,6 +51,7 @@ export type EquipmentAdminListResult<T> = {
 
 export type EquipmentTypeOption = {
   id: string;
+  categoryId: string;
   code: string;
   name: string;
 };
@@ -104,8 +109,11 @@ export async function listEquipmentSchools(): Promise<EquipmentSchool[]> {
 export async function listEquipmentCatalog(
   includeInactive = false,
 ): Promise<EquipmentCatalogItem[]> {
-  // Sequential queries: serverless pooler only has ~3 connections per
-  // instance. Concurrent Promise.all here has hung /mohon for a full 5m.
+  const categoryRows = await db
+    .select()
+    .from(equipmentCategories)
+    .where(includeInactive ? undefined : eq(equipmentCategories.active, true))
+    .orderBy(asc(equipmentCategories.sortOrder), asc(equipmentCategories.name));
   const typeRows = await db
     .select()
     .from(equipmentTypes)
@@ -119,39 +127,132 @@ export async function listEquipmentCatalog(
     })
     .from(equipmentUnits);
   const pkgRows = await db
-    .select({ id: pkgs.id })
+    .select({ id: pkgs.id, name: pkgs.name })
     .from(pkgs)
     .where(eq(pkgs.active, true));
 
-  const validPkgIds = new Set(pkgRows.map((pkg) => pkg.id));
-  return typeRows.map((type) => {
+  const pkgNameById = new Map(pkgRows.map((pkg) => [pkg.id, pkg.name]));
+  return categoryRows.map((category) => {
+    const models = typeRows.filter((type) => type.categoryId === category.id);
+    const modelIds = new Set(models.map((model) => model.id));
     const byPkg = new Map<string, { total: number; available: number }>();
     for (const unit of unitRows) {
-      if (unit.equipmentTypeId !== type.id || !validPkgIds.has(unit.pkgId)) continue;
+      if (!modelIds.has(unit.equipmentTypeId) || !pkgNameById.has(unit.pkgId)) {
+        continue;
+      }
       const current = byPkg.get(unit.pkgId) ?? { total: 0, available: 0 };
       current.total += unit.status === "retired" || unit.status === "lost" ? 0 : 1;
       current.available += unit.status === "available" ? 1 : 0;
       byPkg.set(unit.pkgId, current);
     }
     return {
-      id: type.id,
-      code: type.code,
-      name: type.name,
-      model: type.model,
-      description: type.description,
-      searchAliases: type.searchAliases,
-      components: type.components,
-      stocks: Array.from(byPkg, ([pkgId, stock]) => ({ pkgId, ...stock })).filter(
-        (stock) => stock.total > 0,
-      ),
+      id: category.id,
+      code: category.code,
+      name: category.name,
+      description: category.description,
+      searchAliases: category.searchAliases,
+      models: models.map((model) => {
+        const modelUnits = unitRows.filter(
+          (unit) =>
+            unit.equipmentTypeId === model.id && pkgNameById.has(unit.pkgId),
+        );
+        return {
+          id: model.id,
+          code: model.code,
+          name: model.name,
+          model: model.model,
+          description: model.description,
+          specifications: model.specifications,
+          components: model.components,
+          searchAliases: model.searchAliases,
+          total: modelUnits.filter(
+            (unit) => unit.status !== "retired" && unit.status !== "lost",
+          ).length,
+          available: modelUnits.filter((unit) => unit.status === "available").length,
+        };
+      }),
+      stocks: Array.from(byPkg, ([pkgId, stock]) => ({
+        pkgId,
+        pkgName: pkgNameById.get(pkgId) ?? pkgId,
+        ...stock,
+      })).filter((stock) => stock.total > 0),
     };
   });
+}
+
+export async function listEquipmentCategoryOptions(): Promise<
+  EquipmentCategoryOption[]
+> {
+  return db
+    .select({
+      id: equipmentCategories.id,
+      code: equipmentCategories.code,
+      name: equipmentCategories.name,
+      description: equipmentCategories.description,
+      searchAliases: equipmentCategories.searchAliases,
+      active: equipmentCategories.active,
+    })
+    .from(equipmentCategories)
+    .orderBy(asc(equipmentCategories.sortOrder), asc(equipmentCategories.name));
+}
+
+export async function listEquipmentTypeDetails(): Promise<
+  EquipmentTypeAdminDetail[]
+> {
+  return db
+    .select({
+      id: equipmentTypes.id,
+      categoryId: equipmentTypes.categoryId,
+      code: equipmentTypes.code,
+      name: equipmentTypes.name,
+      model: equipmentTypes.model,
+      description: equipmentTypes.description,
+      specifications: equipmentTypes.specifications,
+      components: equipmentTypes.components,
+      searchAliases: equipmentTypes.searchAliases,
+      active: equipmentTypes.active,
+    })
+    .from(equipmentTypes)
+    .orderBy(asc(equipmentTypes.sortOrder), asc(equipmentTypes.name));
+}
+
+export async function listEquipmentInventoryCardsForPkg(
+  pkgId: string,
+): Promise<EquipmentInventoryCard[]> {
+  const rows = await db
+    .select({
+      id: equipmentTypes.id,
+      categoryId: equipmentTypes.categoryId,
+      code: equipmentTypes.code,
+      name: equipmentTypes.name,
+      model: equipmentTypes.model,
+      description: equipmentTypes.description,
+      specifications: equipmentTypes.specifications,
+      components: equipmentTypes.components,
+      totalUnits: sql<number>`count(${equipmentUnits.id})::int`,
+      availableUnits:
+        sql<number>`count(${equipmentUnits.id}) filter (where ${equipmentUnits.status} = 'available')::int`,
+    })
+    .from(equipmentTypes)
+    .innerJoin(
+      equipmentUnits,
+      and(
+        eq(equipmentUnits.equipmentTypeId, equipmentTypes.id),
+        eq(equipmentUnits.pkgId, pkgId),
+      ),
+    )
+    .where(eq(equipmentTypes.active, true))
+    .groupBy(equipmentTypes.id)
+    .orderBy(asc(equipmentTypes.sortOrder), asc(equipmentTypes.name));
+
+  return rows;
 }
 
 export async function listEquipmentTypeOptions(): Promise<EquipmentTypeOption[]> {
   return db
     .select({
       id: equipmentTypes.id,
+      categoryId: equipmentTypes.categoryId,
       code: equipmentTypes.code,
       name: equipmentTypes.name,
     })
@@ -366,16 +467,16 @@ export async function listEquipmentLoansByContact(
     ? await db
         .select({
           requestId: equipmentLoanItems.requestId,
-          name: equipmentTypes.name,
+          name: equipmentCategories.name,
           quantity: equipmentLoanItems.quantity,
         })
         .from(equipmentLoanItems)
         .innerJoin(
-          equipmentTypes,
-          eq(equipmentLoanItems.equipmentTypeId, equipmentTypes.id),
+          equipmentCategories,
+          eq(equipmentLoanItems.categoryId, equipmentCategories.id),
         )
         .where(inArray(equipmentLoanItems.requestId, requestIds))
-        .orderBy(asc(equipmentTypes.sortOrder))
+        .orderBy(asc(equipmentCategories.sortOrder))
     : [];
 
   return requestRows.map((request) => ({
@@ -401,36 +502,45 @@ export async function getEquipmentLoanDetail(
   const itemRows = await db
     .select({
       id: equipmentLoanItems.id,
-      equipmentTypeId: equipmentLoanItems.equipmentTypeId,
-      typeCode: equipmentTypes.code,
-      typeName: equipmentTypes.name,
-      model: equipmentTypes.model,
+      categoryId: equipmentLoanItems.categoryId,
+      categoryCode: equipmentCategories.code,
+      categoryName: equipmentCategories.name,
       quantity: equipmentLoanItems.quantity,
     })
     .from(equipmentLoanItems)
-    .innerJoin(equipmentTypes, eq(equipmentLoanItems.equipmentTypeId, equipmentTypes.id))
+    .innerJoin(
+      equipmentCategories,
+      eq(equipmentLoanItems.categoryId, equipmentCategories.id),
+    )
     .where(eq(equipmentLoanItems.requestId, requestId))
-    .orderBy(asc(equipmentTypes.sortOrder));
+    .orderBy(asc(equipmentCategories.sortOrder));
 
   const itemIds = itemRows.map((item) => item.id);
-  const typeIds = itemRows.map((item) => item.equipmentTypeId);
-  const availableRows = typeIds.length
+  const categoryIds = itemRows.map((item) => item.categoryId);
+  const availableRows = categoryIds.length
     ? await db
         .select({
           id: equipmentUnits.id,
-          equipmentTypeId: equipmentUnits.equipmentTypeId,
+          categoryId: equipmentTypes.categoryId,
           serialNo: equipmentUnits.serialNo,
           governmentAssetNo: equipmentUnits.governmentAssetNo,
+          typeName: equipmentTypes.name,
+          model: equipmentTypes.model,
         })
         .from(equipmentUnits)
+        .innerJoin(
+          equipmentTypes,
+          eq(equipmentUnits.equipmentTypeId, equipmentTypes.id),
+        )
         .where(
           and(
             eq(equipmentUnits.pkgId, pkgId),
             eq(equipmentUnits.status, "available"),
-            inArray(equipmentUnits.equipmentTypeId, typeIds),
+            inArray(equipmentTypes.categoryId, categoryIds),
+            eq(equipmentTypes.active, true),
           ),
         )
-        .orderBy(asc(equipmentUnits.serialNo))
+        .orderBy(asc(equipmentTypes.sortOrder), asc(equipmentUnits.serialNo))
     : [];
   const allocatedRows = itemIds.length
     ? await db
@@ -439,11 +549,17 @@ export async function getEquipmentLoanDetail(
           id: equipmentUnits.id,
           serialNo: equipmentUnits.serialNo,
           governmentAssetNo: equipmentUnits.governmentAssetNo,
+          typeName: equipmentTypes.name,
+          model: equipmentTypes.model,
         })
         .from(equipmentLoanAllocations)
         .innerJoin(
           equipmentUnits,
           eq(equipmentLoanAllocations.unitId, equipmentUnits.id),
+        )
+        .innerJoin(
+          equipmentTypes,
+          eq(equipmentUnits.equipmentTypeId, equipmentTypes.id),
         )
         .where(inArray(equipmentLoanAllocations.requestItemId, itemIds))
     : [];
@@ -475,11 +591,13 @@ export async function getEquipmentLoanDetail(
     items: itemRows.map((item) => ({
       ...item,
       availableUnits: availableRows
-        .filter((unit) => unit.equipmentTypeId === item.equipmentTypeId)
+        .filter((unit) => unit.categoryId === item.categoryId)
         .map((unit) => ({
           id: unit.id,
           serialNo: unit.serialNo,
           governmentAssetNo: unit.governmentAssetNo ?? "",
+          typeName: unit.typeName,
+          model: unit.model,
         })),
       allocatedUnits: allocatedRows
         .filter((unit) => unit.requestItemId === item.id)
@@ -487,6 +605,8 @@ export async function getEquipmentLoanDetail(
           id: unit.id,
           serialNo: unit.serialNo,
           governmentAssetNo: unit.governmentAssetNo ?? "",
+          typeName: unit.typeName,
+          model: unit.model,
       })),
     })),
     documents: documentRows,

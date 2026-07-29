@@ -179,8 +179,12 @@ export default function AdminLoanApproval({
               <div key={item.id} className="p-5 sm:p-6">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <h3 className="font-semibold text-ink">{item.typeName}</h3>
-                    <p className="mt-1 text-sm text-graphite">{item.model}</p>
+                    <h3 className="font-semibold text-ink">
+                      {item.categoryName}
+                    </h3>
+                    <p className="mt-1 text-sm text-graphite">
+                      Model boleh dipilih mengikut unit yang tersedia.
+                    </p>
                   </div>
                   <span className="rounded-md bg-cloud px-2.5 py-1 text-sm font-semibold">
                     {item.quantity} unit
@@ -219,6 +223,7 @@ export default function AdminLoanApproval({
                               }
                             >
                               {unit.serialNo}
+                              {` · ${unit.model || unit.typeName}`}
                               {unit.governmentAssetNo
                                 ? ` · ${unit.governmentAssetNo}`
                                 : ""}

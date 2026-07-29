@@ -1,7 +1,7 @@
 "use server";
 
 import { randomUUID } from "crypto";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray } from "drizzle-orm";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -18,6 +18,7 @@ import {
 import { listEquipmentLoansByContact } from "@/lib/peralatan/queries";
 import { buildEquipmentRequestWhatsAppUrl } from "@/lib/peralatan/whatsapp";
 import {
+  equipmentCategories,
   equipmentLoanEvents,
   equipmentLoanItems,
   equipmentLoanRequests,
@@ -38,7 +39,7 @@ function isDbTimeoutError(error: unknown): boolean {
 const requestedItemsSchema = z
   .array(
     z.object({
-      equipmentTypeId: z.string().uuid(),
+      equipmentCategoryId: z.string().uuid(),
       quantity: z.number().int().min(1).max(120),
     }),
   )
@@ -130,8 +131,10 @@ export async function createEquipmentLoanAction(
     return { ok: false, message: "Sila pilih sekurang-kurangnya satu peralatan." };
   }
 
-  const uniqueTypeIds = new Set(requestedItems.map((item) => item.equipmentTypeId));
-  if (uniqueTypeIds.size !== requestedItems.length) {
+  const uniqueCategoryIds = new Set(
+    requestedItems.map((item) => item.equipmentCategoryId),
+  );
+  if (uniqueCategoryIds.size !== requestedItems.length) {
     return { ok: false, message: "Senarai peralatan mengandungi item berulang." };
   }
 
@@ -143,42 +146,73 @@ export async function createEquipmentLoanAction(
         where: and(eq(pkgs.id, pkgId), eq(pkgs.active, true)),
       }),
     );
-    const typeRows = await withDbTimeout(
+    const categoryRows = await withDbTimeout(
       db
-        .select({ id: equipmentTypes.id })
-        .from(equipmentTypes)
+        .select({ id: equipmentCategories.id })
+        .from(equipmentCategories)
         .where(
           and(
-            inArray(equipmentTypes.id, [...uniqueTypeIds]),
-            eq(equipmentTypes.active, true),
+            inArray(equipmentCategories.id, [...uniqueCategoryIds]),
+            eq(equipmentCategories.active, true),
           ),
         ),
     );
+    const typeRows = await withDbTimeout(
+      db
+        .select({
+          id: equipmentTypes.id,
+          categoryId: equipmentTypes.categoryId,
+        })
+        .from(equipmentTypes)
+        .where(
+          and(
+            inArray(equipmentTypes.categoryId, [...uniqueCategoryIds]),
+            eq(equipmentTypes.active, true),
+          ),
+        )
+        .orderBy(asc(equipmentTypes.sortOrder)),
+    );
     const availableRows = await withDbTimeout(
       db
-        .select({ equipmentTypeId: equipmentUnits.equipmentTypeId })
+        .select({ categoryId: equipmentTypes.categoryId })
         .from(equipmentUnits)
+        .innerJoin(
+          equipmentTypes,
+          eq(equipmentUnits.equipmentTypeId, equipmentTypes.id),
+        )
         .where(
           and(
             eq(equipmentUnits.pkgId, pkgId),
             eq(equipmentUnits.status, "available"),
-            inArray(equipmentUnits.equipmentTypeId, [...uniqueTypeIds]),
+            inArray(equipmentTypes.categoryId, [...uniqueCategoryIds]),
+            eq(equipmentTypes.active, true),
           ),
         ),
     );
-    if (!pkg || typeRows.length !== requestedItems.length) {
+    const representativeTypeByCategory = new Map<string, string>();
+    for (const type of typeRows) {
+      if (!representativeTypeByCategory.has(type.categoryId)) {
+        representativeTypeByCategory.set(type.categoryId, type.id);
+      }
+    }
+    if (
+      !pkg ||
+      categoryRows.length !== requestedItems.length ||
+      representativeTypeByCategory.size !== requestedItems.length
+    ) {
       return { ok: false, message: "PKG atau peralatan yang dipilih tidak sah." };
     }
 
     const availableCount = new Map<string, number>();
     for (const row of availableRows) {
       availableCount.set(
-        row.equipmentTypeId,
-        (availableCount.get(row.equipmentTypeId) ?? 0) + 1,
+        row.categoryId,
+        (availableCount.get(row.categoryId) ?? 0) + 1,
       );
     }
     const unavailable = requestedItems.some(
-      (item) => item.quantity > (availableCount.get(item.equipmentTypeId) ?? 0),
+      (item) =>
+        item.quantity > (availableCount.get(item.equipmentCategoryId) ?? 0),
     );
     if (unavailable) {
       return {
@@ -242,7 +276,10 @@ export async function createEquipmentLoanAction(
         await tx.insert(equipmentLoanItems).values(
           requestedItems.map((item) => ({
             requestId,
-            equipmentTypeId: item.equipmentTypeId,
+            categoryId: item.equipmentCategoryId,
+            equipmentTypeId: representativeTypeByCategory.get(
+              item.equipmentCategoryId,
+            )!,
             quantity: item.quantity,
           })),
         );

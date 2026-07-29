@@ -227,7 +227,11 @@ function drawPageContent(
 
 export function buildKewPa9Data(request: EquipmentLoanDetail): KewPa9Data {
   const models = Array.from(
-    new Set(request.items.map((item) => item.model.trim()).filter(Boolean)),
+    new Set(
+      request.items.flatMap((item) =>
+        item.allocatedUnits.map((unit) => unit.model.trim()).filter(Boolean),
+      ),
+    ),
   );
   return {
     referenceNo: request.referenceNo,
@@ -245,7 +249,7 @@ export function buildKewPa9Data(request: EquipmentLoanDetail): KewPa9Data {
       item.allocatedUnits.map((unit) => ({
         serialNo: unit.serialNo,
         governmentAssetNo: unit.governmentAssetNo,
-        description: item.typeName,
+        description: unit.model || unit.typeName || item.categoryName,
       })),
     ),
   };

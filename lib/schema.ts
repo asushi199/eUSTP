@@ -510,15 +510,44 @@ export type EquipmentSignatureStroke = Array<{
   y: number;
 }>;
 
+/** Kategori umum yang dipilih pemohon, contohnya Komputer riba. */
+export const equipmentCategories = pgTable(
+  "equipment_categories",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    code: text("code").notNull(),
+    name: text("name").notNull(),
+    description: text("description").notNull().default(""),
+    searchAliases: jsonb("search_aliases").$type<string[]>().notNull().default([]),
+    active: boolean("active").notNull().default(true),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    codeIdx: uniqueIndex("equipment_categories_code_idx").on(t.code),
+    activeIdx: index("equipment_categories_active_idx").on(
+      t.active,
+      t.sortOrder,
+      t.name,
+    ),
+  }),
+);
+
 /** Jenis/model peralatan yang dikongsi oleh semua PKG. */
 export const equipmentTypes = pgTable(
   "equipment_types",
   {
     id: uuid("id").defaultRandom().primaryKey(),
+    categoryId: uuid("category_id")
+      .notNull()
+      .references(() => equipmentCategories.id, { onDelete: "restrict" }),
     code: text("code").notNull(),
     name: text("name").notNull(),
     model: text("model").notNull().default(""),
     description: text("description").notNull().default(""),
+    /** Spesifikasi teknikal yang dipaparkan sebagai senarai. */
+    specifications: jsonb("specifications").$type<string[]>().notNull().default([]),
     /** Alias carian tersembunyi, termasuk istilah Inggeris. */
     searchAliases: jsonb("search_aliases").$type<string[]>().notNull().default([]),
     /** Komponen yang membentuk satu set, jika berkenaan. */
@@ -533,6 +562,11 @@ export const equipmentTypes = pgTable(
   },
   (t) => ({
     codeIdx: uniqueIndex("equipment_types_code_idx").on(t.code),
+    categoryIdx: index("equipment_types_category_idx").on(
+      t.categoryId,
+      t.active,
+      t.sortOrder,
+    ),
     activeIdx: index("equipment_types_active_idx").on(t.active, t.sortOrder, t.name),
   }),
 );
@@ -568,6 +602,39 @@ export const equipmentUnits = pgTable(
       t.pkgId,
       t.status,
       t.equipmentTypeId,
+    ),
+  }),
+);
+
+/** Jejak audit apabila unit fizikal dipindahkan antara PKG. */
+export const equipmentUnitTransfers = pgTable(
+  "equipment_unit_transfers",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    unitId: uuid("unit_id")
+      .notNull()
+      .references(() => equipmentUnits.id, { onDelete: "restrict" }),
+    fromPkgId: text("from_pkg_id")
+      .notNull()
+      .references(() => pkgs.id, { onDelete: "restrict" }),
+    toPkgId: text("to_pkg_id")
+      .notNull()
+      .references(() => pkgs.id, { onDelete: "restrict" }),
+    movedByUserId: integer("moved_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    notes: text("notes").notNull().default(""),
+    movedAt: timestamp("moved_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    unitHistoryIdx: index("equipment_unit_transfers_unit_history_idx").on(
+      t.unitId,
+      t.movedAt,
+    ),
+    pkgHistoryIdx: index("equipment_unit_transfers_pkg_history_idx").on(
+      t.fromPkgId,
+      t.toPkgId,
+      t.movedAt,
     ),
   }),
 );
@@ -636,12 +703,15 @@ export const equipmentLoanItems = pgTable(
     equipmentTypeId: uuid("equipment_type_id")
       .notNull()
       .references(() => equipmentTypes.id, { onDelete: "restrict" }),
+    categoryId: uuid("category_id")
+      .notNull()
+      .references(() => equipmentCategories.id, { onDelete: "restrict" }),
     quantity: integer("quantity").notNull(),
   },
   (t) => ({
-    requestTypeIdx: uniqueIndex("equipment_loan_items_request_type_idx").on(
+    requestCategoryIdx: uniqueIndex("equipment_loan_items_request_category_idx").on(
       t.requestId,
-      t.equipmentTypeId,
+      t.categoryId,
     ),
   }),
 );

@@ -8,6 +8,20 @@ export type EquipmentPkg = {
 
 export type EquipmentCatalogStock = {
   pkgId: string;
+  pkgName: string;
+  total: number;
+  available: number;
+};
+
+export type EquipmentCatalogModel = {
+  id: string;
+  code: string;
+  name: string;
+  model: string;
+  description: string;
+  specifications: string[];
+  components: string[];
+  searchAliases: string[];
   total: number;
   available: number;
 };
@@ -16,10 +30,9 @@ export type EquipmentCatalogItem = {
   id: string;
   code: string;
   name: string;
-  model: string;
   description: string;
   searchAliases: string[];
-  components: string[];
+  models: EquipmentCatalogModel[];
   stocks: EquipmentCatalogStock[];
 };
 
@@ -47,6 +60,40 @@ export type EquipmentUnitListItem = {
   notes: string;
 };
 
+export type EquipmentInventoryCard = {
+  id: string;
+  code: string;
+  name: string;
+  model: string;
+  description: string;
+  specifications: string[];
+  components: string[];
+  totalUnits: number;
+  availableUnits: number;
+};
+
+export type EquipmentCategoryOption = {
+  id: string;
+  code: string;
+  name: string;
+  description: string;
+  searchAliases: string[];
+  active: boolean;
+};
+
+export type EquipmentTypeAdminDetail = {
+  id: string;
+  categoryId: string;
+  code: string;
+  name: string;
+  model: string;
+  description: string;
+  specifications: string[];
+  components: string[];
+  searchAliases: string[];
+  active: boolean;
+};
+
 export type EquipmentLoanStatus =
   | "pending"
   | "approved"
@@ -69,20 +116,23 @@ export type EquipmentLoanListItem = {
 
 export type EquipmentLoanDetailItem = {
   id: string;
-  equipmentTypeId: string;
-  typeCode: string;
-  typeName: string;
-  model: string;
+  categoryId: string;
+  categoryCode: string;
+  categoryName: string;
   quantity: number;
   availableUnits: Array<{
     id: string;
     serialNo: string;
     governmentAssetNo: string;
+    typeName: string;
+    model: string;
   }>;
   allocatedUnits: Array<{
     id: string;
     serialNo: string;
     governmentAssetNo: string;
+    typeName: string;
+    model: string;
   }>;
 };
 

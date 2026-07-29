@@ -18,12 +18,14 @@ import { getEquipmentLoanDetail } from "@/lib/peralatan/queries";
 import type { EquipmentDocumentStage } from "@/lib/peralatan/types";
 import { requireTempahanAccess } from "@/lib/rbac";
 import {
+  equipmentCategories,
   equipmentLoanAllocations,
   equipmentLoanDocuments,
   equipmentLoanEvents,
   equipmentLoanItems,
   equipmentLoanRequests,
   equipmentTypes,
+  equipmentUnitTransfers,
   equipmentUnits,
   pkgs,
 } from "@/lib/schema";
@@ -33,6 +35,7 @@ export type EquipmentAdminActionResult = {
   ok: boolean;
   error?: string;
   imported?: number;
+  transferred?: number;
   publicUrl?: string;
 };
 
@@ -46,6 +49,14 @@ const unitStatuses = [
 function text(formData: FormData, key: string, max = 500): string {
   return String(formData.get(key) ?? "")
     .trim()
+    .slice(0, max);
+}
+
+function lines(formData: FormData, key: string, max = 100): string[] {
+  return text(formData, key, 5000)
+    .split(/\r?\n/)
+    .map((value) => value.trim().replace(/^[-•]\s*/, ""))
+    .filter(Boolean)
     .slice(0, max);
 }
 
@@ -65,23 +76,38 @@ export async function saveEquipmentType(
   pkgId: string,
   formData: FormData,
 ): Promise<EquipmentAdminActionResult> {
-  await requireTempahanAccess(pkgId);
+  const user = await requireTempahanAccess(pkgId);
+  if (user.peranan === "PKG_Admin") {
+    return { ok: false, error: "Anda tidak dibenarkan menambah jenis aset." };
+  }
+  const categoryId = text(formData, "categoryId", 80);
   const code = text(formData, "code", 20).toUpperCase();
   const name = text(formData, "name", 200);
   const model = text(formData, "model", 300);
   const description = text(formData, "description", 1000);
+  const specifications = lines(formData, "specifications");
+  const components = lines(formData, "components");
   const searchAliases = text(formData, "searchAliases", 1000)
     .split(/[\n,]/)
     .map((value) => value.trim().toLowerCase())
     .filter(Boolean);
 
-  if (!code || !name) return { ok: false, error: "Kod dan nama peralatan diperlukan." };
+  if (
+    !z.string().uuid().safeParse(categoryId).success ||
+    !code ||
+    !name
+  ) {
+    return { ok: false, error: "Kategori, kod dan nama peralatan diperlukan." };
+  }
   try {
     await db.insert(equipmentTypes).values({
+      categoryId,
       code,
       name,
       model,
       description,
+      specifications,
+      components,
       searchAliases: Array.from(new Set(searchAliases)).slice(0, 30),
     });
     refreshEquipmentPaths(pkgId);
@@ -94,6 +120,112 @@ export async function saveEquipmentType(
         ? "Kod peralatan ini sudah digunakan."
         : "Peralatan tidak dapat disimpan.",
     };
+  }
+}
+
+export async function saveEquipmentCategory(
+  pkgId: string,
+  formData: FormData,
+): Promise<EquipmentAdminActionResult> {
+  const user = await requireTempahanAccess(pkgId);
+  if (user.peranan === "PKG_Admin") {
+    return { ok: false, error: "Anda tidak dibenarkan mengubah kategori aset." };
+  }
+  const categoryId = text(formData, "categoryId", 80);
+  const code = text(formData, "code", 30).toUpperCase();
+  const name = text(formData, "name", 200);
+  const description = text(formData, "description", 1000);
+  const searchAliases = text(formData, "searchAliases", 1000)
+    .split(/[\n,]/)
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean);
+  const active = formData.get("active") !== "no";
+  if (!code || !name) {
+    return { ok: false, error: "Kod dan nama kategori diperlukan." };
+  }
+
+  try {
+    if (categoryId) {
+      if (!z.string().uuid().safeParse(categoryId).success) {
+        return { ok: false, error: "Kategori tidak sah." };
+      }
+      await db
+        .update(equipmentCategories)
+        .set({
+          code,
+          name,
+          description,
+          searchAliases: Array.from(new Set(searchAliases)).slice(0, 30),
+          active,
+          updatedAt: new Date(),
+        })
+        .where(eq(equipmentCategories.id, categoryId));
+    } else {
+      await db.insert(equipmentCategories).values({
+        code,
+        name,
+        description,
+        searchAliases: Array.from(new Set(searchAliases)).slice(0, 30),
+      });
+    }
+    refreshEquipmentPaths(pkgId);
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "Kategori tidak dapat disimpan. Semak kod kategori." };
+  }
+}
+
+export async function updateEquipmentType(
+  pkgId: string,
+  typeId: string,
+  formData: FormData,
+): Promise<EquipmentAdminActionResult> {
+  const user = await requireTempahanAccess(pkgId);
+  if (user.peranan === "PKG_Admin") {
+    return { ok: false, error: "Anda tidak dibenarkan mengubah maklumat aset." };
+  }
+  if (!z.string().uuid().safeParse(typeId).success) {
+    return { ok: false, error: "Jenis aset tidak sah." };
+  }
+  const categoryId = text(formData, "categoryId", 80);
+  const code = text(formData, "code", 30).toUpperCase();
+  const name = text(formData, "name", 200);
+  const model = text(formData, "model", 300);
+  const description = text(formData, "description", 1000);
+  const specifications = lines(formData, "specifications");
+  const components = lines(formData, "components");
+  const searchAliases = text(formData, "searchAliases", 1000)
+    .split(/[\n,]/)
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean);
+  const active = formData.get("active") !== "no";
+  if (
+    !z.string().uuid().safeParse(categoryId).success ||
+    !code ||
+    !name
+  ) {
+    return { ok: false, error: "Kategori, kod dan nama aset diperlukan." };
+  }
+  try {
+    await db
+      .update(equipmentTypes)
+      .set({
+        categoryId,
+        code,
+        name,
+        model,
+        description,
+        specifications,
+        components,
+        searchAliases: Array.from(new Set(searchAliases)).slice(0, 30),
+        active,
+        updatedAt: new Date(),
+      })
+      .where(eq(equipmentTypes.id, typeId));
+    refreshEquipmentPaths(pkgId);
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "Maklumat aset tidak dapat dikemas kini." };
   }
 }
 
@@ -259,6 +391,93 @@ export async function updateEquipmentUnitStatus(
   return { ok: true };
 }
 
+export async function transferEquipmentUnits(
+  pkgId: string,
+  formData: FormData,
+): Promise<EquipmentAdminActionResult> {
+  const user = await requireTempahanAccess(pkgId);
+  if (user.peranan === "PKG_Admin") {
+    return {
+      ok: false,
+      error: "Pemindahan antara PKG hanya boleh dilakukan oleh pentadbir utama.",
+    };
+  }
+
+  const destinationPkgId = text(formData, "destinationPkgId", 80);
+  const notes = text(formData, "notes", 500);
+  const unitIds = Array.from(
+    new Set(
+      formData
+        .getAll("unitIds")
+        .map((value) => String(value))
+        .filter((value) => z.string().uuid().safeParse(value).success),
+    ),
+  ).slice(0, 100);
+
+  if (!destinationPkgId || destinationPkgId === pkgId) {
+    return { ok: false, error: "Pilih PKG baharu yang sah." };
+  }
+  if (unitIds.length === 0) {
+    return { ok: false, error: "Pilih sekurang-kurangnya satu unit tersedia." };
+  }
+
+  const destination = await db.query.pkgs.findFirst({
+    where: and(eq(pkgs.id, destinationPkgId), eq(pkgs.active, true)),
+    columns: { id: true },
+  });
+  if (!destination) return { ok: false, error: "PKG baharu tidak dijumpai." };
+
+  try {
+    await db.transaction(async (tx) => {
+      const transferable = await tx
+        .select({ id: equipmentUnits.id })
+        .from(equipmentUnits)
+        .where(
+          and(
+            eq(equipmentUnits.pkgId, pkgId),
+            eq(equipmentUnits.status, "available"),
+            inArray(equipmentUnits.id, unitIds),
+          ),
+        );
+      if (transferable.length !== unitIds.length) {
+        throw new Error("UNIT_NOT_AVAILABLE");
+      }
+
+      await tx.insert(equipmentUnitTransfers).values(
+        transferable.map((unit) => ({
+          unitId: unit.id,
+          fromPkgId: pkgId,
+          toPkgId: destinationPkgId,
+          movedByUserId: Number(user.id) || null,
+          notes,
+        })),
+      );
+      await tx
+        .update(equipmentUnits)
+        .set({ pkgId: destinationPkgId, updatedAt: new Date() })
+        .where(
+          and(
+            eq(equipmentUnits.pkgId, pkgId),
+            eq(equipmentUnits.status, "available"),
+            inArray(equipmentUnits.id, unitIds),
+          ),
+        );
+    });
+  } catch (error) {
+    return {
+      ok: false,
+      error:
+        error instanceof Error && error.message === "UNIT_NOT_AVAILABLE"
+          ? "Sebahagian unit tidak lagi tersedia. Segarkan halaman dan pilih semula."
+          : "Unit tidak dapat dipindahkan.",
+    };
+  }
+
+  refreshEquipmentPaths(pkgId);
+  refreshEquipmentPaths(destinationPkgId);
+  return { ok: true, transferred: unitIds.length };
+}
+
 export async function updateEquipmentManager(
   pkgId: string,
   formData: FormData,
@@ -339,8 +558,15 @@ export async function approveEquipmentLoan(
       }
 
       const unitRows = await tx
-        .select()
+        .select({
+          id: equipmentUnits.id,
+          categoryId: equipmentTypes.categoryId,
+        })
         .from(equipmentUnits)
+        .innerJoin(
+          equipmentTypes,
+          eq(equipmentUnits.equipmentTypeId, equipmentTypes.id),
+        )
         .where(
           and(
             eq(equipmentUnits.pkgId, pkgId),
@@ -355,8 +581,8 @@ export async function approveEquipmentLoan(
         const selected = allocationByItem.get(item.id) ?? [];
         const valid = selected.every(
           (unitId) =>
-            unitRows.find((unit) => unit.id === unitId)?.equipmentTypeId ===
-            item.equipmentTypeId,
+            unitRows.find((unit) => unit.id === unitId)?.categoryId ===
+            item.categoryId,
         );
         if (!valid) throw new Error("Jenis unit yang dipilih tidak sepadan.");
       }

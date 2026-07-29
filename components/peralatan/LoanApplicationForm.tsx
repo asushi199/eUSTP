@@ -113,7 +113,7 @@ export default function LoanApplicationForm({
   );
   const serializedItems = JSON.stringify(
     selectedItems.map(({ item, quantity }) => ({
-      equipmentTypeId: item.id,
+      equipmentCategoryId: item.id,
       quantity,
     })),
   );
@@ -674,7 +674,9 @@ export default function LoanApplicationForm({
                   >
                     <div>
                       <p className="text-sm font-medium text-ink">{item.name}</p>
-                      <p className="mt-0.5 text-xs text-graphite">{item.model}</p>
+                      <p className="mt-0.5 text-xs text-graphite">
+                        Model ditetapkan mengikut ketersediaan semasa
+                      </p>
                     </div>
                     <span className="rounded-md bg-cloud px-2 py-1 text-sm font-semibold">
                       ×{quantity}

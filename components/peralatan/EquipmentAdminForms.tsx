@@ -4,20 +4,32 @@ import ActionForm from "@/components/admin/ActionForm";
 import {
   addEquipmentUnit,
   importEquipmentUnits,
+  saveEquipmentCategory,
   saveEquipmentType,
+  updateEquipmentType,
   updateEquipmentManager,
 } from "@/lib/actions/peralatan-admin";
 import { EQUIPMENT_ADMIN_SUBMIT_CLASS } from "@/lib/peralatan/admin-button-style";
-import type { EquipmentPkg } from "@/lib/peralatan/types";
+import type {
+  EquipmentCategoryOption,
+  EquipmentPkg,
+  EquipmentTypeAdminDetail,
+} from "@/lib/peralatan/types";
 
-type TypeOption = { id: string; code: string; name: string };
+type TypeOption = { id: string; categoryId: string; code: string; name: string };
 
 export default function EquipmentAdminForms({
   pkg,
   types,
+  categories,
+  typeDetails,
+  canManageMetadata,
 }: {
   pkg: EquipmentPkg;
   types: TypeOption[];
+  categories: EquipmentCategoryOption[];
+  typeDetails: EquipmentTypeAdminDetail[];
+  canManageMetadata: boolean;
 }) {
   return (
     <div className="space-y-8">
@@ -129,18 +141,92 @@ export default function EquipmentAdminForms({
       </section>
 
       <section className="grid gap-4 lg:grid-cols-2">
-        <ActionForm
+        {canManageMetadata ? (
+          <ActionForm
+            action={saveEquipmentCategory.bind(null, pkg.id)}
+            submitLabel="Tambah kategori"
+            submitClassName={EQUIPMENT_ADMIN_SUBMIT_CLASS.addType}
+            className="card space-y-4 p-5"
+          >
+            <div>
+              <p className="font-semibold text-ink">Tambah kategori permohonan</p>
+              <p className="mt-1 text-xs text-graphite">
+                Pemohon memilih kategori umum; model ditetapkan semasa kelulusan.
+              </p>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-[120px_1fr]">
+              <div>
+                <label className="label" htmlFor="category-code">
+                  Kod *
+                </label>
+                <input id="category-code" name="code" className="input" required />
+              </div>
+              <div>
+                <label className="label" htmlFor="category-name">
+                  Nama kategori *
+                </label>
+                <input id="category-name" name="name" className="input" required />
+              </div>
+            </div>
+            <div>
+              <label className="label" htmlFor="category-description">
+                Penerangan umum
+              </label>
+              <textarea
+                id="category-description"
+                name="description"
+                className="textarea min-h-20"
+              />
+            </div>
+            <div>
+              <label className="label" htmlFor="category-aliases">
+                Alias carian tersembunyi
+              </label>
+              <input
+                id="category-aliases"
+                name="searchAliases"
+                className="input"
+                placeholder="Contoh: laptop, notebook"
+              />
+            </div>
+          </ActionForm>
+        ) : null}
+
+        {canManageMetadata ? (
+          <ActionForm
           action={saveEquipmentType.bind(null, pkg.id)}
-          submitLabel="Tambah jenis"
+          submitLabel="Tambah model"
           submitClassName={EQUIPMENT_ADMIN_SUBMIT_CLASS.addType}
           className="card space-y-4 p-5"
         >
           <div>
-            <p className="font-semibold text-ink">Tambah jenis peralatan</p>
+            <p className="font-semibold text-ink">Tambah model / kumpulan aset</p>
             <p className="mt-1 text-xs text-graphite">
-              Jenis baharu akan tersedia kepada semua PKG; unit masih didaftarkan
-              mengikut PKG.
+              Setiap jenama atau spesifikasi berbeza disimpan sebagai model sendiri.
             </p>
+          </div>
+          <div>
+            <label className="label" htmlFor="type-category">
+              Kategori *
+            </label>
+            <select
+              id="type-category"
+              name="categoryId"
+              className="input"
+              defaultValue=""
+              required
+            >
+              <option value="" disabled>
+                Pilih kategori
+              </option>
+              {categories
+                .filter((category) => category.active)
+                .map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+            </select>
           </div>
           <div className="grid gap-4 sm:grid-cols-[100px_1fr]">
             <div>
@@ -173,6 +259,28 @@ export default function EquipmentAdminForms({
             />
           </div>
           <div>
+            <label className="label" htmlFor="type-specifications">
+              Spesifikasi
+            </label>
+            <textarea
+              id="type-specifications"
+              name="specifications"
+              className="textarea min-h-28"
+              placeholder={"Satu spesifikasi bagi setiap baris"}
+            />
+          </div>
+          <div>
+            <label className="label" htmlFor="type-components">
+              Kandungan set
+            </label>
+            <textarea
+              id="type-components"
+              name="components"
+              className="textarea min-h-28"
+              placeholder={"Satu komponen bagi setiap baris"}
+            />
+          </div>
+          <div>
             <label className="label" htmlFor="type-aliases">
               Alias carian tersembunyi
             </label>
@@ -183,7 +291,8 @@ export default function EquipmentAdminForms({
               placeholder="Contoh: laptop, notebook, computer"
             />
           </div>
-        </ActionForm>
+          </ActionForm>
+        ) : null}
 
         <ActionForm
           action={updateEquipmentManager.bind(null, pkg.id)}
@@ -236,6 +345,204 @@ export default function EquipmentAdminForms({
           </div>
         </ActionForm>
       </section>
+
+      {canManageMetadata ? (
+        <section>
+          <div>
+            <h2 className="text-lg font-semibold text-ink">
+              Maklumat kategori dan model
+            </h2>
+            <p className="mt-1 text-sm text-graphite">
+              Perubahan diterbitkan pada katalog awam. Rekod tidak dipadamkan;
+              nyahaktifkan kategori atau model yang tidak lagi digunakan.
+            </p>
+          </div>
+
+          <div className="mt-4 space-y-3">
+            {categories.map((category) => (
+              <details key={category.id} className="card overflow-hidden">
+                <summary className="cursor-pointer list-none px-5 py-4 font-semibold text-ink">
+                  {category.name}
+                  <span className="ml-2 font-mono text-xs text-graphite">
+                    {category.code}
+                  </span>
+                </summary>
+                <div className="space-y-4 border-t border-fog p-5">
+                  <ActionForm
+                    action={saveEquipmentCategory.bind(null, pkg.id)}
+                    submitLabel="Simpan kategori"
+                    submitClassName={EQUIPMENT_ADMIN_SUBMIT_CLASS.saveManager}
+                    className="grid gap-4 lg:grid-cols-2"
+                  >
+                    <input type="hidden" name="categoryId" value={category.id} />
+                    <div>
+                      <label className="label">Kod kategori</label>
+                      <input
+                        name="code"
+                        className="input"
+                        defaultValue={category.code}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="label">Nama kategori</label>
+                      <input
+                        name="name"
+                        className="input"
+                        defaultValue={category.name}
+                        required
+                      />
+                    </div>
+                    <div className="lg:col-span-2">
+                      <label className="label">Penerangan umum</label>
+                      <textarea
+                        name="description"
+                        className="textarea min-h-20"
+                        defaultValue={category.description}
+                      />
+                    </div>
+                    <div>
+                      <label className="label">Alias carian</label>
+                      <input
+                        name="searchAliases"
+                        className="input"
+                        defaultValue={category.searchAliases.join(", ")}
+                      />
+                    </div>
+                    <div>
+                      <label className="label">Status</label>
+                      <select
+                        name="active"
+                        className="input"
+                        defaultValue={category.active ? "yes" : "no"}
+                      >
+                        <option value="yes">Aktif</option>
+                        <option value="no">Tidak aktif</option>
+                      </select>
+                    </div>
+                  </ActionForm>
+
+                  <div className="space-y-3">
+                    {typeDetails
+                      .filter((type) => type.categoryId === category.id)
+                      .map((type) => (
+                        <details
+                          key={type.id}
+                          className="rounded-lg border border-fog"
+                        >
+                          <summary className="cursor-pointer list-none px-4 py-3 text-sm font-semibold text-charcoal">
+                            {type.model || type.name}
+                            <span className="ml-2 font-mono text-xs font-normal text-graphite">
+                              {type.code}
+                            </span>
+                          </summary>
+                          <ActionForm
+                            action={updateEquipmentType.bind(
+                              null,
+                              pkg.id,
+                              type.id,
+                            )}
+                            submitLabel="Simpan model"
+                            submitClassName={EQUIPMENT_ADMIN_SUBMIT_CLASS.saveManager}
+                            className="grid gap-4 border-t border-fog p-4 lg:grid-cols-2"
+                          >
+                            <div>
+                              <label className="label">Kategori</label>
+                              <select
+                                name="categoryId"
+                                className="input"
+                                defaultValue={type.categoryId}
+                              >
+                                {categories.map((option) => (
+                                  <option key={option.id} value={option.id}>
+                                    {option.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            <div>
+                              <label className="label">Kod aset / stok</label>
+                              <input
+                                name="code"
+                                className="input"
+                                defaultValue={type.code}
+                                required
+                              />
+                            </div>
+                            <div>
+                              <label className="label">Nama aset</label>
+                              <input
+                                name="name"
+                                className="input"
+                                defaultValue={type.name}
+                                required
+                              />
+                            </div>
+                            <div>
+                              <label className="label">Jenama / model</label>
+                              <input
+                                name="model"
+                                className="input"
+                                defaultValue={type.model}
+                              />
+                            </div>
+                            <div className="lg:col-span-2">
+                              <label className="label">Penerangan</label>
+                              <textarea
+                                name="description"
+                                className="textarea min-h-20"
+                                defaultValue={type.description}
+                              />
+                            </div>
+                            <div>
+                              <label className="label">
+                                Spesifikasi — satu setiap baris
+                              </label>
+                              <textarea
+                                name="specifications"
+                                className="textarea min-h-36"
+                                defaultValue={type.specifications.join("\n")}
+                              />
+                            </div>
+                            <div>
+                              <label className="label">
+                                Kandungan — satu setiap baris
+                              </label>
+                              <textarea
+                                name="components"
+                                className="textarea min-h-36"
+                                defaultValue={type.components.join("\n")}
+                              />
+                            </div>
+                            <div>
+                              <label className="label">Alias carian</label>
+                              <input
+                                name="searchAliases"
+                                className="input"
+                                defaultValue={type.searchAliases.join(", ")}
+                              />
+                            </div>
+                            <div>
+                              <label className="label">Status</label>
+                              <select
+                                name="active"
+                                className="input"
+                                defaultValue={type.active ? "yes" : "no"}
+                              >
+                                <option value="yes">Aktif</option>
+                                <option value="no">Tidak aktif</option>
+                              </select>
+                            </div>
+                          </ActionForm>
+                        </details>
+                      ))}
+                  </div>
+                </div>
+              </details>
+            ))}
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

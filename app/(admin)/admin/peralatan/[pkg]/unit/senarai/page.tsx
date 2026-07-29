@@ -3,7 +3,7 @@ import EquipmentUnitList from "@/components/peralatan/EquipmentUnitList";
 import { withDbTimeout } from "@/lib/db";
 import {
   listEquipmentPkgs,
-  listEquipmentTypeOptions,
+  listEquipmentInventoryCardsForPkg,
   listEquipmentUnitsForPkg,
 } from "@/lib/peralatan/queries";
 import type { EquipmentUnitStatus } from "@/lib/peralatan/types";
@@ -34,7 +34,7 @@ export default async function AdminEquipmentUnitListPage({
 }) {
   const { pkg: pkgId } = await params;
   const query = await searchParams;
-  await requireTempahanAccess(pkgId);
+  const user = await requireTempahanAccess(pkgId);
 
   const search = query.cari?.trim().slice(0, 200) ?? "";
   const status = VALID_STATUSES.has(query.status as EquipmentUnitStatus)
@@ -58,12 +58,19 @@ export default async function AdminEquipmentUnitListPage({
         </section>
       );
     }
-    const types = await withDbTimeout(listEquipmentTypeOptions());
+    const inventoryCards = await withDbTimeout(
+      listEquipmentInventoryCardsForPkg(pkgId),
+    );
+    const selectedTypeId = inventoryCards.some(
+      (card) => card.id === equipmentTypeId,
+    )
+      ? equipmentTypeId
+      : (inventoryCards[0]?.id ?? "");
     const result = await withDbTimeout(
       listEquipmentUnitsForPkg(pkgId, {
         search,
         status,
-        equipmentTypeId: equipmentTypeId || undefined,
+        equipmentTypeId: selectedTypeId || undefined,
         page,
         perPage: 10,
       }),
@@ -99,15 +106,17 @@ export default async function AdminEquipmentUnitListPage({
           <EquipmentUnitList
             pkgId={pkg.id}
             pkgName={pkg.name}
-            types={types}
+            pkgs={pkgs}
+            inventoryCards={inventoryCards}
+            selectedTypeId={selectedTypeId}
             units={result.items}
             totalUnits={result.total}
             page={result.page}
             perPage={result.perPage}
+            canTransfer={user.peranan !== "PKG_Admin"}
             filters={{
               search,
               status: status ?? "",
-              equipmentTypeId,
             }}
           />
         </div>

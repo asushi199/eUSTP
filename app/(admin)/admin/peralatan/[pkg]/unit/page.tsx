@@ -2,7 +2,9 @@ import Link from "next/link";
 import EquipmentAdminForms from "@/components/peralatan/EquipmentAdminForms";
 import { withDbTimeout } from "@/lib/db";
 import {
+  listEquipmentCategoryOptions,
   listEquipmentPkgs,
+  listEquipmentTypeDetails,
   listEquipmentTypeOptions,
 } from "@/lib/peralatan/queries";
 import { requireTempahanAccess } from "@/lib/rbac";
@@ -15,7 +17,7 @@ export default async function AdminEquipmentUnitsPage({
   params: Promise<{ pkg: string }>;
 }) {
   const { pkg: pkgId } = await params;
-  await requireTempahanAccess(pkgId);
+  const user = await requireTempahanAccess(pkgId);
 
   try {
     const pkgs = await withDbTimeout(listEquipmentPkgs());
@@ -33,6 +35,8 @@ export default async function AdminEquipmentUnitsPage({
       );
     }
     const types = await withDbTimeout(listEquipmentTypeOptions());
+    const categories = await withDbTimeout(listEquipmentCategoryOptions());
+    const typeDetails = await withDbTimeout(listEquipmentTypeDetails());
 
     return (
       <>
@@ -68,7 +72,13 @@ export default async function AdminEquipmentUnitsPage({
         </div>
 
         <div className="mt-8">
-          <EquipmentAdminForms pkg={pkg} types={types} />
+          <EquipmentAdminForms
+            pkg={pkg}
+            types={types}
+            categories={categories}
+            typeDetails={typeDetails}
+            canManageMetadata={user.peranan !== "PKG_Admin"}
+          />
         </div>
       </>
     );
