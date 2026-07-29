@@ -30,6 +30,17 @@ export default function LoanApplicationForm({
   defaultItemId?: string;
   defaultPkgId?: string;
 }) {
+  const pkgForDefaultItem = defaultItemId
+    ? pkgs.find((pkg) =>
+        items.some(
+          (item) =>
+            item.id === defaultItemId &&
+            item.stocks.some(
+              (stock) => stock.pkgId === pkg.id && stock.available > 0,
+            ),
+        ),
+      )?.id
+    : undefined;
   const firstPkgWithStock =
     pkgs.find((pkg) =>
       items.some((item) =>
@@ -38,7 +49,7 @@ export default function LoanApplicationForm({
     )?.id ?? pkgs[0]?.id ?? "";
   const initialPkg = pkgs.some((pkg) => pkg.id === defaultPkgId)
     ? defaultPkgId!
-    : firstPkgWithStock;
+    : (pkgForDefaultItem ?? firstPkgWithStock);
   const defaultItemAvailable = items.some(
     (item) =>
       item.id === defaultItemId &&

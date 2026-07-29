@@ -18,10 +18,10 @@ Panduan ringkas untuk agen AI. Baca `CLAUDE.md` untuk peraturan penuh.
 
 ## Peminjaman Peralatan
 
-- Katalog awam terus utamakan carian, tapisan PKG dan senarai peralatan. Jangan
-  paparkan kad statistik jumlah inventori pada bahagian atas halaman awam;
-  metrik operasi seperti menunggu kelulusan, sedang dipinjam, lewat dan
-  penyelenggaraan hanya sesuai di dashboard pentadbir.
+- Katalog awam terus utamakan carian dan senarai peralatan (nama + jumlah
+  tersedia). Jangan paparkan kad statistik jumlah inventori pada bahagian atas
+  halaman awam; metrik operasi seperti menunggu kelulusan, sedang dipinjam, lewat
+  dan penyelenggaraan hanya sesuai di dashboard pentadbir.
 - UI dan nama peralatan kekal dalam Bahasa Melayu. Carian mesti turut menyokong
   kata kunci Inggeris sebagai alias tersembunyi, contohnya `laptop` memadankan
   `Komputer riba`, tanpa memaparkan istilah Inggeris tambahan pada UI.

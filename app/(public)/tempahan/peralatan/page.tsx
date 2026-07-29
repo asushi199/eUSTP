@@ -3,14 +3,8 @@ import Link from "next/link";
 import EquipmentCatalog from "@/components/peralatan/EquipmentCatalog";
 import PageHeader from "@/components/PageHeader";
 import PublicPageShell from "@/components/PublicPageShell";
-import {
-  listEquipmentCatalog,
-  listEquipmentPkgs,
-} from "@/lib/peralatan/queries";
-import type {
-  EquipmentCatalogItem,
-  EquipmentPkg,
-} from "@/lib/peralatan/types";
+import { listEquipmentCatalog } from "@/lib/peralatan/queries";
+import type { EquipmentCatalogItem } from "@/lib/peralatan/types";
 
 export const dynamic = "force-dynamic";
 
@@ -22,13 +16,9 @@ export const metadata: Metadata = {
 
 export default async function PeminjamanPeralatanPage() {
   let items: EquipmentCatalogItem[] = [];
-  let pkgs: EquipmentPkg[] = [];
   let unavailable = false;
   try {
-    [items, pkgs] = await Promise.all([
-      listEquipmentCatalog(),
-      listEquipmentPkgs(),
-    ]);
+    items = await listEquipmentCatalog();
   } catch {
     unavailable = true;
   }
@@ -42,13 +32,8 @@ export default async function PeminjamanPeralatanPage() {
         eyebrow="Peminjaman Peralatan"
         title="Inventori Peralatan"
         accent="#024AD8"
-        description="Semak stok di semua PKG, kemudian pilih satu lokasi untuk menghantar permohonan pinjaman."
+        description="Pilih peralatan yang tersedia, kemudian lengkapkan borang permohonan."
         className="mt-2"
-        actions={
-          <Link href="/tempahan/peralatan/mohon" className="btn-primary">
-            Mohon pinjaman
-          </Link>
-        }
       />
       {unavailable ? (
         <div className="card mt-8 p-5 text-sm leading-relaxed text-graphite">
@@ -56,7 +41,7 @@ export default async function PeminjamanPeralatanPage() {
           pangkalan data sebelum stok boleh dipaparkan.
         </div>
       ) : (
-        <EquipmentCatalog items={items} pkgs={pkgs} />
+        <EquipmentCatalog items={items} />
       )}
     </PublicPageShell>
   );

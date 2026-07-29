@@ -1,5 +1,16 @@
 # AI Context Log — eUSTP Manjung
 
+## 2026-07-29 — Katalog awam peralatan: senarai ringkas
+
+Arahan pengurusan: halaman awam `/tempahan/peralatan` terlalu padat. Keputusan:
+
+- Paparan kad (kod, deskripsi, bar stok, pecahan per-PKG, butang) diganti
+  dengan **senarai**: nama (+ model kecil) + jumlah tersedia semua PKG.
+- Stok 0 disembunyikan. Carian kekal; tapisan PKG dibuang.
+- Klik baris → `/tempahan/peralatan/mohon?item=…`; PKG dipilih dalam borang.
+- `LoanApplicationForm` kini utamakan PKG yang ada stok untuk `defaultItemId`
+  apabila `pkg` tiada dalam query.
+
 ## 2026-07-27 — Penyusunan navigasi Admin mengikut CoE
 
 - Hub baharu `/admin/booking` mengumpulkan pengurusan **Khidmat Bantu**,
