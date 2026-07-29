@@ -126,16 +126,18 @@ export default function EquipmentCatalog({
                             {item.models
                               .filter((model) => model.total > 0)
                               .map((model) => (
-                                <details
+                                <article
                                   key={model.id}
                                   className="rounded-lg border border-fog p-3"
                                 >
-                                  <summary className="cursor-pointer list-none font-medium text-ink">
-                                    <span>{model.model || model.name}</span>
-                                    <span className="ml-2 text-xs font-normal text-graphite">
+                                  <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                                    <h4 className="font-medium text-ink">
+                                      {model.model || model.name}
+                                    </h4>
+                                    <p className="text-xs tabular-nums text-graphite">
                                       {model.available.toLocaleString("ms-MY")} tersedia
-                                    </span>
-                                  </summary>
+                                    </p>
+                                  </div>
                                   {model.description ? (
                                     <p className="mt-3">{model.description}</p>
                                   ) : null}
@@ -176,7 +178,7 @@ export default function EquipmentCatalog({
                                       </ul>
                                     </>
                                   ) : null}
-                                </details>
+                                </article>
                               ))}
                           </div>
                         </div>
