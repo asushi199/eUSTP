@@ -175,7 +175,7 @@ export default async function AdminEquipmentApplicationsPage({
             </p>
           </div>
           <Link
-            href={`/admin/peralatan/${pkgId}/unit`}
+            href={`/admin/peralatan/${pkgId}/unit/senarai`}
             className="btn-outline-ink btn-sm"
           >
             Senarai unit

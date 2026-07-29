@@ -108,19 +108,27 @@ export default async function AdminPkgPeralatanPage({
               Inventori fizikal
             </p>
             <h2 className="mt-2 text-lg font-semibold text-ink">
-              Senarai unit
+              Inventori unit
             </h2>
             <p className="mt-1 text-sm leading-relaxed text-graphite">
-              {summary.totalUnits.toLocaleString("ms-MY")} unit direkodkan. Cari
-              nombor siri, kemas kini status atau import inventori.
+              {summary.totalUnits.toLocaleString("ms-MY")} unit direkodkan.
+              Senarai unit dan borang pengurusan kini dipisahkan.
             </p>
           </div>
-          <Link
-            href={`/admin/peralatan/${pkgId}/unit`}
-            className="btn-outline-ink btn-sm mt-5 self-start"
-          >
-            Urus unit
-          </Link>
+          <div className="mt-5 flex flex-wrap gap-2">
+            <Link
+              href={`/admin/peralatan/${pkgId}/unit/senarai`}
+              className="btn-ink btn-sm"
+            >
+              Senarai unit
+            </Link>
+            <Link
+              href={`/admin/peralatan/${pkgId}/unit`}
+              className="btn-outline-ink btn-sm"
+            >
+              Urus unit
+            </Link>
+          </div>
         </div>
       </section>
 

@@ -4,44 +4,18 @@ import { withDbTimeout } from "@/lib/db";
 import {
   listEquipmentPkgs,
   listEquipmentTypeOptions,
-  listEquipmentUnitsForPkg,
 } from "@/lib/peralatan/queries";
-import type { EquipmentUnitStatus } from "@/lib/peralatan/types";
 import { requireTempahanAccess } from "@/lib/rbac";
 
 export const dynamic = "force-dynamic";
 
-const VALID_STATUSES = new Set<EquipmentUnitStatus>([
-  "available",
-  "reserved",
-  "borrowed",
-  "maintenance",
-  "retired",
-  "lost",
-]);
-
 export default async function AdminEquipmentUnitsPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ pkg: string }>;
-  searchParams: Promise<{
-    cari?: string;
-    status?: string;
-    jenis?: string;
-    page?: string;
-  }>;
 }) {
   const { pkg: pkgId } = await params;
-  const query = await searchParams;
   await requireTempahanAccess(pkgId);
-
-  const search = query.cari?.trim().slice(0, 200) ?? "";
-  const status = VALID_STATUSES.has(query.status as EquipmentUnitStatus)
-    ? (query.status as EquipmentUnitStatus)
-    : undefined;
-  const equipmentTypeId = query.jenis?.trim().slice(0, 80) ?? "";
-  const page = Math.max(1, Number(query.page) || 1);
 
   try {
     const pkgs = await withDbTimeout(listEquipmentPkgs());
@@ -59,14 +33,6 @@ export default async function AdminEquipmentUnitsPage({
       );
     }
     const types = await withDbTimeout(listEquipmentTypeOptions());
-    const result = await withDbTimeout(
-      listEquipmentUnitsForPkg(pkgId, {
-        search,
-        status,
-        equipmentTypeId: equipmentTypeId || undefined,
-        page,
-      }),
-    );
 
     return (
       <>
@@ -79,43 +45,39 @@ export default async function AdminEquipmentUnitsPage({
               ← Ringkasan peralatan
             </Link>
             <h1 className="mt-1 text-2xl font-semibold tracking-tight text-ink">
-              {pkg.name} · Senarai unit
+              {pkg.name} · Urus unit
             </h1>
             <p className="mt-1 text-sm text-graphite">
-              Daftar, cari dan kemas kini inventori fizikal mengikut nombor siri.
+              Daftar unit, import inventori dan kemas kini tetapan peralatan.
             </p>
           </div>
-          <Link
-            href={`/admin/peralatan/${pkgId}/permohonan`}
-            className="btn-outline-ink btn-sm"
-          >
-            Senarai permohonan
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href={`/admin/peralatan/${pkgId}/unit/senarai`}
+              className="btn-ink btn-sm"
+            >
+              Senarai unit
+            </Link>
+            <Link
+              href={`/admin/peralatan/${pkgId}/permohonan`}
+              className="btn-outline-ink btn-sm"
+            >
+              Senarai permohonan
+            </Link>
+          </div>
         </div>
 
         <div className="mt-8">
-          <EquipmentAdminForms
-            pkg={pkg}
-            types={types}
-            units={result.items}
-            totalUnits={result.total}
-            page={result.page}
-            perPage={result.perPage}
-            filters={{
-              search,
-              status: status ?? "",
-              equipmentTypeId,
-            }}
-          />
+          <EquipmentAdminForms pkg={pkg} types={types} />
         </div>
       </>
     );
   } catch (error) {
-    console.error("[peralatan] Gagal memuatkan senarai unit", error);
+    console.error("[peralatan] Gagal memuatkan pengurusan unit", error);
     return (
       <section className="card p-6">
         <h1 className="text-xl font-semibold text-ink">
-          Senarai unit tidak dapat dimuatkan
+          Pengurusan unit tidak dapat dimuatkan
         </h1>
         <p className="mt-2 text-sm text-graphite">
           Pangkalan data mengambil masa terlalu lama untuk bertindak balas. Sila

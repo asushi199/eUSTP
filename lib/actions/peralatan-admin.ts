@@ -54,6 +54,7 @@ function refreshEquipmentPaths(pkgId: string, requestId?: string) {
   revalidatePath("/admin/peralatan");
   revalidatePath(`/admin/peralatan/${pkgId}`);
   revalidatePath(`/admin/peralatan/${pkgId}/unit`);
+  revalidatePath(`/admin/peralatan/${pkgId}/unit/senarai`);
   revalidatePath(`/admin/peralatan/${pkgId}/permohonan`);
   if (requestId) {
     revalidatePath(`/admin/peralatan/${pkgId}/permohonan/${requestId}`);

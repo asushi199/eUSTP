@@ -626,10 +626,11 @@ Corak berselang = instance sihat vs beracun.
 - Halaman PKG `/admin/peralatan/[pkg]` dijadikan ringkasan operasi. Halaman ini
   hanya memaparkan metrik, pintasan pengurusan dan lima permohonan terkini;
   senarai penuh tidak lagi dimuatkan pada halaman ringkasan.
-- Senarai unit dipindahkan ke `/admin/peralatan/[pkg]/unit` dengan carian nombor
-  siri/nombor aset, tapisan jenis dan status serta pemuatan 25 rekod setiap muka
-  surat. Borang daftar unit, import, jenis peralatan dan pegawai kekal bersama
-  konteks inventori.
+- Pengurusan inventori dipecahkan lagi mengikut tugas. Laluan
+  `/admin/peralatan/[pkg]/unit` hanya mengandungi daftar unit, import, jenis
+  peralatan dan pegawai. Senarai carian/status berada pada
+  `/admin/peralatan/[pkg]/unit/senarai` dan memuatkan 10 rekod setiap muka surat
+  supaya senarai ratusan unit tidak memanjangkan halaman pengurusan.
 - Senarai permohonan dipindahkan ke
   `/admin/peralatan/[pkg]/permohonan`. Tapisan menggunakan bulan tarikh pinjaman,
   status, nombor rujukan, nama pemohon atau sekolah. Permohonan menunggu
