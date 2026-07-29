@@ -13,13 +13,9 @@ import EquipmentLoanLifecycle from "./EquipmentLoanLifecycle";
 export default function AdminLoanApproval({
   pkgId,
   request,
-  currentUser,
-  manager,
 }: {
   pkgId: string;
   request: EquipmentLoanDetail;
-  currentUser: { name: string; position: string };
-  manager: { name: string; position: string };
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -119,6 +115,7 @@ export default function AdminLoanApproval({
               ["Jawatan", request.position],
               ["Sekolah / Unit", request.orgName],
               ["Nombor telefon", request.contact],
+              ["No. MyKad", request.applicantMykadMasked],
               ["Tujuan", request.purpose],
               ["Tempat digunakan", request.usageLocation],
               ["Tarikh dipinjam", request.borrowDate],
@@ -134,6 +131,31 @@ export default function AdminLoanApproval({
               </div>
             ))}
           </dl>
+        </section>
+
+        <section className="card p-5 sm:p-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.11em] text-primary">
+            Akuan pemohon
+          </p>
+          <h2 className="mt-1 font-semibold text-ink">
+            Persetujuan tanggungjawab
+          </h2>
+          {request.declarationAcceptedAt && request.declarationText ? (
+            <>
+              <p className="mt-3 whitespace-pre-line rounded-xl border border-fog bg-cloud/60 p-4 text-sm leading-relaxed text-charcoal">
+                {request.declarationText}
+              </p>
+              <p className="mt-3 text-xs text-graphite">
+                Dipersetujui pada{" "}
+                {request.declarationAcceptedAt.toLocaleString("ms-MY")} · Versi{" "}
+                {request.declarationVersion}
+              </p>
+            </>
+          ) : (
+            <p className="mt-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
+              Akuan elektronik tidak tersedia bagi rekod lama ini.
+            </p>
+          )}
         </section>
 
         <section className="card overflow-hidden">
@@ -225,8 +247,6 @@ export default function AdminLoanApproval({
             key={request.status}
             pkgId={pkgId}
             request={request}
-            currentUser={currentUser}
-            manager={manager}
           />
         ) : null}
       </div>

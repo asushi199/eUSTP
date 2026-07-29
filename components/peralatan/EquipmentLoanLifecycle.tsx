@@ -7,114 +7,32 @@ import {
   recordEquipmentHandover,
   recordEquipmentReturn,
 } from "@/lib/actions/peralatan-admin";
-import type {
-  EquipmentDocumentStage,
-  EquipmentLoanDetail,
-  EquipmentSignatureRole,
-  EquipmentSignatureStroke,
-} from "@/lib/peralatan/types";
-import SignaturePad from "./SignaturePad";
+import type { EquipmentLoanDetail } from "@/lib/peralatan/types";
 
-type SignerDraft = {
-  role: EquipmentSignatureRole;
-  label: string;
-  signerName: string;
-  signerPosition: string;
-  strokes: EquipmentSignatureStroke[];
-};
-
-function SignatureCard({
-  draft,
-  onChange,
-  disabled,
-}: {
-  draft: SignerDraft;
-  onChange: (draft: SignerDraft) => void;
-  disabled: boolean;
-}) {
-  return (
-    <section className="rounded-xl border border-fog bg-cloud/60 p-4">
-      <div className="mb-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.11em] text-primary">
-          {draft.label}
-        </p>
-        <p className="mt-1 text-xs leading-relaxed text-graphite">
-          Pastikan penandatangan membaca butiran dan nombor siri di atas.
-        </p>
-      </div>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div>
-          <label className="label" htmlFor={`${draft.role}-name`}>
-            Nama
-          </label>
-          <input
-            id={`${draft.role}-name`}
-            className="input"
-            value={draft.signerName}
-            disabled={disabled}
-            onChange={(event) =>
-              onChange({ ...draft, signerName: event.target.value })
-            }
-          />
-        </div>
-        <div>
-          <label className="label" htmlFor={`${draft.role}-position`}>
-            Jawatan
-          </label>
-          <input
-            id={`${draft.role}-position`}
-            className="input"
-            value={draft.signerPosition}
-            disabled={disabled}
-            onChange={(event) =>
-              onChange({ ...draft, signerPosition: event.target.value })
-            }
-          />
-        </div>
-      </div>
-      <div className="mt-3">
-        <SignaturePad
-          id={`${draft.role}-signature`}
-          value={draft.strokes}
-          disabled={disabled}
-          onChange={(strokes) => onChange({ ...draft, strokes })}
-        />
-      </div>
-    </section>
-  );
-}
-
-function PdfAction({
+function FinalPdfAction({
   pkgId,
-  requestId,
-  stage,
-  available,
-  document,
+  request,
 }: {
   pkgId: string;
-  requestId: string;
-  stage: EquipmentDocumentStage;
-  available: boolean;
-  document: EquipmentLoanDetail["documents"][number] | undefined;
+  request: EquipmentLoanDetail;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState("");
-  const label = stage === "handover" ? "Versi serahan" : "Versi lengkap";
-  const downloadUrl = `/admin/peralatan/${pkgId}/permohonan/${requestId}/kew-pa-9?stage=${stage}`;
+  const document = request.documents.find((item) => item.stage === "final");
+  const downloadUrl = `/admin/peralatan/${pkgId}/permohonan/${request.id}/kew-pa-9?stage=final`;
 
-  if (!available) return null;
   return (
     <div className="rounded-xl border border-fog bg-white p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="font-semibold text-ink">{label}</p>
-          <p className="mt-1 text-xs text-graphite">
+          <p className="font-semibold text-ink">KEW.PA-9 untuk tandatangan</p>
+          <p className="mt-1 text-xs leading-relaxed text-graphite">
             {document?.status === "ready" && document.generatedAt
               ? `Disimpan ${document.generatedAt.toLocaleString("ms-MY")}`
               : document?.status === "failed"
                 ? "Simpanan Drive gagal; muat turun masih tersedia."
-                : "PDF dijana daripada rekod dan tandatangan semasa."}
+                : "Cetak selepas pemulangan, lengkapkan empat tandatangan pada satu salinan."}
           </p>
         </div>
         {document?.status === "ready" && document.publicUrl ? (
@@ -141,8 +59,8 @@ function PdfAction({
               setError("");
               const result = await generateAndStoreEquipmentKewPa9(
                 pkgId,
-                requestId,
-                stage,
+                request.id,
+                "final",
               );
               if (!result.ok) {
                 setError(result.error ?? "PDF tidak dapat disimpan.");
@@ -167,13 +85,9 @@ function PdfAction({
 export default function EquipmentLoanLifecycle({
   pkgId,
   request,
-  currentUser,
-  manager,
 }: {
   pkgId: string;
   request: EquipmentLoanDetail;
-  currentUser: { name: string; position: string };
-  manager: { name: string; position: string };
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -181,71 +95,13 @@ export default function EquipmentLoanLifecycle({
   const [confirmed, setConfirmed] = useState(false);
   const isHandover = request.status === "approved";
   const isReturn = request.status === "handed_over";
-  const [drafts, setDrafts] = useState<SignerDraft[]>(() =>
-    isHandover
-      ? [
-          {
-            role: "borrower",
-            label: "Tandatangan peminjam",
-            signerName: request.applicantName,
-            signerPosition: request.position,
-            strokes: [],
-          },
-          {
-            role: "approver",
-            label: "Tandatangan pelulus",
-            signerName: manager.name || currentUser.name,
-            signerPosition: manager.position || currentUser.position,
-            strokes: [],
-          },
-        ]
-      : [
-          {
-            role: "returner",
-            label: "Tandatangan pemulang",
-            signerName: request.applicantName,
-            signerPosition: request.position,
-            strokes: [],
-          },
-          {
-            role: "receiver",
-            label: "Tandatangan penerima",
-            signerName: manager.name || currentUser.name,
-            signerPosition: manager.position || currentUser.position,
-            strokes: [],
-          },
-        ],
-  );
 
-  const complete =
-    drafts.length === 2 &&
-    drafts.every(
-      (draft) =>
-        draft.signerName.trim().length >= 2 &&
-        draft.signerPosition.trim().length >= 2 &&
-        draft.strokes.length > 0,
-    );
-
-  function updateDraft(next: SignerDraft) {
-    setDrafts((current) =>
-      current.map((draft) => (draft.role === next.role ? next : draft)),
-    );
-    setError("");
-  }
-
-  function submitSignatures() {
-    const formData = new FormData();
-    formData.set(
-      "signatures",
-      JSON.stringify(
-        drafts.map(({ label: _label, ...draft }) => draft),
-      ),
-    );
+  function submitConfirmation() {
     startTransition(async () => {
       setError("");
       const result = isHandover
-        ? await recordEquipmentHandover(pkgId, request.id, formData)
-        : await recordEquipmentReturn(pkgId, request.id, formData);
+        ? await recordEquipmentHandover(pkgId, request.id)
+        : await recordEquipmentReturn(pkgId, request.id);
       if (!result.ok) {
         setError(result.error ?? "Rekod tidak dapat disimpan.");
         return;
@@ -254,46 +110,31 @@ export default function EquipmentLoanLifecycle({
     });
   }
 
-  const handoverDocument = request.documents.find(
-    (document) => document.stage === "handover",
-  );
-  const finalDocument = request.documents.find(
-    (document) => document.stage === "final",
-  );
-  const handoverReady =
-    request.status === "handed_over" || request.status === "returned";
-  const finalReady = request.status === "returned";
-
   return (
     <section className="card overflow-hidden">
       <div className="border-b border-fog px-5 py-4 sm:px-6">
         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary">
-          KEW.PA-9
+          Rekod pergerakan
         </p>
         <h2 className="mt-1 font-semibold text-ink">
           {isHandover
-            ? "Serahan fizikal dan tandatangan"
+            ? "Pengesahan serahan peralatan"
             : isReturn
-              ? "Pemulangan dan penerimaan"
-              : "Dokumen pergerakan aset"}
+              ? "Pengesahan pemulangan peralatan"
+              : "KEW.PA-9 selepas pemulangan"}
         </h2>
         <p className="mt-1 text-sm leading-relaxed text-graphite">
-          Tandatangan disimpan dahulu bersama masa dan pegawai yang merekodkan.
-          Penjanaan PDF dibuat berasingan supaya rekod tidak hilang jika Drive lambat.
+          Permohonan menggunakan Akuan Pemohon dan MyKad. Empat tandatangan
+          dilengkapkan pada satu salinan bercetak selepas peralatan dipulangkan.
         </p>
       </div>
 
       {isHandover || isReturn ? (
         <div className="p-5 sm:p-6">
-          <div className="grid gap-4 lg:grid-cols-2">
-            {drafts.map((draft) => (
-              <SignatureCard
-                key={draft.role}
-                draft={draft}
-                disabled={pending}
-                onChange={updateDraft}
-              />
-            ))}
+          <div className="rounded-xl border border-fog bg-cloud/60 p-4 text-sm leading-relaxed text-charcoal">
+            {isHandover
+              ? `Sahkan identiti pemohon berdasarkan MyKad ${request.applicantMykadMasked}, semua nombor siri dan unit fizikal sebelum serahan.`
+              : "Periksa semua unit, aksesori dan keadaan fizikal sebelum memulihkan stok sebagai tersedia."}
           </div>
           <label className="mt-5 flex items-start gap-3 text-sm text-charcoal">
             <input
@@ -304,8 +145,9 @@ export default function EquipmentLoanLifecycle({
               onChange={(event) => setConfirmed(event.target.checked)}
             />
             <span>
-              Saya mengesahkan identiti penandatangan, butiran permohonan dan unit
-              fizikal telah disemak.
+              {isHandover
+                ? "Saya mengesahkan identiti pemohon, butiran permohonan dan unit fizikal telah disemak serta diserahkan."
+                : "Saya mengesahkan semua unit telah diterima semula dan keadaan fizikal telah diperiksa."}
             </span>
           </label>
           {error ? (
@@ -316,8 +158,8 @@ export default function EquipmentLoanLifecycle({
           <button
             type="button"
             className="btn-primary mt-5"
-            disabled={pending || !complete || !confirmed}
-            onClick={submitSignatures}
+            disabled={pending || !confirmed}
+            onClick={submitConfirmation}
           >
             {pending
               ? "Menyimpan..."
@@ -328,22 +170,9 @@ export default function EquipmentLoanLifecycle({
         </div>
       ) : null}
 
-      {handoverReady ? (
-        <div className="grid gap-3 border-t border-fog bg-cloud/50 p-5 sm:p-6 lg:grid-cols-2">
-          <PdfAction
-            pkgId={pkgId}
-            requestId={request.id}
-            stage="handover"
-            available={handoverReady}
-            document={handoverDocument}
-          />
-          <PdfAction
-            pkgId={pkgId}
-            requestId={request.id}
-            stage="final"
-            available={finalReady}
-            document={finalDocument}
-          />
+      {request.status === "returned" ? (
+        <div className="border-t border-fog bg-cloud/50 p-5 sm:p-6">
+          <FinalPdfAction pkgId={pkgId} request={request} />
         </div>
       ) : null}
     </section>

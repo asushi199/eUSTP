@@ -589,6 +589,13 @@ export const equipmentLoanRequests = pgTable(
     position: text("position").notNull().default(""),
     contact: text("contact").notNull(),
     contactNormalized: text("contact_normalized").notNull(),
+    applicantMykadEncrypted: text("applicant_mykad_encrypted"),
+    applicantMykadLast4: text("applicant_mykad_last4"),
+    declarationVersion: text("declaration_version"),
+    declarationText: text("declaration_text"),
+    declarationAcceptedAt: timestamp("declaration_accepted_at", {
+      withTimezone: true,
+    }),
     purpose: text("purpose").notNull(),
     usageLocation: text("usage_location").notNull(),
     borrowDate: date("borrow_date").notNull(),

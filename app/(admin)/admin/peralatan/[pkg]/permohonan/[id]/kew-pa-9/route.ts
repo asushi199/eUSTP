@@ -14,19 +14,17 @@ export async function GET(
 ) {
   const { pkg: pkgId, id } = await params;
   await requireTempahanAccess(pkgId);
-  const stage =
-    request.nextUrl.searchParams.get("stage") === "final"
-      ? "final"
-      : "handover";
+  const stage = request.nextUrl.searchParams.get("stage");
+  if (stage !== "final") {
+    return new Response("KEW.PA-9 hanya dijana selepas pemulangan.", {
+      status: 409,
+    });
+  }
   const detail = await getEquipmentLoanDetail(pkgId, id);
   if (!detail) return new Response("Permohonan tidak dijumpai.", { status: 404 });
 
-  const allowed =
-    (stage === "handover" &&
-      (detail.status === "handed_over" || detail.status === "returned")) ||
-    (stage === "final" && detail.status === "returned");
-  if (!allowed) {
-    return new Response("Tandatangan bagi versi ini belum lengkap.", {
+  if (detail.status !== "returned") {
+    return new Response("Pemulangan belum dilengkapkan.", {
       status: 409,
     });
   }
@@ -37,9 +35,7 @@ export async function GET(
       stage as EquipmentDocumentStage,
     );
     const safeReference = detail.referenceNo.replace(/[^a-zA-Z0-9_-]+/g, "-");
-    const fileName = `KEW.PA-9-${safeReference}-${
-      stage === "final" ? "lengkap" : "serahan"
-    }.pdf`;
+    const fileName = `KEW.PA-9-${safeReference}-untuk-tandatangan.pdf`;
     const body = Uint8Array.from(buffer).buffer;
     return new Response(body, {
       headers: {

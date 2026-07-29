@@ -3,7 +3,6 @@
 import { createHash } from "node:crypto";
 import { and, eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import {
@@ -16,10 +15,7 @@ import {
   generateKewPa9Pdf,
 } from "@/lib/peralatan/kew-pa9";
 import { getEquipmentLoanDetail } from "@/lib/peralatan/queries";
-import type {
-  EquipmentDocumentStage,
-  EquipmentSignatureRole,
-} from "@/lib/peralatan/types";
+import type { EquipmentDocumentStage } from "@/lib/peralatan/types";
 import { requireTempahanAccess } from "@/lib/rbac";
 import {
   equipmentLoanAllocations,
@@ -27,7 +23,6 @@ import {
   equipmentLoanEvents,
   equipmentLoanItems,
   equipmentLoanRequests,
-  equipmentLoanSignatures,
   equipmentTypes,
   equipmentUnits,
   pkgs,
@@ -451,72 +446,6 @@ export async function rejectEquipmentLoan(
   return { ok: true };
 }
 
-const signaturePointSchema = z.object({
-  x: z.number().min(0).max(1),
-  y: z.number().min(0).max(1),
-});
-const signaturePayloadSchema = z.object({
-  role: z.enum(["borrower", "approver", "returner", "receiver"]),
-  signerName: z.string().trim().min(2).max(200),
-  signerPosition: z.string().trim().min(2).max(300),
-  strokes: z
-    .array(z.array(signaturePointSchema).min(2).max(500))
-    .min(1)
-    .max(40),
-});
-
-type SignaturePayload = z.infer<typeof signaturePayloadSchema>;
-
-function parseSignaturePair(
-  formData: FormData,
-  expectedRoles: [EquipmentSignatureRole, EquipmentSignatureRole],
-): SignaturePayload[] {
-  const raw = String(formData.get("signatures") ?? "");
-  if (raw.length > 300_000) {
-    throw new Error("Data tandatangan terlalu besar. Padam dan tandatangan semula.");
-  }
-  const parsed = z.array(signaturePayloadSchema).length(2).parse(JSON.parse(raw));
-  const roles = new Set(parsed.map((signature) => signature.role));
-  if (
-    roles.size !== 2 ||
-    expectedRoles.some((role) => !roles.has(role))
-  ) {
-    throw new Error("Pasangan tandatangan tidak lengkap.");
-  }
-  const pointCount = parsed.reduce(
-    (total, signature) =>
-      total +
-      signature.strokes.reduce((strokeTotal, stroke) => strokeTotal + stroke.length, 0),
-    0,
-  );
-  if (pointCount > 6_000) {
-    throw new Error("Tandatangan terlalu terperinci. Padam dan tandatangan semula.");
-  }
-  return parsed;
-}
-
-function signatureHash(requestId: string, signature: SignaturePayload): string {
-  return createHash("sha256")
-    .update(
-      JSON.stringify({
-        requestId,
-        role: signature.role,
-        signerName: signature.signerName,
-        signerPosition: signature.signerPosition,
-        strokes: signature.strokes,
-      }),
-    )
-    .digest("hex");
-}
-
-async function signatureAuditContext() {
-  const requestHeaders = await headers();
-  return {
-    captureMethod: "onsite_signature_pad",
-    userAgent: (requestHeaders.get("user-agent") ?? "").slice(0, 300),
-  };
-}
-
 async function allocatedUnitsForRequest(
   tx: Parameters<Parameters<typeof db.transaction>[0]>[0],
   requestId: string,
@@ -537,22 +466,8 @@ async function allocatedUnitsForRequest(
 export async function recordEquipmentHandover(
   pkgId: string,
   requestId: string,
-  formData: FormData,
 ): Promise<EquipmentAdminActionResult> {
   const user = await requireTempahanAccess(pkgId);
-  let signatures: SignaturePayload[];
-  try {
-    signatures = parseSignaturePair(formData, ["borrower", "approver"]);
-  } catch (error) {
-    return {
-      ok: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Lengkapkan kedua-dua tandatangan serahan.",
-    };
-  }
-  const auditContext = await signatureAuditContext();
 
   try {
     await db.transaction(async (tx) => {
@@ -564,6 +479,11 @@ export async function recordEquipmentHandover(
       });
       if (!request || request.status !== "approved") {
         throw new Error("Permohonan ini tidak lagi menunggu serahan.");
+      }
+      if (!request.declarationAcceptedAt || !request.applicantMykadLast4) {
+        throw new Error(
+          "Akuan pemohon atau maklumat MyKad belum lengkap. Permohonan lama perlu disahkan secara manual.",
+        );
       }
 
       const allocations = await allocatedUnitsForRequest(tx, requestId);
@@ -588,26 +508,13 @@ export async function recordEquipmentHandover(
         );
       }
 
-      const signedAt = new Date();
-      await tx.insert(equipmentLoanSignatures).values(
-        signatures.map((signature) => ({
-          requestId,
-          role: signature.role,
-          signerName: signature.signerName,
-          signerPosition: signature.signerPosition,
-          strokes: signature.strokes,
-          strokeSha256: signatureHash(requestId, signature),
-          capturedByUserId: Number(user.id),
-          auditContext,
-          signedAt,
-        })),
-      );
+      const handedOverAt = new Date();
       await tx
         .update(equipmentLoanRequests)
         .set({
           status: "handed_over",
-          handedOverAt: signedAt,
-          updatedAt: signedAt,
+          handedOverAt,
+          updatedAt: handedOverAt,
         })
         .where(eq(equipmentLoanRequests.id, requestId));
       await tx.insert(equipmentLoanEvents).values({
@@ -616,7 +523,9 @@ export async function recordEquipmentHandover(
         actorUserId: Number(user.id),
         details: {
           unitIds,
-          signatureRoles: ["borrower", "approver"],
+          declarationVersion: request.declarationVersion,
+          identityChecked: true,
+          paperSignaturesRequiredAtReturn: true,
         },
       });
     });
@@ -633,22 +542,8 @@ export async function recordEquipmentHandover(
 export async function recordEquipmentReturn(
   pkgId: string,
   requestId: string,
-  formData: FormData,
 ): Promise<EquipmentAdminActionResult> {
   const user = await requireTempahanAccess(pkgId);
-  let signatures: SignaturePayload[];
-  try {
-    signatures = parseSignaturePair(formData, ["returner", "receiver"]);
-  } catch (error) {
-    return {
-      ok: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Lengkapkan kedua-dua tandatangan pemulangan.",
-    };
-  }
-  const auditContext = await signatureAuditContext();
 
   try {
     await db.transaction(async (tx) => {
@@ -685,19 +580,6 @@ export async function recordEquipmentReturn(
         );
       }
 
-      await tx.insert(equipmentLoanSignatures).values(
-        signatures.map((signature) => ({
-          requestId,
-          role: signature.role,
-          signerName: signature.signerName,
-          signerPosition: signature.signerPosition,
-          strokes: signature.strokes,
-          strokeSha256: signatureHash(requestId, signature),
-          capturedByUserId: Number(user.id),
-          auditContext,
-          signedAt: returnedAt,
-        })),
-      );
       await tx
         .update(equipmentLoanAllocations)
         .set({ releasedAt: returnedAt })
@@ -721,7 +603,8 @@ export async function recordEquipmentReturn(
         actorUserId: Number(user.id),
         details: {
           unitIds,
-          signatureRoles: ["returner", "receiver"],
+          conditionChecked: true,
+          paperSignaturesRequired: true,
         },
       });
     });
@@ -737,7 +620,9 @@ export async function recordEquipmentReturn(
 
 function documentFileName(referenceNo: string, stage: EquipmentDocumentStage) {
   const safeReference = referenceNo.replace(/[^a-zA-Z0-9_-]+/g, "-");
-  return `KEW.PA-9-${safeReference}-${stage === "final" ? "lengkap" : "serahan"}.pdf`;
+  return `KEW.PA-9-${safeReference}-${
+    stage === "final" ? "untuk-tandatangan" : "serahan"
+  }.pdf`;
 }
 
 export async function generateAndStoreEquipmentKewPa9(
@@ -746,23 +631,18 @@ export async function generateAndStoreEquipmentKewPa9(
   stage: EquipmentDocumentStage,
 ): Promise<EquipmentAdminActionResult> {
   const user = await requireTempahanAccess(pkgId);
-  if (stage !== "handover" && stage !== "final") {
-    return { ok: false, error: "Versi dokumen tidak sah." };
+  if (stage !== "final") {
+    return {
+      ok: false,
+      error: "KEW.PA-9 hanya dijana selepas pemulangan.",
+    };
   }
   const request = await getEquipmentLoanDetail(pkgId, requestId);
   if (!request) return { ok: false, error: "Permohonan tidak dijumpai." };
-  if (
-    (stage === "handover" &&
-      request.status !== "handed_over" &&
-      request.status !== "returned") ||
-    (stage === "final" && request.status !== "returned")
-  ) {
+  if (request.status !== "returned") {
     return {
       ok: false,
-      error:
-        stage === "final"
-          ? "Lengkapkan pemulangan dan tandatangan dahulu."
-          : "Lengkapkan serahan dan tandatangan dahulu.",
+      error: "Lengkapkan pemulangan dahulu.",
     };
   }
   if (!isGasStorageConfigured()) {

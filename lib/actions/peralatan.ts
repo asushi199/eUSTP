@@ -6,6 +6,16 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import {
+  EQUIPMENT_DECLARATION_TEXT,
+  EQUIPMENT_DECLARATION_VERSION,
+} from "@/lib/peralatan/declaration";
+import {
+  encryptMykad,
+  hashAuditValue,
+  normalizeMykad,
+} from "@/lib/peralatan/mykad";
+import { listEquipmentLoansByContact } from "@/lib/peralatan/queries";
 import { buildEquipmentRequestWhatsAppUrl } from "@/lib/peralatan/whatsapp";
 import {
   equipmentLoanEvents,
@@ -65,6 +75,9 @@ export async function createEquipmentLoanAction(
   const position = formText(formData, "position", 200);
   const contact = formText(formData, "contact", 30);
   const contactNormalized = normalizePhoneNumber(contact);
+  const applicantMykad = normalizeMykad(formText(formData, "applicantMykad", 20));
+  const declarationAccepted =
+    formText(formData, "declarationAccepted", 10) === "yes";
   const purpose = formText(formData, "purpose", 1000);
   const usageLocation = formText(formData, "usageLocation", 500);
   const borrowDate = formText(formData, "borrowDate", 20);
@@ -78,10 +91,20 @@ export async function createEquipmentLoanAction(
     !applicantName ||
     !position ||
     !contactNormalized ||
+    !/^\d{12}$/.test(applicantMykad) ||
+    !declarationAccepted ||
     !purpose ||
     !usageLocation
   ) {
-    return { ok: false, message: "Sila lengkapkan semua maklumat permohonan." };
+    return {
+      ok: false,
+      message:
+        !/^\d{12}$/.test(applicantMykad)
+          ? "Masukkan nombor MyKad pemohon yang sah (12 digit)."
+          : !declarationAccepted
+            ? "Sila baca dan setuju dengan Akuan Pemohon."
+            : "Sila lengkapkan semua maklumat permohonan.",
+    };
   }
   if (
     !/^\d{4}-\d{2}-\d{2}$/.test(borrowDate) ||
@@ -168,6 +191,15 @@ export async function createEquipmentLoanAction(
     const referenceNo = `PP-${new Date().getFullYear()}-${requestId
       .slice(0, 8)
       .toUpperCase()}`;
+    const declarationAcceptedAt = new Date();
+    const requestHeaders = await headers();
+    const forwardedIp = (
+      requestHeaders.get("x-forwarded-for") ??
+      requestHeaders.get("x-real-ip") ??
+      ""
+    )
+      .split(",")[0]
+      .trim();
 
     await db.transaction(async (tx) => {
       await tx.insert(equipmentLoanRequests).values({
@@ -181,6 +213,11 @@ export async function createEquipmentLoanAction(
         position,
         contact,
         contactNormalized,
+        applicantMykadEncrypted: encryptMykad(applicantMykad),
+        applicantMykadLast4: applicantMykad.slice(-4),
+        declarationVersion: EQUIPMENT_DECLARATION_VERSION,
+        declarationText: EQUIPMENT_DECLARATION_TEXT,
+        declarationAcceptedAt,
         purpose,
         usageLocation,
         borrowDate,
@@ -196,7 +233,16 @@ export async function createEquipmentLoanAction(
       await tx.insert(equipmentLoanEvents).values({
         requestId,
         action: "application_created",
-        details: { applicantType, itemCount: requestedItems.length },
+        details: {
+          applicantType,
+          itemCount: requestedItems.length,
+          declarationAccepted: true,
+          declarationVersion: EQUIPMENT_DECLARATION_VERSION,
+          declarationAcceptedAt: declarationAcceptedAt.toISOString(),
+          captureMethod: "application_checkbox",
+          ipHash: hashAuditValue(forwardedIp),
+          userAgent: (requestHeaders.get("user-agent") ?? "").slice(0, 300),
+        },
       });
     });
 
@@ -234,5 +280,42 @@ export async function createEquipmentLoanAction(
       };
     }
     return { ok: false, message: "Permohonan tidak dapat disimpan. Cuba semula." };
+  }
+}
+
+export type EquipmentLookupState = {
+  ok: boolean;
+  message: string;
+  requests: Awaited<ReturnType<typeof listEquipmentLoansByContact>>;
+};
+
+export async function checkEquipmentLoansAction(
+  _previousState: EquipmentLookupState,
+  formData: FormData,
+): Promise<EquipmentLookupState> {
+  const contact = normalizePhoneNumber(formText(formData, "contact", 30));
+  if (!contact) {
+    return {
+      ok: false,
+      message: "Sila masukkan nombor telefon yang digunakan semasa memohon.",
+      requests: [],
+    };
+  }
+  try {
+    const requests = await listEquipmentLoansByContact(contact);
+    return {
+      ok: true,
+      message:
+        requests.length > 0
+          ? "Permohonan dijumpai."
+          : "Tiada permohonan dijumpai untuk nombor telefon ini.",
+      requests,
+    };
+  } catch {
+    return {
+      ok: false,
+      message: "Permohonan tidak dapat disemak. Sila cuba semula.",
+      requests: [],
+    };
   }
 }

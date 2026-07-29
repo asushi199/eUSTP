@@ -90,6 +90,11 @@ export default async function MohonPinjamanPeralatanPage({
         description="Lengkapkan maklumat pemohon, pilih satu PKG dan nyatakan kuantiti peralatan yang diperlukan."
         className="mt-2"
       />
+      <div className="mt-5">
+        <Link href="/tempahan/peralatan/semak" className="btn-outline-ink btn-sm">
+          Semak Permohonan Saya
+        </Link>
+      </div>
       <LoanApplicationForm
         items={items}
         pkgs={pkgs}

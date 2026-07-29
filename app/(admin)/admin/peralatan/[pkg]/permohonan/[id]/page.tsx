@@ -1,10 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import AdminLoanApproval from "@/components/peralatan/AdminLoanApproval";
-import {
-  getEquipmentLoanDetail,
-  listEquipmentPkgs,
-} from "@/lib/peralatan/queries";
+import { getEquipmentLoanDetail } from "@/lib/peralatan/queries";
 import { requireTempahanAccess } from "@/lib/rbac";
 
 export const dynamic = "force-dynamic";
@@ -16,11 +13,9 @@ export default async function AdminEquipmentLoanPage({
   params: Promise<{ pkg: string; id: string }>;
 }) {
   const { pkg: pkgId, id } = await params;
-  const user = await requireTempahanAccess(pkgId);
+  await requireTempahanAccess(pkgId);
   const request = await getEquipmentLoanDetail(pkgId, id);
   if (!request) notFound();
-  const pkg = (await listEquipmentPkgs()).find((item) => item.id === pkgId);
-  if (!pkg) notFound();
 
   return (
     <>
@@ -34,14 +29,9 @@ export default async function AdminEquipmentLoanPage({
         Pinjaman & KEW.PA-9
       </h1>
       <p className="mt-1 text-sm text-graphite">
-        Urus kelulusan, tandatangan serahan, pemulangan dan dokumen rasmi.
+        Urus kelulusan, serahan, pemulangan dan dokumen rasmi.
       </p>
-      <AdminLoanApproval
-        pkgId={pkgId}
-        request={request}
-        currentUser={{ name: user.nama, position: user.jawatan }}
-        manager={{ name: pkg.managerName, position: pkg.managerPosition }}
-      />
+      <AdminLoanApproval pkgId={pkgId} request={request} />
     </>
   );
 }

@@ -7,7 +7,6 @@ import {
   equipmentLoanDocuments,
   equipmentLoanItems,
   equipmentLoanRequests,
-  equipmentLoanSignatures,
   equipmentTypes,
   equipmentUnits,
   pkgs,
@@ -17,6 +16,7 @@ import type {
   EquipmentCatalogItem,
   EquipmentLoanDetail,
   EquipmentLoanListItem,
+  EquipmentLoanPublicResult,
   EquipmentPkg,
   EquipmentSchool,
   EquipmentUnitListItem,
@@ -169,6 +169,51 @@ export async function countPendingEquipmentLoansByPkg(
   return Object.fromEntries(rows.map((row) => [row.pkgId, row.total]));
 }
 
+export async function listEquipmentLoansByContact(
+  contactNormalized: string,
+): Promise<EquipmentLoanPublicResult[]> {
+  const requestRows = await db
+    .select({
+      id: equipmentLoanRequests.id,
+      referenceNo: equipmentLoanRequests.referenceNo,
+      pkgName: pkgs.name,
+      orgName: equipmentLoanRequests.orgName,
+      borrowDate: equipmentLoanRequests.borrowDate,
+      expectedReturnDate: equipmentLoanRequests.expectedReturnDate,
+      status: equipmentLoanRequests.status,
+      decisionNote: equipmentLoanRequests.decisionNote,
+      createdAt: equipmentLoanRequests.createdAt,
+    })
+    .from(equipmentLoanRequests)
+    .innerJoin(pkgs, eq(equipmentLoanRequests.pkgId, pkgs.id))
+    .where(eq(equipmentLoanRequests.contactNormalized, contactNormalized))
+    .orderBy(desc(equipmentLoanRequests.createdAt))
+    .limit(30);
+  const requestIds = requestRows.map((request) => request.id);
+  const itemRows = requestIds.length
+    ? await db
+        .select({
+          requestId: equipmentLoanItems.requestId,
+          name: equipmentTypes.name,
+          quantity: equipmentLoanItems.quantity,
+        })
+        .from(equipmentLoanItems)
+        .innerJoin(
+          equipmentTypes,
+          eq(equipmentLoanItems.equipmentTypeId, equipmentTypes.id),
+        )
+        .where(inArray(equipmentLoanItems.requestId, requestIds))
+        .orderBy(asc(equipmentTypes.sortOrder))
+    : [];
+
+  return requestRows.map((request) => ({
+    ...request,
+    items: itemRows
+      .filter((item) => item.requestId === request.id)
+      .map(({ name, quantity }) => ({ name, quantity })),
+  }));
+}
+
 export async function getEquipmentLoanDetail(
   pkgId: string,
   requestId: string,
@@ -230,17 +275,6 @@ export async function getEquipmentLoanDetail(
         )
         .where(inArray(equipmentLoanAllocations.requestItemId, itemIds))
     : [];
-  const signatureRows = await db
-    .select({
-      role: equipmentLoanSignatures.role,
-      signerName: equipmentLoanSignatures.signerName,
-      signerPosition: equipmentLoanSignatures.signerPosition,
-      strokes: equipmentLoanSignatures.strokes,
-      signedAt: equipmentLoanSignatures.signedAt,
-    })
-    .from(equipmentLoanSignatures)
-    .where(eq(equipmentLoanSignatures.requestId, requestId))
-    .orderBy(asc(equipmentLoanSignatures.signedAt));
   const documentRows = await db
     .select({
       stage: equipmentLoanDocuments.stage,
@@ -256,8 +290,16 @@ export async function getEquipmentLoanDetail(
     .where(eq(equipmentLoanDocuments.requestId, requestId))
     .orderBy(asc(equipmentLoanDocuments.stage));
 
+  const {
+    applicantMykadEncrypted: _encryptedMykad,
+    applicantMykadLast4,
+    ...safeRequest
+  } = request;
   return {
-    ...request,
+    ...safeRequest,
+    applicantMykadMasked: applicantMykadLast4
+      ? `******-**-${applicantMykadLast4}`
+      : "Belum direkodkan",
     items: itemRows.map((item) => ({
       ...item,
       availableUnits: availableRows
@@ -275,7 +317,6 @@ export async function getEquipmentLoanDetail(
           governmentAssetNo: unit.governmentAssetNo ?? "",
       })),
     })),
-    signatures: signatureRows,
     documents: documentRows,
   };
 }

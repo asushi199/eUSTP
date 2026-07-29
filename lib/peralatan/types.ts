@@ -92,6 +92,10 @@ export type EquipmentLoanDetail = {
   applicantName: string;
   position: string;
   contact: string;
+  applicantMykadMasked: string;
+  declarationVersion: string | null;
+  declarationText: string | null;
+  declarationAcceptedAt: Date | null;
   purpose: string;
   usageLocation: string;
   borrowDate: string;
@@ -103,24 +107,20 @@ export type EquipmentLoanDetail = {
   returnedAt: Date | null;
   createdAt: Date;
   items: EquipmentLoanDetailItem[];
-  signatures: EquipmentLoanSignature[];
   documents: EquipmentLoanDocument[];
 };
 
-export type EquipmentSignatureRole =
-  | "borrower"
-  | "approver"
-  | "returner"
-  | "receiver";
-
-export type EquipmentSignatureStroke = Array<{ x: number; y: number }>;
-
-export type EquipmentLoanSignature = {
-  role: EquipmentSignatureRole;
-  signerName: string;
-  signerPosition: string;
-  strokes: EquipmentSignatureStroke[];
-  signedAt: Date;
+export type EquipmentLoanPublicResult = {
+  id: string;
+  referenceNo: string;
+  pkgName: string;
+  orgName: string;
+  borrowDate: string;
+  expectedReturnDate: string;
+  status: EquipmentLoanListItem["status"];
+  decisionNote: string;
+  createdAt: Date;
+  items: Array<{ name: string; quantity: number }>;
 };
 
 export type EquipmentDocumentStage = "handover" | "final";

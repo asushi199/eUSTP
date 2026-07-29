@@ -7,12 +7,7 @@ import {
   StandardFonts,
   rgb,
 } from "pdf-lib";
-import type {
-  EquipmentDocumentStage,
-  EquipmentLoanDetail,
-  EquipmentLoanSignature,
-  EquipmentSignatureStroke,
-} from "./types";
+import type { EquipmentDocumentStage, EquipmentLoanDetail } from "./types";
 
 const TEMPLATE_PATH = path.join(
   process.cwd(),
@@ -41,7 +36,6 @@ export type KewPa9Data = {
   expectedReturnDate: string;
   returnedAt: Date | null;
   units: KewPa9Unit[];
-  signatures: EquipmentLoanSignature[];
 };
 
 function safePdfText(value: string): string {
@@ -143,77 +137,6 @@ function drawCenteredCellText(
   });
 }
 
-function signatureByRole(
-  signatures: EquipmentLoanSignature[],
-  role: EquipmentLoanSignature["role"],
-) {
-  return signatures.find((signature) => signature.role === role);
-}
-
-function drawStrokes(
-  page: PDFPage,
-  strokes: EquipmentSignatureStroke[],
-  left: number,
-  top: number,
-  width: number,
-  height: number,
-) {
-  for (const stroke of strokes) {
-    for (let index = 1; index < stroke.length; index += 1) {
-      const from = stroke[index - 1];
-      const to = stroke[index];
-      page.drawLine({
-        start: {
-          x: left + from.x * width,
-          y: page.getHeight() - (top + from.y * height),
-        },
-        end: {
-          x: left + to.x * width,
-          y: page.getHeight() - (top + to.y * height),
-        },
-        thickness: 1.15,
-        color: BLACK,
-      });
-    }
-  }
-}
-
-function drawSignature(
-  page: PDFPage,
-  font: PDFFont,
-  signature: EquipmentLoanSignature | undefined,
-  side: "left" | "right",
-  row: "upper" | "lower",
-) {
-  if (!signature) return;
-  const left = side === "left" ? 42.6 : 320.2;
-  const valueX = side === "left" ? 82 : 373;
-  const top = row === "upper" ? 586 : 681;
-  const nameTop = row === "upper" ? 634 : 731.5;
-  const width = 92;
-
-  drawStrokes(page, signature.strokes, left + 2, top, width - 4, 24);
-  drawCellText(page, font, signature.signerName, valueX, nameTop, 220, 6.2);
-  drawCellText(
-    page,
-    font,
-    signature.signerPosition,
-    valueX,
-    nameTop + (row === "upper" ? 13.8 : 16.2),
-    220,
-    6.0,
-  );
-  drawCellText(
-    page,
-    font,
-    formatDate(signature.signedAt),
-    valueX,
-    nameTop + (row === "upper" ? 27.7 : 32.4),
-    220,
-    6.1,
-  );
-}
-
 function drawPageContent(
   page: PDFPage,
   font: PDFFont,
@@ -300,36 +223,6 @@ function drawPageContent(
     );
   });
 
-  drawSignature(
-    page,
-    font,
-    signatureByRole(data.signatures, "borrower"),
-    "left",
-    "upper",
-  );
-  drawSignature(
-    page,
-    font,
-    signatureByRole(data.signatures, "approver"),
-    "right",
-    "upper",
-  );
-  if (stage === "final") {
-    drawSignature(
-      page,
-      font,
-      signatureByRole(data.signatures, "returner"),
-      "left",
-      "lower",
-    );
-    drawSignature(
-      page,
-      font,
-      signatureByRole(data.signatures, "receiver"),
-      "right",
-      "lower",
-    );
-  }
 }
 
 export function buildKewPa9Data(request: EquipmentLoanDetail): KewPa9Data {
@@ -355,7 +248,6 @@ export function buildKewPa9Data(request: EquipmentLoanDetail): KewPa9Data {
         description: item.typeName,
       })),
     ),
-    signatures: request.signatures,
   };
 }
 
@@ -385,7 +277,7 @@ export async function generateKewPa9Pdf(
   output.setTitle(`KEW.PA-9 ${data.referenceNo}`);
   output.setSubject(
     stage === "final"
-      ? "Borang pergerakan/pinjaman aset alih - lengkap"
+      ? "Borang pergerakan/pinjaman aset alih - untuk tandatangan"
       : "Borang pergerakan/pinjaman aset alih - serahan",
   );
   output.setCreator("eUSTP Manjung");

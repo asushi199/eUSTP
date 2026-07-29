@@ -36,6 +36,11 @@ export default async function PeminjamanPeralatanPage() {
         description="Pilih peralatan yang tersedia, kemudian lengkapkan borang permohonan."
         className="mt-2"
       />
+      <div className="mt-5 flex flex-wrap gap-3">
+        <Link href="/tempahan/peralatan/semak" className="btn-outline-ink btn-sm">
+          Semak Permohonan Saya
+        </Link>
+      </div>
       {unavailable ? (
         <div className="card mt-8 p-5 text-sm leading-relaxed text-graphite">
           Modul inventori sedang disediakan. Pentadbir perlu menjalankan migrasi

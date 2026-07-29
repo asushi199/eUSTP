@@ -6,6 +6,11 @@ import {
   createEquipmentLoanAction,
   type EquipmentApplicationState,
 } from "@/lib/actions/peralatan";
+import {
+  EQUIPMENT_DECLARATION_END,
+  EQUIPMENT_DECLARATION_INTRO,
+  EQUIPMENT_DECLARATION_POINTS,
+} from "@/lib/peralatan/declaration";
 import type {
   EquipmentCatalogItem,
   EquipmentPkg,
@@ -261,6 +266,25 @@ export default function LoanApplicationForm({
                 required
               />
             </div>
+            <div>
+              <label className="label" htmlFor="loan-mykad">
+                No. MyKad pemohon *
+              </label>
+              <input
+                id="loan-mykad"
+                name="applicantMykad"
+                className="input"
+                inputMode="numeric"
+                autoComplete="off"
+                pattern="[0-9]{12}"
+                maxLength={12}
+                placeholder="12 digit tanpa sengkang"
+                required
+              />
+              <p className="mt-1 text-xs leading-relaxed text-graphite">
+                Digunakan untuk pengesahan identiti dan rekod pinjaman sahaja.
+              </p>
+            </div>
           </div>
         </section>
 
@@ -402,6 +426,44 @@ export default function LoanApplicationForm({
               );
             })}
           </div>
+        </section>
+
+        <section className="card p-5 sm:p-6">
+          <div className="flex items-center gap-3">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink text-sm font-semibold text-white">
+              4
+            </span>
+            <div>
+              <h2 className="font-semibold text-ink">Akuan pemohon</h2>
+              <p className="text-sm text-graphite">
+                Wajib dibaca sebelum permohonan dihantar.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-5 rounded-xl border border-fog bg-cloud/60 p-4 text-sm leading-relaxed text-charcoal">
+            <p>{EQUIPMENT_DECLARATION_INTRO}</p>
+            <ol className="mt-3 list-decimal space-y-2 pl-5">
+              {EQUIPMENT_DECLARATION_POINTS.map((point) => (
+                <li key={point}>{point}</li>
+              ))}
+            </ol>
+            <p className="mt-3">{EQUIPMENT_DECLARATION_END}</p>
+          </div>
+
+          <label className="mt-4 flex items-start gap-3 text-sm font-medium leading-relaxed text-ink">
+            <input
+              type="checkbox"
+              name="declarationAccepted"
+              value="yes"
+              className="mt-1 h-4 w-4 shrink-0 accent-primary"
+              required
+            />
+            <span>
+              Saya telah membaca, memahami dan bersetuju dengan Akuan Pemohon
+              di atas.
+            </span>
+          </label>
         </section>
       </div>
 
