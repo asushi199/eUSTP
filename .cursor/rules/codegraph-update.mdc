@@ -1,0 +1,31 @@
+---
+description: 代码变更后主动更新并提交共享的 CodeGraph 索引，无需等待提醒
+alwaysApply: true
+---
+
+# CodeGraph 自行更新
+
+本仓库的 `.codegraph/`（含 `codegraph.db`）会提交并推送，供共享代码智能使用。
+
+## 何时更新
+
+在完成会改变代码结构的工作后**主动**更新，不要等用户提醒。典型触发：
+
+- 新增 / 删除 / 重命名源文件或路由
+- 较大重构、移动模块、改导出符号
+- 用户要求 commit / push 且本次改动涉及源码
+
+小改（文案、样式微调、注释）可跳过。
+
+## 怎么更新
+
+1. 优先增量：`codegraph sync .`
+2. 同步失败或索引明显过期：`codegraph index .`
+3. 确认状态：`codegraph status .` 应为 up to date
+
+## Git
+
+- **不要**把 `.codegraph/` 加回根目录 `.gitignore`
+- 保留 `.codegraph/.gitignore` 中对 `codegraph.db` 的跟踪（忽略 daemon/pid 等临时文件）
+- 有索引变更时，把 `.codegraph/codegraph.db`（及必要时 `.codegraph/.gitignore`）一并纳入用户要求的 commit；用户未要求 commit 时只更新本地索引即可
+- 勿提交 `daemon.pid`、socket、日志等运行时文件
