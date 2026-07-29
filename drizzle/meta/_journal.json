@@ -120,6 +120,13 @@
       "when": 1785337836484,
       "tag": "0016_equipment_categories",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1785339000000,
+      "tag": "0017_hide_uncategorized_equipment",
+      "breakpoints": true
     }
   ]
 }

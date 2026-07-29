@@ -10,6 +10,7 @@ import {
   ilike,
   inArray,
   lt,
+  ne,
   or,
   sql,
 } from "drizzle-orm";
@@ -112,7 +113,14 @@ export async function listEquipmentCatalog(
   const categoryRows = await db
     .select()
     .from(equipmentCategories)
-    .where(includeInactive ? undefined : eq(equipmentCategories.active, true))
+    .where(
+      includeInactive
+        ? ne(equipmentCategories.code, "LAIN-LAIN")
+        : and(
+            eq(equipmentCategories.active, true),
+            ne(equipmentCategories.code, "LAIN-LAIN"),
+          ),
+    )
     .orderBy(asc(equipmentCategories.sortOrder), asc(equipmentCategories.name));
   const typeRows = await db
     .select()
@@ -193,6 +201,7 @@ export async function listEquipmentCategoryOptions(): Promise<
       active: equipmentCategories.active,
     })
     .from(equipmentCategories)
+    .where(ne(equipmentCategories.code, "LAIN-LAIN"))
     .orderBy(asc(equipmentCategories.sortOrder), asc(equipmentCategories.name));
 }
 

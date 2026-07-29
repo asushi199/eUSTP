@@ -509,39 +509,46 @@ export default function LoanApplicationForm({
               return (
                 <div
                   key={item.id}
-                  className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center"
+                  className="grid gap-4 p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
                 >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-fog bg-cloud font-mono text-xs font-bold text-charcoal">
-                    {item.code}
-                  </span>
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-ink">{item.name}</p>
-                    <p className="mt-0.5 text-xs text-graphite">
+                    <p className="font-medium leading-snug text-ink">
+                      {item.name}
+                    </p>
+                    <p className="mt-1 text-xs leading-relaxed text-graphite">
                       {available} unit tersedia di {pkgNames[pkgId] ?? pkgId}
                     </p>
                   </div>
-                  <div className="flex items-center justify-between gap-2 sm:justify-end">
-                    <button
-                      type="button"
-                      aria-label={`Kurangkan ${item.name}`}
-                      onClick={() => setQuantity(item.id, quantity - 1)}
-                      disabled={quantity === 0}
-                      className="flex h-9 w-9 items-center justify-center rounded-md border border-fog bg-white text-lg text-charcoal disabled:opacity-40"
-                    >
-                      −
-                    </button>
-                    <span className="w-8 text-center font-semibold tabular-nums">
-                      {quantity}
+                  <div className="flex items-center justify-between gap-3 border-t border-fog pt-3 sm:justify-end sm:border-0 sm:pt-0">
+                    <span className="text-xs font-medium text-graphite sm:sr-only">
+                      Kuantiti
                     </span>
-                    <button
-                      type="button"
-                      aria-label={`Tambah ${item.name}`}
-                      onClick={() => setQuantity(item.id, quantity + 1)}
-                      disabled={quantity >= available}
-                      className="flex h-9 w-9 items-center justify-center rounded-md border border-fog bg-white text-lg text-charcoal disabled:opacity-40"
-                    >
-                      +
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        aria-label={`Kurangkan ${item.name}`}
+                        onClick={() => setQuantity(item.id, quantity - 1)}
+                        disabled={quantity === 0}
+                        className="flex h-11 w-11 items-center justify-center rounded-lg border border-fog bg-white text-lg text-charcoal transition hover:border-steel hover:bg-cloud focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:pointer-events-none disabled:opacity-40"
+                      >
+                        −
+                      </button>
+                      <output
+                        aria-live="polite"
+                        className="w-9 text-center font-semibold tabular-nums text-ink"
+                      >
+                        {quantity}
+                      </output>
+                      <button
+                        type="button"
+                        aria-label={`Tambah ${item.name}`}
+                        onClick={() => setQuantity(item.id, quantity + 1)}
+                        disabled={quantity >= available}
+                        className="flex h-11 w-11 items-center justify-center rounded-lg border border-fog bg-white text-lg text-charcoal transition hover:border-steel hover:bg-cloud focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:pointer-events-none disabled:opacity-40"
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
