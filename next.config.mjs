@@ -11,6 +11,9 @@ const nextConfig = {
    * timeout. Externalize supaya runtime guna modul node_modules sebenar.
    */
   serverExternalPackages: ["postgres"],
+  outputFileTracingIncludes: {
+    "/**": ["./public/templates/kew-pa-9-am24.pdf"],
+  },
   experimental: {
     serverActions: {
       /** 5 gambar laporan (dimampat klien ≤1.2MB setiap satu) boleh melebihi 2mb lalai. */

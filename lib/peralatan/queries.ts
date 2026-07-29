@@ -4,8 +4,10 @@ import { and, asc, count, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
   equipmentLoanAllocations,
+  equipmentLoanDocuments,
   equipmentLoanItems,
   equipmentLoanRequests,
+  equipmentLoanSignatures,
   equipmentTypes,
   equipmentUnits,
   pkgs,
@@ -195,41 +197,64 @@ export async function getEquipmentLoanDetail(
 
   const itemIds = itemRows.map((item) => item.id);
   const typeIds = itemRows.map((item) => item.equipmentTypeId);
-  const [availableRows, allocatedRows] = await Promise.all([
-    typeIds.length
-      ? db
-          .select({
-            id: equipmentUnits.id,
-            equipmentTypeId: equipmentUnits.equipmentTypeId,
-            serialNo: equipmentUnits.serialNo,
-            governmentAssetNo: equipmentUnits.governmentAssetNo,
-          })
-          .from(equipmentUnits)
-          .where(
-            and(
-              eq(equipmentUnits.pkgId, pkgId),
-              eq(equipmentUnits.status, "available"),
-              inArray(equipmentUnits.equipmentTypeId, typeIds),
-            ),
-          )
-          .orderBy(asc(equipmentUnits.serialNo))
-      : [],
-    itemIds.length
-      ? db
-          .select({
-            requestItemId: equipmentLoanAllocations.requestItemId,
-            id: equipmentUnits.id,
-            serialNo: equipmentUnits.serialNo,
-            governmentAssetNo: equipmentUnits.governmentAssetNo,
-          })
-          .from(equipmentLoanAllocations)
-          .innerJoin(
-            equipmentUnits,
-            eq(equipmentLoanAllocations.unitId, equipmentUnits.id),
-          )
-          .where(inArray(equipmentLoanAllocations.requestItemId, itemIds))
-      : [],
-  ]);
+  const availableRows = typeIds.length
+    ? await db
+        .select({
+          id: equipmentUnits.id,
+          equipmentTypeId: equipmentUnits.equipmentTypeId,
+          serialNo: equipmentUnits.serialNo,
+          governmentAssetNo: equipmentUnits.governmentAssetNo,
+        })
+        .from(equipmentUnits)
+        .where(
+          and(
+            eq(equipmentUnits.pkgId, pkgId),
+            eq(equipmentUnits.status, "available"),
+            inArray(equipmentUnits.equipmentTypeId, typeIds),
+          ),
+        )
+        .orderBy(asc(equipmentUnits.serialNo))
+    : [];
+  const allocatedRows = itemIds.length
+    ? await db
+        .select({
+          requestItemId: equipmentLoanAllocations.requestItemId,
+          id: equipmentUnits.id,
+          serialNo: equipmentUnits.serialNo,
+          governmentAssetNo: equipmentUnits.governmentAssetNo,
+        })
+        .from(equipmentLoanAllocations)
+        .innerJoin(
+          equipmentUnits,
+          eq(equipmentLoanAllocations.unitId, equipmentUnits.id),
+        )
+        .where(inArray(equipmentLoanAllocations.requestItemId, itemIds))
+    : [];
+  const signatureRows = await db
+    .select({
+      role: equipmentLoanSignatures.role,
+      signerName: equipmentLoanSignatures.signerName,
+      signerPosition: equipmentLoanSignatures.signerPosition,
+      strokes: equipmentLoanSignatures.strokes,
+      signedAt: equipmentLoanSignatures.signedAt,
+    })
+    .from(equipmentLoanSignatures)
+    .where(eq(equipmentLoanSignatures.requestId, requestId))
+    .orderBy(asc(equipmentLoanSignatures.signedAt));
+  const documentRows = await db
+    .select({
+      stage: equipmentLoanDocuments.stage,
+      status: equipmentLoanDocuments.status,
+      fileName: equipmentLoanDocuments.fileName,
+      storagePath: equipmentLoanDocuments.storagePath,
+      publicUrl: equipmentLoanDocuments.publicUrl,
+      sha256: equipmentLoanDocuments.sha256,
+      errorMessage: equipmentLoanDocuments.errorMessage,
+      generatedAt: equipmentLoanDocuments.generatedAt,
+    })
+    .from(equipmentLoanDocuments)
+    .where(eq(equipmentLoanDocuments.requestId, requestId))
+    .orderBy(asc(equipmentLoanDocuments.stage));
 
   return {
     ...request,
@@ -248,7 +273,9 @@ export async function getEquipmentLoanDetail(
           id: unit.id,
           serialNo: unit.serialNo,
           governmentAssetNo: unit.governmentAssetNo ?? "",
-        })),
+      })),
     })),
+    signatures: signatureRows,
+    documents: documentRows,
   };
 }

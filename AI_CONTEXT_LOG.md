@@ -578,3 +578,34 @@ Corak berselang = instance sihat vs beracun.
 - Migrasi telah dijana dan disemak tetapi **belum dijalankan pada Supabase
   produksi**. Jalankan `npm run db:migrate` selepas semakan sebelum menggunakan
   modul.
+
+## 2026-07-29 — Fasa 2 Peminjaman Peralatan: KEW.PA-9
+
+- Templat rasmi ialah `AM 2.4 Lampiran A`. Susun atur sistem menggunakan
+  `docs/borang pinjaman peralatan coe.xlsx` yang telah disemak terhadap medan
+  dokumen rasmi. Salinan PDF statik di
+  `public/templates/kew-pa-9-am24.pdf` digunakan sebagai latar; runtime Vercel
+  hanya menindih data dan tidak memerlukan Excel/Word/LibreOffice.
+- Aliran serahan wajib menerima dua tandatangan pada peranti pentadbir:
+  peminjam dan pelulus. Kedua-duanya disimpan dalam satu transaksi sebelum unit
+  berubah daripada `reserved` kepada `borrowed`.
+- Aliran pemulangan wajib menerima tandatangan pemulang dan penerima. Kedua-dua
+  tandatangan, pemulihan unit kepada `available`, tarikh pelepasan dan status
+  `returned` disimpan dalam satu transaksi.
+- Tandatangan disimpan sebagai koordinat ternormal JSON, bukan imej/blob.
+  Setiap rekod menyimpan nama, jawatan, masa, pentadbir yang menangkap,
+  konteks kaedah tangkapan dan SHA-256 data pen. Satu peranan tidak boleh
+  ditulis semula bagi permohonan yang sama.
+- Penjanaan PDF dipisahkan daripada transaksi tandatangan supaya kelewatan
+  Google Apps Script/Drive tidak boleh membatalkan serahan atau pemulangan.
+  Pentadbir sentiasa boleh memuat turun PDF terus; butang berasingan menjana
+  dan menyimpan salinan Drive.
+- Dua versi dokumen disimpan: `handover` selepas serahan dan `final` selepas
+  pemulangan. Versi akhir mengandungi keempat-empat tandatangan dan tarikh
+  pemulangan/penerimaan.
+- Templat menyediakan 20 baris aset pada satu muka surat A4. Permohonan
+  melebihi 20 unit menghasilkan halaman sambungan lengkap dengan kepala borang
+  dan tandatangan berulang; nombor `Bil` diteruskan pada halaman berikutnya.
+- Migrasi `0012_equipment_kew_pa9` menambah
+  `equipment_loan_signatures` dan `equipment_loan_documents`. Migrasi disemak
+  tetapi **belum dijalankan pada Supabase produksi**.

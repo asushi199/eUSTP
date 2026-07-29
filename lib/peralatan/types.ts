@@ -98,6 +98,40 @@ export type EquipmentLoanDetail = {
   expectedReturnDate: string;
   status: EquipmentLoanListItem["status"];
   decisionNote: string;
+  approvedAt: Date | null;
+  handedOverAt: Date | null;
+  returnedAt: Date | null;
   createdAt: Date;
   items: EquipmentLoanDetailItem[];
+  signatures: EquipmentLoanSignature[];
+  documents: EquipmentLoanDocument[];
+};
+
+export type EquipmentSignatureRole =
+  | "borrower"
+  | "approver"
+  | "returner"
+  | "receiver";
+
+export type EquipmentSignatureStroke = Array<{ x: number; y: number }>;
+
+export type EquipmentLoanSignature = {
+  role: EquipmentSignatureRole;
+  signerName: string;
+  signerPosition: string;
+  strokes: EquipmentSignatureStroke[];
+  signedAt: Date;
+};
+
+export type EquipmentDocumentStage = "handover" | "final";
+
+export type EquipmentLoanDocument = {
+  stage: EquipmentDocumentStage;
+  status: "generating" | "ready" | "failed";
+  fileName: string;
+  storagePath: string | null;
+  publicUrl: string | null;
+  sha256: string | null;
+  errorMessage: string;
+  generatedAt: Date | null;
 };

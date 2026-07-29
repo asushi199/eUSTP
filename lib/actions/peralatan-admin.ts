@@ -1,15 +1,33 @@
 "use server";
 
+import { createHash } from "node:crypto";
 import { and, eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import {
+  driveViewUrl,
+  isGasStorageConfigured,
+  uploadFileViaGas,
+} from "@/lib/gas-upload";
+import {
+  buildKewPa9Data,
+  generateKewPa9Pdf,
+} from "@/lib/peralatan/kew-pa9";
+import { getEquipmentLoanDetail } from "@/lib/peralatan/queries";
+import type {
+  EquipmentDocumentStage,
+  EquipmentSignatureRole,
+} from "@/lib/peralatan/types";
 import { requireTempahanAccess } from "@/lib/rbac";
 import {
   equipmentLoanAllocations,
+  equipmentLoanDocuments,
   equipmentLoanEvents,
   equipmentLoanItems,
   equipmentLoanRequests,
+  equipmentLoanSignatures,
   equipmentTypes,
   equipmentUnits,
   pkgs,
@@ -20,6 +38,7 @@ export type EquipmentAdminActionResult = {
   ok: boolean;
   error?: string;
   imported?: number;
+  publicUrl?: string;
 };
 
 const unitStatuses = [
@@ -430,4 +449,414 @@ export async function rejectEquipmentLoan(
   });
   refreshEquipmentPaths(pkgId, requestId);
   return { ok: true };
+}
+
+const signaturePointSchema = z.object({
+  x: z.number().min(0).max(1),
+  y: z.number().min(0).max(1),
+});
+const signaturePayloadSchema = z.object({
+  role: z.enum(["borrower", "approver", "returner", "receiver"]),
+  signerName: z.string().trim().min(2).max(200),
+  signerPosition: z.string().trim().min(2).max(300),
+  strokes: z
+    .array(z.array(signaturePointSchema).min(2).max(500))
+    .min(1)
+    .max(40),
+});
+
+type SignaturePayload = z.infer<typeof signaturePayloadSchema>;
+
+function parseSignaturePair(
+  formData: FormData,
+  expectedRoles: [EquipmentSignatureRole, EquipmentSignatureRole],
+): SignaturePayload[] {
+  const raw = String(formData.get("signatures") ?? "");
+  if (raw.length > 300_000) {
+    throw new Error("Data tandatangan terlalu besar. Padam dan tandatangan semula.");
+  }
+  const parsed = z.array(signaturePayloadSchema).length(2).parse(JSON.parse(raw));
+  const roles = new Set(parsed.map((signature) => signature.role));
+  if (
+    roles.size !== 2 ||
+    expectedRoles.some((role) => !roles.has(role))
+  ) {
+    throw new Error("Pasangan tandatangan tidak lengkap.");
+  }
+  const pointCount = parsed.reduce(
+    (total, signature) =>
+      total +
+      signature.strokes.reduce((strokeTotal, stroke) => strokeTotal + stroke.length, 0),
+    0,
+  );
+  if (pointCount > 6_000) {
+    throw new Error("Tandatangan terlalu terperinci. Padam dan tandatangan semula.");
+  }
+  return parsed;
+}
+
+function signatureHash(requestId: string, signature: SignaturePayload): string {
+  return createHash("sha256")
+    .update(
+      JSON.stringify({
+        requestId,
+        role: signature.role,
+        signerName: signature.signerName,
+        signerPosition: signature.signerPosition,
+        strokes: signature.strokes,
+      }),
+    )
+    .digest("hex");
+}
+
+async function signatureAuditContext() {
+  const requestHeaders = await headers();
+  return {
+    captureMethod: "onsite_signature_pad",
+    userAgent: (requestHeaders.get("user-agent") ?? "").slice(0, 300),
+  };
+}
+
+async function allocatedUnitsForRequest(
+  tx: Parameters<Parameters<typeof db.transaction>[0]>[0],
+  requestId: string,
+) {
+  return tx
+    .select({
+      allocationId: equipmentLoanAllocations.id,
+      unitId: equipmentLoanAllocations.unitId,
+    })
+    .from(equipmentLoanAllocations)
+    .innerJoin(
+      equipmentLoanItems,
+      eq(equipmentLoanAllocations.requestItemId, equipmentLoanItems.id),
+    )
+    .where(eq(equipmentLoanItems.requestId, requestId));
+}
+
+export async function recordEquipmentHandover(
+  pkgId: string,
+  requestId: string,
+  formData: FormData,
+): Promise<EquipmentAdminActionResult> {
+  const user = await requireTempahanAccess(pkgId);
+  let signatures: SignaturePayload[];
+  try {
+    signatures = parseSignaturePair(formData, ["borrower", "approver"]);
+  } catch (error) {
+    return {
+      ok: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Lengkapkan kedua-dua tandatangan serahan.",
+    };
+  }
+  const auditContext = await signatureAuditContext();
+
+  try {
+    await db.transaction(async (tx) => {
+      const request = await tx.query.equipmentLoanRequests.findFirst({
+        where: and(
+          eq(equipmentLoanRequests.id, requestId),
+          eq(equipmentLoanRequests.pkgId, pkgId),
+        ),
+      });
+      if (!request || request.status !== "approved") {
+        throw new Error("Permohonan ini tidak lagi menunggu serahan.");
+      }
+
+      const allocations = await allocatedUnitsForRequest(tx, requestId);
+      if (allocations.length === 0) {
+        throw new Error("Tiada unit diperuntukkan untuk permohonan ini.");
+      }
+      const unitIds = allocations.map((allocation) => allocation.unitId);
+      const updatedUnits = await tx
+        .update(equipmentUnits)
+        .set({ status: "borrowed", updatedAt: new Date() })
+        .where(
+          and(
+            inArray(equipmentUnits.id, unitIds),
+            eq(equipmentUnits.pkgId, pkgId),
+            eq(equipmentUnits.status, "reserved"),
+          ),
+        )
+        .returning({ id: equipmentUnits.id });
+      if (updatedUnits.length !== unitIds.length) {
+        throw new Error(
+          "Status unit telah berubah. Muat semula halaman sebelum serahan.",
+        );
+      }
+
+      const signedAt = new Date();
+      await tx.insert(equipmentLoanSignatures).values(
+        signatures.map((signature) => ({
+          requestId,
+          role: signature.role,
+          signerName: signature.signerName,
+          signerPosition: signature.signerPosition,
+          strokes: signature.strokes,
+          strokeSha256: signatureHash(requestId, signature),
+          capturedByUserId: Number(user.id),
+          auditContext,
+          signedAt,
+        })),
+      );
+      await tx
+        .update(equipmentLoanRequests)
+        .set({
+          status: "handed_over",
+          handedOverAt: signedAt,
+          updatedAt: signedAt,
+        })
+        .where(eq(equipmentLoanRequests.id, requestId));
+      await tx.insert(equipmentLoanEvents).values({
+        requestId,
+        action: "equipment_handed_over",
+        actorUserId: Number(user.id),
+        details: {
+          unitIds,
+          signatureRoles: ["borrower", "approver"],
+        },
+      });
+    });
+    refreshEquipmentPaths(pkgId, requestId);
+    return { ok: true };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Serahan tidak berjaya.",
+    };
+  }
+}
+
+export async function recordEquipmentReturn(
+  pkgId: string,
+  requestId: string,
+  formData: FormData,
+): Promise<EquipmentAdminActionResult> {
+  const user = await requireTempahanAccess(pkgId);
+  let signatures: SignaturePayload[];
+  try {
+    signatures = parseSignaturePair(formData, ["returner", "receiver"]);
+  } catch (error) {
+    return {
+      ok: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Lengkapkan kedua-dua tandatangan pemulangan.",
+    };
+  }
+  const auditContext = await signatureAuditContext();
+
+  try {
+    await db.transaction(async (tx) => {
+      const request = await tx.query.equipmentLoanRequests.findFirst({
+        where: and(
+          eq(equipmentLoanRequests.id, requestId),
+          eq(equipmentLoanRequests.pkgId, pkgId),
+        ),
+      });
+      if (!request || request.status !== "handed_over") {
+        throw new Error("Permohonan ini tidak lagi menunggu pemulangan.");
+      }
+
+      const allocations = await allocatedUnitsForRequest(tx, requestId);
+      const unitIds = allocations.map((allocation) => allocation.unitId);
+      if (unitIds.length === 0) {
+        throw new Error("Tiada unit pinjaman dijumpai.");
+      }
+      const returnedAt = new Date();
+      const updatedUnits = await tx
+        .update(equipmentUnits)
+        .set({ status: "available", updatedAt: returnedAt })
+        .where(
+          and(
+            inArray(equipmentUnits.id, unitIds),
+            eq(equipmentUnits.pkgId, pkgId),
+            eq(equipmentUnits.status, "borrowed"),
+          ),
+        )
+        .returning({ id: equipmentUnits.id });
+      if (updatedUnits.length !== unitIds.length) {
+        throw new Error(
+          "Status unit telah berubah. Muat semula halaman sebelum menerima.",
+        );
+      }
+
+      await tx.insert(equipmentLoanSignatures).values(
+        signatures.map((signature) => ({
+          requestId,
+          role: signature.role,
+          signerName: signature.signerName,
+          signerPosition: signature.signerPosition,
+          strokes: signature.strokes,
+          strokeSha256: signatureHash(requestId, signature),
+          capturedByUserId: Number(user.id),
+          auditContext,
+          signedAt: returnedAt,
+        })),
+      );
+      await tx
+        .update(equipmentLoanAllocations)
+        .set({ releasedAt: returnedAt })
+        .where(
+          inArray(
+            equipmentLoanAllocations.id,
+            allocations.map((allocation) => allocation.allocationId),
+          ),
+        );
+      await tx
+        .update(equipmentLoanRequests)
+        .set({
+          status: "returned",
+          returnedAt,
+          updatedAt: returnedAt,
+        })
+        .where(eq(equipmentLoanRequests.id, requestId));
+      await tx.insert(equipmentLoanEvents).values({
+        requestId,
+        action: "equipment_returned",
+        actorUserId: Number(user.id),
+        details: {
+          unitIds,
+          signatureRoles: ["returner", "receiver"],
+        },
+      });
+    });
+    refreshEquipmentPaths(pkgId, requestId);
+    return { ok: true };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Pemulangan tidak berjaya.",
+    };
+  }
+}
+
+function documentFileName(referenceNo: string, stage: EquipmentDocumentStage) {
+  const safeReference = referenceNo.replace(/[^a-zA-Z0-9_-]+/g, "-");
+  return `KEW.PA-9-${safeReference}-${stage === "final" ? "lengkap" : "serahan"}.pdf`;
+}
+
+export async function generateAndStoreEquipmentKewPa9(
+  pkgId: string,
+  requestId: string,
+  stage: EquipmentDocumentStage,
+): Promise<EquipmentAdminActionResult> {
+  const user = await requireTempahanAccess(pkgId);
+  if (stage !== "handover" && stage !== "final") {
+    return { ok: false, error: "Versi dokumen tidak sah." };
+  }
+  const request = await getEquipmentLoanDetail(pkgId, requestId);
+  if (!request) return { ok: false, error: "Permohonan tidak dijumpai." };
+  if (
+    (stage === "handover" &&
+      request.status !== "handed_over" &&
+      request.status !== "returned") ||
+    (stage === "final" && request.status !== "returned")
+  ) {
+    return {
+      ok: false,
+      error:
+        stage === "final"
+          ? "Lengkapkan pemulangan dan tandatangan dahulu."
+          : "Lengkapkan serahan dan tandatangan dahulu.",
+    };
+  }
+  if (!isGasStorageConfigured()) {
+    return {
+      ok: false,
+      error:
+        "Google Drive belum dikonfigurasi. PDF masih boleh dimuat turun terus.",
+    };
+  }
+
+  const fileName = documentFileName(request.referenceNo, stage);
+  await db
+    .insert(equipmentLoanDocuments)
+    .values({
+      requestId,
+      stage,
+      status: "generating",
+      fileName,
+      generatedByUserId: Number(user.id),
+    })
+    .onConflictDoUpdate({
+      target: [
+        equipmentLoanDocuments.requestId,
+        equipmentLoanDocuments.stage,
+      ],
+      set: {
+        status: "generating",
+        fileName,
+        errorMessage: "",
+        generatedByUserId: Number(user.id),
+        updatedAt: new Date(),
+      },
+    });
+
+  try {
+    const buffer = await generateKewPa9Pdf(buildKewPa9Data(request), stage);
+    const sha256 = createHash("sha256").update(buffer).digest("hex");
+    const uploaded = await uploadFileViaGas(
+      { name: fileName, type: "application/pdf", buffer },
+      {
+        fileName,
+        subPath: [
+          "Pinjaman Peralatan",
+          pkgId,
+          String(new Date().getFullYear()),
+        ],
+      },
+    );
+    const publicUrl = driveViewUrl(uploaded.path) ?? uploaded.publicUrl;
+    await db
+      .update(equipmentLoanDocuments)
+      .set({
+        status: "ready",
+        storagePath: uploaded.path,
+        publicUrl,
+        sha256,
+        errorMessage: "",
+        generatedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(equipmentLoanDocuments.requestId, requestId),
+          eq(equipmentLoanDocuments.stage, stage),
+        ),
+      );
+    await db.insert(equipmentLoanEvents).values({
+      requestId,
+      action: "kew_pa9_generated",
+      actorUserId: Number(user.id),
+      details: { stage, fileName, sha256, storagePath: uploaded.path },
+    });
+    refreshEquipmentPaths(pkgId, requestId);
+    return { ok: true, publicUrl };
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "PDF tidak dapat disimpan.";
+    await db
+      .update(equipmentLoanDocuments)
+      .set({
+        status: "failed",
+        errorMessage: message.slice(0, 1000),
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(equipmentLoanDocuments.requestId, requestId),
+          eq(equipmentLoanDocuments.stage, stage),
+        ),
+      );
+    refreshEquipmentPaths(pkgId, requestId);
+    return {
+      ok: false,
+      error: `${message} Tandatangan dan status pinjaman telah disimpan dengan selamat.`,
+    };
+  }
 }

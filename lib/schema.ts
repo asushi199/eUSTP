@@ -487,6 +487,29 @@ export const equipmentLoanStatus = pgEnum("equipment_loan_status", [
   "returned",
 ]);
 
+export const equipmentSignatureRole = pgEnum("equipment_signature_role", [
+  "borrower",
+  "approver",
+  "returner",
+  "receiver",
+]);
+
+export const equipmentDocumentStage = pgEnum("equipment_document_stage", [
+  "handover",
+  "final",
+]);
+
+export const equipmentDocumentStatus = pgEnum("equipment_document_status", [
+  "generating",
+  "ready",
+  "failed",
+]);
+
+export type EquipmentSignatureStroke = Array<{
+  x: number;
+  y: number;
+}>;
+
 /** Jenis/model peralatan yang dikongsi oleh semua PKG. */
 export const equipmentTypes = pgTable(
   "equipment_types",
@@ -664,6 +687,80 @@ export const equipmentLoanEvents = pgTable(
     requestIdx: index("equipment_loan_events_request_idx").on(
       t.requestId,
       t.createdAt,
+    ),
+  }),
+);
+
+/**
+ * Tandatangan disimpan sebagai koordinat ternormal (0..1), bukan imej.
+ * Satu peranan hanya boleh menandatangani sekali bagi setiap permohonan.
+ */
+export const equipmentLoanSignatures = pgTable(
+  "equipment_loan_signatures",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    requestId: uuid("request_id")
+      .notNull()
+      .references(() => equipmentLoanRequests.id, { onDelete: "cascade" }),
+    role: equipmentSignatureRole("role").notNull(),
+    signerName: text("signer_name").notNull(),
+    signerPosition: text("signer_position").notNull().default(""),
+    strokes: jsonb("strokes")
+      .$type<EquipmentSignatureStroke[]>()
+      .notNull()
+      .default([]),
+    strokeSha256: text("stroke_sha256").notNull(),
+    capturedByUserId: integer("captured_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    auditContext: jsonb("audit_context")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    signedAt: timestamp("signed_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    requestRoleIdx: uniqueIndex("equipment_loan_signatures_request_role_idx").on(
+      t.requestId,
+      t.role,
+    ),
+    requestSignedIdx: index("equipment_loan_signatures_request_signed_idx").on(
+      t.requestId,
+      t.signedAt,
+    ),
+  }),
+);
+
+/** Versi PDF KEW.PA-9 selepas serahan dan selepas pemulangan. */
+export const equipmentLoanDocuments = pgTable(
+  "equipment_loan_documents",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    requestId: uuid("request_id")
+      .notNull()
+      .references(() => equipmentLoanRequests.id, { onDelete: "cascade" }),
+    stage: equipmentDocumentStage("stage").notNull(),
+    status: equipmentDocumentStatus("status").notNull().default("generating"),
+    fileName: text("file_name").notNull(),
+    storagePath: text("storage_path"),
+    publicUrl: text("public_url"),
+    sha256: text("sha256"),
+    errorMessage: text("error_message").notNull().default(""),
+    generatedByUserId: integer("generated_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    generatedAt: timestamp("generated_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    requestStageIdx: uniqueIndex("equipment_loan_documents_request_stage_idx").on(
+      t.requestId,
+      t.stage,
+    ),
+    requestStatusIdx: index("equipment_loan_documents_request_status_idx").on(
+      t.requestId,
+      t.status,
     ),
   }),
 );

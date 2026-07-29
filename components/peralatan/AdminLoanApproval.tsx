@@ -8,13 +8,18 @@ import {
 } from "@/lib/actions/peralatan-admin";
 import { EQUIPMENT_LOAN_STATUS_LABEL } from "@/lib/peralatan/status";
 import type { EquipmentLoanDetail } from "@/lib/peralatan/types";
+import EquipmentLoanLifecycle from "./EquipmentLoanLifecycle";
 
 export default function AdminLoanApproval({
   pkgId,
   request,
+  currentUser,
+  manager,
 }: {
   pkgId: string;
   request: EquipmentLoanDetail;
+  currentUser: { name: string; position: string };
+  manager: { name: string; position: string };
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -213,13 +218,17 @@ export default function AdminLoanApproval({
           </div>
         </section>
 
-        <section className="rounded-xl border border-fog bg-cloud/80 p-5">
-          <p className="font-semibold text-ink">Peringkat seterusnya</p>
-          <p className="mt-1 text-sm leading-relaxed text-graphite">
-            Selepas kelulusan, unit berstatus ditempah. Tandatangan digital dan
-            serahan fizikal akan disambungkan pada fasa KEW.PA-9.
-          </p>
-        </section>
+        {request.status === "approved" ||
+        request.status === "handed_over" ||
+        request.status === "returned" ? (
+          <EquipmentLoanLifecycle
+            key={request.status}
+            pkgId={pkgId}
+            request={request}
+            currentUser={currentUser}
+            manager={manager}
+          />
+        ) : null}
       </div>
 
       <aside className="lg:sticky lg:top-24 lg:self-start">

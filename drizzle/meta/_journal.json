@@ -85,6 +85,13 @@
       "when": 1785067200000,
       "tag": "0011_equipment_loans",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1785326400000,
+      "tag": "0012_equipment_kew_pa9",
+      "breakpoints": true
     }
   ]
 }
