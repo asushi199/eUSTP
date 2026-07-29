@@ -5,7 +5,7 @@ import { and, eq, inArray } from "drizzle-orm";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { db } from "@/lib/db";
+import { db, withDbTimeout } from "@/lib/db";
 import {
   EQUIPMENT_DECLARATION_TEXT,
   EQUIPMENT_DECLARATION_VERSION,
@@ -27,6 +27,13 @@ import {
   schools,
 } from "@/lib/schema";
 import { normalizePhoneNumber } from "@/lib/tempahan/booking-rules";
+
+function isDbTimeoutError(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    error.message.includes("Pangkalan data tidak bertindak balas")
+  );
+}
 
 const requestedItemsSchema = z
   .array(
@@ -129,10 +136,14 @@ export async function createEquipmentLoanAction(
   }
 
   try {
-    const [pkg, typeRows, availableRows] = await Promise.all([
+    // Sequential + timeout: Promise.all on ~3 pooler slots previously hung pages
+    // for the full Vercel budget when a socket was dead.
+    const pkg = await withDbTimeout(
       db.query.pkgs.findFirst({
         where: and(eq(pkgs.id, pkgId), eq(pkgs.active, true)),
       }),
+    );
+    const typeRows = await withDbTimeout(
       db
         .select({ id: equipmentTypes.id })
         .from(equipmentTypes)
@@ -142,6 +153,8 @@ export async function createEquipmentLoanAction(
             eq(equipmentTypes.active, true),
           ),
         ),
+    );
+    const availableRows = await withDbTimeout(
       db
         .select({ equipmentTypeId: equipmentUnits.equipmentTypeId })
         .from(equipmentUnits)
@@ -152,7 +165,7 @@ export async function createEquipmentLoanAction(
             inArray(equipmentUnits.equipmentTypeId, [...uniqueTypeIds]),
           ),
         ),
-    ]);
+    );
     if (!pkg || typeRows.length !== requestedItems.length) {
       return { ok: false, message: "PKG atau peralatan yang dipilih tidak sah." };
     }
@@ -178,7 +191,9 @@ export async function createEquipmentLoanAction(
     let resolvedSchoolCode: string | null = null;
     if (applicantType === "sekolah") {
       const school = schoolCode
-        ? await db.query.schools.findFirst({ where: eq(schools.code, schoolCode) })
+        ? await withDbTimeout(
+            db.query.schools.findFirst({ where: eq(schools.code, schoolCode) }),
+          )
         : null;
       if (!school) return { ok: false, message: "Sila pilih sekolah yang sah." };
       orgName = school.name;
@@ -201,50 +216,52 @@ export async function createEquipmentLoanAction(
       .split(",")[0]
       .trim();
 
-    await db.transaction(async (tx) => {
-      await tx.insert(equipmentLoanRequests).values({
-        id: requestId,
-        referenceNo,
-        pkgId,
-        applicantType,
-        schoolCode: resolvedSchoolCode,
-        orgName,
-        applicantName,
-        position,
-        contact,
-        contactNormalized,
-        applicantMykadEncrypted: encryptMykad(applicantMykad),
-        applicantMykadLast4: applicantMykad.slice(-4),
-        declarationVersion: EQUIPMENT_DECLARATION_VERSION,
-        declarationText: EQUIPMENT_DECLARATION_TEXT,
-        declarationAcceptedAt,
-        purpose,
-        usageLocation,
-        borrowDate,
-        expectedReturnDate,
-      });
-      await tx.insert(equipmentLoanItems).values(
-        requestedItems.map((item) => ({
-          requestId,
-          equipmentTypeId: item.equipmentTypeId,
-          quantity: item.quantity,
-        })),
-      );
-      await tx.insert(equipmentLoanEvents).values({
-        requestId,
-        action: "application_created",
-        details: {
+    await withDbTimeout(
+      db.transaction(async (tx) => {
+        await tx.insert(equipmentLoanRequests).values({
+          id: requestId,
+          referenceNo,
+          pkgId,
           applicantType,
-          itemCount: requestedItems.length,
-          declarationAccepted: true,
+          schoolCode: resolvedSchoolCode,
+          orgName,
+          applicantName,
+          position,
+          contact,
+          contactNormalized,
+          applicantMykadEncrypted: encryptMykad(applicantMykad),
+          applicantMykadLast4: applicantMykad.slice(-4),
           declarationVersion: EQUIPMENT_DECLARATION_VERSION,
-          declarationAcceptedAt: declarationAcceptedAt.toISOString(),
-          captureMethod: "application_checkbox",
-          ipHash: hashAuditValue(forwardedIp),
-          userAgent: (requestHeaders.get("user-agent") ?? "").slice(0, 300),
-        },
-      });
-    });
+          declarationText: EQUIPMENT_DECLARATION_TEXT,
+          declarationAcceptedAt,
+          purpose,
+          usageLocation,
+          borrowDate,
+          expectedReturnDate,
+        });
+        await tx.insert(equipmentLoanItems).values(
+          requestedItems.map((item) => ({
+            requestId,
+            equipmentTypeId: item.equipmentTypeId,
+            quantity: item.quantity,
+          })),
+        );
+        await tx.insert(equipmentLoanEvents).values({
+          requestId,
+          action: "application_created",
+          details: {
+            applicantType,
+            itemCount: requestedItems.length,
+            declarationAccepted: true,
+            declarationVersion: EQUIPMENT_DECLARATION_VERSION,
+            declarationAcceptedAt: declarationAcceptedAt.toISOString(),
+            captureMethod: "application_checkbox",
+            ipHash: hashAuditValue(forwardedIp),
+            userAgent: (requestHeaders.get("user-agent") ?? "").slice(0, 300),
+          },
+        });
+      }),
+    );
 
     const baseUrl = await resolveBaseUrl();
     const managerPhone = pkg.equipmentManagerPhone ?? pkg.whatsappAdminPhone ?? "";
@@ -261,6 +278,7 @@ export async function createEquipmentLoanAction(
 
     revalidatePath("/tempahan/peralatan");
     revalidatePath(`/admin/peralatan/${pkgId}`);
+    revalidatePath(`/admin/peralatan/${pkgId}/permohonan`);
     revalidatePath("/admin/peralatan");
     return {
       ok: true,
@@ -272,6 +290,13 @@ export async function createEquipmentLoanAction(
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
+    if (isDbTimeoutError(error)) {
+      return {
+        ok: false,
+        message:
+          "Pangkalan data mengambil masa terlalu lama. Sila cuba semula sebentar lagi.",
+      };
+    }
     if (message.includes("equipment_")) {
       return {
         ok: false,
@@ -302,7 +327,7 @@ export async function checkEquipmentLoansAction(
     };
   }
   try {
-    const requests = await listEquipmentLoansByContact(contact);
+    const requests = await withDbTimeout(listEquipmentLoansByContact(contact));
     return {
       ok: true,
       message:
@@ -311,10 +336,12 @@ export async function checkEquipmentLoansAction(
           : "Tiada permohonan dijumpai untuk nombor telefon ini.",
       requests,
     };
-  } catch {
+  } catch (error) {
     return {
       ok: false,
-      message: "Permohonan tidak dapat disemak. Sila cuba semula.",
+      message: isDbTimeoutError(error)
+        ? "Pangkalan data mengambil masa terlalu lama. Sila cuba semula sebentar lagi."
+        : "Permohonan tidak dapat disemak. Sila cuba semula.",
       requests: [],
     };
   }
