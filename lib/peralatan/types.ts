@@ -172,6 +172,7 @@ export type EquipmentLoanPublicResult = {
   borrowDate: string;
   expectedReturnDate: string;
   status: EquipmentLoanListItem["status"];
+  decisionNote: string;
   createdAt: Date;
   items: Array<{ name: string; quantity: number }>;
 };

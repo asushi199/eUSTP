@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
 import PhoneInput from "@/components/PhoneInput";
 import {
   checkEquipmentLoansAction,
@@ -25,6 +25,14 @@ function malaysiaMonth(value: Date | string) {
   return `${year}-${month}`;
 }
 
+function malaysiaMonthLabel(month: string) {
+  return new Intl.DateTimeFormat("ms-MY", {
+    month: "long",
+    year: "numeric",
+    timeZone: "Asia/Kuala_Lumpur",
+  }).format(new Date(`${month}-01T00:00:00+08:00`));
+}
+
 export default function EquipmentLoanLookup() {
   const [state, formAction, pending] = useActionState(
     checkEquipmentLoansAction,
@@ -37,44 +45,33 @@ export default function EquipmentLoanLookup() {
         new Set(
           state.requests.map((request) => malaysiaMonth(request.createdAt)),
         ),
-      ),
+      ).sort((a, b) => b.localeCompare(a)),
     [state.requests],
   );
-  const activeMonth = monthOptions.includes(selectedMonth) ? selectedMonth : "";
+  const currentMonth = malaysiaMonth(new Date());
+  const defaultMonth = monthOptions.includes(currentMonth)
+    ? currentMonth
+    : (monthOptions[0] ?? "");
+  const activeMonth = monthOptions.includes(selectedMonth)
+    ? selectedMonth
+    : defaultMonth;
   const visibleRequests = useMemo(
     () =>
-      activeMonth
-        ? state.requests.filter(
-            (request) => malaysiaMonth(request.createdAt) === activeMonth,
-          )
-        : state.requests,
+      state.requests.filter(
+        (request) => malaysiaMonth(request.createdAt) === activeMonth,
+      ),
     [activeMonth, state.requests],
   );
-  const groupedRequests = useMemo(
-    () =>
-      visibleRequests.reduce<
-        Array<{ month: string; label: string; requests: typeof visibleRequests }>
-      >((groups, request) => {
-        const date = new Date(request.createdAt);
-        const month = malaysiaMonth(date);
-        const existing = groups.find((group) => group.month === month);
-        if (existing) {
-          existing.requests.push(request);
-        } else {
-          groups.push({
-            month,
-            label: new Intl.DateTimeFormat("ms-MY", {
-              month: "long",
-              year: "numeric",
-              timeZone: "Asia/Kuala_Lumpur",
-            }).format(date),
-            requests: [request],
-          });
-        }
-        return groups;
-      }, []),
-    [visibleRequests],
-  );
+  const activeMonthIndex = monthOptions.indexOf(activeMonth);
+
+  useEffect(() => {
+    setSelectedMonth("");
+  }, [state.requests]);
+
+  function selectMonth(offset: number) {
+    const next = monthOptions[activeMonthIndex + offset];
+    if (next) setSelectedMonth(next);
+  }
 
   return (
     <div className="space-y-5">
@@ -116,50 +113,35 @@ export default function EquipmentLoanLookup() {
       ) : null}
 
       {state.requests.length > 0 ? (
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <label className="label" htmlFor="equipment-check-month">
-              Bulan permohonan
-            </label>
-            <select
-              id="equipment-check-month"
-              className="input mt-1 w-full min-w-56 sm:w-auto"
-              value={activeMonth}
-              onChange={(event) => setSelectedMonth(event.target.value)}
-            >
-              <option value="">Semua bulan</option>
-              {monthOptions.map((month) => (
-                <option key={month} value={month}>
-                  {new Intl.DateTimeFormat("ms-MY", {
-                    month: "long",
-                    year: "numeric",
-                    timeZone: "Asia/Kuala_Lumpur",
-                  }).format(new Date(`${month}-01T00:00:00+08:00`))}
-                </option>
-              ))}
-            </select>
-          </div>
-          <p className="text-sm font-semibold text-charcoal">
-            {visibleRequests.length} permohonan
+        <div className="flex items-center justify-between gap-3 border-y border-fog py-3">
+          <button
+            type="button"
+            onClick={() => selectMonth(1)}
+            disabled={activeMonthIndex >= monthOptions.length - 1}
+            aria-label="Bulan permohonan sebelumnya"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-fog text-lg text-graphite transition hover:border-steel hover:text-ink disabled:cursor-not-allowed disabled:opacity-35"
+          >
+            ←
+          </button>
+          <p className="text-center text-sm font-semibold capitalize text-ink">
+            {malaysiaMonthLabel(activeMonth)}
+            <span className="font-normal text-graphite"> · {visibleRequests.length}</span>
           </p>
+          <button
+            type="button"
+            onClick={() => selectMonth(-1)}
+            disabled={activeMonthIndex <= 0}
+            aria-label="Bulan permohonan seterusnya"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-fog text-lg text-graphite transition hover:border-steel hover:text-ink disabled:cursor-not-allowed disabled:opacity-35"
+          >
+            →
+          </button>
         </div>
       ) : null}
 
-      <div className="space-y-7">
-        {groupedRequests.map((group) => (
-          <section key={group.month}>
-            <div className="mb-3 flex items-center gap-3">
-              <h2 className="text-sm font-semibold capitalize text-ink">
-                {group.label}
-              </h2>
-              <span className="h-px flex-1 bg-fog" />
-              <span className="text-xs tabular-nums text-graphite">
-                {group.requests.length}
-              </span>
-            </div>
-            <div className="space-y-4">
-              {group.requests.map((request) => (
-                <article key={request.id} className="card p-5 sm:p-6">
+      <div className="space-y-4">
+        {visibleRequests.map((request) => (
+          <article key={request.id} className="card p-5 sm:p-6">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <p className="font-mono text-xs font-semibold uppercase tracking-[0.11em] text-primary">
@@ -211,10 +193,13 @@ export default function EquipmentLoanLookup() {
                     </ul>
                   </div>
 
-                </article>
-              ))}
-            </div>
-          </section>
+                  {request.status === "rejected" && request.decisionNote ? (
+                    <div className="mt-4 rounded-lg border border-bloom-rose bg-bloom-rose/20 p-4 text-sm leading-relaxed text-charcoal">
+                      <p className="font-semibold text-bloom-deep">Catatan pegawai</p>
+                      <p className="mt-1">{request.decisionNote}</p>
+                    </div>
+                  ) : null}
+          </article>
         ))}
       </div>
     </div>

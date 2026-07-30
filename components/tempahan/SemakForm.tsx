@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
 import PhoneInput from "@/components/PhoneInput";
 import { semakTempahanAction, type CheckBookingState } from "@/lib/actions/tempahan";
 import { formatBookingStatus, formatSlot, type Slot } from "@/lib/tempahan/booking-rules";
@@ -15,6 +15,18 @@ const STATUS_DOT: Record<string, string> = {
   approved: "bg-primary",
 };
 
+function bookingMonth(date: string) {
+  return date.slice(0, 7);
+}
+
+function malaysiaMonthLabel(month: string) {
+  return new Intl.DateTimeFormat("ms-MY", {
+    month: "long",
+    year: "numeric",
+    timeZone: "Asia/Kuala_Lumpur",
+  }).format(new Date(`${month}-01T00:00:00+08:00`));
+}
+
 export default function SemakForm({
   pkgId,
   roomNames,
@@ -23,6 +35,36 @@ export default function SemakForm({
   roomNames: Record<string, string>;
 }) {
   const [state, formAction, pending] = useActionState(semakTempahanAction, initialState);
+  const [selectedMonth, setSelectedMonth] = useState("");
+  const monthOptions = useMemo(
+    () =>
+      Array.from(new Set(state.bookings.map((booking) => bookingMonth(booking.date)))).sort(
+        (a, b) => b.localeCompare(a),
+      ),
+    [state.bookings],
+  );
+  const now = new Date();
+  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const defaultMonth = monthOptions.includes(currentMonth)
+    ? currentMonth
+    : (monthOptions[0] ?? "");
+  const activeMonth = monthOptions.includes(selectedMonth)
+    ? selectedMonth
+    : defaultMonth;
+  const visibleBookings = useMemo(
+    () => state.bookings.filter((booking) => bookingMonth(booking.date) === activeMonth),
+    [activeMonth, state.bookings],
+  );
+  const activeMonthIndex = monthOptions.indexOf(activeMonth);
+
+  useEffect(() => {
+    setSelectedMonth("");
+  }, [state.bookings]);
+
+  function selectMonth(offset: number) {
+    const next = monthOptions[activeMonthIndex + offset];
+    if (next) setSelectedMonth(next);
+  }
 
   return (
     <div className="space-y-6">
@@ -56,8 +98,34 @@ export default function SemakForm({
       )}
 
       {state.bookings.length > 0 && (
-        <div className="space-y-3">
-          {state.bookings.map((b) => {
+        <>
+          <div className="flex items-center justify-between gap-3 border-y border-fog py-3">
+            <button
+              type="button"
+              onClick={() => selectMonth(1)}
+              disabled={activeMonthIndex >= monthOptions.length - 1}
+              aria-label="Bulan tempahan sebelumnya"
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-fog text-lg text-graphite transition hover:border-steel hover:text-ink disabled:cursor-not-allowed disabled:opacity-35"
+            >
+              ←
+            </button>
+            <p className="text-center text-sm font-semibold capitalize text-ink">
+              {malaysiaMonthLabel(activeMonth)}
+              <span className="font-normal text-graphite"> · {visibleBookings.length}</span>
+            </p>
+            <button
+              type="button"
+              onClick={() => selectMonth(-1)}
+              disabled={activeMonthIndex <= 0}
+              aria-label="Bulan tempahan seterusnya"
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-fog text-lg text-graphite transition hover:border-steel hover:text-ink disabled:cursor-not-allowed disabled:opacity-35"
+            >
+              →
+            </button>
+          </div>
+
+          <div className="space-y-3">
+          {visibleBookings.map((b) => {
             const roomName = roomNames[b.roomSlug] ?? b.roomSlug;
             const meta = [formatMalayDate(b.date), formatSlot(b.slot as Slot)]
               .filter(Boolean)
@@ -100,7 +168,8 @@ export default function SemakForm({
               </div>
             );
           })}
-        </div>
+          </div>
+        </>
       )}
     </div>
   );

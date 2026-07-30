@@ -680,3 +680,11 @@ Corak berselang = instance sihat vs beracun.
 - Peraturan kekal ditambah ke `AGENTS.md`: kandungan dalaman, perbualan
   pentadbir, pautan backend dan arahan log masuk tidak boleh dipaparkan kepada
   pemohon awam.
+
+## 2026-07-30 - Semakan permohonan mengikut bulan
+
+- Semakan pinjaman peralatan hanya memaparkan catatan pegawai apabila status
+  permohonan ialah `Ditolak`; catatan untuk status lain kekal dalaman.
+- Semakan pinjaman dan tempahan menggunakan navigasi bulan dengan anak panah.
+  Hanya bulan yang mempunyai rekod dipaparkan; bulan semasa diutamakan, atau
+  bulan rekod terkini jika tiada rekod dalam bulan semasa.

@@ -477,6 +477,7 @@ export async function listEquipmentLoansByContact(
       borrowDate: equipmentLoanRequests.borrowDate,
       expectedReturnDate: equipmentLoanRequests.expectedReturnDate,
       status: equipmentLoanRequests.status,
+      decisionNote: equipmentLoanRequests.decisionNote,
       createdAt: equipmentLoanRequests.createdAt,
     })
     .from(equipmentLoanRequests)

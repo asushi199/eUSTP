@@ -36,8 +36,9 @@ Panduan ringkas untuk agen AI. Baca `CLAUDE.md` untuk peraturan penuh.
   Jangan dedahkan catatan dalaman, perbualan pentadbir atau arahan log masuk
   pentadbir. Pautan kelulusan backend hanya boleh disertakan dalam WhatsApp
   pemberitahuan kepada pegawai PKG, bukan dipaparkan sebagai kandungan halaman
-  awam. Selepas permohonan dihantar, arahkan pemohon menunggu kelulusan dan
-  menyemak status melalui `Semak Permohonan`.
+  awam. Catatan keputusan pegawai hanya boleh dipaparkan kepada pemohon apabila
+  permohonannya ditolak. Selepas permohonan dihantar, arahkan pemohon menunggu
+  kelulusan dan menyemak status melalui `Semak Permohonan`.
 - Pentadbir PKG hanya boleh mengurus inventori PKG sendiri, manakala pentadbir
   utama boleh mengurus semua PKG. Sediakan laluan import pukal untuk nombor siri
   apabila data rasmi diterima.
