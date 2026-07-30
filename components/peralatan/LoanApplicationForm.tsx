@@ -3,6 +3,7 @@
 import {
   type FormEvent,
   useActionState,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -98,6 +99,17 @@ export default function LoanApplicationForm({
     () => filterEquipmentSchools(schools, schoolQuery),
     [schoolQuery, schools],
   );
+
+  useEffect(() => {
+    if (schoolQuery.trim() === "") return;
+    if (filteredSchools.length === 0) {
+      setSchoolCode("");
+      return;
+    }
+    if (!filteredSchools.some((school) => school.code === schoolCode)) {
+      setSchoolCode(filteredSchools[0].code);
+    }
+  }, [filteredSchools, schoolCode, schoolQuery]);
 
   const pkgNames = useMemo(
     () => Object.fromEntries(pkgs.map((pkg) => [pkg.id, pkg.name])),
