@@ -48,6 +48,26 @@ export default function AdminLoanApproval({
     setError("");
   }
 
+  function autoAllocateRemainingUnits() {
+    const usedUnitIds = new Set(selectedUnitIds);
+    const nextSelections = Object.fromEntries(
+      request.items.map((item) => {
+        const current = selections[item.id] ?? [];
+        const next = Array.from({ length: item.quantity }, (_, index) => {
+          const selectedId = current[index] ?? "";
+          if (selectedId) return selectedId;
+          const unit = item.availableUnits.find((candidate) => !usedUnitIds.has(candidate.id));
+          if (!unit) return "";
+          usedUnitIds.add(unit.id);
+          return unit.id;
+        });
+        return [item.id, next];
+      }),
+    );
+    setSelections(nextSelections);
+    setError("");
+  }
+
   function runDecision(decision: "approve" | "reject") {
     if (
       decision === "reject" &&
@@ -172,6 +192,15 @@ export default function AdminLoanApproval({
                 {request.items.reduce((sum, item) => sum + item.quantity, 0)} dipilih
               </span>
             </div>
+            {request.status === "pending" ? (
+              <button
+                type="button"
+                className="btn-outline-ink btn-sm mt-3"
+                onClick={autoAllocateRemainingUnits}
+              >
+                Isi baki secara automatik
+              </button>
+            ) : null}
           </div>
 
           <div className="divide-y divide-fog">

@@ -688,3 +688,9 @@ Corak berselang = instance sihat vs beracun.
 - Semakan pinjaman dan tempahan menggunakan navigasi bulan dengan anak panah.
   Hanya bulan yang mempunyai rekod dipaparkan; bulan semasa diutamakan, atau
   bulan rekod terkini jika tiada rekod dalam bulan semasa.
+
+## 2026-07-30 - Peruntukan unit pinjaman automatik
+
+- Panel kelulusan peralatan menyediakan butang `Isi baki secara automatik`.
+  Ia mengekalkan pilihan manual sedia ada dan mengisi slot selebihnya dengan
+  nombor siri unit tersedia mengikut susunan sedia ada.
