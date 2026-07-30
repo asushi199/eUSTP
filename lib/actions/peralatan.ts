@@ -319,9 +319,8 @@ export async function createEquipmentLoanAction(
     revalidatePath("/admin/peralatan");
     return {
       ok: true,
-      message: whatsappUrl
-        ? "Permohonan disimpan. Hantar WhatsApp kepada pegawai PKG untuk tindakan."
-        : "Permohonan disimpan. Nombor WhatsApp pegawai PKG belum ditetapkan.",
+      message:
+        "Permohonan berjaya dihantar. Sila tunggu kelulusan pentadbir dan gunakan Semak Permohonan untuk menyemak status.",
       referenceNo,
       whatsappUrl,
     };

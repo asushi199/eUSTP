@@ -666,3 +666,17 @@ Corak berselang = instance sihat vs beracun.
   dalam `equipment_unit_transfers`. Migrasi `0014` hingga `0016` telah dijalankan
   dan semakan integriti mengesahkan tiada jenis atau item permohonan tanpa
   kategori.
+
+## 2026-07-30 - Peminjaman Peralatan: sempadan paparan awam
+
+- Kuantiti pada borang awam kini boleh ditaip terus, selain butang tambah/tolak.
+- Nombor siri di panel pentadbir disusun mengikut nilai angka pada hujung nombor
+  siri (contohnya `1` hingga `120`), bukan susunan teks (`1`, `10`, `100`).
+- Selepas permohonan dihantar, pemohon boleh menghantar WhatsApp pemberitahuan
+  kepada pegawai PKG, kemudian menunggu kelulusan dan menggunakan `Semak
+  Permohonan`. Pautan kelulusan pentadbir kekal dalam WhatsApp supaya pegawai
+  boleh memproses permohonan dengan cepat, tetapi tidak dipaparkan sebagai
+  kandungan halaman awam. Catatan keputusan dalaman dalam semakan awam dibuang.
+- Peraturan kekal ditambah ke `AGENTS.md`: kandungan dalaman, perbualan
+  pentadbir, pautan backend dan arahan log masuk tidak boleh dipaparkan kepada
+  pemohon awam.

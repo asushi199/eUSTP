@@ -533,12 +533,21 @@ export default function LoanApplicationForm({
                       >
                         −
                       </button>
-                      <output
-                        aria-live="polite"
-                        className="w-9 text-center font-semibold tabular-nums text-ink"
-                      >
-                        {quantity}
-                      </output>
+                      <input
+                        aria-label={`Kuantiti ${item.name}`}
+                        type="number"
+                        inputMode="numeric"
+                        min={0}
+                        max={available}
+                        step={1}
+                        value={quantity}
+                        onFocus={(event) => event.currentTarget.select()}
+                        onChange={(event) => {
+                          const value = Number.parseInt(event.target.value, 10);
+                          setQuantity(item.id, Number.isNaN(value) ? 0 : value);
+                        }}
+                        className="h-11 w-14 rounded-lg border border-fog bg-white text-center font-semibold tabular-nums text-ink outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                      />
                       <button
                         type="button"
                         aria-label={`Tambah ${item.name}`}
@@ -669,7 +678,7 @@ export default function LoanApplicationForm({
               <div className="py-8 text-center">
                 <p className="font-medium text-ink">Belum ada peralatan dipilih</p>
                 <p className="mt-2 text-sm leading-relaxed text-graphite">
-                  Gunakan butang tambah untuk memilih kuantiti.
+                  Masukkan kuantiti atau gunakan butang tambah dan tolak.
                 </p>
               </div>
             ) : (
@@ -714,7 +723,7 @@ export default function LoanApplicationForm({
                     rel="noopener noreferrer"
                     className="btn-primary mt-4 w-full"
                   >
-                    WhatsApp pegawai PKG
+                    Maklumkan pegawai PKG melalui WhatsApp
                   </a>
                 ) : null}
               </div>

@@ -32,6 +32,12 @@ Panduan ringkas untuk agen AI. Baca `CLAUDE.md` untuk peraturan penuh.
   pemilik dan status.
 - Stok tersedia mesti dikira daripada status unit fizikal; jangan sediakan medan
   untuk mengubah jumlah stok agregat secara manual.
+- Halaman awam hanya memaparkan maklumat dan arahan yang perlu untuk pemohon.
+  Jangan dedahkan catatan dalaman, perbualan pentadbir atau arahan log masuk
+  pentadbir. Pautan kelulusan backend hanya boleh disertakan dalam WhatsApp
+  pemberitahuan kepada pegawai PKG, bukan dipaparkan sebagai kandungan halaman
+  awam. Selepas permohonan dihantar, arahkan pemohon menunggu kelulusan dan
+  menyemak status melalui `Semak Permohonan`.
 - Pentadbir PKG hanya boleh mengurus inventori PKG sendiri, manakala pentadbir
   utama boleh mengurus semua PKG. Sediakan laluan import pukal untuk nombor siri
   apabila data rasmi diterima.

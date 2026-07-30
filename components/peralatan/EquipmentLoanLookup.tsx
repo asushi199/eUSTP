@@ -211,12 +211,6 @@ export default function EquipmentLoanLookup() {
                     </ul>
                   </div>
 
-                  {request.decisionNote ? (
-                    <p className="mt-4 text-sm leading-relaxed text-charcoal">
-                      <span className="font-semibold">Catatan:</span>{" "}
-                      {request.decisionNote}
-                    </p>
-                  ) : null}
                 </article>
               ))}
             </div>

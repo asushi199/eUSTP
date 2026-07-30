@@ -42,6 +42,15 @@ import type {
 } from "./types";
 
 const ADMIN_PAGE_SIZE = 25;
+const serialNoPrefixOrder = sql`
+  regexp_replace(${equipmentUnits.serialNo}, '[0-9]+$', '')
+`;
+const naturalSerialNoOrder = sql`
+  case
+    when ${equipmentUnits.serialNo} ~ '[0-9]+$'
+    then substring(${equipmentUnits.serialNo} from '([0-9]+)$')::integer
+  end asc nulls last
+`;
 
 export type EquipmentAdminListResult<T> = {
   items: T[];
@@ -319,7 +328,12 @@ export async function listEquipmentUnitsForPkg(
     .from(equipmentUnits)
     .innerJoin(equipmentTypes, eq(equipmentUnits.equipmentTypeId, equipmentTypes.id))
     .where(where)
-    .orderBy(asc(equipmentTypes.sortOrder), asc(equipmentUnits.serialNo))
+    .orderBy(
+      asc(equipmentTypes.sortOrder),
+      asc(serialNoPrefixOrder),
+      naturalSerialNoOrder,
+      asc(equipmentUnits.serialNo),
+    )
     .limit(perPage)
     .offset((effectivePage - 1) * perPage);
 
@@ -463,7 +477,6 @@ export async function listEquipmentLoansByContact(
       borrowDate: equipmentLoanRequests.borrowDate,
       expectedReturnDate: equipmentLoanRequests.expectedReturnDate,
       status: equipmentLoanRequests.status,
-      decisionNote: equipmentLoanRequests.decisionNote,
       createdAt: equipmentLoanRequests.createdAt,
     })
     .from(equipmentLoanRequests)
@@ -549,7 +562,12 @@ export async function getEquipmentLoanDetail(
             eq(equipmentTypes.active, true),
           ),
         )
-        .orderBy(asc(equipmentTypes.sortOrder), asc(equipmentUnits.serialNo))
+        .orderBy(
+          asc(equipmentTypes.sortOrder),
+          asc(serialNoPrefixOrder),
+          naturalSerialNoOrder,
+          asc(equipmentUnits.serialNo),
+        )
     : [];
   const allocatedRows = itemIds.length
     ? await db
