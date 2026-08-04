@@ -4,7 +4,6 @@ import {
   formatBookingStatus,
   formatSlot,
   getSlotBooking,
-  isSlotAvailable,
   type BookingLike,
   type Slot,
 } from "@/lib/tempahan/booking-rules";
@@ -149,26 +148,13 @@ export default function CalendarBoard({
                   ? pmBooking
                   : undefined;
 
-            const canBookFullDay =
-              Boolean(handleSelect) &&
-              isSlotAvailable(bookings, roomSlug, date, "full_day");
-
             const dayLabel = `${date.slice(8, 10)}/${date.slice(5, 7)}`;
 
             return (
               <tr key={date} className="border-t hairline">
-                <td className="p-2 align-top">
+                <td className="p-2 align-middle">
                   <div className="font-semibold tabular-nums whitespace-nowrap">{dayLabel}</div>
                   <div className="text-[10px] text-graphite">{formatDayName(date)}</div>
-                  {canBookFullDay && (
-                    <button
-                      type="button"
-                      className="mt-1.5 w-full rounded border border-primary/30 bg-white px-1 py-1 text-[9px] font-semibold leading-tight text-primary-deep hover:bg-primary-soft/25"
-                      onClick={() => handleSelect!("full_day")}
-                    >
-                      Penuh hari
-                    </button>
-                  )}
                 </td>
 
                 {fullDayBooking ? (
