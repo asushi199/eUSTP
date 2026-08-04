@@ -134,6 +134,20 @@
       "when": 1785340000000,
       "tag": "0018_remove_electronics_set",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1785341000000,
+      "tag": "0019_remove_wrong_obs_bot_code",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1785342000000,
+      "tag": "0020_remove_redundant_obs01_category",
+      "breakpoints": true
     }
   ]
 }

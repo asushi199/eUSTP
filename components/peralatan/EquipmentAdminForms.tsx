@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import ActionForm from "@/components/admin/ActionForm";
 import {
   addEquipmentUnit,
@@ -17,6 +18,148 @@ import type {
 } from "@/lib/peralatan/types";
 
 type TypeOption = { id: string; categoryId: string; code: string; name: string };
+
+function AddEquipmentModelForm({
+  pkgId,
+  categories,
+}: {
+  pkgId: string;
+  categories: EquipmentCategoryOption[];
+}) {
+  const activeCategories = categories.filter((category) => category.active);
+  const [categoryId, setCategoryId] = useState("");
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [searchAliases, setSearchAliases] = useState("");
+
+  function onCategoryChange(nextId: string) {
+    setCategoryId(nextId);
+    const category = activeCategories.find((item) => item.id === nextId);
+    if (!category) return;
+    setName(category.name);
+    setDescription(category.description);
+    setSearchAliases(category.searchAliases.join(", "));
+  }
+
+  return (
+    <ActionForm
+      action={saveEquipmentType.bind(null, pkgId)}
+      submitLabel="Tambah model"
+      submitClassName={EQUIPMENT_ADMIN_SUBMIT_CLASS.addType}
+      className="card space-y-4 p-5"
+    >
+      <div>
+        <p className="font-semibold text-ink">Tambah model / kumpulan aset</p>
+        <p className="mt-1 text-xs text-graphite">
+          Pilih kategori dahulu — nama dan penerangan diisi automatik. Isi kod
+          aset/stok sendiri (bukan kod kategori).
+        </p>
+      </div>
+      <div>
+        <label className="label" htmlFor="type-category">
+          Kategori *
+        </label>
+        <select
+          id="type-category"
+          name="categoryId"
+          className="input"
+          required
+          value={categoryId}
+          onChange={(event) => onCategoryChange(event.target.value)}
+        >
+          <option value="" disabled>
+            Pilih kategori
+          </option>
+          {activeCategories.map((category) => (
+            <option key={category.id} value={category.id}>
+              {category.name} ({category.code})
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-[140px_1fr]">
+        <div>
+          <label className="label" htmlFor="type-code">
+            Kod aset / stok *
+          </label>
+          <input
+            id="type-code"
+            name="code"
+            className="input"
+            required
+            placeholder="Contoh: OBS01"
+          />
+        </div>
+        <div>
+          <label className="label" htmlFor="type-name">
+            Nama peralatan *
+          </label>
+          <input
+            id="type-name"
+            name="name"
+            className="input"
+            required
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+          />
+        </div>
+      </div>
+      <div>
+        <label className="label" htmlFor="type-model">
+          Jenama / model
+        </label>
+        <input id="type-model" name="model" className="input" />
+      </div>
+      <div>
+        <label className="label" htmlFor="type-description">
+          Penerangan
+        </label>
+        <textarea
+          id="type-description"
+          name="description"
+          className="textarea min-h-20"
+          value={description}
+          onChange={(event) => setDescription(event.target.value)}
+        />
+      </div>
+      <div>
+        <label className="label" htmlFor="type-specifications">
+          Spesifikasi
+        </label>
+        <textarea
+          id="type-specifications"
+          name="specifications"
+          className="textarea min-h-28"
+          placeholder="Satu spesifikasi bagi setiap baris"
+        />
+      </div>
+      <div>
+        <label className="label" htmlFor="type-components">
+          Kandungan set
+        </label>
+        <textarea
+          id="type-components"
+          name="components"
+          className="textarea min-h-28"
+          placeholder="Satu komponen bagi setiap baris"
+        />
+      </div>
+      <div>
+        <label className="label" htmlFor="type-aliases">
+          Alias carian tersembunyi
+        </label>
+        <input
+          id="type-aliases"
+          name="searchAliases"
+          className="input"
+          placeholder="Contoh: laptop, notebook, computer"
+          value={searchAliases}
+          onChange={(event) => setSearchAliases(event.target.value)}
+        />
+      </div>
+    </ActionForm>
+  );
+}
 
 export default function EquipmentAdminForms({
   pkg,
@@ -151,15 +294,25 @@ export default function EquipmentAdminForms({
             <div>
               <p className="font-semibold text-ink">Tambah kategori permohonan</p>
               <p className="mt-1 text-xs text-graphite">
-                Pemohon memilih kategori umum; model ditetapkan semasa kelulusan.
+                Langkah 1: buat kategori katalog. Pemohon pilih kategori ini;
+                model/aset ditambah di borang sebelah.
               </p>
             </div>
-            <div className="grid gap-4 sm:grid-cols-[120px_1fr]">
+            <div className="grid gap-4 sm:grid-cols-[140px_1fr]">
               <div>
                 <label className="label" htmlFor="category-code">
-                  Kod *
+                  Kod kategori *
                 </label>
-                <input id="category-code" name="code" className="input" required />
+                <input
+                  id="category-code"
+                  name="code"
+                  className="input"
+                  required
+                  placeholder="Contoh: OBS-BOT"
+                />
+                <p className="mt-1 text-[11px] leading-snug text-graphite">
+                  Bukan kod aset/stok.
+                </p>
               </div>
               <div>
                 <label className="label" htmlFor="category-name">
@@ -193,105 +346,7 @@ export default function EquipmentAdminForms({
         ) : null}
 
         {canManageMetadata ? (
-          <ActionForm
-          action={saveEquipmentType.bind(null, pkg.id)}
-          submitLabel="Tambah model"
-          submitClassName={EQUIPMENT_ADMIN_SUBMIT_CLASS.addType}
-          className="card space-y-4 p-5"
-        >
-          <div>
-            <p className="font-semibold text-ink">Tambah model / kumpulan aset</p>
-            <p className="mt-1 text-xs text-graphite">
-              Setiap jenama atau spesifikasi berbeza disimpan sebagai model sendiri.
-            </p>
-          </div>
-          <div>
-            <label className="label" htmlFor="type-category">
-              Kategori *
-            </label>
-            <select
-              id="type-category"
-              name="categoryId"
-              className="input"
-              defaultValue=""
-              required
-            >
-              <option value="" disabled>
-                Pilih kategori
-              </option>
-              {categories
-                .filter((category) => category.active)
-                .map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-            </select>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-[100px_1fr]">
-            <div>
-              <label className="label" htmlFor="type-code">
-                Kod *
-              </label>
-              <input id="type-code" name="code" className="input" required />
-            </div>
-            <div>
-              <label className="label" htmlFor="type-name">
-                Nama peralatan *
-              </label>
-              <input id="type-name" name="name" className="input" required />
-            </div>
-          </div>
-          <div>
-            <label className="label" htmlFor="type-model">
-              Model
-            </label>
-            <input id="type-model" name="model" className="input" />
-          </div>
-          <div>
-            <label className="label" htmlFor="type-description">
-              Penerangan
-            </label>
-            <textarea
-              id="type-description"
-              name="description"
-              className="textarea min-h-20"
-            />
-          </div>
-          <div>
-            <label className="label" htmlFor="type-specifications">
-              Spesifikasi
-            </label>
-            <textarea
-              id="type-specifications"
-              name="specifications"
-              className="textarea min-h-28"
-              placeholder={"Satu spesifikasi bagi setiap baris"}
-            />
-          </div>
-          <div>
-            <label className="label" htmlFor="type-components">
-              Kandungan set
-            </label>
-            <textarea
-              id="type-components"
-              name="components"
-              className="textarea min-h-28"
-              placeholder={"Satu komponen bagi setiap baris"}
-            />
-          </div>
-          <div>
-            <label className="label" htmlFor="type-aliases">
-              Alias carian tersembunyi
-            </label>
-            <input
-              id="type-aliases"
-              name="searchAliases"
-              className="input"
-              placeholder="Contoh: laptop, notebook, computer"
-            />
-          </div>
-          </ActionForm>
+          <AddEquipmentModelForm pkgId={pkg.id} categories={categories} />
         ) : null}
 
         <ActionForm
@@ -376,7 +431,7 @@ export default function EquipmentAdminForms({
                   >
                     <input type="hidden" name="categoryId" value={category.id} />
                     <div>
-                      <label className="label">Kod kategori</label>
+                      <label className="label">Kod kategori (bukan kod aset)</label>
                       <input
                         name="code"
                         className="input"
