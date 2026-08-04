@@ -6,6 +6,8 @@ Ubah tarikh/slot pada booking yang sudah ada event Autosijil akan `PATCH`
 butiran event. Skrip migrasi sekali:
 `npx tsx scripts/migrate-bookings-to-autosijil.ts [--dry-run] [--pkg=…]`
 untuk booking approved + tarikh ≥ hari ini (MY) tanpa event; sijil lalai tidak.
+Penerangan Autosijil **tidak** menyertakan maklumat pemohon; skrip
+`refresh-autosijil-event-details.ts` membersihkan description lama.
 Spec: `docs/superpowers/specs/2026-08-04-eustp-autosijil-phase2-sync-migrate-design.md`.
 
 ## 2026-08-04 — Integrasi Autosijil (kehadiran + sijil)

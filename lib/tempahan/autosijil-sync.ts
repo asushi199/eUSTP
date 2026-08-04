@@ -2,7 +2,6 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { bookings } from "@/lib/schema";
 import { generateAttendanceToken } from "@/lib/tempahan/approval-token";
-import { formatSlot } from "@/lib/tempahan/booking-rules";
 import {
   cancelAutosijilEvent,
   createAutosijilEvent,
@@ -23,18 +22,13 @@ async function buildAutosijilFields(pkgId: string, booking: BookingRow) {
   const location = [room?.name ?? booking.roomSlug, pkg?.name]
     .filter(Boolean)
     .join(" / ");
-  const description = [
-    `Pemohon: ${booking.name} (${booking.schoolOrUnit}).`,
-    `Slot: ${formatSlot(booking.slot)}.`,
-    booking.contact ? `Telefon: ${booking.contact}.` : null,
-  ]
-    .filter(Boolean)
-    .join(" ");
 
+  // Penerangan awam Autosijil: jangan dedahkan maklumat pemohon.
+  // Butiran program (tajuk/tarikh/lokasi) sudah ada medan berasingan.
   return {
     title,
     location: location || null,
-    description,
+    description: null as string | null,
     eventDate: booking.date,
   };
 }

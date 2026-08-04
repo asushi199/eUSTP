@@ -1,28 +1,15 @@
 /**
- * Migrasi sekali: booking approved + tarikh belum luput → Autosijil.
- * Lalai requiresCertificate = false.
+ * Kemas kini semua event Autosijil yang terikat booking eUSTP:
+ * - kosongkan description (buang maklumat pemohon)
+ * - segar semula title / date / location
  *
- * Penggunaan:
- *   npx tsx scripts/migrate-bookings-to-autosijil.ts --dry-run
- *   npx tsx scripts/migrate-bookings-to-autosijil.ts
- *   npx tsx scripts/migrate-bookings-to-autosijil.ts --pkg=sitiawan --limit=10
- *
- * Skrip ini sengaja tidak import modul `server-only` (Next), supaya boleh dijalankan via tsx.
+ *   npx tsx scripts/refresh-autosijil-event-details.ts --dry-run
+ *   npx tsx scripts/refresh-autosijil-event-details.ts
  */
 import "./load-env";
-import { randomBytes } from "node:crypto";
-import { and, asc, eq, gte, isNull, or, sql } from "drizzle-orm";
+import { and, asc, eq, isNotNull } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { bookings, pkgs, rooms } from "@/lib/schema";
-
-function todayMalaysiaIso() {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Kuala_Lumpur",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date());
-}
 
 function parseArgs(argv: string[]) {
   let dryRun = false;
@@ -45,13 +32,13 @@ function autosijilConfig() {
   return { baseUrl, secret };
 }
 
-async function createAutosijilEvent(body: Record<string, unknown>) {
+async function patchAutosijilEvent(body: Record<string, unknown>) {
   const { baseUrl, secret } = autosijilConfig();
   if (!baseUrl || !secret) {
     throw new Error("AUTOSIJIL_BASE_URL / AUTOSIJIL_INTEGRATION_SECRET belum ditetapkan.");
   }
   const res = await fetch(`${baseUrl}/api/integrations/eustp/events`, {
-    method: "POST",
+    method: "PATCH",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${secret}`,
@@ -68,31 +55,16 @@ async function createAutosijilEvent(body: Record<string, unknown>) {
   if (!res.ok) {
     throw new Error(json?.error || text || `HTTP ${res.status}`);
   }
-  if (!json?.eventId || !json.slug || !json.publicUrl || !json.adminUrl) {
-    throw new Error("Respons Autosijil tidak lengkap.");
-  }
-  return json;
 }
 
 async function main() {
   const { dryRun, pkgId, limit } = parseArgs(process.argv.slice(2));
-  const today = todayMalaysiaIso();
   const { baseUrl, secret } = autosijilConfig();
-
   if ((!baseUrl || !secret) && !dryRun) {
-    throw new Error(
-      "AUTOSIJIL_BASE_URL / AUTOSIJIL_INTEGRATION_SECRET belum ditetapkan dalam .env.local",
-    );
+    throw new Error("Autosijil belum dikonfigurasi dalam .env.local");
   }
 
-  const conditions = [
-    eq(bookings.status, "approved"),
-    gte(bookings.date, today),
-    or(
-      isNull(bookings.autosijilEventId),
-      sql`${bookings.autosijilSyncStatus} is distinct from ${"synced"}`,
-    ),
-  ];
+  const conditions = [isNotNull(bookings.autosijilEventId)];
   if (pkgId) conditions.push(eq(bookings.pkgId, pkgId));
 
   const baseQuery = db
@@ -104,29 +76,24 @@ async function main() {
   const rows = limit ? await baseQuery.limit(limit) : await baseQuery;
 
   console.log(
-    `[migrate-autosijil] today(MY)=${today} dryRun=${dryRun} pkg=${pkgId ?? "*"} limit=${limit ?? "none"} candidates=${rows.length}`,
+    `[refresh-autosijil] dryRun=${dryRun} pkg=${pkgId ?? "*"} candidates=${rows.length}`,
   );
-  console.log(`[migrate-autosijil] Autosijil base=${baseUrl || "(belum set)"}`);
 
   if (rows.length === 0) {
-    console.log("Tiada booking untuk dimigrasikan.");
+    console.log("Tiada event untuk dikemas kini.");
     return;
   }
 
-  for (const row of rows) {
-    console.log(
-      `- ${row.pkgId} ${row.date} ${row.id.slice(0, 8)}… "${row.purpose.slice(0, 60)}" status=${row.autosijilSyncStatus ?? "null"} event=${row.autosijilEventId ? "yes" : "no"}`,
-    );
-  }
-
   if (dryRun) {
+    for (const row of rows) {
+      console.log(`- ${row.pkgId} ${row.date} ${row.id.slice(0, 8)}… "${row.purpose.slice(0, 50)}"`);
+    }
     console.log("Dry-run sahaja — tiada perubahan.");
     return;
   }
 
   let ok = 0;
   let fail = 0;
-
   for (const row of rows) {
     try {
       const [pkg] = await db.select().from(pkgs).where(eq(pkgs.id, row.pkgId)).limit(1);
@@ -139,67 +106,36 @@ async function main() {
       const title = row.purpose.trim() || "Program PKG";
       const location = [room?.name ?? row.roomSlug, pkg?.name].filter(Boolean).join(" / ");
 
-      await db
-        .update(bookings)
-        .set({
-          requiresCertificate: false,
-          autosijilSyncStatus: "pending",
-          autosijilSyncError: null,
-        })
-        .where(and(eq(bookings.pkgId, row.pkgId), eq(bookings.id, row.id)));
-
-      const created = await createAutosijilEvent({
+      await patchAutosijilEvent({
         externalBookingId: row.id,
         title,
         eventDate: row.date,
         location: location || null,
-        requiresCertificate: false,
         description: null,
-        pkgId: row.pkgId,
-        slot: row.slot,
       });
-
-      const cetakToken = row.cetakToken ?? randomBytes(16).toString("base64url");
 
       await db
         .update(bookings)
         .set({
-          cetakToken,
-          autosijilEventId: created.eventId,
-          autosijilEventSlug: created.slug,
-          autosijilPublicUrl: created.publicUrl,
-          autosijilAdminUrl: created.adminUrl,
           autosijilSyncStatus: "synced",
           autosijilSyncError: null,
           autosijilSyncedAt: new Date(),
-          requiresCertificate: false,
         })
         .where(and(eq(bookings.pkgId, row.pkgId), eq(bookings.id, row.id)));
 
       ok += 1;
-      console.log(`  OK ${row.pkgId}/${row.id} → ${created.publicUrl}`);
+      console.log(`  OK ${row.pkgId}/${row.id}`);
     } catch (e) {
       const error = e instanceof Error ? e.message : String(e);
-      await db
-        .update(bookings)
-        .set({
-          autosijilSyncStatus: "failed",
-          autosijilSyncError: error,
-        })
-        .where(and(eq(bookings.pkgId, row.pkgId), eq(bookings.id, row.id)));
       fail += 1;
       console.log(`  FAIL ${row.pkgId}/${row.id}: ${error}`);
     }
   }
 
-  console.log(`[migrate-autosijil] selesai: ok=${ok} fail=${fail} total=${rows.length}`);
+  console.log(`[refresh-autosijil] selesai: ok=${ok} fail=${fail} total=${rows.length}`);
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    // biarkan process keluar; pool postgres akan ditutup oleh runtime
-  });
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
