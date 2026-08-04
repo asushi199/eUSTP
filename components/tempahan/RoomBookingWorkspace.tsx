@@ -6,7 +6,7 @@ import { formatSlot, type BookingLike, type Slot } from "@/lib/tempahan/booking-
 import { formatMalayDate } from "@/lib/tempahan/date";
 import { cn } from "@/lib/cn";
 import BookingForm from "./BookingForm";
-import CalendarBoard from "./CalendarBoard";
+import CalendarBoard, { BookingDetailDialog } from "./CalendarBoard";
 import RoomCapacityBadge from "./RoomCapacityBadge";
 
 type ViewRange = "week" | "month";
@@ -61,6 +61,7 @@ export default function RoomBookingWorkspace({
   const [view, setView] = useState<ViewRange>("week");
   const [prefill, setPrefill] = useState<{ date: string; slot: Slot } | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [detailBooking, setDetailBooking] = useState<BookingLike | null>(null);
 
   const displayDates = useMemo(
     () => visibleDates(dates, today, view),
@@ -107,11 +108,13 @@ export default function RoomBookingWorkspace({
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") setSheetOpen(false);
+      if (e.key !== "Escape") return;
+      if (detailBooking) setDetailBooking(null);
+      else if (sheetOpen) setSheetOpen(false);
     }
-    if (sheetOpen) window.addEventListener("keydown", onKeyDown);
+    if (sheetOpen || detailBooking) window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [sheetOpen]);
+  }, [sheetOpen, detailBooking]);
 
   const calendarSection = (
     <section className="card p-4 xl:p-6" id="jadual">
@@ -213,22 +216,20 @@ export default function RoomBookingWorkspace({
         </div>
       </div>
 
-      <p className="mt-2 text-[11px] text-graphite xl:hidden">
-        Ketuk slot <strong className="text-primary-deep">Kosong</strong> atau{" "}
-        <strong className="text-primary-deep">Tempah penuh hari</strong> untuk tempah.
-      </p>
-      <p className="mt-2 hidden text-xs text-graphite xl:block">
-        Klik slot <strong className="text-primary-deep">Kosong</strong> atau{" "}
-        <strong className="text-primary-deep">Tempah penuh hari</strong> untuk isi borang di sebelah
-        kanan.
+      <p className="mt-2 text-[11px] text-graphite">
+        Ketik slot <strong className="text-primary-deep">Kosong</strong> untuk tempah; ketik slot{" "}
+        <strong className="text-graphite">berwarna</strong> untuk lihat butiran.
+        {view === "week" ? " Paparan 7 hari." : " Paparan sebulan."}
       </p>
 
-      <div className="mt-4">
+      <div className="mt-4 -mx-1 overflow-hidden sm:mx-0">
         <CalendarBoard
           roomSlug={roomSlug}
+          roomName={roomName}
           bookings={bookings}
           dates={displayDates}
           onSlotSelect={onSlotSelect}
+          onBookingDetail={setDetailBooking}
         />
       </div>
     </section>
@@ -251,6 +252,14 @@ export default function RoomBookingWorkspace({
         onClose={() => setSheetOpen(false)}
         formId={formProps.mobileId}
       />
+
+      {detailBooking && (
+        <BookingDetailDialog
+          booking={detailBooking}
+          roomName={roomName}
+          onClose={() => setDetailBooking(null)}
+        />
+      )}
 
       <button
         type="button"

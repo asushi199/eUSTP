@@ -1,5 +1,13 @@
 # AI Context Log — eUSTP Manjung
 
+## 2026-08-04 — Jadual tempahan gaya Sentra (hybrid B)
+
+Paparan jadual bilik awam diganti kepada jadual padat (Tarikh × AM/PM)
+seperti egerak-v2/Sentra, sambil kekalkan suis **7 hari / Bulan** dan warna
+status eUSTP (kosong=primary, menunggu=amber, diluluskan=steel). Klik slot
+berwarna buka dialog butiran. Fail: `CalendarBoard.tsx`,
+`RoomBookingWorkspace.tsx`.
+
 ## 2026-08-04 — Tempahan bilik lintas hari
 
 Pemohon boleh pilih tarikh mula–tamat (maks 7 hari), slot berbeza setiap hari.
