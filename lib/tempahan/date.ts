@@ -33,6 +33,37 @@ export function listDateRange(start: string, count: number) {
   return Array.from({ length: count }, (_, index) => addDays(start, index));
 }
 
+/** Had maksimum hari inklusif untuk satu permohonan lintas hari. */
+export const MAX_BOOKING_DAYS = 7;
+
+const isoDateRe = /^\d{4}-\d{2}-\d{2}$/;
+
+export function isIsoDate(value: string) {
+  return isoDateRe.test(value);
+}
+
+export function isWithinBookingDayLimit(dayCount: number) {
+  return dayCount >= 1 && dayCount <= MAX_BOOKING_DAYS;
+}
+
+/**
+ * Senarai tarikh ISO inklusif dari start ke end.
+ * Pulang null jika format tidak sah atau end < start.
+ */
+export function listInclusiveDates(start: string, end: string): string[] | null {
+  if (!isIsoDate(start) || !isIsoDate(end)) return null;
+  if (end < start) return null;
+
+  const dates: string[] = [];
+  let cursor = start;
+  while (cursor <= end) {
+    dates.push(cursor);
+    if (dates.length > MAX_BOOKING_DAYS) return dates;
+    cursor = addDays(cursor, 1);
+  }
+  return dates;
+}
+
 export function formatMalayDate(value: string, options: Intl.DateTimeFormatOptions = {}) {
   return fromIsoDate(value).toLocaleDateString("ms-MY", {
     day: "2-digit",

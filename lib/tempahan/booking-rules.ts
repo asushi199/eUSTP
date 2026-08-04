@@ -43,6 +43,33 @@ export function getConflictingBooking<T extends BookingLike>(
   });
 }
 
+export type DaySlotRequest = {
+  date: string;
+  slot: Slot;
+};
+
+export type BatchConflict<T extends BookingLike = BookingLike> = {
+  date: string;
+  slot: Slot;
+  conflict: T;
+};
+
+/** Semak konflik untuk semua hari dalam satu permohonan lintas hari. */
+export function getBatchConflicts<T extends BookingLike>(
+  bookings: T[],
+  roomSlug: string,
+  days: DaySlotRequest[],
+): BatchConflict<T>[] {
+  const conflicts: BatchConflict<T>[] = [];
+  for (const day of days) {
+    const conflict = getConflictingBooking(bookings, roomSlug, day.date, day.slot);
+    if (conflict) {
+      conflicts.push({ date: day.date, slot: day.slot, conflict });
+    }
+  }
+  return conflicts;
+}
+
 export function isSlotAvailable(
   bookings: BookingLike[],
   roomSlug: string,

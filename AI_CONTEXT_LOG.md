@@ -1,5 +1,14 @@
 # AI Context Log — eUSTP Manjung
 
+## 2026-08-04 — Tempahan bilik lintas hari
+
+Pemohon boleh pilih tarikh mula–tamat (maks 7 hari), slot berbeza setiap hari.
+Semakan konflik all-or-nothing; insert N baris `bookings` dalam satu transaksi;
+kelulusan kekal per hari. Spec:
+`docs/superpowers/specs/2026-08-04-tempahan-lintas-hari-design.md`.
+Fail utama: `BookingForm.tsx`, `lib/actions/tempahan.ts`,
+`lib/tempahan/{date,booking-rules,whatsapp}.ts`.
+
 ## 2026-07-29 — Timeout pada action pinjaman awam
 
 Selepas fix halaman mohon: tambah `withDbTimeout` + query berurutan pada

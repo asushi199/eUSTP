@@ -16,11 +16,18 @@ import {
 } from "@/lib/tempahan/approval-token";
 import {
   formatSlot,
-  getConflictingBooking,
+  getBatchConflicts,
   normalizePhoneNumber,
   parseSlot,
+  type DaySlotRequest,
+  type Slot,
 } from "@/lib/tempahan/booking-rules";
-import { formatMalayDate } from "@/lib/tempahan/date";
+import {
+  formatMalayDate,
+  isWithinBookingDayLimit,
+  listInclusiveDates,
+  MAX_BOOKING_DAYS,
+} from "@/lib/tempahan/date";
 import {
   getBooking,
   getBookingByAttendanceToken,
@@ -67,32 +74,70 @@ export type BookingFormState = {
 
 const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
+function parseDaySlotRequests(formData: FormData): DaySlotRequest[] | null {
+  const dateStart = requiredText(formData, "date", 10);
+  const dateEndRaw = requiredText(formData, "date_end", 10);
+  const dateEnd = dateEndRaw || dateStart;
+
+  if (!dateSchema.safeParse(dateStart).success) return null;
+  if (!dateSchema.safeParse(dateEnd).success) return null;
+
+  const dates = listInclusiveDates(dateStart, dateEnd);
+  if (!dates || !isWithinBookingDayLimit(dates.length)) return null;
+
+  const slotValues = formData.getAll("slots").map((value) => String(value));
+  // Serasi borang sehari lama (name="slot") jika tiada slots[].
+  if (slotValues.length === 0) {
+    const single = parseSlot(formData.get("slot"));
+    if (!single || dates.length !== 1) return null;
+    return [{ date: dates[0]!, slot: single }];
+  }
+
+  if (slotValues.length !== dates.length) return null;
+
+  const days: DaySlotRequest[] = [];
+  for (let i = 0; i < dates.length; i++) {
+    const slot = parseSlot(slotValues[i]);
+    if (!slot) return null;
+    days.push({ date: dates[i]!, slot });
+  }
+  return days;
+}
+
+function formatBatchConflictMessage(
+  conflicts: ReturnType<typeof getBatchConflicts>,
+): string {
+  const lines = conflicts.map(
+    (item) =>
+      `${formatMalayDate(item.date)} (${formatSlot(item.slot)}) — ${item.conflict.name} (${item.conflict.purpose})`,
+  );
+  return `Slot berikut telah ditempah atau menunggu kelulusan. Tiada tempahan dihantar:\n${lines.join("\n")}`;
+}
+
 export async function createBookingAction(
   _previousState: BookingFormState,
   formData: FormData,
 ): Promise<BookingFormState> {
   const pkgId = requiredText(formData, "pkg", 50);
   const roomSlug = requiredText(formData, "room", 100);
-  const slot = parseSlot(formData.get("slot"));
-  const date = requiredText(formData, "date", 10);
   const name = requiredText(formData, "name", 200);
   const schoolOrUnit = requiredText(formData, "school_or_unit", 300);
   const purpose = requiredText(formData, "purpose", 500);
   const contact = requiredText(formData, "contact", 30);
   const contactNormalized = normalizePhoneNumber(contact);
+  const days = parseDaySlotRequests(formData);
 
   const pkg = pkgId ? await getPkg(pkgId) : null;
   if (!pkg) return { ok: false, message: "PKG tidak sah." };
 
-  if (
-    !roomSlug ||
-    !slot ||
-    !dateSchema.safeParse(date).success ||
-    !name ||
-    !schoolOrUnit ||
-    !purpose ||
-    !contactNormalized
-  ) {
+  if (!days) {
+    return {
+      ok: false,
+      message: `Julat tarikh tidak sah. Maksimum ${MAX_BOOKING_DAYS} hari (termasuk tarikh mula dan tamat), dan setiap hari mesti ada slot.`,
+    };
+  }
+
+  if (!roomSlug || !name || !schoolOrUnit || !purpose || !contactNormalized) {
     return { ok: false, message: "Sila lengkapkan semua maklumat tempahan." };
   }
 
@@ -101,56 +146,78 @@ export async function createBookingAction(
     const room = rooms.find((item) => item.slug === roomSlug);
     if (!room) return { ok: false, message: "Bilik tidak sah." };
 
+    const dateStart = days[0]!.date;
     // Semakan mesra — trigger DB (advisory lock) tetap penjamin terakhir.
-    const active = await listActiveBookings(pkgId, date);
-    const conflict = getConflictingBooking(active, roomSlug, date, slot);
-    if (conflict) {
-      return {
-        ok: false,
-        message: `Slot ini telah ditempah atau menunggu kelulusan oleh ${conflict.name} untuk ${conflict.purpose}. Sila pilih masa lain.`,
-      };
+    const active = await listActiveBookings(pkgId, dateStart);
+    const conflicts = getBatchConflicts(active, roomSlug, days);
+    if (conflicts.length > 0) {
+      return { ok: false, message: formatBatchConflictMessage(conflicts) };
     }
 
-    const bookingId = randomUUID();
-    const { token, hash } = await createApprovalToken(bookingId);
+    const prepared: Array<{
+      id: string;
+      date: string;
+      slot: Slot;
+      token: string;
+      hash: string;
+    }> = [];
 
-    await db.insert(bookings).values({
-      id: bookingId,
-      pkgId,
-      roomSlug,
-      date,
-      slot,
-      name,
-      schoolOrUnit,
-      purpose,
-      contact: contactNormalized,
-      contactNormalized,
-      status: "pending",
-      approvalTokenHash: hash,
+    for (const day of days) {
+      const id = randomUUID();
+      const { token, hash } = await createApprovalToken(id);
+      prepared.push({ id, date: day.date, slot: day.slot, token, hash });
+    }
+
+    await db.transaction(async (tx) => {
+      for (const row of prepared) {
+        await tx.insert(bookings).values({
+          id: row.id,
+          pkgId,
+          roomSlug,
+          date: row.date,
+          slot: row.slot,
+          name,
+          schoolOrUnit,
+          purpose,
+          contact: contactNormalized,
+          contactNormalized,
+          status: "pending",
+          approvalTokenHash: row.hash,
+        });
+      }
     });
 
+    const first = prepared[0]!;
     const baseUrl = await resolveBaseUrl();
-    const approvalUrl = `${baseUrl}/tempahan/${pkgId}/approve/${bookingId}?token=${encodeURIComponent(token)}`;
+    const approvalUrl = `${baseUrl}/tempahan/${pkgId}/approve/${first.id}?token=${encodeURIComponent(first.token)}`;
     const adminPhone = pkg.whatsappAdminPhone?.trim() || "";
     const whatsappUrl = adminPhone
       ? buildWhatsAppShareUrl(adminPhone, {
           name,
           room: room.name,
-          date: formatMalayDate(date),
-          slot: formatSlot(slot),
           purpose,
           approvalUrl,
+          entries: prepared.map((row) => ({
+            date: formatMalayDate(row.date),
+            slot: formatSlot(row.slot),
+          })),
         })
       : "";
 
     revalidatePath(`/tempahan/${pkgId}`);
     revalidatePath(`/admin/tempahan/${pkgId}`);
 
+    const dayCount = prepared.length;
+    const successBase = adminPhone
+      ? "Permohonan diterima. Sila hantar mesej WhatsApp kepada admin untuk kelulusan."
+      : "Permohonan diterima. Nombor WhatsApp admin belum ditetapkan — hubungi PKG secara terus.";
+
     return {
       ok: true,
-      message: adminPhone
-        ? "Permohonan diterima. Sila hantar mesej WhatsApp kepada admin untuk kelulusan."
-        : "Permohonan diterima. Nombor WhatsApp admin belum ditetapkan — hubungi PKG secara terus.",
+      message:
+        dayCount > 1
+          ? `${successBase} (${dayCount} hari dihantar; kelulusan dibuat mengikut hari.)`
+          : successBase,
       whatsappUrl,
     };
   } catch (error) {

@@ -6,11 +6,18 @@ import { createBookingAction, type BookingFormState } from "@/lib/actions/tempah
 import {
   formatRoom,
   formatSlot,
-  getConflictingBooking,
+  getBatchConflicts,
   slots,
   type BookingLike,
   type Slot,
 } from "@/lib/tempahan/booking-rules";
+import {
+  formatDayName,
+  formatMalayDate,
+  isWithinBookingDayLimit,
+  listInclusiveDates,
+  MAX_BOOKING_DAYS,
+} from "@/lib/tempahan/date";
 import { cn } from "@/lib/cn";
 import RoomCapacityBadge from "./RoomCapacityBadge";
 
@@ -54,18 +61,67 @@ export default function BookingForm({
 }) {
   const [state, formAction, pending] = useActionState(createBookingAction, initialState);
   const [room, setRoom] = useState(defaultRoomSlug ?? rooms[0]?.slug ?? "");
-  const [slot, setSlot] = useState<Slot>("am");
   const [date, setDate] = useState("");
+  const [dateEnd, setDateEnd] = useState("");
+  const [daySlots, setDaySlots] = useState<Record<string, Slot>>({});
 
   useEffect(() => {
-    if (prefillDate) setDate(prefillDate);
-    if (prefillSlot) setSlot(prefillSlot);
+    if (prefillDate) {
+      setDate(prefillDate);
+      setDateEnd(prefillDate);
+    }
+    if (prefillSlot && prefillDate) {
+      setDaySlots((prev) => ({ ...prev, [prefillDate]: prefillSlot }));
+    }
   }, [prefillDate, prefillSlot]);
 
-  const conflict = useMemo(() => {
-    if (!date) return undefined;
-    return getConflictingBooking(bookings, room, date, slot);
-  }, [bookings, date, room, slot]);
+  const rangeDates = useMemo(() => {
+    if (!date) return null;
+    const end = dateEnd || date;
+    return listInclusiveDates(date, end);
+  }, [date, dateEnd]);
+
+  const rangeValid = Boolean(rangeDates && isWithinBookingDayLimit(rangeDates.length));
+  const multiDay = Boolean(rangeDates && rangeDates.length > 1);
+
+  useEffect(() => {
+    if (!rangeDates || !isWithinBookingDayLimit(rangeDates.length)) return;
+    setDaySlots((prev) => {
+      const next: Record<string, Slot> = {};
+      for (const d of rangeDates) {
+        next[d] = prev[d] ?? (d === prefillDate && prefillSlot ? prefillSlot : "full_day");
+      }
+      return next;
+    });
+  }, [rangeDates, prefillDate, prefillSlot]);
+
+  const dayRequests = useMemo(() => {
+    if (!rangeValid || !rangeDates) return [];
+    return rangeDates.map((d) => ({
+      date: d,
+      slot: daySlots[d] ?? "full_day",
+    }));
+  }, [rangeValid, rangeDates, daySlots]);
+
+  const conflicts = useMemo(() => {
+    if (dayRequests.length === 0) return [];
+    return getBatchConflicts(bookings, room, dayRequests);
+  }, [bookings, room, dayRequests]);
+
+  const rangeError = useMemo(() => {
+    if (!date) return "";
+    const end = dateEnd || date;
+    if (end < date) return "Tarikh tamat mestilah pada atau selepas tarikh mula.";
+    if (!rangeDates) return "Julat tarikh tidak sah.";
+    if (!isWithinBookingDayLimit(rangeDates.length)) {
+      return `Maksimum ${MAX_BOOKING_DAYS} hari setiap permohonan (termasuk tarikh mula dan tamat).`;
+    }
+    return "";
+  }, [date, dateEnd, rangeDates]);
+
+  function setSlotForDate(isoDate: string, nextSlot: Slot) {
+    setDaySlots((prev) => ({ ...prev, [isoDate]: nextSlot }));
+  }
 
   const body = (
     <>
@@ -80,7 +136,8 @@ export default function BookingForm({
         </span>
       </div>
       <p className="mt-2 text-xs text-graphite xl:text-sm">
-        Selepas permohonan dihantar, klik butang WhatsApp untuk maklumkan admin.
+        Boleh tempah sehingga {MAX_BOOKING_DAYS} hari berturut-turut. Selepas dihantar, klik WhatsApp
+        untuk maklumkan admin.
       </p>
 
       <RoomCapacityBadge capacity={roomCapacity} prominent className="mt-3" />
@@ -163,10 +220,29 @@ export default function BookingForm({
             />
           </div>
 
-          <div className="grid gap-4 xl:grid-cols-1">
+          <div>
+            <label className="label" htmlFor={`${formId}-room`}>
+              Bilik *
+            </label>
+            <select
+              id={`${formId}-room`}
+              name="room"
+              className="input"
+              value={room}
+              onChange={(e) => setRoom(e.target.value)}
+            >
+              {rooms.map((item) => (
+                <option key={item.slug} value={item.slug}>
+                  {titleCase(item.name)}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="label" htmlFor={`${formId}-date`}>
-                Tarikh *
+                Tarikh mula *
               </label>
               <input
                 id={`${formId}-date`}
@@ -175,57 +251,107 @@ export default function BookingForm({
                 className="input"
                 required
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  setDate(next);
+                  if (!dateEnd || dateEnd < next) setDateEnd(next);
+                }}
               />
             </div>
             <div>
-              <label className="label" htmlFor={`${formId}-room`}>
-                Bilik *
+              <label className="label" htmlFor={`${formId}-date-end`}>
+                Tarikh tamat
+              </label>
+              <input
+                id={`${formId}-date-end`}
+                name="date_end"
+                type="date"
+                className="input"
+                min={date || undefined}
+                value={dateEnd}
+                onChange={(e) => setDateEnd(e.target.value)}
+              />
+              <p className="mt-1 text-xs text-graphite">
+                Kosongkan atau sama dengan tarikh mula untuk tempahan sehari.
+              </p>
+            </div>
+          </div>
+
+          {rangeError && (
+            <p className="rounded-md border border-bloom-rose bg-bloom-rose/30 px-3 py-2 text-sm text-bloom-deep">
+              {rangeError}
+            </p>
+          )}
+
+          {rangeValid && dayRequests.length === 1 && (
+            <div>
+              <label className="label" htmlFor={`${formId}-slot`}>
+                Slot *
               </label>
               <select
-                id={`${formId}-room`}
-                name="room"
+                id={`${formId}-slot`}
+                name="slots"
                 className="input"
-                value={room}
-                onChange={(e) => setRoom(e.target.value)}
+                value={dayRequests[0]!.slot}
+                onChange={(e) => setSlotForDate(dayRequests[0]!.date, e.target.value as Slot)}
               >
-                {rooms.map((item) => (
-                  <option key={item.slug} value={item.slug}>
-                    {titleCase(item.name)}
+                {slots.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.label}
                   </option>
                 ))}
               </select>
             </div>
-          </div>
+          )}
 
-          <div>
-            <label className="label" htmlFor={`${formId}-slot`}>
-              Slot *
-            </label>
-            <select
-              id={`${formId}-slot`}
-              name="slot"
-              className="input"
-              value={slot}
-              onChange={(e) => setSlot(e.target.value as Slot)}
-            >
-              {slots.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          {rangeValid && multiDay && (
+            <div className="space-y-3">
+              <p className="label">Slot mengikut hari *</p>
+              <ul className="space-y-2">
+                {dayRequests.map((day) => (
+                  <li
+                    key={day.date}
+                    className="flex flex-col gap-2 rounded-md border hairline bg-cloud/40 px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <span className="text-sm font-medium text-ink">
+                      {formatDayName(day.date)}, {formatMalayDate(day.date)}
+                    </span>
+                    <select
+                      name="slots"
+                      className="input sm:max-w-[11rem]"
+                      aria-label={`Slot untuk ${day.date}`}
+                      value={day.slot}
+                      onChange={(e) => setSlotForDate(day.date, e.target.value as Slot)}
+                    >
+                      {slots.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.label}
+                        </option>
+                      ))}
+                    </select>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
-          {conflict && (
-            <p className="rounded-md border border-bloom-rose bg-bloom-rose/30 px-3 py-2 text-sm text-bloom-deep">
-              {formatRoom(rooms, room)} pada {date} untuk slot {formatSlot(slot)} sedang ditempah /
-              menunggu kelulusan oleh <strong>{conflict.name}</strong>.
-            </p>
+          {conflicts.length > 0 && (
+            <div className="rounded-md border border-bloom-rose bg-bloom-rose/30 px-3 py-2 text-sm text-bloom-deep">
+              <p className="font-medium">
+                {formatRoom(rooms, room)} — slot berikut tidak tersedia:
+              </p>
+              <ul className="mt-1 list-disc pl-5">
+                {conflicts.map((item) => (
+                  <li key={`${item.date}-${item.slot}`}>
+                    {formatMalayDate(item.date)} ({formatSlot(item.slot)}) — {item.conflict.name}
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
 
           {state.message && !state.ok && (
-            <p className="rounded-md border border-bloom-rose bg-bloom-rose/30 px-3 py-2 text-sm text-bloom-deep">
+            <p className="whitespace-pre-line rounded-md border border-bloom-rose bg-bloom-rose/30 px-3 py-2 text-sm text-bloom-deep">
               {state.message}
             </p>
           )}
@@ -233,7 +359,7 @@ export default function BookingForm({
           <button
             type="submit"
             className="btn-primary w-full"
-            disabled={pending || Boolean(conflict)}
+            disabled={pending || Boolean(rangeError) || conflicts.length > 0 || !date}
           >
             {pending ? "Menghantar…" : "Hantar Permohonan"}
           </button>
