@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { formatSlot, type BookingLike, type Slot } from "@/lib/tempahan/booking-rules";
 import { formatMalayDate } from "@/lib/tempahan/date";
 import { cn } from "@/lib/cn";
@@ -27,6 +28,62 @@ function visibleDates(dates: string[], today: string, view: ViewRange): string[]
 
 function isCompactLayout() {
   return typeof window !== "undefined" && !window.matchMedia(DESKTOP_MQ).matches;
+}
+
+/** Klik label bulan → native month picker (seperti Sentra DatePickerButton). */
+function MonthJumpControl({
+  monthStart,
+  monthLabel,
+  detailBase,
+}: {
+  monthStart: string;
+  monthLabel: string;
+  detailBase: string;
+}) {
+  const router = useRouter();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const monthValue = monthStart.slice(0, 7);
+
+  function openPicker() {
+    const input = inputRef.current;
+    if (!input) return;
+    if (typeof input.showPicker === "function") {
+      try {
+        input.showPicker();
+        return;
+      } catch {
+        // fallback ke click
+      }
+    }
+    input.click();
+  }
+
+  return (
+    <div className="relative inline-flex min-w-[72px] justify-center">
+      <button
+        type="button"
+        onClick={openPicker}
+        className="rounded px-1.5 py-1 text-center text-xs font-semibold tabular-nums text-ink hover:bg-cloud focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+        aria-label="Pilih bulan dan tahun"
+        title="Klik untuk pilih bulan"
+      >
+        {monthLabel}
+      </button>
+      <input
+        ref={inputRef}
+        type="month"
+        className="sr-only"
+        value={monthValue}
+        tabIndex={-1}
+        aria-hidden
+        onChange={(e) => {
+          const next = e.target.value;
+          if (!next) return;
+          router.push(`${detailBase}?start=${next}-01`, { scroll: false });
+        }}
+      />
+    </div>
+  );
 }
 
 export default function RoomBookingWorkspace({
@@ -188,7 +245,11 @@ export default function RoomBookingWorkspace({
           >
             ‹
           </Link>
-          <span className="min-w-[72px] text-center text-xs font-semibold tabular-nums">{monthLabel}</span>
+          <MonthJumpControl
+            monthStart={monthStart}
+            monthLabel={monthLabel}
+            detailBase={detailBase}
+          />
           <Link
             href={`${detailBase}?start=${nextStart}`}
             scroll={false}
