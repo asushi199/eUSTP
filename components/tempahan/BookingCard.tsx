@@ -66,34 +66,6 @@ export default function BookingCard({
         </span>
       </p>
 
-      {booking.status === "approved" && useAutosijil && (
-        <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
-          {booking.cetakToken && (
-            <Link
-              href={`/tempahan/${pkgId}/cetak-kehadiran/${booking.cetakToken}`}
-              className="link-blue text-xs"
-              target="_blank"
-            >
-              Cetak QR kehadiran
-            </Link>
-          )}
-          {booking.autosijilAdminUrl && (
-            <a
-              href={booking.autosijilAdminUrl}
-              className="link-blue text-xs"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Urus kehadiran / sijil
-              {booking.requiresCertificate ? " (dengan sijil)" : ""}
-            </a>
-          )}
-          {booking.autosijilSyncStatus === "failed" && (
-            <span className="text-xs text-bloom-deep">Sync Autosijil gagal</span>
-          )}
-        </div>
-      )}
-
       {booking.status === "approved" && legacyManage && (
         <p className="mt-2">
           <Link href={legacyManage} className="link-blue text-xs">
