@@ -522,6 +522,11 @@ export async function getEquipmentLoanDetail(
   });
   if (!request) return null;
 
+  const pkgRow = await db.query.pkgs.findFirst({
+    where: eq(pkgs.id, pkgId),
+    columns: { equipmentManagerName: true },
+  });
+
   const itemRows = await db
     .select({
       id: equipmentLoanItems.id,
@@ -613,6 +618,7 @@ export async function getEquipmentLoanDetail(
   } = request;
   return {
     ...safeRequest,
+    pkgManagerName: pkgRow?.equipmentManagerName?.trim() || "",
     applicantMykadMasked: applicantMykadLast4
       ? `******-**-${applicantMykadLast4}`
       : "Belum direkodkan",

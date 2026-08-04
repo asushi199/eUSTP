@@ -854,12 +854,6 @@ function documentFileName(referenceNo: string, stage: EquipmentDocumentStage) {
   }.pdf`;
 }
 
-function expectedStatusForKewPa9Stage(
-  stage: EquipmentDocumentStage,
-): "handed_over" | "returned" {
-  return stage === "final" ? "returned" : "handed_over";
-}
-
 export async function generateAndStoreEquipmentKewPa9(
   pkgId: string,
   requestId: string,
@@ -869,16 +863,19 @@ export async function generateAndStoreEquipmentKewPa9(
   if (stage !== "handover" && stage !== "final") {
     return { ok: false, error: "Peringkat dokumen tidak sah." };
   }
-  const request = await getEquipmentLoanDetail(pkgId, requestId);
-  if (!request) return { ok: false, error: "Permohonan tidak dijumpai." };
-  const expectedStatus = expectedStatusForKewPa9Stage(stage);
-  if (request.status !== expectedStatus) {
+  // Simpanan Drive hanya untuk salinan lengkap selepas pemulangan.
+  if (stage !== "final") {
     return {
       ok: false,
-      error:
-        stage === "final"
-          ? "Lengkapkan pemulangan dahulu."
-          : "KEW.PA-9 semasa pinjaman hanya selepas serahan.",
+      error: "Simpan ke Drive hanya selepas pemulangan.",
+    };
+  }
+  const request = await getEquipmentLoanDetail(pkgId, requestId);
+  if (!request) return { ok: false, error: "Permohonan tidak dijumpai." };
+  if (request.status !== "returned") {
+    return {
+      ok: false,
+      error: "Lengkapkan pemulangan dahulu.",
     };
   }
   if (!isGasStorageConfigured()) {

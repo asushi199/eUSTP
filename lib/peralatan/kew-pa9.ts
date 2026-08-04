@@ -31,7 +31,8 @@ export type KewPa9Data = {
   orgName: string;
   purpose: string;
   usageLocation: string;
-  manufacturer: string;
+  /** Nama pegawai yang mengeluarkan aset (bukan pengeluar/jenama peralatan). */
+  issuerName: string;
   borrowDate: string;
   expectedReturnDate: string;
   returnedAt: Date | null;
@@ -162,7 +163,7 @@ function drawPageContent(
   drawCellText(page, font, data.position, 161, 151, 154, 6.8);
   drawCellText(page, font, data.usageLocation, 410, 151, 149, 6.8);
   drawCellText(page, font, data.orgName, 161, 173, 154, 6.8);
-  drawCellText(page, font, data.manufacturer, 410, 173, 149, 6.8);
+  drawCellText(page, font, data.issuerName, 410, 173, 149, 6.8);
 
   const firstRowTop = 245.3;
   const rowHeight = 17.16;
@@ -226,13 +227,6 @@ function drawPageContent(
 }
 
 export function buildKewPa9Data(request: EquipmentLoanDetail): KewPa9Data {
-  const models = Array.from(
-    new Set(
-      request.items.flatMap((item) =>
-        item.allocatedUnits.map((unit) => unit.model.trim()).filter(Boolean),
-      ),
-    ),
-  );
   return {
     referenceNo: request.referenceNo,
     applicantName: request.applicantName,
@@ -240,8 +234,7 @@ export function buildKewPa9Data(request: EquipmentLoanDetail): KewPa9Data {
     orgName: request.orgName,
     purpose: request.purpose,
     usageLocation: request.usageLocation,
-    manufacturer:
-      models.length === 1 ? models[0] : models.length > 1 ? "Pelbagai - rujuk aset" : "",
+    issuerName: request.pkgManagerName,
     borrowDate: request.borrowDate,
     expectedReturnDate: request.expectedReturnDate,
     returnedAt: request.returnedAt,

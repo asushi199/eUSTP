@@ -719,3 +719,5 @@ Corak berselang = instance sihat vs beracun.
 - Selepas pemulangan, jana semula versi `final` supaya tarikh pemulangan diisi.
   Tiada label "draf/pratonton"; kedua-dua versi ialah borang rasmi.
 - Aliran stok/serahan/pemulangan tidak berubah; penjanaan PDF kekal berasingan.
+- Medan **Nama Pengeluar** pada KEW.PA-9 ialah pegawai yang mengeluarkan aset
+  (`pkgs.equipment_manager_name`), bukan model/jenama peralatan.

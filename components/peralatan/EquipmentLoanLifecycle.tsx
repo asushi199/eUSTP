@@ -39,7 +39,7 @@ function KewPa9Action({
               : document?.status === "failed"
                 ? "Simpanan Drive gagal; muat turun masih tersedia."
                 : isActiveLoan
-                  ? "Borang rasmi. Tarikh pemulangan dibiarkan kosong sehingga peralatan dipulangkan. Cetak dan lengkapkan empat tandatangan pada satu salinan."
+                  ? "Borang rasmi. Tarikh pemulangan dibiarkan kosong sehingga peralatan dipulangkan. Cetak melalui muat turun PDF; simpan ke Drive selepas pemulangan."
                   : "Selepas pemulangan, jana semula supaya tarikh pemulangan diisi. Lengkapkan empat tandatangan pada satu salinan bercetak."}
           </p>
         </div>
@@ -61,7 +61,12 @@ function KewPa9Action({
         <button
           type="button"
           className="btn-primary btn-sm"
-          disabled={pending}
+          disabled={pending || isActiveLoan}
+          title={
+            isActiveLoan
+              ? "Simpan ke Drive hanya selepas pemulangan."
+              : undefined
+          }
           onClick={() =>
             startTransition(async () => {
               setError("");
@@ -81,6 +86,12 @@ function KewPa9Action({
           {pending ? "Menyimpan..." : "Jana & simpan ke Drive"}
         </button>
       </div>
+      {isActiveLoan ? (
+        <p className="mt-3 text-xs leading-relaxed text-graphite">
+          Muat turun PDF dibenarkan sekarang. Simpan ke Drive hanya selepas
+          peralatan dipulangkan (tarikh pemulangan telah diisi).
+        </p>
+      ) : null}
       {error ? (
         <p className="mt-3 rounded-lg bg-amber-50 p-3 text-xs leading-relaxed text-amber-800">
           {error}
