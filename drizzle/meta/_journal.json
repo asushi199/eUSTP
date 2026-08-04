@@ -127,6 +127,13 @@
       "when": 1785339000000,
       "tag": "0017_hide_uncategorized_equipment",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1785340000000,
+      "tag": "0018_remove_electronics_set",
+      "breakpoints": true
     }
   ]
 }
