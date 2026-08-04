@@ -6,15 +6,18 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { pkgs, rooms } from "@/lib/schema";
 import { requireTempahanAccess } from "@/lib/rbac";
+import { canEditBookingFromAdmin } from "@/lib/tempahan/admin-booking";
 import { slugifyRoomName } from "@/lib/tempahan/booking-rules";
 import { parseCapacityInput } from "@/lib/tempahan/room-capacity";
-import { getRoomBySlug } from "@/lib/tempahan/queries";
+import { getBooking, getRoomBySlug } from "@/lib/tempahan/queries";
 import { uploadPkgLogo, uploadRoomPhoto } from "@/lib/tempahan/room-photos";
 import {
   approveBookingCore,
   cancelBookingCore,
+  deleteBookingCore,
   friendlyBookingError,
   rejectBookingCore,
+  rescheduleBookingCore,
 } from "@/lib/tempahan/service";
 
 type ActionResult = { ok: boolean; error?: string };
@@ -22,6 +25,11 @@ type ActionResult = { ok: boolean; error?: string };
 function refreshBookingPaths(pkgId: string) {
   revalidatePath(`/tempahan/${pkgId}`);
   revalidatePath(`/admin/tempahan/${pkgId}`);
+}
+
+function refreshRoomPath(pkgId: string, roomSlug?: string | null) {
+  if (!roomSlug) return;
+  revalidatePath(`/tempahan/${pkgId}/bilik/${roomSlug}`);
 }
 
 /* --------------------------- kelulusan panel admin --------------------------- */
@@ -57,6 +65,58 @@ export async function adminCancelBooking(
   await requireTempahanAccess(pkgId);
   await cancelBookingCore(pkgId, bookingId);
   refreshBookingPaths(pkgId);
+  return { ok: true };
+}
+
+const updateBookingScheduleSchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Tarikh tidak sah."),
+  slot: z.enum(["am", "pm", "full_day"]),
+});
+
+export async function adminUpdateBookingSchedule(
+  pkgId: string,
+  bookingId: string,
+  formData: FormData,
+): Promise<ActionResult> {
+  await requireTempahanAccess(pkgId);
+
+  const booking = await getBooking(pkgId, bookingId);
+  if (!booking) return { ok: false, error: "Tempahan tidak dijumpai." };
+  if (!canEditBookingFromAdmin(booking.status)) {
+    return { ok: false, error: "Hanya tempahan menunggu atau diluluskan boleh diubah." };
+  }
+
+  const parsed = updateBookingScheduleSchema.safeParse({
+    date: formData.get("date"),
+    slot: formData.get("slot"),
+  });
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Input tidak sah." };
+  }
+
+  try {
+    await rescheduleBookingCore(pkgId, bookingId, parsed.data.date, parsed.data.slot);
+  } catch (e) {
+    return { ok: false, error: friendlyBookingError(e) };
+  }
+
+  refreshBookingPaths(pkgId);
+  refreshRoomPath(pkgId, booking.roomSlug);
+  return { ok: true };
+}
+
+export async function adminDeleteBooking(
+  pkgId: string,
+  bookingId: string,
+): Promise<ActionResult> {
+  await requireTempahanAccess(pkgId);
+
+  const booking = await getBooking(pkgId, bookingId);
+  if (!booking) return { ok: false, error: "Tempahan tidak dijumpai." };
+
+  await deleteBookingCore(pkgId, bookingId);
+  refreshBookingPaths(pkgId);
+  refreshRoomPath(pkgId, booking.roomSlug);
   return { ok: true };
 }
 

@@ -721,3 +721,16 @@ Corak berselang = instance sihat vs beracun.
 - Aliran stok/serahan/pemulangan tidak berubah; penjanaan PDF kekal berasingan.
 - Medan **Nama Pengeluar** pada KEW.PA-9 ialah pegawai yang mengeluarkan aset
   (`pkgs.equipment_manager_name`), bukan model/jenama peralatan.
+
+## 2026-08-04 — Admin tempahan boleh ubah tarikh dan padam rekod
+
+- Panel admin tempahan bilik kini membenarkan pentadbir mengubah tarikh dan slot
+  bagi tempahan berstatus `pending` atau `approved` terus dari kad tempahan.
+- Semakan konflik semasa ubah tarikh mengabaikan rekod yang sedang diedit tetapi
+  tetap menyekat slot yang sudah ditempah atau menunggu kelulusan oleh pihak lain.
+- Pentadbir kini boleh memadam tempahan secara kekal dengan pengesahan tambahan;
+  rekod kehadiran berkaitan turut dipadam melalui hubungan `cascade`.
+- Verifikasi dilengkapkan dengan `node --import tsx --test
+  tests/tempahan/admin-booking-actions.test.ts
+  tests/tempahan/multi-day-booking.test.ts`, `npm run typecheck` dan
+  `npm run build`.

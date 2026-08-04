@@ -3,8 +3,10 @@ import "server-only";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { bookings } from "@/lib/schema";
+import { getEditableBookingConflict } from "./admin-booking";
+import { parseSlot } from "./booking-rules";
 import { generateAttendanceToken } from "./approval-token";
-import { getBooking } from "./queries";
+import { getBooking, listActiveBookings } from "./queries";
 
 function attendanceTokensFor(existing: {
   attendanceToken: string | null;
@@ -60,6 +62,39 @@ export async function cancelBookingCore(pkgId: string, id: string): Promise<void
     .update(bookings)
     .set({ status: "cancelled", cancelledAt: new Date() })
     .where(and(eq(bookings.pkgId, pkgId), eq(bookings.id, id)));
+}
+
+export async function rescheduleBookingCore(
+  pkgId: string,
+  id: string,
+  nextDate: string,
+  nextSlotRaw: string,
+): Promise<void> {
+  const existing = await getBooking(pkgId, id);
+  if (!existing) throw new Error("Tempahan tidak dijumpai.");
+
+  const nextSlot = parseSlot(nextSlotRaw);
+  if (!nextSlot) throw new Error("Slot tempahan tidak sah.");
+
+  const active = await listActiveBookings(pkgId, nextDate);
+  const conflict = getEditableBookingConflict(active, {
+    bookingId: id,
+    roomSlug: existing.roomSlug,
+    date: nextDate,
+    slot: nextSlot,
+  });
+  if (conflict) {
+    throw new Error("Slot bilik ini sudah ditempah");
+  }
+
+  await db
+    .update(bookings)
+    .set({ date: nextDate, slot: nextSlot })
+    .where(and(eq(bookings.pkgId, pkgId), eq(bookings.id, id)));
+}
+
+export async function deleteBookingCore(pkgId: string, id: string): Promise<void> {
+  await db.delete(bookings).where(and(eq(bookings.pkgId, pkgId), eq(bookings.id, id)));
 }
 
 /** Mesej ralat trigger DB (advisory-lock) → mesej mesra pengguna. */

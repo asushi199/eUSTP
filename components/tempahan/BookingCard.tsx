@@ -14,8 +14,8 @@ const STATUS_DOT: Record<string, string> = {
 
 /**
  * Kad satu tempahan bilik. `bare` untuk item dalam senarai/kalendar terkumpul;
- * default penuh `.card` untuk gilir tindakan. Butang tindakan muncul bila
- * pending; pautan urus kehadiran/QR muncul bila approved.
+ * default penuh `.card` untuk gilir tindakan. Pentadbir boleh urus tempahan
+ * terus dari sini, termasuk lulus/tolak, ubah tarikh, batal dan padam rekod.
  */
 export default function BookingCard({
   pkgId,
@@ -71,11 +71,15 @@ export default function BookingCard({
         </p>
       )}
 
-      {booking.status === "pending" && (
-        <div className="mt-3">
-          <AdminBookingActions pkgId={pkgId} bookingId={booking.id} status={booking.status} />
-        </div>
-      )}
+      <div className="mt-3">
+        <AdminBookingActions
+          pkgId={pkgId}
+          bookingId={booking.id}
+          status={booking.status}
+          currentDate={booking.date}
+          currentSlot={booking.slot}
+        />
+      </div>
     </div>
   );
 }
