@@ -33,15 +33,20 @@ function KewPa9Action({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="font-semibold text-ink">KEW.PA-9 untuk tandatangan</p>
-          <p className="mt-1 text-xs leading-relaxed text-graphite">
-            {document?.status === "ready" && document.generatedAt
-              ? `Disimpan ${document.generatedAt.toLocaleString("ms-MY")}`
-              : document?.status === "failed"
-                ? "Simpanan Drive gagal; muat turun masih tersedia."
-                : isActiveLoan
-                  ? "Borang rasmi. Tarikh pemulangan dibiarkan kosong sehingga peralatan dipulangkan. Cetak melalui muat turun PDF; simpan ke Drive selepas pemulangan."
-                  : "Selepas pemulangan, jana semula supaya tarikh pemulangan diisi. Lengkapkan empat tandatangan pada satu salinan bercetak."}
-          </p>
+          {document?.status === "ready" && document.generatedAt ? (
+            <p className="mt-1 text-xs leading-relaxed text-graphite">
+              Disimpan {document.generatedAt.toLocaleString("ms-MY")}
+            </p>
+          ) : document?.status === "failed" ? (
+            <p className="mt-1 text-xs leading-relaxed text-graphite">
+              Simpanan Drive gagal; muat turun masih tersedia.
+            </p>
+          ) : !isActiveLoan ? (
+            <p className="mt-1 text-xs leading-relaxed text-graphite">
+              Selepas pemulangan, jana semula supaya tarikh pemulangan diisi.
+              Lengkapkan empat tandatangan pada satu salinan bercetak.
+            </p>
+          ) : null}
         </div>
         {document?.status === "ready" && document.publicUrl ? (
           <a
