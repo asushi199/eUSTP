@@ -1,5 +1,17 @@
 # AI Context Log — eUSTP Manjung
 
+## 2026-08-04 — Admin Tempahan: senarai mingguan gaya takwim
+
+Senarai admin tempahan bilik diganti kepada baris ringkas bergrup minggu
+(rujukan egerak-v2 takwim). Badge = nama bilik; klik expand untuk butiran +
+tindakan. Desktop kekal Kalendar | Senarai; telefon sentiasa senarai minggu.
+Pending: desktop kad penuh, telefon agenda ringkas. Default buka minggu semasa.
+Spec/plan: `docs/superpowers/specs/2026-08-04-tempahan-admin-takwim-senarai-design.md`,
+`docs/superpowers/plans/2026-08-04-tempahan-admin-takwim-senarai.md`.
+Fail: `lib/month-view.ts`, `WeekAgendaList`, `AgendaRow`, `BookingAgendaRow`,
+`MonthSection` (`forceListOnMobile` + `agenda`), `TempahanAdminView`.
+Khidmat Bantu tidak diubah (tiada `agenda`).
+
 ## 2026-08-04 — Fasa 2 Autosijil: sync jadual + migrasi
 
 Ubah tarikh/slot pada booking yang sudah ada event Autosijil akan `PATCH`

@@ -95,3 +95,115 @@ export function indexByDay<T>(items: T[], getDate: (item: T) => string): Map<str
   }
   return map;
 }
+
+export type WeekGroup<T> = {
+  weekKey: string;
+  weekNumber: number;
+  label: string;
+  startDateKey: string;
+  endDateKey: string;
+  itemCount: number;
+  days: DayGroup<T>[];
+};
+
+/** Label julat minggu BM, cth. "3 - 9 Ogo" atau "28 Jul - 3 Ogo". */
+export function weekRangeLabel(startDateKey: string, endDateKey: string): string {
+  const start = new Date(`${startDateKey}T00:00:00`);
+  const end = new Date(`${endDateKey}T00:00:00`);
+  if (startDateKey === endDateKey) {
+    return start.toLocaleDateString("ms-MY", { day: "numeric", month: "short" });
+  }
+  const sameMonth =
+    start.getFullYear() === end.getFullYear() && start.getMonth() === end.getMonth();
+  if (sameMonth) {
+    return `${start.getDate()} - ${end.toLocaleDateString("ms-MY", {
+      day: "numeric",
+      month: "short",
+    })}`;
+  }
+  return `${start.toLocaleDateString("ms-MY", {
+    day: "numeric",
+    month: "short",
+  })} - ${end.toLocaleDateString("ms-MY", { day: "numeric", month: "short" })}`;
+}
+
+/**
+ * Kumpul item mengikut minggu grid bulanan (Isnin–Ahad, sama `buildMonthGrid`).
+ * Hanya minggu dengan sekurang-kurangnya satu item dikembalikan.
+ */
+export function groupItemsByWeek<T>(
+  year: number,
+  month: number,
+  items: T[],
+  getDate: (item: T) => string,
+): WeekGroup<T>[] {
+  const grid = buildMonthGrid(year, month);
+  const byDate = indexByDay(items, getDate);
+  const bulan = formatBulan(year, month);
+  const weeks: WeekGroup<T>[] = [];
+
+  grid.forEach((cells, index) => {
+    const dates = cells.filter((d): d is string => d != null);
+    if (dates.length === 0) return;
+
+    const days: DayGroup<T>[] = [];
+    let itemCount = 0;
+    for (const date of dates) {
+      const dayItems = byDate.get(date);
+      if (!dayItems?.length) continue;
+      days.push({ date, items: dayItems });
+      itemCount += dayItems.length;
+    }
+    if (itemCount === 0) return;
+
+    const weekNumber = index + 1;
+    weeks.push({
+      weekKey: `${bulan}-W${weekNumber}`,
+      weekNumber,
+      label: `MINGGU ${weekNumber}`,
+      startDateKey: dates[0],
+      endDateKey: dates[dates.length - 1],
+      itemCount,
+      days,
+    });
+  });
+
+  return weeks;
+}
+
+/**
+ * Minggu default dibuka: minggu yang merangkumi hari ini (jika beritem),
+ * jika tidak minggu beritem paling hampir kepada `todayIso`.
+ */
+export function defaultOpenWeekKey(
+  groups: WeekGroup<unknown>[],
+  todayIso: string,
+): string | null {
+  if (groups.length === 0) return null;
+
+  const containing = groups.find(
+    (g) => g.startDateKey <= todayIso && todayIso <= g.endDateKey && g.itemCount > 0,
+  );
+  if (containing) return containing.weekKey;
+
+  let best: WeekGroup<unknown> | null = null;
+  let bestDist = Number.POSITIVE_INFINITY;
+  for (const g of groups) {
+    if (g.itemCount === 0) continue;
+    const dist =
+      todayIso < g.startDateKey
+        ? dateIsoDiffDays(g.startDateKey, todayIso)
+        : dateIsoDiffDays(todayIso, g.endDateKey);
+    if (dist < bestDist) {
+      bestDist = dist;
+      best = g;
+    }
+  }
+  return best?.weekKey ?? null;
+}
+
+function dateIsoDiffDays(later: string, earlier: string): number {
+  const a = new Date(`${later}T00:00:00`).getTime();
+  const b = new Date(`${earlier}T00:00:00`).getTime();
+  return Math.round((a - b) / 86_400_000);
+}

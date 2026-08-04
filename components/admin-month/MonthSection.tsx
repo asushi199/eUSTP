@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import WeekAgendaList from "@/components/admin-month/WeekAgendaList";
+import type { MonthItem } from "@/components/admin-month/types";
 import {
   buildMonthGrid,
   groupByDay,
@@ -11,20 +13,11 @@ import {
 import { formatDayName, formatMalayDate } from "@/lib/tempahan/date";
 import { cn } from "@/lib/cn";
 
+export type { MonthItem } from "@/components/admin-month/types";
+
 const MONTH_SHORTS = Array.from({ length: 12 }, (_, m) =>
   new Date(2000, m, 1).toLocaleDateString("ms-MY", { month: "short" }),
 );
-
-export type MonthItem = {
-  id: string;
-  /** ISO yyyy-MM-dd */
-  date: string;
-  status: string;
-  /** Label ringkas untuk sel kalendar (mis. tajuk servis atau "Bilik A · Pagi"). */
-  chip: string;
-  /** Kad penuh untuk paparan senarai / butiran hari. */
-  card: ReactNode;
-};
 
 type View = "kalendar" | "senarai";
 
@@ -40,6 +33,9 @@ const STATUS_FILTERS = [
  * Seksyen admin berskop-bulan: navigasi bulan + suis Kalendar/Senarai +
  * tapis status. Presentasi tulen — induk hantar item bulan aktif (semua status
  * bukan-pending) dan kad yang telah dirender. Kalendar sentiasa papar approved.
+ *
+ * `forceListOnMobile`: telefon sentiasa Senarai (sembunyi suis + kalendar).
+ * Item dengan `agenda` → senarai mingguan gaya takwim; tanpa → kad bertindan.
  */
 export default function MonthSection({
   year,
@@ -48,6 +44,7 @@ export default function MonthSection({
   onNavigate,
   initialView = "kalendar",
   syncViewToUrl = false,
+  forceListOnMobile = false,
 }: {
   year: number;
   month: number;
@@ -55,10 +52,13 @@ export default function MonthSection({
   onNavigate: (year: number, month: number) => void;
   initialView?: View;
   syncViewToUrl?: boolean;
+  forceListOnMobile?: boolean;
 }) {
   const [view, setViewState] = useState<View>(initialView);
   const [statusId, setStatusId] = useState<string>("diluluskan");
   const [selected, setSelected] = useState<string | null>(null);
+
+  const useWeekAgenda = items.some((i) => i.agenda);
 
   function navigate(y: number, m: number) {
     setSelected(null);
@@ -86,6 +86,20 @@ export default function MonthSection({
   );
 
   const selectedItems = selected ? byDate.get(selected) ?? [] : [];
+
+  function renderList() {
+    return useWeekAgenda ? (
+      <WeekAgendaList
+        year={year}
+        month={month}
+        items={items}
+        statusId={statusId}
+        onStatus={setStatusId}
+      />
+    ) : (
+      <MonthList groups={listGroups} statusId={statusId} onStatus={setStatusId} />
+    );
+  }
 
   return (
     <div className="mt-4">
@@ -116,7 +130,12 @@ export default function MonthSection({
           </button>
         </div>
 
-        <div className="inline-flex rounded-full border border-fog p-0.5">
+        <div
+          className={cn(
+            "inline-flex rounded-full border border-fog p-0.5",
+            forceListOnMobile && "hidden sm:inline-flex",
+          )}
+        >
           {(["kalendar", "senarai"] as View[]).map((v) => (
             <button
               key={v}
@@ -133,7 +152,25 @@ export default function MonthSection({
         </div>
       </div>
 
-      {view === "kalendar" ? (
+      {forceListOnMobile ? (
+        <>
+          <div className="sm:hidden">{renderList()}</div>
+          <div className="hidden sm:block">
+            {view === "kalendar" ? (
+              <MonthCalendar
+                weeks={weeks}
+                byDate={byDate}
+                selected={selected}
+                onSelect={setSelected}
+                selectedItems={selectedItems}
+                desktopOnly
+              />
+            ) : (
+              renderList()
+            )}
+          </div>
+        </>
+      ) : view === "kalendar" ? (
         <MonthCalendar
           weeks={weeks}
           byDate={byDate}
@@ -142,11 +179,7 @@ export default function MonthSection({
           selectedItems={selectedItems}
         />
       ) : (
-        <MonthList
-          groups={listGroups}
-          statusId={statusId}
-          onStatus={setStatusId}
-        />
+        renderList()
       )}
     </div>
   );
@@ -158,19 +191,22 @@ function MonthCalendar({
   selected,
   onSelect,
   selectedItems,
+  desktopOnly = false,
 }: {
   weeks: (string | null)[][];
   byDate: Map<string, MonthItem[]>;
   selected: string | null;
   onSelect: (date: string | null) => void;
   selectedItems: MonthItem[];
+  /** Jika true, jangan papar agenda telefon (dipakai dengan forceListOnMobile). */
+  desktopOnly?: boolean;
 }) {
   const todayIso = new Date().toLocaleDateString("en-CA");
   const agenda = [...byDate.entries()].sort((a, b) => a[0].localeCompare(b[0]));
 
   return (
     <>
-      <div className="mt-4 hidden sm:block">
+      <div className={cn("mt-4", desktopOnly ? "block" : "hidden sm:block")}>
         <div className="grid grid-cols-7 gap-1">
           {DAY_HEADERS.map((h) => (
             <div key={h} className="pb-1 text-center text-[11px] text-graphite">
@@ -235,22 +271,24 @@ function MonthCalendar({
         )}
       </div>
 
-      <div className="mt-4 space-y-4 sm:hidden">
-        {agenda.length === 0 ? (
-          <div className="card p-8 text-center text-sm text-graphite">
-            Tiada rekod diluluskan bulan ini.
-          </div>
-        ) : (
-          agenda.map(([date, dayItems]) => (
-            <div key={date}>
-              <p className="mb-1.5 text-xs font-medium text-graphite">
-                {formatMalayDate(date, { year: undefined })} · {formatDayName(date)}
-              </p>
-              <div className="space-y-2">{dayItems.map((it) => it.card)}</div>
+      {!desktopOnly && (
+        <div className="mt-4 space-y-4 sm:hidden">
+          {agenda.length === 0 ? (
+            <div className="card p-8 text-center text-sm text-graphite">
+              Tiada rekod diluluskan bulan ini.
             </div>
-          ))
-        )}
-      </div>
+          ) : (
+            agenda.map(([date, dayItems]) => (
+              <div key={date}>
+                <p className="mb-1.5 text-xs font-medium text-graphite">
+                  {formatMalayDate(date, { year: undefined })} · {formatDayName(date)}
+                </p>
+                <div className="space-y-2">{dayItems.map((it) => it.card)}</div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
     </>
   );
 }

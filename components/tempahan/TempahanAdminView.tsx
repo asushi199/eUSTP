@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import BookingAgendaRow from "./BookingAgendaRow";
 import BookingCard from "./BookingCard";
 import MonthSection, { type MonthItem } from "@/components/admin-month/MonthSection";
 import { formatSlot } from "@/lib/tempahan/booking-rules";
@@ -12,6 +13,8 @@ import type { BookingRow } from "@/lib/tempahan/queries";
  * Pandangan admin Tempahan satu PKG: gilir tunggu-kelulusan di atas + seksyen
  * berskop-bulan. Tarikh ialah lajur DB sebenar → bulan aktif diambil per-bulan
  * di pelayan melalui `?bulan`; navigasi bulan menukar param itu.
+ *
+ * Senarai = minggu gaya takwim (baris ringkas → expand). Telefon sentiasa senarai.
  */
 export default function TempahanAdminView({
   pkgId,
@@ -50,6 +53,12 @@ export default function TempahanAdminView({
           date: b.date,
           status: b.status,
           chip: `${rn} · ${formatSlot(b.slot)}`,
+          agenda: {
+            title: b.purpose,
+            timeLabel: formatSlot(b.slot),
+            badgeLabel: rn,
+            meta: `${b.name} · ${b.schoolOrUnit}`,
+          },
           card: (
             <BookingCard
               key={b.id}
@@ -74,16 +83,28 @@ export default function TempahanAdminView({
             Tiada permohonan menunggu.
           </div>
         ) : (
-          <div className="mt-3 space-y-3">
-            {pending.map((b) => (
-              <BookingCard
-                key={b.id}
-                pkgId={pkgId}
-                booking={b}
-                roomName={roomName(b.roomSlug)}
-              />
-            ))}
-          </div>
+          <>
+            <div className="mt-3 hidden space-y-3 sm:block">
+              {pending.map((b) => (
+                <BookingCard
+                  key={b.id}
+                  pkgId={pkgId}
+                  booking={b}
+                  roomName={roomName(b.roomSlug)}
+                />
+              ))}
+            </div>
+            <div className="mt-3 space-y-2 sm:hidden">
+              {pending.map((b) => (
+                <BookingAgendaRow
+                  key={b.id}
+                  pkgId={pkgId}
+                  booking={b}
+                  roomName={roomName(b.roomSlug)}
+                />
+              ))}
+            </div>
+          </>
         )}
       </section>
 
@@ -96,6 +117,7 @@ export default function TempahanAdminView({
           onNavigate={goTo}
           initialView={initialView}
           syncViewToUrl
+          forceListOnMobile
         />
       </section>
     </div>
