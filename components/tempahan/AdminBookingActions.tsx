@@ -105,7 +105,7 @@ export default function AdminBookingActions({
               setEditing((value) => !value);
             }}
           >
-            Ubah tarikh
+            Ubah
           </button>
         )}
         {(status === "pending" || status === "approved") && (
@@ -178,7 +178,7 @@ export default function AdminBookingActions({
           </p>
           <div className="flex flex-wrap gap-2">
             <button type="submit" className="btn-primary btn-sm" disabled={pending}>
-              {pending ? "Menyimpan..." : "Simpan tarikh"}
+              {pending ? "Menyimpan..." : "Simpan"}
             </button>
             <button
               type="button"

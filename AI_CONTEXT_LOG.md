@@ -730,6 +730,8 @@ Corak berselang = instance sihat vs beracun.
   tetap menyekat slot yang sudah ditempah atau menunggu kelulusan oleh pihak lain.
 - Pentadbir kini boleh memadam tempahan secara kekal dengan pengesahan tambahan;
   rekod kehadiran berkaitan turut dipadam melalui hubungan `cascade`.
+- Label tindakan pada kad tempahan dipendekkan kepada `Ubah`, `Batal` dan
+  `Padam` supaya lebih padat tanpa menukar UI kepada bahasa Inggeris.
 - Verifikasi dilengkapkan dengan `node --import tsx --test
   tests/tempahan/admin-booking-actions.test.ts
   tests/tempahan/multi-day-booking.test.ts`, `npm run typecheck` dan
