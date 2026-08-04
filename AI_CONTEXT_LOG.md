@@ -1,5 +1,17 @@
 # AI Context Log — eUSTP Manjung
 
+## 2026-08-04 — Integrasi Autosijil (kehadiran + sijil)
+
+Tempahan yang diluluskan auto-cipta event di Autosijildankehadiran melalui API
+integrasi (Bearer secret). Admin pilih «Perlu sijil» semasa lulus. eUSTP jana
+halaman cetak poster QR (`/tempahan/[pkg]/cetak-kehadiran/[cetakToken]`); senarai
+kehadiran & sijil hanya di Autosijil. Booking lama kekal aliran `/urus-hadir`
+tempatan. Spec/plan:
+`docs/superpowers/specs/2026-08-04-eustp-autosijil-integration-design.md`,
+`docs/superpowers/plans/2026-08-04-eustp-autosijil-integration.md`.
+Migrasi eUSTP: `drizzle/0021_autosijil_booking_sync.sql`. Autosijil SQL:
+`supabase/migrations/2026-08-04-eustp-external-booking.sql`.
+
 ## 2026-08-04 — Jadual tempahan gaya Sentra (hybrid B)
 
 Paparan jadual bilik awam diganti kepada jadual padat (Tarikh × AM/PM)

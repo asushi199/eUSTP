@@ -19,6 +19,7 @@ import {
   rejectBookingCore,
   rescheduleBookingCore,
 } from "@/lib/tempahan/service";
+import { syncApprovedBookingToAutosijil } from "@/lib/tempahan/autosijil-sync";
 
 type ActionResult = { ok: boolean; error?: string };
 
@@ -37,14 +38,26 @@ function refreshRoomPath(pkgId: string, roomSlug?: string | null) {
 export async function adminApproveBooking(
   pkgId: string,
   bookingId: string,
+  requiresCertificate = false,
 ): Promise<ActionResult> {
   await requireTempahanAccess(pkgId);
   try {
-    await approveBookingCore(pkgId, bookingId);
+    await approveBookingCore(pkgId, bookingId, { requiresCertificate });
   } catch (e) {
     return { ok: false, error: friendlyBookingError(e) };
   }
   refreshBookingPaths(pkgId);
+  return { ok: true };
+}
+
+export async function adminRetryAutosijilSync(
+  pkgId: string,
+  bookingId: string,
+): Promise<ActionResult> {
+  await requireTempahanAccess(pkgId);
+  const result = await syncApprovedBookingToAutosijil(pkgId, bookingId);
+  refreshBookingPaths(pkgId);
+  if (!result.ok) return { ok: false, error: result.error ?? "Sync gagal." };
   return { ok: true };
 }
 

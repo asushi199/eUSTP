@@ -421,10 +421,22 @@ export const bookings = pgTable(
     contactNormalized: text("contact_normalized").notNull().default(""),
     status: bookingStatus("status").notNull().default("pending"),
     approvalTokenHash: text("approval_token_hash"),
-    /** token QR pendaftaran kehadiran awam (dijana semasa kelulusan) */
+    /** token QR pendaftaran kehadiran awam (legacy — rekod lama sahaja) */
     attendanceToken: text("attendance_token"),
-    /** token urus senarai kehadiran (berasingan — pemegang QR tak boleh muat turun senarai) */
+    /** token urus senarai kehadiran (legacy — rekod lama sahaja) */
     attendanceManageToken: text("attendance_manage_token"),
+    /** Adakah program ini perlu sijil di Autosijil */
+    requiresCertificate: boolean("requires_certificate").notNull().default(false),
+    /** Token awam untuk halaman cetak poster kehadiran */
+    cetakToken: text("cetak_token"),
+    autosijilEventId: text("autosijil_event_id"),
+    autosijilEventSlug: text("autosijil_event_slug"),
+    autosijilPublicUrl: text("autosijil_public_url"),
+    autosijilAdminUrl: text("autosijil_admin_url"),
+    /** pending | synced | failed | cancelled */
+    autosijilSyncStatus: text("autosijil_sync_status"),
+    autosijilSyncError: text("autosijil_sync_error"),
+    autosijilSyncedAt: timestamp("autosijil_synced_at", { withTimezone: true }),
     approvedAt: timestamp("approved_at", { withTimezone: true }),
     rejectedAt: timestamp("rejected_at", { withTimezone: true }),
     cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
@@ -445,6 +457,8 @@ export const bookings = pgTable(
     ),
     attendanceTokenIdx: index("bookings_attendance_token_idx").on(t.attendanceToken),
     manageTokenIdx: index("bookings_manage_token_idx").on(t.attendanceManageToken),
+    cetakTokenIdx: index("bookings_cetak_token_idx").on(t.cetakToken),
+    autosijilEventIdx: index("bookings_autosijil_event_id_idx").on(t.autosijilEventId),
   }),
 );
 

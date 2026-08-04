@@ -188,6 +188,17 @@ export async function getBookingByManageToken(
   return row ?? null;
 }
 
+export async function getBookingByCetakToken(
+  pkgId: string,
+  token: string,
+): Promise<BookingRow | null> {
+  if (!token) return null;
+  const row = await db.query.bookings.findFirst({
+    where: and(eq(bookings.pkgId, pkgId), eq(bookings.cetakToken, token)),
+  });
+  return row ?? null;
+}
+
 export async function listAttendees(pkgId: string, bookingId: string): Promise<AttendeeRow[]> {
   return db
     .select()

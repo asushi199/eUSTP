@@ -37,6 +37,12 @@ export default function BookingCard({
     .filter(Boolean)
     .join(" · ");
 
+  const useAutosijil = Boolean(booking.autosijilEventId || booking.cetakToken);
+  const legacyManage =
+    !useAutosijil && booking.attendanceManageToken
+      ? `/tempahan/${pkgId}/urus-hadir/${booking.attendanceManageToken}`
+      : null;
+
   return (
     <div className={cn(bare ? "rounded-lg border border-fog/70 bg-white p-4" : "card p-4")}>
       <div className="flex items-start justify-between gap-3">
@@ -60,13 +66,38 @@ export default function BookingCard({
         </span>
       </p>
 
-      {booking.status === "approved" && booking.attendanceManageToken && (
+      {booking.status === "approved" && useAutosijil && (
+        <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
+          {booking.cetakToken && (
+            <Link
+              href={`/tempahan/${pkgId}/cetak-kehadiran/${booking.cetakToken}`}
+              className="link-blue text-xs"
+              target="_blank"
+            >
+              Cetak QR kehadiran
+            </Link>
+          )}
+          {booking.autosijilAdminUrl && (
+            <a
+              href={booking.autosijilAdminUrl}
+              className="link-blue text-xs"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Urus kehadiran / sijil
+              {booking.requiresCertificate ? " (dengan sijil)" : ""}
+            </a>
+          )}
+          {booking.autosijilSyncStatus === "failed" && (
+            <span className="text-xs text-bloom-deep">Sync Autosijil gagal</span>
+          )}
+        </div>
+      )}
+
+      {booking.status === "approved" && legacyManage && (
         <p className="mt-2">
-          <Link
-            href={`/tempahan/${pkgId}/urus-hadir/${booking.attendanceManageToken}`}
-            className="link-blue text-xs"
-          >
-            Urus kehadiran / QR
+          <Link href={legacyManage} className="link-blue text-xs">
+            Urus kehadiran / QR (lama)
           </Link>
         </p>
       )}
@@ -78,6 +109,11 @@ export default function BookingCard({
           status={booking.status}
           currentDate={booking.date}
           currentSlot={booking.slot}
+          autosijilSyncStatus={booking.autosijilSyncStatus}
+          autosijilSyncError={booking.autosijilSyncError}
+          cetakToken={booking.cetakToken}
+          autosijilAdminUrl={booking.autosijilAdminUrl}
+          requiresCertificate={booking.requiresCertificate}
         />
       </div>
     </div>

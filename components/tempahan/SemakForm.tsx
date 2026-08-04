@@ -159,10 +159,20 @@ export default function SemakForm({
                       Hantar WhatsApp kepada admin
                     </a>
                   ) : null}
-                  {b.manageUrl ? (
-                    <Link href={b.manageUrl} className="btn-primary inline-flex w-full justify-center">
-                      Urus kehadiran
+                  {b.cetakUrl ? (
+                    <Link href={b.cetakUrl} className="btn-primary inline-flex w-full justify-center">
+                      Cetak pendaftaran kehadiran
                     </Link>
+                  ) : null}
+                  {b.manageUrl ? (
+                    <a
+                      href={b.manageUrl}
+                      target={b.manageUrl.startsWith("http") ? "_blank" : undefined}
+                      rel={b.manageUrl.startsWith("http") ? "noopener noreferrer" : undefined}
+                      className="btn-outline-ink inline-flex w-full justify-center"
+                    >
+                      {b.manageUrl.startsWith("http") ? "Urus kehadiran / sijil" : "Urus kehadiran"}
+                    </a>
                   ) : null}
                 </div>
               </div>

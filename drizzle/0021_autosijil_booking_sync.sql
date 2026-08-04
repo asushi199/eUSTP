@@ -1,0 +1,11 @@
+ALTER TABLE "bookings" ADD COLUMN IF NOT EXISTS "requires_certificate" boolean DEFAULT false NOT NULL;
+ALTER TABLE "bookings" ADD COLUMN IF NOT EXISTS "cetak_token" text;
+ALTER TABLE "bookings" ADD COLUMN IF NOT EXISTS "autosijil_event_id" text;
+ALTER TABLE "bookings" ADD COLUMN IF NOT EXISTS "autosijil_event_slug" text;
+ALTER TABLE "bookings" ADD COLUMN IF NOT EXISTS "autosijil_public_url" text;
+ALTER TABLE "bookings" ADD COLUMN IF NOT EXISTS "autosijil_admin_url" text;
+ALTER TABLE "bookings" ADD COLUMN IF NOT EXISTS "autosijil_sync_status" text;
+ALTER TABLE "bookings" ADD COLUMN IF NOT EXISTS "autosijil_sync_error" text;
+ALTER TABLE "bookings" ADD COLUMN IF NOT EXISTS "autosijil_synced_at" timestamptz;
+CREATE INDEX IF NOT EXISTS "bookings_cetak_token_idx" ON "bookings" ("cetak_token");
+CREATE INDEX IF NOT EXISTS "bookings_autosijil_event_id_idx" ON "bookings" ("autosijil_event_id");

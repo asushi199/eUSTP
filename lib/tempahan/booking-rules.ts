@@ -104,6 +104,20 @@ export function formatSlot(slot: Slot) {
   return slots.find((item) => item.id === slot)?.label ?? slot;
 }
 
+/** Paparan masa untuk poster cetak kehadiran. */
+export function formatSlotTimeRange(slot: Slot) {
+  switch (slot) {
+    case "am":
+      return "PAGI (08:00 AM - 12:00 PM)";
+    case "pm":
+      return "PETANG (02:00 PM - 05:00 PM)";
+    case "full_day":
+      return "SEPANJANG HARI (08:00 AM - 05:00 PM)";
+    default:
+      return formatSlot(slot).toUpperCase();
+  }
+}
+
 export function formatBookingStatus(status: BookingStatus) {
   const labels: Record<BookingStatus, string> = {
     pending: "Menunggu kelulusan",

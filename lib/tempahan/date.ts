@@ -93,3 +93,10 @@ export function formatMalayDate(value: string, options: Intl.DateTimeFormatOptio
 export function formatDayName(value: string) {
   return fromIsoDate(value).toLocaleDateString("ms-MY", { weekday: "short" });
 }
+
+/** Nama hari penuh BM untuk poster (cth. SELASA). */
+export function formatDayNameLong(value: string) {
+  return fromIsoDate(value)
+    .toLocaleDateString("ms-MY", { weekday: "long" })
+    .toUpperCase();
+}

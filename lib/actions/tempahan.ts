@@ -41,7 +41,6 @@ import {
 import {
   approveBookingCore,
   cancelBookingCore,
-  ensureAttendanceTokens,
   friendlyBookingError,
   rejectBookingCore,
 } from "@/lib/tempahan/service";
@@ -239,6 +238,8 @@ export type CheckBookingState = {
     status: "pending" | "approved";
     whatsappUrl?: string;
     manageUrl?: string;
+    cetakUrl?: string;
+    autosijilPublicUrl?: string;
   }[];
 };
 
@@ -307,7 +308,14 @@ export async function semakTempahanAction(
 
     const approvedResults = await Promise.all(
       approvedBookings.map(async (booking) => {
-        const withTokens = await ensureAttendanceTokens(pkgId, booking.id);
+        const cetakUrl = booking.cetakToken
+          ? `/tempahan/${pkgId}/cetak-kehadiran/${booking.cetakToken}`
+          : undefined;
+        const manageUrl =
+          booking.autosijilAdminUrl ||
+          (booking.attendanceManageToken
+            ? `/tempahan/${pkgId}/urus-hadir/${booking.attendanceManageToken}`
+            : undefined);
         return {
           id: booking.id,
           date: booking.date,
@@ -315,9 +323,9 @@ export async function semakTempahanAction(
           slot: booking.slot,
           purpose: booking.purpose,
           status: "approved" as const,
-          manageUrl: withTokens.attendanceManageToken
-            ? `/tempahan/${pkgId}/urus-hadir/${withTokens.attendanceManageToken}`
-            : undefined,
+          cetakUrl,
+          manageUrl,
+          autosijilPublicUrl: booking.autosijilPublicUrl ?? undefined,
         };
       }),
     );
@@ -327,7 +335,7 @@ export async function semakTempahanAction(
     return {
       ok: true,
       message: hasApproved
-        ? "Permohonan dijumpai. Untuk tempahan yang diluluskan, klik «Urus kehadiran» untuk pautan pendaftaran dan kod QR."
+        ? "Permohonan dijumpai. Untuk tempahan yang diluluskan, gunakan «Cetak kehadiran» atau urus di Autosijil."
         : "Permohonan dijumpai. Hantar semula mesej WhatsApp kepada admin untuk kelulusan.",
       bookings: [...pendingResults, ...approvedResults],
     };
@@ -431,7 +439,8 @@ export async function approveByTokenAction(formData: FormData) {
 
   try {
     if (decision === "approve") {
-      await approveBookingCore(pkgId, booking.id);
+      const requiresCertificate = formData.get("requiresCertificate") === "on";
+      await approveBookingCore(pkgId, booking.id, { requiresCertificate });
       revalidatePath(`/tempahan/${pkgId}`);
       revalidatePath(`/admin/tempahan/${pkgId}`);
       redirect(`${resultBase}?status=approved`);

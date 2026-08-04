@@ -65,16 +65,22 @@ export default async function ApproveBookingPage({
       </div>
 
       {booking.status === "pending" ? (
-        <form action={approveByTokenAction} className="mt-6 flex gap-3">
+        <form action={approveByTokenAction} className="mt-6 space-y-4">
           <input type="hidden" name="pkg" value={pkgId} />
           <input type="hidden" name="bookingId" value={booking.id} />
           <input type="hidden" name="token" value={token} />
-          <button type="submit" name="decision" value="approve" className="btn-primary flex-1">
-            Luluskan
-          </button>
-          <button type="submit" name="decision" value="reject" className="btn-outline-ink flex-1">
-            Tolak
-          </button>
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" name="requiresCertificate" />
+            Perlu sijil untuk peserta
+          </label>
+          <div className="flex gap-3">
+            <button type="submit" name="decision" value="approve" className="btn-primary flex-1">
+              Luluskan
+            </button>
+            <button type="submit" name="decision" value="reject" className="btn-outline-ink flex-1">
+              Tolak
+            </button>
+          </div>
         </form>
       ) : (
         <p className="mt-6 rounded-md bg-cloud px-4 py-3 text-sm text-graphite">

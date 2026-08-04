@@ -148,6 +148,13 @@
       "when": 1785342000000,
       "tag": "0020_remove_redundant_obs01_category",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1785600000000,
+      "tag": "0021_autosijil_booking_sync",
+      "breakpoints": true
     }
   ]
 }

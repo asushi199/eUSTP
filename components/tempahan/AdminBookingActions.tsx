@@ -7,6 +7,7 @@ import {
   adminCancelBooking,
   adminDeleteBooking,
   adminRejectBooking,
+  adminRetryAutosijilSync,
   adminUpdateBookingSchedule,
 } from "@/lib/actions/tempahan-admin";
 import {
@@ -26,12 +27,22 @@ export default function AdminBookingActions({
   status,
   currentDate,
   currentSlot,
+  autosijilSyncStatus = null,
+  autosijilSyncError = null,
+  cetakToken = null,
+  autosijilAdminUrl = null,
+  requiresCertificate = false,
 }: {
   pkgId: string;
   bookingId: string;
   status: BookingStatus;
   currentDate: string;
   currentSlot: Slot;
+  autosijilSyncStatus?: string | null;
+  autosijilSyncError?: string | null;
+  cetakToken?: string | null;
+  autosijilAdminUrl?: string | null;
+  requiresCertificate?: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -39,6 +50,7 @@ export default function AdminBookingActions({
   const [editing, setEditing] = useState(false);
   const [date, setDate] = useState(currentDate);
   const [slot, setSlot] = useState<Slot>(currentSlot);
+  const [needSijil, setNeedSijil] = useState(requiresCertificate);
 
   function run(action: () => Promise<{ ok: boolean; error?: string }>, confirmMsg?: string) {
     if (confirmMsg && !window.confirm(confirmMsg)) return;
@@ -72,6 +84,17 @@ export default function AdminBookingActions({
 
   return (
     <div>
+      {status === "pending" && (
+        <label className="mb-2 flex items-center gap-2 text-sm text-ink">
+          <input
+            type="checkbox"
+            checked={needSijil}
+            onChange={(e) => setNeedSijil(e.target.checked)}
+            disabled={pending}
+          />
+          Perlu sijil untuk peserta
+        </label>
+      )}
       <div className="flex flex-wrap items-center gap-2">
         {status === "pending" && (
           <>
@@ -79,7 +102,7 @@ export default function AdminBookingActions({
               type="button"
               className="btn-primary btn-sm"
               disabled={pending}
-              onClick={() => run(() => adminApproveBooking(pkgId, bookingId))}
+              onClick={() => run(() => adminApproveBooking(pkgId, bookingId, needSijil))}
             >
               Lulus
             </button>
@@ -139,6 +162,47 @@ export default function AdminBookingActions({
           </button>
         )}
       </div>
+
+      {status === "approved" && (
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          {cetakToken && (
+            <a
+              href={`/tempahan/${pkgId}/cetak-kehadiran/${cetakToken}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-outline-ink btn-sm"
+            >
+              Cetak QR kehadiran
+            </a>
+          )}
+          {autosijilAdminUrl && (
+            <a
+              href={autosijilAdminUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-outline-ink btn-sm"
+            >
+              Urus kehadiran / sijil
+            </a>
+          )}
+          {(autosijilSyncStatus === "failed" ||
+            (!autosijilAdminUrl && autosijilSyncStatus !== "synced")) && (
+            <button
+              type="button"
+              className="text-sm font-medium text-primary hover:underline disabled:opacity-50"
+              disabled={pending}
+              onClick={() => run(() => adminRetryAutosijilSync(pkgId, bookingId))}
+            >
+              Cuba sync Autosijil semula
+            </button>
+          )}
+        </div>
+      )}
+
+      {status === "approved" && autosijilSyncStatus === "failed" && autosijilSyncError && (
+        <p className="mt-1 text-xs text-bloom-deep">Sync Autosijil gagal: {autosijilSyncError}</p>
+      )}
+
       {editing && (
         <form onSubmit={saveSchedule} className="mt-3 space-y-3 rounded-lg border border-fog/80 bg-cloud/30 p-3">
           <div className="grid gap-3 sm:grid-cols-2">
