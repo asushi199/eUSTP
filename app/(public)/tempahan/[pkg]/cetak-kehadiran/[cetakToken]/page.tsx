@@ -61,7 +61,7 @@ export default async function CetakKehadiranPage({
       locationLine={locationLine}
       qrUrl={booking.autosijilPublicUrl}
       requiresCertificate={booking.requiresCertificate}
-      logoSrc={pkg.logoSrc}
+      logoSrc="/ustp-logo.png"
     />
   );
 }

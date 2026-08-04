@@ -42,8 +42,8 @@ export default function CetakKehadiranPoster({
 
       <article className="cetak-kehadiran-sheet flex min-h-[260mm] flex-col items-center px-4 py-10 text-center sm:px-8">
         {logoSrc ? (
-          // eslint-disable-next-line @next/next/no-img-element -- logo PKG URL luar
-          <img src={logoSrc} alt="" className="mb-4 h-14 w-auto object-contain" />
+          // eslint-disable-next-line @next/next/no-img-element -- logo rasmi eUSTP
+          <img src={logoSrc} alt="eUSTP Manjung" className="mb-4 h-14 w-auto object-contain" />
         ) : (
           <div className="mb-4 h-14 w-14 rounded-full border border-fog bg-cloud" aria-hidden />
         )}
