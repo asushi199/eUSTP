@@ -711,3 +711,11 @@ Corak berselang = instance sihat vs beracun.
 - Panel kelulusan peralatan menyediakan butang `Isi baki secara automatik`.
   Ia mengekalkan pilihan manual sedia ada dan mengisi slot selebihnya dengan
   nombor siri unit tersedia mengikut susunan sedia ada.
+
+## 2026-08-04 — KEW.PA-9 semasa pinjaman aktif
+
+- Selepas serahan (`handed_over`), pentadbir boleh muat turun / simpan KEW.PA-9
+  rasmi. Tarikh pemulangan dikosongkan sehingga status `returned`.
+- Selepas pemulangan, jana semula versi `final` supaya tarikh pemulangan diisi.
+  Tiada label "draf/pratonton"; kedua-dua versi ialah borang rasmi.
+- Aliran stok/serahan/pemulangan tidak berubah; penjanaan PDF kekal berasingan.

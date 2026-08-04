@@ -7,7 +7,7 @@ import {
   StandardFonts,
   rgb,
 } from "pdf-lib";
-import type { EquipmentDocumentStage, EquipmentLoanDetail } from "./types";
+import type { EquipmentLoanDetail } from "./types";
 
 const TEMPLATE_PATH = path.join(
   process.cwd(),
@@ -144,7 +144,6 @@ function drawPageContent(
   units: KewPa9Unit[],
   pageIndex: number,
   pageCount: number,
-  stage: EquipmentDocumentStage,
 ) {
   coverTemplateText(page, 470, 87.5, 91, 12);
   drawCellText(
@@ -167,7 +166,8 @@ function drawPageContent(
 
   const firstRowTop = 245.3;
   const rowHeight = 17.16;
-  const returnedDate = stage === "final" ? formatDate(data.returnedAt) : "";
+  // Tarikh pemulangan hanya diisi selepas peralatan dipulangkan; kosong semasa pinjaman aktif.
+  const returnedDate = formatDate(data.returnedAt);
   for (let index = 0; index < ROWS_PER_PAGE; index += 1) {
     coverTemplateText(page, 42, 241.2 + index * rowHeight, 24, 16.2);
   }
@@ -257,7 +257,6 @@ export function buildKewPa9Data(request: EquipmentLoanDetail): KewPa9Data {
 
 export async function generateKewPa9Pdf(
   data: KewPa9Data,
-  stage: EquipmentDocumentStage,
 ): Promise<Buffer> {
   if (data.units.length === 0) {
     throw new Error("Tiada unit diperuntukkan untuk dijana dalam KEW.PA-9.");
@@ -275,15 +274,11 @@ export async function generateKewPa9Pdf(
   for (const [index, units] of chunks.entries()) {
     const [page] = await output.copyPages(template, [0]);
     output.addPage(page);
-    drawPageContent(page, font, data, units, index, chunks.length, stage);
+    drawPageContent(page, font, data, units, index, chunks.length);
   }
 
   output.setTitle(`KEW.PA-9 ${data.referenceNo}`);
-  output.setSubject(
-    stage === "final"
-      ? "Borang pergerakan/pinjaman aset alih - untuk tandatangan"
-      : "Borang pergerakan/pinjaman aset alih - serahan",
-  );
+  output.setSubject("Borang pergerakan/pinjaman aset alih (KEW.PA-9)");
   output.setCreator("eUSTP Manjung");
   output.setProducer("eUSTP Manjung");
   return Buffer.from(await output.save());

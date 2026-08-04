@@ -7,20 +7,26 @@ import {
   recordEquipmentHandover,
   recordEquipmentReturn,
 } from "@/lib/actions/peralatan-admin";
-import type { EquipmentLoanDetail } from "@/lib/peralatan/types";
+import type {
+  EquipmentDocumentStage,
+  EquipmentLoanDetail,
+} from "@/lib/peralatan/types";
 
-function FinalPdfAction({
+function KewPa9Action({
   pkgId,
   request,
+  stage,
 }: {
   pkgId: string;
   request: EquipmentLoanDetail;
+  stage: EquipmentDocumentStage;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState("");
-  const document = request.documents.find((item) => item.stage === "final");
-  const downloadUrl = `/admin/peralatan/${pkgId}/permohonan/${request.id}/kew-pa-9?stage=final`;
+  const document = request.documents.find((item) => item.stage === stage);
+  const downloadUrl = `/admin/peralatan/${pkgId}/permohonan/${request.id}/kew-pa-9?stage=${stage}`;
+  const isActiveLoan = stage === "handover";
 
   return (
     <div className="rounded-xl border border-fog bg-white p-4">
@@ -32,7 +38,9 @@ function FinalPdfAction({
               ? `Disimpan ${document.generatedAt.toLocaleString("ms-MY")}`
               : document?.status === "failed"
                 ? "Simpanan Drive gagal; muat turun masih tersedia."
-                : "Cetak selepas pemulangan, lengkapkan empat tandatangan pada satu salinan."}
+                : isActiveLoan
+                  ? "Borang rasmi. Tarikh pemulangan dibiarkan kosong sehingga peralatan dipulangkan. Cetak dan lengkapkan empat tandatangan pada satu salinan."
+                  : "Selepas pemulangan, jana semula supaya tarikh pemulangan diisi. Lengkapkan empat tandatangan pada satu salinan bercetak."}
           </p>
         </div>
         {document?.status === "ready" && document.publicUrl ? (
@@ -60,7 +68,7 @@ function FinalPdfAction({
               const result = await generateAndStoreEquipmentKewPa9(
                 pkgId,
                 request.id,
-                "final",
+                stage,
               );
               if (!result.ok) {
                 setError(result.error ?? "PDF tidak dapat disimpan.");
@@ -95,6 +103,10 @@ export default function EquipmentLoanLifecycle({
   const [confirmed, setConfirmed] = useState(false);
   const isHandover = request.status === "approved";
   const isReturn = request.status === "handed_over";
+  const showKewPa9 =
+    request.status === "handed_over" || request.status === "returned";
+  const kewPa9Stage: EquipmentDocumentStage =
+    request.status === "returned" ? "final" : "handover";
 
   function submitConfirmation() {
     startTransition(async () => {
@@ -121,11 +133,11 @@ export default function EquipmentLoanLifecycle({
             ? "Pengesahan serahan peralatan"
             : isReturn
               ? "Pengesahan pemulangan peralatan"
-              : "KEW.PA-9 selepas pemulangan"}
+              : "KEW.PA-9"}
         </h2>
         <p className="mt-1 text-sm leading-relaxed text-graphite">
           Permohonan menggunakan Akuan Pemohon dan MyKad. Empat tandatangan
-          dilengkapkan pada satu salinan bercetak selepas peralatan dipulangkan.
+          dilengkapkan pada satu salinan bercetak KEW.PA-9.
         </p>
       </div>
 
@@ -170,9 +182,9 @@ export default function EquipmentLoanLifecycle({
         </div>
       ) : null}
 
-      {request.status === "returned" ? (
+      {showKewPa9 ? (
         <div className="border-t border-fog bg-cloud/50 p-5 sm:p-6">
-          <FinalPdfAction pkgId={pkgId} request={request} />
+          <KewPa9Action pkgId={pkgId} request={request} stage={kewPa9Stage} />
         </div>
       ) : null}
     </section>

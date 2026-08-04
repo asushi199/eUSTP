@@ -850,8 +850,14 @@ export async function recordEquipmentReturn(
 function documentFileName(referenceNo: string, stage: EquipmentDocumentStage) {
   const safeReference = referenceNo.replace(/[^a-zA-Z0-9_-]+/g, "-");
   return `KEW.PA-9-${safeReference}-${
-    stage === "final" ? "untuk-tandatangan" : "serahan"
+    stage === "final" ? "selepas-pemulangan" : "pinjaman"
   }.pdf`;
+}
+
+function expectedStatusForKewPa9Stage(
+  stage: EquipmentDocumentStage,
+): "handed_over" | "returned" {
+  return stage === "final" ? "returned" : "handed_over";
 }
 
 export async function generateAndStoreEquipmentKewPa9(
@@ -860,18 +866,19 @@ export async function generateAndStoreEquipmentKewPa9(
   stage: EquipmentDocumentStage,
 ): Promise<EquipmentAdminActionResult> {
   const user = await requireTempahanAccess(pkgId);
-  if (stage !== "final") {
-    return {
-      ok: false,
-      error: "KEW.PA-9 hanya dijana selepas pemulangan.",
-    };
+  if (stage !== "handover" && stage !== "final") {
+    return { ok: false, error: "Peringkat dokumen tidak sah." };
   }
   const request = await getEquipmentLoanDetail(pkgId, requestId);
   if (!request) return { ok: false, error: "Permohonan tidak dijumpai." };
-  if (request.status !== "returned") {
+  const expectedStatus = expectedStatusForKewPa9Stage(stage);
+  if (request.status !== expectedStatus) {
     return {
       ok: false,
-      error: "Lengkapkan pemulangan dahulu.",
+      error:
+        stage === "final"
+          ? "Lengkapkan pemulangan dahulu."
+          : "KEW.PA-9 semasa pinjaman hanya selepas serahan.",
     };
   }
   if (!isGasStorageConfigured()) {
@@ -907,7 +914,7 @@ export async function generateAndStoreEquipmentKewPa9(
     });
 
   try {
-    const buffer = await generateKewPa9Pdf(buildKewPa9Data(request), stage);
+    const buffer = await generateKewPa9Pdf(buildKewPa9Data(request));
     const sha256 = createHash("sha256").update(buffer).digest("hex");
     const uploaded = await uploadFileViaGas(
       { name: fileName, type: "application/pdf", buffer },
