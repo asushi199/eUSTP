@@ -29,8 +29,25 @@ export function addMonths(value: string, months: number) {
   return toIsoDate(date);
 }
 
+/** Hari terakhir bulan bagi tarikh ISO. */
+export function endOfMonth(value: string) {
+  const date = fromIsoDate(value);
+  date.setMonth(date.getMonth() + 1, 0);
+  return toIsoDate(date);
+}
+
+export function daysInMonth(value: string) {
+  return fromIsoDate(endOfMonth(value)).getDate();
+}
+
 export function listDateRange(start: string, count: number) {
   return Array.from({ length: count }, (_, index) => addDays(start, index));
+}
+
+/** Semua tarikh dalam bulan yang mengandungi `value`. */
+export function listMonthDates(value: string) {
+  const start = startOfMonth(value);
+  return listDateRange(start, daysInMonth(start));
 }
 
 /** Had maksimum hari inklusif untuk satu permohonan lintas hari. */
