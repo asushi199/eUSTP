@@ -1,5 +1,3 @@
-import "server-only";
-
 import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { bookings } from "@/lib/schema";
@@ -9,10 +7,37 @@ import {
   cancelAutosijilEvent,
   createAutosijilEvent,
   isAutosijilConfigured,
+  updateAutosijilEvent,
 } from "@/lib/tempahan/autosijil-client";
-import { getBooking, getPkg, getRoomBySlug } from "@/lib/tempahan/queries";
+import { getBooking, getPkg, getRoomBySlug, type BookingRow } from "@/lib/tempahan/queries";
 
 export type SyncResult = { ok: boolean; error?: string };
+
+async function buildAutosijilFields(pkgId: string, booking: BookingRow) {
+  const [pkg, room] = await Promise.all([
+    getPkg(pkgId),
+    getRoomBySlug(pkgId, booking.roomSlug),
+  ]);
+
+  const title = booking.purpose.trim() || "Program PKG";
+  const location = [room?.name ?? booking.roomSlug, pkg?.name]
+    .filter(Boolean)
+    .join(" / ");
+  const description = [
+    `Pemohon: ${booking.name} (${booking.schoolOrUnit}).`,
+    `Slot: ${formatSlot(booking.slot)}.`,
+    booking.contact ? `Telefon: ${booking.contact}.` : null,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  return {
+    title,
+    location: location || null,
+    description,
+    eventDate: booking.date,
+  };
+}
 
 /** Cipta/semak event Autosijil untuk booking yang sudah diluluskan. */
 export async function syncApprovedBookingToAutosijil(
@@ -46,30 +71,15 @@ export async function syncApprovedBookingToAutosijil(
     .where(and(eq(bookings.pkgId, pkgId), eq(bookings.id, bookingId)));
 
   try {
-    const [pkg, room] = await Promise.all([
-      getPkg(pkgId),
-      getRoomBySlug(pkgId, booking.roomSlug),
-    ]);
-
-    const title = booking.purpose.trim() || "Program PKG";
-    const location = [room?.name ?? booking.roomSlug, pkg?.name]
-      .filter(Boolean)
-      .join(" / ");
-    const description = [
-      `Pemohon: ${booking.name} (${booking.schoolOrUnit}).`,
-      `Slot: ${formatSlot(booking.slot)}.`,
-      booking.contact ? `Telefon: ${booking.contact}.` : null,
-    ]
-      .filter(Boolean)
-      .join(" ");
+    const fields = await buildAutosijilFields(pkgId, booking);
 
     const created = await createAutosijilEvent({
       externalBookingId: booking.id,
-      title,
-      eventDate: booking.date,
-      location: location || null,
+      title: fields.title,
+      eventDate: fields.eventDate,
+      location: fields.location,
       requiresCertificate: booking.requiresCertificate,
-      description,
+      description: fields.description,
       pkgId,
       slot: booking.slot,
     });
@@ -93,6 +103,63 @@ export async function syncApprovedBookingToAutosijil(
     return { ok: true };
   } catch (e) {
     const error = e instanceof Error ? e.message : "Gagal segerakkan Autosijil.";
+    await db
+      .update(bookings)
+      .set({
+        autosijilSyncStatus: "failed",
+        autosijilSyncError: error,
+      })
+      .where(and(eq(bookings.pkgId, pkgId), eq(bookings.id, bookingId)));
+    return { ok: false, error };
+  }
+}
+
+/**
+ * Kemas kini butiran event Autosijil selepas ubah jadual/lokasi.
+ * Tiada event → tiada tindakan (migrasi/approve akan cipta).
+ */
+export async function pushBookingDetailsToAutosijil(
+  pkgId: string,
+  bookingId: string,
+): Promise<SyncResult> {
+  const booking = await getBooking(pkgId, bookingId);
+  if (!booking) return { ok: false, error: "Tempahan tidak dijumpai." };
+  if (!booking.autosijilEventId) return { ok: true };
+
+  if (!isAutosijilConfigured()) {
+    const error = "Autosijil belum dikonfigurasi (AUTOSIJIL_BASE_URL / SECRET).";
+    await db
+      .update(bookings)
+      .set({
+        autosijilSyncStatus: "failed",
+        autosijilSyncError: error,
+      })
+      .where(and(eq(bookings.pkgId, pkgId), eq(bookings.id, bookingId)));
+    return { ok: false, error };
+  }
+
+  try {
+    const fields = await buildAutosijilFields(pkgId, booking);
+    await updateAutosijilEvent({
+      externalBookingId: booking.id,
+      title: fields.title,
+      eventDate: fields.eventDate,
+      location: fields.location,
+      description: fields.description,
+    });
+
+    await db
+      .update(bookings)
+      .set({
+        autosijilSyncStatus: "synced",
+        autosijilSyncError: null,
+        autosijilSyncedAt: new Date(),
+      })
+      .where(and(eq(bookings.pkgId, pkgId), eq(bookings.id, bookingId)));
+
+    return { ok: true };
+  } catch (e) {
+    const error = e instanceof Error ? e.message : "Gagal kemas kini Autosijil.";
     await db
       .update(bookings)
       .set({

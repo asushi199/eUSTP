@@ -1,5 +1,3 @@
-import "server-only";
-
 export type AutosijilCreateEventInput = {
   externalBookingId: string;
   title: string;
@@ -9,6 +7,14 @@ export type AutosijilCreateEventInput = {
   description: string | null;
   pkgId: string;
   slot: string;
+};
+
+export type AutosijilUpdateEventInput = {
+  externalBookingId: string;
+  title: string;
+  eventDate: string | null;
+  location: string | null;
+  description: string | null;
 };
 
 export type AutosijilCreateEventResult = {
@@ -29,14 +35,14 @@ export function isAutosijilConfigured() {
   return Boolean(baseUrl && secret);
 }
 
-async function autosijilFetch(path: string, body: unknown) {
+async function autosijilFetch(path: string, body: unknown, method: "POST" | "PATCH" = "POST") {
   const { baseUrl, secret } = autosijilConfig();
   if (!baseUrl || !secret) {
     throw new Error("AUTOSIJIL_BASE_URL / AUTOSIJIL_INTEGRATION_SECRET belum ditetapkan.");
   }
 
   const res = await fetch(`${baseUrl}${path}`, {
-    method: "POST",
+    method,
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${secret}`,
@@ -77,6 +83,22 @@ export async function createAutosijilEvent(
     !json.publicUrl ||
     !json.adminUrl
   ) {
+    throw new Error("Respons Autosijil tidak lengkap.");
+  }
+
+  return json;
+}
+
+export async function updateAutosijilEvent(
+  input: AutosijilUpdateEventInput,
+): Promise<AutosijilCreateEventResult> {
+  const json = (await autosijilFetch(
+    "/api/integrations/eustp/events",
+    input,
+    "PATCH",
+  )) as AutosijilCreateEventResult | null;
+
+  if (!json?.eventId || !json.slug || !json.publicUrl || !json.adminUrl) {
     throw new Error("Respons Autosijil tidak lengkap.");
   }
 

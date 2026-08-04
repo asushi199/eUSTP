@@ -8,9 +8,11 @@ import { parseSlot } from "./booking-rules";
 import { generateAttendanceToken } from "./approval-token";
 import {
   cancelAutosijilForBooking,
+  pushBookingDetailsToAutosijil,
   syncApprovedBookingToAutosijil,
 } from "./autosijil-sync";
 import { getBooking, listActiveBookings } from "./queries";
+
 
 function attendanceTokensFor(existing: {
   attendanceToken: string | null;
@@ -112,6 +114,9 @@ export async function rescheduleBookingCore(
     .update(bookings)
     .set({ date: nextDate, slot: nextSlot })
     .where(and(eq(bookings.pkgId, pkgId), eq(bookings.id, id)));
+
+  // Sync Autosijil jika sudah terikat — kegagalan tidak batalkan ubah jadual
+  await pushBookingDetailsToAutosijil(pkgId, id);
 }
 
 export async function deleteBookingCore(pkgId: string, id: string): Promise<void> {
