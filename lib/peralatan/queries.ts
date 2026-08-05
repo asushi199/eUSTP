@@ -152,14 +152,22 @@ export async function listEquipmentCatalog(
   return categoryRows.map((category) => {
     const models = typeRows.filter((type) => type.categoryId === category.id);
     const modelIds = new Set(models.map((model) => model.id));
-    const byPkg = new Map<string, { total: number; available: number }>();
+    const byPkg = new Map<
+      string,
+      { total: number; available: number; borrowed: number }
+    >();
     for (const unit of unitRows) {
       if (!modelIds.has(unit.equipmentTypeId) || !pkgNameById.has(unit.pkgId)) {
         continue;
       }
-      const current = byPkg.get(unit.pkgId) ?? { total: 0, available: 0 };
+      const current = byPkg.get(unit.pkgId) ?? {
+        total: 0,
+        available: 0,
+        borrowed: 0,
+      };
       current.total += unit.status === "retired" || unit.status === "lost" ? 0 : 1;
       current.available += unit.status === "available" ? 1 : 0;
+      current.borrowed += unit.status === "borrowed" ? 1 : 0;
       byPkg.set(unit.pkgId, current);
     }
     return {
@@ -186,6 +194,7 @@ export async function listEquipmentCatalog(
             (unit) => unit.status !== "retired" && unit.status !== "lost",
           ).length,
           available: modelUnits.filter((unit) => unit.status === "available").length,
+          borrowed: modelUnits.filter((unit) => unit.status === "borrowed").length,
         };
       }),
       stocks: Array.from(byPkg, ([pkgId, stock]) => ({

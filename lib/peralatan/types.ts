@@ -11,6 +11,7 @@ export type EquipmentCatalogStock = {
   pkgName: string;
   total: number;
   available: number;
+  borrowed: number;
 };
 
 export type EquipmentCatalogModel = {
@@ -24,6 +25,7 @@ export type EquipmentCatalogModel = {
   searchAliases: string[];
   total: number;
   available: number;
+  borrowed: number;
 };
 
 export type EquipmentCatalogItem = {

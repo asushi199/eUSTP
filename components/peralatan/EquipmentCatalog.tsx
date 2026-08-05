@@ -8,6 +8,14 @@ function totalAvailable(item: EquipmentCatalogItem) {
   return item.stocks.reduce((sum, stock) => sum + stock.available, 0);
 }
 
+function totalUnits(item: EquipmentCatalogItem) {
+  return item.stocks.reduce((sum, stock) => sum + stock.total, 0);
+}
+
+function totalBorrowed(item: EquipmentCatalogItem) {
+  return item.stocks.reduce((sum, stock) => sum + stock.borrowed, 0);
+}
+
 export default function EquipmentCatalog({
   items: catalogItems,
 }: {
@@ -18,7 +26,6 @@ export default function EquipmentCatalog({
   const items = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     return catalogItems.filter((item) => {
-      if (totalAvailable(item) <= 0) return false;
       if (!normalized) return true;
       const searchableText = [
         item.name,
@@ -73,37 +80,60 @@ export default function EquipmentCatalog({
         <ul className="mt-5 space-y-3">
           {items.map((item) => {
             const available = totalAvailable(item);
+            const isUnavailable = available <= 0;
+            const isBorrowed =
+              isUnavailable &&
+              totalUnits(item) > 0 &&
+              totalBorrowed(item) === totalUnits(item);
             return (
               <li key={item.id} className="card overflow-hidden">
-                <Link
-                  href={`/tempahan/peralatan/mohon?item=${item.id}`}
-                  aria-label={`Mohon pinjaman ${item.name}`}
-                  className="group flex items-center gap-3 px-4 py-4 transition hover:bg-cloud/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/30 sm:gap-4 sm:px-5"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="font-semibold leading-snug text-ink">
-                      {item.name}
-                    </p>
+                {isUnavailable ? (
+                  <div className="flex items-center gap-3 px-4 py-4 sm:gap-4 sm:px-5">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold leading-snug text-ink">
+                        {item.name}
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="text-lg font-semibold tabular-nums leading-none text-graphite sm:text-xl">
+                        0
+                      </p>
+                      <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-graphite">
+                        {isBorrowed ? "dipinjam" : "tidak tersedia"}
+                      </p>
+                    </div>
                   </div>
-                  <div className="shrink-0 text-right">
-                    <p className="text-lg font-semibold tabular-nums leading-none text-primary sm:text-xl">
-                      {available}
-                    </p>
-                    <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-graphite">
-                      tersedia
-                    </p>
-                  </div>
-                  <svg
-                    aria-hidden
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={1.8}
-                    className="h-5 w-5 shrink-0 text-steel transition-transform group-hover:translate-x-0.5 group-hover:text-primary"
+                ) : (
+                  <Link
+                    href={`/tempahan/peralatan/mohon?item=${item.id}`}
+                    aria-label={`Mohon pinjaman ${item.name}`}
+                    className="group flex items-center gap-3 px-4 py-4 transition hover:bg-cloud/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/30 sm:gap-4 sm:px-5"
                   >
-                    <path d="m9 5 7 7-7 7" />
-                  </svg>
-                </Link>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold leading-snug text-ink">
+                        {item.name}
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="text-lg font-semibold tabular-nums leading-none text-primary sm:text-xl">
+                        {available}
+                      </p>
+                      <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-graphite">
+                        tersedia
+                      </p>
+                    </div>
+                    <svg
+                      aria-hidden
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={1.8}
+                      className="h-5 w-5 shrink-0 text-steel transition-transform group-hover:translate-x-0.5 group-hover:text-primary"
+                    >
+                      <path d="m9 5 7 7-7 7" />
+                    </svg>
+                  </Link>
+                )}
                 <div className="border-t border-fog px-4 py-3 sm:px-5">
                   <details className="group">
                     <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-charcoal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/20">
@@ -135,7 +165,11 @@ export default function EquipmentCatalog({
                                       {model.model || model.name}
                                     </h4>
                                     <p className="text-xs tabular-nums text-graphite">
-                                      {model.available.toLocaleString("ms-MY")} tersedia
+                                      {model.available > 0
+                                        ? `${model.available.toLocaleString("ms-MY")} tersedia`
+                                        : model.borrowed === model.total
+                                          ? "Dipinjam"
+                                          : "Tidak tersedia"}
                                     </p>
                                   </div>
                                   {model.description ? (
@@ -188,7 +222,6 @@ export default function EquipmentCatalog({
                           </p>
                           <ul className="mt-2 space-y-1">
                             {item.stocks
-                              .filter((stock) => stock.available > 0)
                               .map((stock) => (
                                 <li
                                   key={stock.pkgId}
@@ -196,7 +229,11 @@ export default function EquipmentCatalog({
                                 >
                                   <span>{stock.pkgName}</span>
                                   <span className="font-semibold tabular-nums text-charcoal">
-                                    {stock.available.toLocaleString("ms-MY")} tersedia
+                                    {stock.available > 0
+                                      ? `${stock.available.toLocaleString("ms-MY")} tersedia`
+                                      : stock.borrowed === stock.total
+                                        ? "Dipinjam"
+                                        : "Tidak tersedia"}
                                   </span>
                                 </li>
                               ))}

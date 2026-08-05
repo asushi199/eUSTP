@@ -784,3 +784,14 @@ Corak berselang = instance sihat vs beracun.
   sebagai label seperti `No 3` dalam pilihan unit; catatan lain tidak dipaparkan.
 - Pilihan unit mengekalkan jenama dan kod model ringkas sebelum nombor siri
   penuh; nombor aset tidak dipaparkan untuk menjimatkan ruang.
+
+## 2026-08-05 - Paparan peralatan habis dipinjam
+
+- Katalog awam mengekalkan kategori peralatan walaupun tiada unit tersedia.
+  Kategori yang semua unitnya sedang dipinjam memaparkan nilai `0` dan status
+  `Dipinjam`; status lain yang tidak boleh dipinjam memaparkan `Tidak tersedia`.
+  Kedua-duanya tidak menyediakan pautan permohonan supaya pemohon tidak boleh
+  meneruskan permohonan yang pasti gagal.
+- 3D printer atau model lain boleh disorokkan sementara oleh pentadbir utama
+  melalui tetapan status `Tidak aktif` pada kategori atau model. Rekod inventori
+  fizikal kekal dan boleh diaktifkan semula kemudian.
