@@ -34,27 +34,32 @@ export function buildEquipmentDecisionWhatsAppUrl(
     expectedReturnDate: string;
     items: string[];
     decisionNote: string;
-    decision: "approved" | "rejected";
+    decision: "approved" | "rejected" | "handed_over";
   },
 ): string {
   const normalized = normalizePhoneNumber(phone);
   if (!normalized) return "";
 
   const approved = details.decision === "approved";
+  const handedOver = details.decision === "handed_over";
   const message = [
     "Makluman pinjaman peralatan eUSTP Manjung",
     `Salam sejahtera ${details.applicantName},`,
     `Rujukan: ${details.referenceNo}`,
     approved
       ? "Permohonan pinjaman peralatan anda telah diluluskan."
-      : "Permohonan pinjaman peralatan anda tidak dapat diluluskan.",
+      : handedOver
+        ? "Peralatan untuk permohonan pinjaman anda telah diserahkan."
+        : "Permohonan pinjaman peralatan anda tidak dapat diluluskan.",
     `Peralatan: ${details.items.join(", ")}`,
     `Tempoh: ${details.borrowDate} hingga ${details.expectedReturnDate}`,
     ...(approved
       ? [`Sila hadir ke ${details.pkgName} pada ${details.borrowDate} untuk urusan pengambilan peralatan.`]
-      : details.decisionNote
-        ? [`Catatan: ${details.decisionNote}`]
-        : ["Sila hubungi PKG berkenaan jika anda memerlukan maklumat lanjut."]),
+      : handedOver
+        ? ["Sila simpan makluman ini untuk rekod anda."]
+        : details.decisionNote
+          ? [`Catatan: ${details.decisionNote}`]
+          : ["Sila hubungi PKG berkenaan jika anda memerlukan maklumat lanjut."]),
     "Terima kasih.",
   ].join("\n");
   return `https://wa.me/${normalized}?text=${encodeURIComponent(message)}`;

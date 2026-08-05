@@ -54,7 +54,9 @@ export default function AdminLoanApproval({
       approvedQuantities[item.id],
   );
   const decisionWhatsappUrl =
-    request.status === "approved" || request.status === "rejected"
+    request.status === "approved" ||
+    request.status === "rejected" ||
+    request.status === "handed_over"
       ? buildEquipmentDecisionWhatsAppUrl(request.contact, {
           referenceNo: request.referenceNo,
           applicantName: request.applicantName,
@@ -63,7 +65,12 @@ export default function AdminLoanApproval({
           expectedReturnDate: request.expectedReturnDate,
           items: request.items.map((item) => `${item.categoryName} (${item.quantity})`),
           decisionNote: request.decisionNote,
-          decision: request.status,
+          decision:
+            request.status === "rejected"
+              ? "rejected"
+              : request.status === "handed_over"
+                ? "handed_over"
+                : "approved",
         })
       : "";
 

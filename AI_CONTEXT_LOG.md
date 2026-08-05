@@ -5,10 +5,11 @@
 - Selepas tempahan bilik diluluskan atau ditolak, panel pentadbir memaparkan
   butang WhatsApp kepada pemohon dengan mesej keputusan, bilik, tarikh, slot dan
   tujuan yang telah diisi.
-- Selepas pinjaman peralatan diluluskan atau ditolak, halaman keputusan admin
-  memaparkan butang WhatsApp kepada pemohon. Mesej kelulusan mengarahkan pemohon
-  hadir ke PKG pada tarikh pinjaman untuk mengambil peralatan; mesej penolakan
-  memasukkan catatan keputusan jika ada.
+- Selepas pinjaman peralatan diluluskan, ditolak atau diserahkan, halaman
+  keputusan admin memaparkan butang WhatsApp kepada pemohon. Mesej kelulusan
+  mengarahkan pemohon hadir ke PKG pada tarikh pinjaman untuk mengambil
+  peralatan; mesej penolakan memasukkan catatan keputusan jika ada; mesej
+  selepas serahan mengesahkan peralatan telah diserahkan.
 - Integrasi menggunakan pautan `wa.me` sedia ada: mesej dijana secara automatik,
   tetapi pentadbir masih perlu menekan Send dalam WhatsApp.
 
