@@ -1,4 +1,4 @@
-import { normalizePhoneNumber } from "@/lib/tempahan/booking-rules";
+import { normalizeWhatsAppPhone } from "@/lib/tempahan/booking-rules";
 import type { KhidmatBantuDetails, KhidmatProgramDetails } from "@/lib/schema";
 import { getApplicantTypeLabel, getServiceTypeLabel, isMcpService } from "./config";
 
@@ -26,7 +26,7 @@ export function buildWhatsAppMessage(details: WhatsAppKhidmatDetails) {
 }
 
 export function buildWhatsAppShareUrl(phone: string, details: WhatsAppKhidmatDetails) {
-  const cleanPhone = normalizePhoneNumber(phone);
+  const cleanPhone = normalizeWhatsAppPhone(phone);
   const message = buildWhatsAppMessage(details);
   return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
 }

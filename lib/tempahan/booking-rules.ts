@@ -143,3 +143,12 @@ export function slugifyRoomName(name: string) {
 export function normalizePhoneNumber(value: string) {
   return value.replace(/\D/g, "");
 }
+
+/**
+ * WhatsApp memerlukan kod negara tanpa simbol `+`. Terima nombor tempatan
+ * Malaysia seperti 0123456789 tanpa mengubah normalisasi nombor untuk carian DB.
+ */
+export function normalizeWhatsAppPhone(value: string) {
+  const normalized = normalizePhoneNumber(value);
+  return /^0\d{9,10}$/.test(normalized) ? `60${normalized.slice(1)}` : normalized;
+}

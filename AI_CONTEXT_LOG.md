@@ -12,6 +12,9 @@
   selepas serahan mengesahkan peralatan telah diserahkan.
 - Integrasi menggunakan pautan `wa.me` sedia ada: mesej dijana secara automatik,
   tetapi pentadbir masih perlu menekan Send dalam WhatsApp.
+- Nombor telefon tempatan Malaysia yang diisi sebagai `01…` kini ditukar kepada
+  format WhatsApp `601…` semasa pautan dijana. Normalisasi carian pangkalan data
+  tidak diubah supaya rekod permohonan lama terus boleh disemak.
 
 ## 2026-08-04 — Admin Tempahan: senarai mingguan gaya takwim
 

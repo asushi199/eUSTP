@@ -1,4 +1,4 @@
-import { normalizePhoneNumber } from "@/lib/tempahan/booking-rules";
+import { normalizeWhatsAppPhone } from "@/lib/tempahan/booking-rules";
 
 export function buildEquipmentRequestWhatsAppUrl(
   phone: string,
@@ -11,7 +11,7 @@ export function buildEquipmentRequestWhatsAppUrl(
     approvalUrl: string;
   },
 ): string {
-  const normalized = normalizePhoneNumber(phone);
+  const normalized = normalizeWhatsAppPhone(phone);
   if (!normalized) return "";
   const message = [
     "Permohonan pinjaman peralatan baharu:",
@@ -37,7 +37,7 @@ export function buildEquipmentDecisionWhatsAppUrl(
     decision: "approved" | "rejected" | "handed_over";
   },
 ): string {
-  const normalized = normalizePhoneNumber(phone);
+  const normalized = normalizeWhatsAppPhone(phone);
   if (!normalized) return "";
 
   const approved = details.decision === "approved";

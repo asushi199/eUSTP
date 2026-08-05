@@ -1,4 +1,4 @@
-import { normalizePhoneNumber } from "./booking-rules";
+import { normalizeWhatsAppPhone } from "./booking-rules";
 
 export type WhatsAppSlotEntry = {
   date: string;
@@ -58,7 +58,7 @@ export function buildWhatsAppMessage(details: WhatsAppBookingDetails) {
 }
 
 export function buildWhatsAppShareUrl(phone: string, details: WhatsAppBookingDetails) {
-  const cleanPhone = normalizePhoneNumber(phone);
+  const cleanPhone = normalizeWhatsAppPhone(phone);
   const message = buildWhatsAppMessage(details);
   return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
 }
@@ -68,7 +68,7 @@ export function buildBookingDecisionWhatsAppUrl(
   phone: string,
   details: WhatsAppBookingDecisionDetails,
 ) {
-  const cleanPhone = normalizePhoneNumber(phone);
+  const cleanPhone = normalizeWhatsAppPhone(phone);
   if (!cleanPhone) return "";
 
   const approved = details.decision === "approved";
