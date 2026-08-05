@@ -124,6 +124,7 @@ export type EquipmentLoanDetailItem = {
     id: string;
     serialNo: string;
     governmentAssetNo: string;
+    notes: string;
     typeName: string;
     model: string;
   }>;
@@ -131,6 +132,7 @@ export type EquipmentLoanDetailItem = {
     id: string;
     serialNo: string;
     governmentAssetNo: string;
+    notes: string;
     typeName: string;
     model: string;
   }>;

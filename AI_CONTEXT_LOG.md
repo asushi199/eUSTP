@@ -770,3 +770,13 @@ Corak berselang = instance sihat vs beracun.
   tests/tempahan/admin-booking-actions.test.ts
   tests/tempahan/multi-day-booking.test.ts`, `npm run typecheck` dan
   `npm run build`.
+
+## 2026-08-05 - Peruntukan unit mengikut catatan
+
+- Senarai status unit pentadbir menggunakan ruang tetap yang mencukupi untuk
+  pilihan status dan butang `Kemaskini` pada skrin desktop.
+- Pilihan unit dalam panel kelulusan memaparkan `No. siri - Catatan`, tanpa
+  memaparkan model atau nombor aset kerajaan.
+- `Isi baki secara automatik` mengutamakan nombor `No 1`, `No. 2` dan seterusnya
+  yang direkodkan dalam `Catatan`; unit tanpa nombor tersebut diisi mengikut
+  susunan nombor siri.

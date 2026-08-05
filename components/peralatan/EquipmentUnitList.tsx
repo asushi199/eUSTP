@@ -313,7 +313,7 @@ export default function EquipmentUnitList({
                         unit.status === "reserved" || unit.status === "borrowed";
                       return (
                         <div key={unit.id} className="px-5 py-4">
-                          <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_180px]">
+                          <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_264px]">
                             <div className="flex min-w-0 items-start gap-3">
                               {selectable ? (
                                 <input
@@ -357,7 +357,7 @@ export default function EquipmentUnitList({
                               >
                                 <select
                                   name="status"
-                                  className="input h-10 py-1 text-sm"
+                                  className="input h-10 w-36 shrink-0 py-1 text-sm"
                                   defaultValue={unit.status}
                                 >
                                   <option value="available">Tersedia</option>

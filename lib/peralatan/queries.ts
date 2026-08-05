@@ -552,6 +552,7 @@ export async function getEquipmentLoanDetail(
           categoryId: equipmentTypes.categoryId,
           serialNo: equipmentUnits.serialNo,
           governmentAssetNo: equipmentUnits.governmentAssetNo,
+          notes: equipmentUnits.notes,
           typeName: equipmentTypes.name,
           model: equipmentTypes.model,
         })
@@ -582,6 +583,7 @@ export async function getEquipmentLoanDetail(
           id: equipmentUnits.id,
           serialNo: equipmentUnits.serialNo,
           governmentAssetNo: equipmentUnits.governmentAssetNo,
+          notes: equipmentUnits.notes,
           typeName: equipmentTypes.name,
           model: equipmentTypes.model,
         })
@@ -630,6 +632,7 @@ export async function getEquipmentLoanDetail(
           id: unit.id,
           serialNo: unit.serialNo,
           governmentAssetNo: unit.governmentAssetNo ?? "",
+          notes: unit.notes,
           typeName: unit.typeName,
           model: unit.model,
         })),
@@ -639,6 +642,7 @@ export async function getEquipmentLoanDetail(
           id: unit.id,
           serialNo: unit.serialNo,
           governmentAssetNo: unit.governmentAssetNo ?? "",
+          notes: unit.notes,
           typeName: unit.typeName,
           model: unit.model,
       })),

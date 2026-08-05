@@ -8,6 +8,7 @@ import {
 } from "@/lib/actions/peralatan-admin";
 import { EQUIPMENT_LOAN_STATUS_LABEL } from "@/lib/peralatan/status";
 import type { EquipmentLoanDetail } from "@/lib/peralatan/types";
+import { sortUnitsForAutoAllocation } from "@/lib/peralatan/unit-assignment";
 import EquipmentLoanLifecycle from "./EquipmentLoanLifecycle";
 
 export default function AdminLoanApproval({
@@ -56,7 +57,9 @@ export default function AdminLoanApproval({
         const next = Array.from({ length: item.quantity }, (_, index) => {
           const selectedId = current[index] ?? "";
           if (selectedId) return selectedId;
-          const unit = item.availableUnits.find((candidate) => !usedUnitIds.has(candidate.id));
+          const unit = sortUnitsForAutoAllocation(item.availableUnits).find(
+            (candidate) => !usedUnitIds.has(candidate.id),
+          );
           if (!unit) return "";
           usedUnitIds.add(unit.id);
           return unit.id;
@@ -252,10 +255,7 @@ export default function AdminLoanApproval({
                               }
                             >
                               {unit.serialNo}
-                              {` · ${unit.model || unit.typeName}`}
-                              {unit.governmentAssetNo
-                                ? ` · ${unit.governmentAssetNo}`
-                                : ""}
+                              {unit.notes ? ` - ${unit.notes}` : ""}
                             </option>
                           ))}
                         </select>
