@@ -4,8 +4,13 @@ export type AutoAssignableEquipmentUnit = {
 };
 
 function noteSequence(notes: string) {
-  const match = notes.match(/\bno\.?\s*(\d+)\b/i);
+  const match = notes.match(/^\s*(?:no|nombor)\.?\s*(\d+)\b/i);
   return match ? Number(match[1]) : null;
+}
+
+export function equipmentUnitNoteLabel(notes: string) {
+  const sequence = noteSequence(notes);
+  return sequence === null ? "" : `No ${sequence}`;
 }
 
 /** Sorts by the pre-assigned sequence in Catatan, then by serial number. */

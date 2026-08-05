@@ -780,3 +780,5 @@ Corak berselang = instance sihat vs beracun.
 - `Isi baki secara automatik` mengutamakan nombor `No 1`, `No. 2` dan seterusnya
   yang direkodkan dalam `Catatan`; unit tanpa nombor tersebut diisi mengikut
   susunan nombor siri.
+- Hanya catatan bernombor yang bermula dengan `No` atau `Nombor` dipaparkan
+  sebagai label seperti `No 3` dalam pilihan unit; catatan lain tidak dipaparkan.

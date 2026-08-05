@@ -8,7 +8,10 @@ import {
 } from "@/lib/actions/peralatan-admin";
 import { EQUIPMENT_LOAN_STATUS_LABEL } from "@/lib/peralatan/status";
 import type { EquipmentLoanDetail } from "@/lib/peralatan/types";
-import { sortUnitsForAutoAllocation } from "@/lib/peralatan/unit-assignment";
+import {
+  equipmentUnitNoteLabel,
+  sortUnitsForAutoAllocation,
+} from "@/lib/peralatan/unit-assignment";
 import EquipmentLoanLifecycle from "./EquipmentLoanLifecycle";
 
 export default function AdminLoanApproval({
@@ -255,7 +258,9 @@ export default function AdminLoanApproval({
                               }
                             >
                               {unit.serialNo}
-                              {unit.notes ? ` - ${unit.notes}` : ""}
+                              {equipmentUnitNoteLabel(unit.notes)
+                                ? ` - ${equipmentUnitNoteLabel(unit.notes)}`
+                                : ""}
                             </option>
                           ))}
                         </select>

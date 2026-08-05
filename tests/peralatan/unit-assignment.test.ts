@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { sortUnitsForAutoAllocation } from "../../lib/peralatan/unit-assignment";
+import {
+  equipmentUnitNoteLabel,
+  sortUnitsForAutoAllocation,
+} from "../../lib/peralatan/unit-assignment";
 
 test("prioritises the number recorded in Catatan for automatic allocation", () => {
   const units = sortUnitsForAutoAllocation([
@@ -14,4 +17,9 @@ test("prioritises the number recorded in Catatan for automatic allocation", () =
     units.map((unit) => unit.serialNo),
     ["SN-09", "SN-03", "SN-02", "SN-20"],
   );
+});
+
+test("shows only a numbered Catatan label", () => {
+  assert.equal(equipmentUnitNoteLabel("No 3. Tetikus disediakan."), "No 3");
+  assert.equal(equipmentUnitNoteLabel("Tetikus disediakan."), "");
 });
