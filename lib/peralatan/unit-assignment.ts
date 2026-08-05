@@ -3,6 +3,11 @@ export type AutoAssignableEquipmentUnit = {
   notes: string;
 };
 
+export type EquipmentUnitOption = AutoAssignableEquipmentUnit & {
+  model: string;
+  typeName: string;
+};
+
 function noteSequence(notes: string) {
   const match = notes.match(/^\s*(?:no|nombor)\.?\s*(\d+)\b/i);
   return match ? Number(match[1]) : null;
@@ -11,6 +16,28 @@ function noteSequence(notes: string) {
 export function equipmentUnitNoteLabel(notes: string) {
   const sequence = noteSequence(notes);
   return sequence === null ? "" : `No ${sequence}`;
+}
+
+function shortModelLabel(model: string) {
+  const words = model.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return "";
+  if (words.length === 1) return words[0];
+
+  const modelCode = [...words.slice(1)].reverse().find((word) => /\d/.test(word));
+  const shortCode = modelCode?.split("-")[0] ?? "";
+  if (shortCode.length > 2) return `${words[0]} ${shortCode}`;
+
+  return [words[0], ...words.slice(1, 3)].join(" ");
+}
+
+export function equipmentUnitOptionLabel(unit: EquipmentUnitOption) {
+  return [
+    equipmentUnitNoteLabel(unit.notes),
+    shortModelLabel(unit.model || unit.typeName),
+    unit.serialNo,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 }
 
 /** Sorts by the pre-assigned sequence in Catatan, then by serial number. */

@@ -9,7 +9,7 @@ import {
 import { EQUIPMENT_LOAN_STATUS_LABEL } from "@/lib/peralatan/status";
 import type { EquipmentLoanDetail } from "@/lib/peralatan/types";
 import {
-  equipmentUnitNoteLabel,
+  equipmentUnitOptionLabel,
   sortUnitsForAutoAllocation,
 } from "@/lib/peralatan/unit-assignment";
 import EquipmentLoanLifecycle from "./EquipmentLoanLifecycle";
@@ -240,7 +240,7 @@ export default function AdminLoanApproval({
                         </label>
                         <select
                           id={`${item.id}-${index}`}
-                          className="input font-mono text-sm"
+                          className="input font-mono text-xs"
                           value={selectedId}
                           disabled={request.status !== "pending"}
                           onChange={(event) =>
@@ -257,10 +257,7 @@ export default function AdminLoanApproval({
                                 selectedId !== unit.id
                               }
                             >
-                              {unit.serialNo}
-                              {equipmentUnitNoteLabel(unit.notes)
-                                ? ` - ${equipmentUnitNoteLabel(unit.notes)}`
-                                : ""}
+                              {equipmentUnitOptionLabel(unit)}
                             </option>
                           ))}
                         </select>

@@ -782,3 +782,5 @@ Corak berselang = instance sihat vs beracun.
   susunan nombor siri.
 - Hanya catatan bernombor yang bermula dengan `No` atau `Nombor` dipaparkan
   sebagai label seperti `No 3` dalam pilihan unit; catatan lain tidak dipaparkan.
+- Pilihan unit mengekalkan jenama dan kod model ringkas sebelum nombor siri
+  penuh; nombor aset tidak dipaparkan untuk menjimatkan ruang.
