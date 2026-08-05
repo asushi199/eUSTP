@@ -363,6 +363,47 @@ export async function importEquipmentUnits(
   }
 }
 
+export async function updateEquipmentUnit(
+  pkgId: string,
+  unitId: string,
+  formData: FormData,
+): Promise<EquipmentAdminActionResult> {
+  await requireTempahanAccess(pkgId);
+  const serialNo = text(formData, "serialNo", 200);
+  const governmentAssetNo = text(formData, "governmentAssetNo", 200);
+  const notes = text(formData, "notes", 500);
+  if (!serialNo) {
+    return { ok: false, error: "Nombor siri peralatan diperlukan." };
+  }
+
+  const unit = await db.query.equipmentUnits.findFirst({
+    where: and(eq(equipmentUnits.id, unitId), eq(equipmentUnits.pkgId, pkgId)),
+  });
+  if (!unit) return { ok: false, error: "Unit tidak dijumpai." };
+  if (unit.status === "reserved" || unit.status === "borrowed") {
+    return {
+      ok: false,
+      error: "Unit yang ditempah atau dipinjam tidak boleh dikemas kini di sini.",
+    };
+  }
+
+  try {
+    await db
+      .update(equipmentUnits)
+      .set({
+        serialNo,
+        governmentAssetNo: governmentAssetNo || null,
+        notes,
+        updatedAt: new Date(),
+      })
+      .where(and(eq(equipmentUnits.id, unitId), eq(equipmentUnits.pkgId, pkgId)));
+    refreshEquipmentPaths(pkgId);
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "Nombor siri atau nombor aset ini sudah digunakan." };
+  }
+}
+
 export async function updateEquipmentUnitStatus(
   pkgId: string,
   unitId: string,

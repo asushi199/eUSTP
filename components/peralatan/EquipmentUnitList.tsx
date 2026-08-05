@@ -5,6 +5,7 @@ import { useState } from "react";
 import ActionForm from "@/components/admin/ActionForm";
 import {
   transferEquipmentUnits,
+  updateEquipmentUnit,
   updateEquipmentUnitStatus,
 } from "@/lib/actions/peralatan-admin";
 import { EQUIPMENT_ADMIN_SUBMIT_CLASS } from "@/lib/peralatan/admin-button-style";
@@ -308,67 +309,139 @@ export default function EquipmentUnitList({
                   <div className="divide-y divide-fog">
                     {units.map((unit) => {
                       const selectable = canTransfer && unit.status === "available";
+                      const locked =
+                        unit.status === "reserved" || unit.status === "borrowed";
                       return (
-                        <div
-                          key={unit.id}
-                          className="grid gap-3 px-5 py-4 md:grid-cols-[minmax(0,1fr)_180px]"
-                        >
-                          <div className="flex min-w-0 items-start gap-3">
-                            {selectable ? (
-                              <input
-                                type="checkbox"
-                                checked={selectedUnitIds.includes(unit.id)}
-                                onChange={() => toggleUnit(unit.id)}
-                                aria-label={`Pilih unit ${unit.serialNo}`}
-                                className="mt-1 h-4 w-4 rounded border-steel accent-ink"
-                              />
-                            ) : (
-                              <span className="w-4 shrink-0" />
-                            )}
-                            <div className="min-w-0">
-                              <p className="font-mono text-sm font-semibold text-charcoal">
-                                {unit.serialNo}
-                              </p>
-                              <p className="mt-1 text-xs text-graphite">
-                                No. aset kerajaan:{" "}
-                                {unit.governmentAssetNo || "belum diterima"}
-                                {unit.notes ? ` · ${unit.notes}` : ""}
-                              </p>
-                            </div>
-                          </div>
-                          {unit.status === "reserved" ||
-                          unit.status === "borrowed" ? (
-                            <span className="status-badge self-center justify-self-start md:justify-self-end">
-                              <span className="status-dot bg-primary" />
-                              {EQUIPMENT_UNIT_STATUS_LABEL[unit.status]}
-                            </span>
-                          ) : (
-                            <ActionForm
-                              action={updateEquipmentUnitStatus.bind(
-                                null,
-                                pkgId,
-                                unit.id,
+                        <div key={unit.id} className="px-5 py-4">
+                          <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_180px]">
+                            <div className="flex min-w-0 items-start gap-3">
+                              {selectable ? (
+                                <input
+                                  type="checkbox"
+                                  checked={selectedUnitIds.includes(unit.id)}
+                                  onChange={() => toggleUnit(unit.id)}
+                                  aria-label={`Pilih unit ${unit.serialNo}`}
+                                  className="mt-1 h-4 w-4 rounded border-steel accent-ink"
+                                />
+                              ) : (
+                                <span className="w-4 shrink-0" />
                               )}
-                              submitLabel="Kemaskini"
-                              submitClassName={
-                                EQUIPMENT_ADMIN_SUBMIT_CLASS.updateStatus
-                              }
-                              className="flex items-center gap-2 self-center"
-                            >
-                              <select
-                                name="status"
-                                className="input h-10 py-1 text-sm"
-                                defaultValue={unit.status}
+                              <div className="min-w-0">
+                                <p className="font-mono text-sm font-semibold text-charcoal">
+                                  {unit.serialNo}
+                                </p>
+                                <p className="mt-1 text-xs text-graphite">
+                                  No. aset kerajaan:{" "}
+                                  {unit.governmentAssetNo || "belum diterima"}
+                                  {unit.notes ? ` · ${unit.notes}` : ""}
+                                </p>
+                              </div>
+                            </div>
+                            {locked ? (
+                              <span className="status-badge self-center justify-self-start md:justify-self-end">
+                                <span className="status-dot bg-primary" />
+                                {EQUIPMENT_UNIT_STATUS_LABEL[unit.status]}
+                              </span>
+                            ) : (
+                              <ActionForm
+                                action={updateEquipmentUnitStatus.bind(
+                                  null,
+                                  pkgId,
+                                  unit.id,
+                                )}
+                                submitLabel="Kemaskini"
+                                submitClassName={
+                                  EQUIPMENT_ADMIN_SUBMIT_CLASS.updateStatus
+                                }
+                                className="flex items-center gap-2 self-center md:justify-self-end"
                               >
-                                <option value="available">Tersedia</option>
-                                <option value="maintenance">
-                                  Penyelenggaraan
-                                </option>
-                                <option value="retired">Dilupuskan</option>
-                                <option value="lost">Hilang</option>
-                              </select>
-                            </ActionForm>
-                          )}
+                                <select
+                                  name="status"
+                                  className="input h-10 py-1 text-sm"
+                                  defaultValue={unit.status}
+                                >
+                                  <option value="available">Tersedia</option>
+                                  <option value="maintenance">
+                                    Penyelenggaraan
+                                  </option>
+                                  <option value="retired">Dilupuskan</option>
+                                  <option value="lost">Hilang</option>
+                                </select>
+                              </ActionForm>
+                            )}
+                          </div>
+                          {!locked ? (
+                            <details className="group mt-3 border-t border-fog pt-3">
+                              <summary className="cursor-pointer list-none text-xs font-semibold uppercase tracking-[0.08em] text-charcoal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/20">
+                                <span className="inline-flex items-center gap-1.5">
+                                  Kemaskini maklumat
+                                  <span
+                                    aria-hidden
+                                    className="text-sm leading-none transition-transform group-open:rotate-45"
+                                  >
+                                    +
+                                  </span>
+                                </span>
+                              </summary>
+                              <ActionForm
+                                action={updateEquipmentUnit.bind(
+                                  null,
+                                  pkgId,
+                                  unit.id,
+                                )}
+                                submitLabel="Simpan maklumat"
+                                submitClassName={
+                                  EQUIPMENT_ADMIN_SUBMIT_CLASS.updateUnit
+                                }
+                                className="mt-3 grid gap-3 sm:grid-cols-2"
+                              >
+                                <div>
+                                  <label
+                                    className="label"
+                                    htmlFor={`unit-serial-${unit.id}`}
+                                  >
+                                    No. siri peralatan *
+                                  </label>
+                                  <input
+                                    id={`unit-serial-${unit.id}`}
+                                    name="serialNo"
+                                    className="input font-mono text-sm"
+                                    defaultValue={unit.serialNo}
+                                    required
+                                  />
+                                </div>
+                                <div>
+                                  <label
+                                    className="label"
+                                    htmlFor={`unit-asset-${unit.id}`}
+                                  >
+                                    No. aset kerajaan
+                                  </label>
+                                  <input
+                                    id={`unit-asset-${unit.id}`}
+                                    name="governmentAssetNo"
+                                    className="input font-mono text-sm"
+                                    defaultValue={unit.governmentAssetNo}
+                                    placeholder="Kosongkan jika belum diterima"
+                                  />
+                                </div>
+                                <div className="sm:col-span-2">
+                                  <label
+                                    className="label"
+                                    htmlFor={`unit-notes-${unit.id}`}
+                                  >
+                                    Catatan
+                                  </label>
+                                  <input
+                                    id={`unit-notes-${unit.id}`}
+                                    name="notes"
+                                    className="input text-sm"
+                                    defaultValue={unit.notes}
+                                  />
+                                </div>
+                              </ActionForm>
+                            </details>
+                          ) : null}
                         </div>
                       );
                     })}
