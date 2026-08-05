@@ -20,6 +20,8 @@ import {
   type BookingStatus,
   type Slot,
 } from "@/lib/tempahan/booking-rules";
+import { buildBookingDecisionWhatsAppUrl } from "@/lib/tempahan/whatsapp";
+import { formatMalayDate } from "@/lib/tempahan/date";
 
 export default function AdminBookingActions({
   pkgId,
@@ -27,6 +29,10 @@ export default function AdminBookingActions({
   status,
   currentDate,
   currentSlot,
+  applicantName,
+  applicantPhone,
+  roomName,
+  purpose,
   autosijilSyncStatus = null,
   autosijilSyncError = null,
   cetakToken = null,
@@ -38,6 +44,10 @@ export default function AdminBookingActions({
   status: BookingStatus;
   currentDate: string;
   currentSlot: Slot;
+  applicantName: string;
+  applicantPhone: string;
+  roomName: string;
+  purpose: string;
   autosijilSyncStatus?: string | null;
   autosijilSyncError?: string | null;
   cetakToken?: string | null;
@@ -51,6 +61,17 @@ export default function AdminBookingActions({
   const [date, setDate] = useState(currentDate);
   const [slot, setSlot] = useState<Slot>(currentSlot);
   const [needSijil, setNeedSijil] = useState(requiresCertificate);
+  const decisionWhatsappUrl =
+    status === "approved" || status === "rejected"
+      ? buildBookingDecisionWhatsAppUrl(applicantPhone, {
+          name: applicantName,
+          room: roomName,
+          purpose,
+          date: formatMalayDate(currentDate),
+          slot: formatSlot(currentSlot),
+          decision: status,
+        })
+      : "";
 
   function run(action: () => Promise<{ ok: boolean; error?: string }>, confirmMsg?: string) {
     if (confirmMsg && !window.confirm(confirmMsg)) return;
@@ -165,6 +186,16 @@ export default function AdminBookingActions({
 
       {status === "approved" && (
         <div className="mt-2 flex flex-wrap items-center gap-2">
+          {decisionWhatsappUrl && (
+            <a
+              href={decisionWhatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-outline-ink btn-sm"
+            >
+              WhatsApp pemohon
+            </a>
+          )}
           {cetakToken && (
             <a
               href={`/tempahan/${pkgId}/cetak-kehadiran/${cetakToken}`}
@@ -196,6 +227,19 @@ export default function AdminBookingActions({
               Cuba sync Autosijil semula
             </button>
           )}
+        </div>
+      )}
+
+      {status === "rejected" && decisionWhatsappUrl && (
+        <div className="mt-2">
+          <a
+            href={decisionWhatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-outline-ink btn-sm"
+          >
+            WhatsApp pemohon
+          </a>
         </div>
       )}
 

@@ -6,6 +6,7 @@ import {
   approveEquipmentLoan,
   rejectEquipmentLoan,
 } from "@/lib/actions/peralatan-admin";
+import { buildEquipmentDecisionWhatsAppUrl } from "@/lib/peralatan/whatsapp";
 import { EQUIPMENT_LOAN_STATUS_LABEL } from "@/lib/peralatan/status";
 import type { EquipmentLoanDetail } from "@/lib/peralatan/types";
 import {
@@ -52,6 +53,19 @@ export default function AdminLoanApproval({
       (selections[item.id] ?? []).filter(Boolean).length ===
       approvedQuantities[item.id],
   );
+  const decisionWhatsappUrl =
+    request.status === "approved" || request.status === "rejected"
+      ? buildEquipmentDecisionWhatsAppUrl(request.contact, {
+          referenceNo: request.referenceNo,
+          applicantName: request.applicantName,
+          pkgName: request.pkgName,
+          borrowDate: request.borrowDate,
+          expectedReturnDate: request.expectedReturnDate,
+          items: request.items.map((item) => `${item.categoryName} (${item.quantity})`),
+          decisionNote: request.decisionNote,
+          decision: request.status,
+        })
+      : "";
 
   function updateApprovedQuantity(
     itemId: string,
@@ -427,9 +441,21 @@ export default function AdminLoanApproval({
               ) : null}
             </>
           ) : (
-            <div className="mt-4 rounded-lg bg-cloud p-4 text-sm text-graphite">
-              Keputusan telah direkodkan. Perubahan seterusnya mesti melalui aliran
-              serahan atau pemulangan.
+            <div className="mt-4 space-y-3 rounded-lg bg-cloud p-4 text-sm text-graphite">
+              <p>
+                Keputusan telah direkodkan. Perubahan seterusnya mesti melalui aliran
+                serahan atau pemulangan.
+              </p>
+              {decisionWhatsappUrl ? (
+                <a
+                  href={decisionWhatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-outline-ink btn-sm"
+                >
+                  WhatsApp pemohon
+                </a>
+              ) : null}
             </div>
           )}
         </section>

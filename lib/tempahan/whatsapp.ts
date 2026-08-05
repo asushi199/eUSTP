@@ -17,6 +17,17 @@ export type WhatsAppBookingDetails = {
   entries?: WhatsAppSlotEntry[];
 };
 
+export type WhatsAppBookingDecision = "approved" | "rejected";
+
+export type WhatsAppBookingDecisionDetails = {
+  name: string;
+  room: string;
+  purpose: string;
+  date: string;
+  slot: string;
+  decision: WhatsAppBookingDecision;
+};
+
 export function buildWhatsAppMessage(details: WhatsAppBookingDetails) {
   const entries =
     details.entries && details.entries.length > 0
@@ -49,5 +60,32 @@ export function buildWhatsAppMessage(details: WhatsAppBookingDetails) {
 export function buildWhatsAppShareUrl(phone: string, details: WhatsAppBookingDetails) {
   const cleanPhone = normalizePhoneNumber(phone);
   const message = buildWhatsAppMessage(details);
+  return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+}
+
+/** Pautan untuk pentadbir memaklumkan keputusan tempahan kepada pemohon. */
+export function buildBookingDecisionWhatsAppUrl(
+  phone: string,
+  details: WhatsAppBookingDecisionDetails,
+) {
+  const cleanPhone = normalizePhoneNumber(phone);
+  if (!cleanPhone) return "";
+
+  const approved = details.decision === "approved";
+  const message = [
+    "Makluman tempahan bilik eUSTP Manjung",
+    `Salam sejahtera ${details.name},`,
+    approved
+      ? "Permohonan tempahan bilik anda telah diluluskan."
+      : "Permohonan tempahan bilik anda tidak dapat diluluskan.",
+    `Bilik: ${details.room}`,
+    `Tarikh: ${details.date}`,
+    `Slot: ${details.slot}`,
+    `Tujuan: ${details.purpose}`,
+    approved
+      ? "Sila gunakan bilik mengikut tarikh dan slot yang diluluskan. Terima kasih."
+      : "Sila hubungi PKG berkenaan jika anda memerlukan maklumat lanjut.",
+  ].join("\n");
+
   return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
 }

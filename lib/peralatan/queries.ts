@@ -533,7 +533,7 @@ export async function getEquipmentLoanDetail(
 
   const pkgRow = await db.query.pkgs.findFirst({
     where: eq(pkgs.id, pkgId),
-    columns: { equipmentManagerName: true },
+    columns: { name: true, equipmentManagerName: true },
   });
 
   const itemRows = await db
@@ -629,6 +629,7 @@ export async function getEquipmentLoanDetail(
   } = request;
   return {
     ...safeRequest,
+    pkgName: pkgRow?.name ?? "PKG",
     pkgManagerName: pkgRow?.equipmentManagerName?.trim() || "",
     applicantMykadMasked: applicantMykadLast4
       ? `******-**-${applicantMykadLast4}`

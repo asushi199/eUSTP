@@ -81,6 +81,10 @@ export default function BookingCard({
           status={booking.status}
           currentDate={booking.date}
           currentSlot={booking.slot}
+          applicantName={booking.name}
+          applicantPhone={booking.contact}
+          roomName={roomName}
+          purpose={booking.purpose}
           autosijilSyncStatus={booking.autosijilSyncStatus}
           autosijilSyncError={booking.autosijilSyncError}
           cetakToken={booking.cetakToken}
