@@ -52,6 +52,11 @@ function text(formData: FormData, key: string, max = 500): string {
     .slice(0, max);
 }
 
+function isValidDateInput(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  return new Date(`${value}T00:00:00.000Z`).toISOString().slice(0, 10) === value;
+}
+
 function lines(formData: FormData, key: string, max = 100): string[] {
   return text(formData, key, 5000)
     .split(/\r?\n/)
@@ -62,6 +67,7 @@ function lines(formData: FormData, key: string, max = 100): string[] {
 
 function refreshEquipmentPaths(pkgId: string, requestId?: string) {
   revalidatePath("/tempahan/peralatan");
+  revalidatePath("/tempahan/peralatan/semak");
   revalidatePath("/admin/peralatan");
   revalidatePath(`/admin/peralatan/${pkgId}`);
   revalidatePath(`/admin/peralatan/${pkgId}/unit`);
@@ -557,6 +563,15 @@ export async function approveEquipmentLoan(
 ): Promise<EquipmentAdminActionResult> {
   const user = await requireTempahanAccess(pkgId);
   const decisionNote = text(formData, "decisionNote", 1000);
+  const approvedBorrowDate = text(formData, "approvedBorrowDate", 20);
+  const approvedReturnDate = text(formData, "approvedReturnDate", 20);
+  if (
+    !isValidDateInput(approvedBorrowDate) ||
+    !isValidDateInput(approvedReturnDate) ||
+    approvedReturnDate < approvedBorrowDate
+  ) {
+    return { ok: false, error: "Masukkan tempoh pinjaman yang sah." };
+  }
   let allocations: z.infer<typeof allocationsSchema>;
   try {
     allocations = allocationsSchema.parse(
@@ -591,9 +606,10 @@ export async function approveEquipmentLoan(
       }
       if (
         items.length !== allocations.length ||
-        items.some(
-          (item) => allocationByItem.get(item.id)?.length !== item.quantity,
-        )
+        items.some((item) => {
+          const approvedQuantity = allocationByItem.get(item.id)?.length ?? 0;
+          return approvedQuantity < 1 || approvedQuantity > item.quantity;
+        })
       ) {
         throw new Error("Bilangan unit yang diperuntukkan tidak mencukupi.");
       }
@@ -653,11 +669,23 @@ export async function approveEquipmentLoan(
           })),
         ),
       );
+      await Promise.all(
+        items.map((item) =>
+          tx
+            .update(equipmentLoanItems)
+            .set({
+              quantity: allocationByItem.get(item.id)?.length ?? item.quantity,
+            })
+            .where(eq(equipmentLoanItems.id, item.id)),
+        ),
+      );
       await tx
         .update(equipmentLoanRequests)
         .set({
           status: "approved",
           decisionNote,
+          borrowDate: approvedBorrowDate,
+          expectedReturnDate: approvedReturnDate,
           approvedByUserId: Number(user.id),
           approvedAt: new Date(),
           updatedAt: new Date(),
@@ -667,7 +695,22 @@ export async function approveEquipmentLoan(
         requestId,
         action: "application_approved",
         actorUserId: Number(user.id),
-        details: { allocatedUnitIds: allUnitIds, decisionNote },
+        details: {
+          allocatedUnitIds: allUnitIds,
+          decisionNote,
+          requestedBorrowDate: request.borrowDate,
+          requestedReturnDate: request.expectedReturnDate,
+          approvedBorrowDate,
+          approvedReturnDate,
+          requestedItems: items.map((item) => ({
+            id: item.id,
+            quantity: item.quantity,
+          })),
+          approvedItems: items.map((item) => ({
+            id: item.id,
+            quantity: allocationByItem.get(item.id)?.length ?? 0,
+          })),
+        },
       });
     });
     refreshEquipmentPaths(pkgId, requestId);

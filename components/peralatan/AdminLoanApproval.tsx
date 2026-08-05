@@ -24,6 +24,15 @@ export default function AdminLoanApproval({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [decisionNote, setDecisionNote] = useState(request.decisionNote);
+  const [approvedBorrowDate, setApprovedBorrowDate] = useState(
+    request.borrowDate,
+  );
+  const [approvedReturnDate, setApprovedReturnDate] = useState(
+    request.expectedReturnDate,
+  );
+  const [approvedQuantities, setApprovedQuantities] = useState<
+    Record<string, number>
+  >(() => Object.fromEntries(request.items.map((item) => [item.id, item.quantity])));
   const [error, setError] = useState("");
   const [selections, setSelections] = useState<Record<string, string[]>>(() =>
     Object.fromEntries(
@@ -40,8 +49,26 @@ export default function AdminLoanApproval({
   );
   const fullyAllocated = request.items.every(
     (item) =>
-      (selections[item.id] ?? []).filter(Boolean).length === item.quantity,
+      (selections[item.id] ?? []).filter(Boolean).length ===
+      approvedQuantities[item.id],
   );
+
+  function updateApprovedQuantity(
+    itemId: string,
+    requestedQuantity: number,
+    value: string,
+  ) {
+    const quantity = Math.max(
+      1,
+      Math.min(requestedQuantity, Math.trunc(Number(value)) || 1),
+    );
+    setApprovedQuantities((current) => ({ ...current, [itemId]: quantity }));
+    setSelections((current) => ({
+      ...current,
+      [itemId]: (current[itemId] ?? []).slice(0, quantity),
+    }));
+    setError("");
+  }
 
   function updateSelection(itemId: string, index: number, unitId: string) {
     setSelections((current) => {
@@ -57,16 +84,19 @@ export default function AdminLoanApproval({
     const nextSelections = Object.fromEntries(
       request.items.map((item) => {
         const current = selections[item.id] ?? [];
-        const next = Array.from({ length: item.quantity }, (_, index) => {
-          const selectedId = current[index] ?? "";
-          if (selectedId) return selectedId;
-          const unit = sortUnitsForAutoAllocation(item.availableUnits).find(
-            (candidate) => !usedUnitIds.has(candidate.id),
-          );
-          if (!unit) return "";
-          usedUnitIds.add(unit.id);
-          return unit.id;
-        });
+        const next = Array.from(
+          { length: approvedQuantities[item.id] },
+          (_, index) => {
+            const selectedId = current[index] ?? "";
+            if (selectedId) return selectedId;
+            const unit = sortUnitsForAutoAllocation(item.availableUnits).find(
+              (candidate) => !usedUnitIds.has(candidate.id),
+            );
+            if (!unit) return "";
+            usedUnitIds.add(unit.id);
+            return unit.id;
+          },
+        );
         return [item.id, next];
       }),
     );
@@ -83,6 +113,8 @@ export default function AdminLoanApproval({
     }
     const formData = new FormData();
     formData.set("decisionNote", decisionNote);
+    formData.set("approvedBorrowDate", approvedBorrowDate);
+    formData.set("approvedReturnDate", approvedReturnDate);
     formData.set(
       "allocations",
       JSON.stringify(
@@ -195,7 +227,10 @@ export default function AdminLoanApproval({
               </div>
               <span className="text-sm font-semibold tabular-nums text-charcoal">
                 {selectedUnitIds.length} /{" "}
-                {request.items.reduce((sum, item) => sum + item.quantity, 0)} dipilih
+                {request.items.reduce(
+                  (sum, item) => sum + approvedQuantities[item.id],
+                  0,
+                )} dipilih
               </span>
             </div>
             {request.status === "pending" ? (
@@ -222,12 +257,38 @@ export default function AdminLoanApproval({
                     </p>
                   </div>
                   <span className="rounded-md bg-cloud px-2.5 py-1 text-sm font-semibold">
-                    {item.quantity} unit
+                    {item.quantity} dimohon
                   </span>
                 </div>
 
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  {Array.from({ length: item.quantity }, (_, index) => {
+                  {request.status === "pending" ? (
+                    <div className="sm:col-span-2">
+                      <label className="label" htmlFor={`quantity-${item.id}`}>
+                        Kuantiti diluluskan
+                      </label>
+                      <input
+                        id={`quantity-${item.id}`}
+                        className="input max-w-36"
+                        type="number"
+                        min="1"
+                        max={item.quantity}
+                        step="1"
+                        value={approvedQuantities[item.id]}
+                        onChange={(event) =>
+                          updateApprovedQuantity(
+                            item.id,
+                            item.quantity,
+                            event.target.value,
+                          )
+                        }
+                      />
+                      <p className="mt-1 text-xs text-graphite">
+                        Maksimum {item.quantity} unit seperti yang dimohon.
+                      </p>
+                    </div>
+                  ) : null}
+                  {Array.from({ length: approvedQuantities[item.id] }, (_, index) => {
                     const selectedId = selections[item.id]?.[index] ?? "";
                     const options =
                       request.status === "pending"
@@ -266,7 +327,7 @@ export default function AdminLoanApproval({
                   })}
                 </div>
                 {request.status === "pending" &&
-                item.availableUnits.length < item.quantity ? (
+                item.availableUnits.length < approvedQuantities[item.id] ? (
                   <p className="mt-3 text-sm font-medium text-bloom-deep">
                     Stok tersedia tidak mencukupi untuk meluluskan item ini.
                   </p>
@@ -300,6 +361,40 @@ export default function AdminLoanApproval({
             onChange={(event) => setDecisionNote(event.target.value)}
             placeholder="Catatan kepada pemohon, jika ada"
           />
+
+          {request.status === "pending" ? (
+            <div className="mt-5 grid gap-4 border-t border-fog pt-5">
+              <div>
+                <label className="label" htmlFor="approved-borrow-date">
+                  Tarikh pinjaman diluluskan
+                </label>
+                <input
+                  id="approved-borrow-date"
+                  className="input"
+                  type="date"
+                  value={approvedBorrowDate}
+                  onChange={(event) =>
+                    setApprovedBorrowDate(event.target.value)
+                  }
+                />
+              </div>
+              <div>
+                <label className="label" htmlFor="approved-return-date">
+                  Tarikh pulang diluluskan
+                </label>
+                <input
+                  id="approved-return-date"
+                  className="input"
+                  type="date"
+                  value={approvedReturnDate}
+                  min={approvedBorrowDate}
+                  onChange={(event) =>
+                    setApprovedReturnDate(event.target.value)
+                  }
+                />
+              </div>
+            </div>
+          ) : null}
 
           {error ? (
             <p className="mt-3 rounded-lg bg-bloom-rose/40 p-3 text-sm text-bloom-deep">

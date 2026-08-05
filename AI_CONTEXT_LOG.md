@@ -795,3 +795,12 @@ Corak berselang = instance sihat vs beracun.
 - 3D printer atau model lain boleh disorokkan sementara oleh pentadbir utama
   melalui tetapan status `Tidak aktif` pada kategori atau model. Rekod inventori
   fizikal kekal dan boleh diaktifkan semula kemudian.
+
+## 2026-08-05 - Syarat kelulusan pinjaman boleh dilaras
+
+- Semasa permohonan masih `pending`, pentadbir boleh mengurangkan kuantiti yang
+  diluluskan bagi setiap kategori dan menetapkan tarikh pinjam serta tarikh pulang
+  yang diluluskan.
+- Hanya unit yang benar-benar diluluskan diperuntukkan dan ditempah. Kuantiti serta
+  tempoh yang telah diluluskan digunakan pada semakan pemohon dan dokumen KEW.PA-9;
+  butiran asal serta perubahan kuantiti direkodkan dalam jejak audit kelulusan.
