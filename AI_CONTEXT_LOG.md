@@ -831,3 +831,14 @@ Corak berselang = instance sihat vs beracun.
 - Hanya unit yang benar-benar diluluskan diperuntukkan dan ditempah. Kuantiti serta
   tempoh yang telah diluluskan digunakan pada semakan pemohon dan dokumen KEW.PA-9;
   butiran asal serta perubahan kuantiti direkodkan dalam jejak audit kelulusan.
+
+## 2026-08-06 - Input kuantiti kelulusan mesra telefon
+
+- Medan `Kuantiti diluluskan` kini membenarkan nilai dikosongkan sementara semasa
+  menaip. Ini membolehkan pentadbir menukar nilai seperti `10` kepada `4` pada
+  telefon tanpa input dipaksa kembali kepada `1`.
+- Hanya integer antara 1 dan kuantiti dimohon diterapkan pada peruntukan unit.
+  Nilai tidak sah dipulihkan kepada nilai sah terakhir apabila medan ditinggalkan,
+  dan kelulusan dinyahaktifkan sehingga input sah.
+- Verifikasi: `tsc --noEmit` dan `next build` berjaya; build memaparkan amaran
+  ESLint sedia ada yang tidak berkaitan.

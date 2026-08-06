@@ -34,6 +34,13 @@ export default function AdminLoanApproval({
   const [approvedQuantities, setApprovedQuantities] = useState<
     Record<string, number>
   >(() => Object.fromEntries(request.items.map((item) => [item.id, item.quantity])));
+  const [approvedQuantityInputs, setApprovedQuantityInputs] = useState<
+    Record<string, string>
+  >(() =>
+    Object.fromEntries(
+      request.items.map((item) => [item.id, String(item.quantity)]),
+    ),
+  );
   const [error, setError] = useState("");
   const [selections, setSelections] = useState<Record<string, string[]>>(() =>
     Object.fromEntries(
@@ -53,6 +60,15 @@ export default function AdminLoanApproval({
       (selections[item.id] ?? []).filter(Boolean).length ===
       approvedQuantities[item.id],
   );
+  const hasValidApprovedQuantities = request.items.every((item) => {
+    const quantity = Number(approvedQuantityInputs[item.id]);
+    return (
+      Number.isInteger(quantity) &&
+      quantity >= 1 &&
+      quantity <= item.quantity &&
+      quantity === approvedQuantities[item.id]
+    );
+  });
   const decisionWhatsappUrl =
     request.status === "approved" ||
     request.status === "rejected" ||
@@ -79,16 +95,28 @@ export default function AdminLoanApproval({
     requestedQuantity: number,
     value: string,
   ) {
-    const quantity = Math.max(
-      1,
-      Math.min(requestedQuantity, Math.trunc(Number(value)) || 1),
-    );
+    setApprovedQuantityInputs((current) => ({ ...current, [itemId]: value }));
+    const quantity = Number(value);
+    if (
+      !Number.isInteger(quantity) ||
+      quantity < 1 ||
+      quantity > requestedQuantity
+    ) {
+      return;
+    }
     setApprovedQuantities((current) => ({ ...current, [itemId]: quantity }));
     setSelections((current) => ({
       ...current,
       [itemId]: (current[itemId] ?? []).slice(0, quantity),
     }));
     setError("");
+  }
+
+  function restoreApprovedQuantity(itemId: string) {
+    setApprovedQuantityInputs((current) => ({
+      ...current,
+      [itemId]: String(approvedQuantities[itemId]),
+    }));
   }
 
   function updateSelection(itemId: string, index: number, unitId: string) {
@@ -126,6 +154,10 @@ export default function AdminLoanApproval({
   }
 
   function runDecision(decision: "approve" | "reject") {
+    if (decision === "approve" && !hasValidApprovedQuantities) {
+      setError("Masukkan kuantiti diluluskan yang sah.");
+      return;
+    }
     if (
       decision === "reject" &&
       !window.confirm("Tolak permohonan ini? Tindakan akan direkodkan.")
@@ -295,7 +327,8 @@ export default function AdminLoanApproval({
                         min="1"
                         max={item.quantity}
                         step="1"
-                        value={approvedQuantities[item.id]}
+                        inputMode="numeric"
+                        value={approvedQuantityInputs[item.id] ?? ""}
                         onChange={(event) =>
                           updateApprovedQuantity(
                             item.id,
@@ -303,6 +336,7 @@ export default function AdminLoanApproval({
                             event.target.value,
                           )
                         }
+                        onBlur={() => restoreApprovedQuantity(item.id)}
                       />
                       <p className="mt-1 text-xs text-graphite">
                         Maksimum {item.quantity} unit seperti yang dimohon.
@@ -428,7 +462,7 @@ export default function AdminLoanApproval({
               <button
                 type="button"
                 className="btn-primary mt-4 w-full"
-                disabled={pending || !fullyAllocated}
+                disabled={pending || !fullyAllocated || !hasValidApprovedQuantities}
                 onClick={() => runDecision("approve")}
               >
                 {pending ? "Memproses…" : "Lulus & tempah unit"}
