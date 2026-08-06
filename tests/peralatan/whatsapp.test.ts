@@ -33,7 +33,7 @@ test("includes the administrator note when equipment has been handed over", () =
   const message = new URL(url).searchParams.get("text");
   assert.ok(message);
   assert.match(message, /Catatan: Sila bawa surat pengesahan\./);
-  assert.doesNotMatch(message, /Sila simpan makluman ini untuk rekod anda\./);
+  assert.match(message, /Sila simpan makluman ini untuk rekod anda\./);
 });
 
 test("uses the same note footer when equipment is approved", () => {
@@ -45,5 +45,6 @@ test("uses the same note footer when equipment is approved", () => {
   const message = new URL(url).searchParams.get("text");
   assert.ok(message);
   assert.match(message, /Catatan: Sila bawa surat pengesahan\./);
+  assert.match(message, /Sila simpan makluman ini untuk rekod anda\./);
   assert.doesNotMatch(message, /untuk urusan pengambilan peralatan/);
 });

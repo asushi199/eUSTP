@@ -53,7 +53,10 @@ export function buildEquipmentDecisionWhatsAppUrl(
     `Tempoh: ${details.borrowDate} hingga ${details.expectedReturnDate}`,
     ...(approved || handedOver
       ? details.decisionNote
-        ? [`Catatan: ${details.decisionNote}`]
+        ? [
+            `Catatan: ${details.decisionNote}`,
+            "Sila simpan makluman ini untuk rekod anda.",
+          ]
         : ["Sila simpan makluman ini untuk rekod anda."]
       : details.decisionNote
         ? [`Catatan: ${details.decisionNote}`]
