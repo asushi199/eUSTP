@@ -855,8 +855,13 @@ export async function recordEquipmentHandover(
 export async function recordEquipmentReturn(
   pkgId: string,
   requestId: string,
+  returnNote = "",
 ): Promise<EquipmentAdminActionResult> {
   const user = await requireTempahanAccess(pkgId);
+  const parsedReturnNote = z.string().max(500).safeParse(returnNote.trim());
+  if (!parsedReturnNote.success) {
+    return { ok: false, error: "Catatan pemulangan terlalu panjang." };
+  }
 
   try {
     await db.transaction(async (tx) => {
@@ -907,6 +912,7 @@ export async function recordEquipmentReturn(
         .set({
           status: "returned",
           returnedAt,
+          returnNote: parsedReturnNote.data,
           updatedAt: returnedAt,
         })
         .where(eq(equipmentLoanRequests.id, requestId));
@@ -917,6 +923,7 @@ export async function recordEquipmentReturn(
         details: {
           unitIds,
           conditionChecked: true,
+          returnNote: parsedReturnNote.data,
           paperSignaturesRequired: true,
         },
       });

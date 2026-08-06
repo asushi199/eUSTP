@@ -36,6 +36,7 @@ export type KewPa9Data = {
   borrowDate: string;
   expectedReturnDate: string;
   returnedAt: Date | null;
+  returnNote: string;
   units: KewPa9Unit[];
 };
 
@@ -138,6 +139,88 @@ function drawCenteredCellText(
   });
 }
 
+function wrapPdfText(
+  font: PDFFont,
+  value: string,
+  maxWidth: number,
+  size: number,
+) {
+  const words = safePdfText(value).split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let line = "";
+
+  for (const word of words) {
+    const next = line ? `${line} ${word}` : word;
+    if (font.widthOfTextAtSize(next, size) <= maxWidth) {
+      line = next;
+      continue;
+    }
+    if (line) lines.push(line);
+
+    let remainder = word;
+    while (font.widthOfTextAtSize(remainder, size) > maxWidth) {
+      let end = remainder.length - 1;
+      while (
+        end > 1 &&
+        font.widthOfTextAtSize(remainder.slice(0, end), size) > maxWidth
+      ) {
+        end -= 1;
+      }
+      lines.push(remainder.slice(0, end));
+      remainder = remainder.slice(end);
+    }
+    line = remainder;
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+function drawReturnNote(
+  page: PDFPage,
+  font: PDFFont,
+  value: string,
+  top: number,
+  height: number,
+) {
+  if (!value) return;
+
+  const left = 512;
+  const width = 48;
+  page.drawRectangle({
+    x: left,
+    y: page.getHeight() - top - height,
+    width,
+    height,
+    color: rgb(1, 1, 1),
+    borderColor: BLACK,
+    borderWidth: 0.45,
+  });
+
+  const size = 5.2;
+  const lineHeight = 6.4;
+  const maxLines = Math.floor((height - 6) / lineHeight);
+  const lines = wrapPdfText(font, value, width - 4, size);
+  const visibleLines = lines.slice(0, maxLines);
+  if (lines.length > maxLines && visibleLines.length > 0) {
+    const last = visibleLines.length - 1;
+    visibleLines[last] = fitText(
+      font,
+      `${visibleLines[last]}...`,
+      width - 4,
+      size,
+    ).text;
+  }
+  visibleLines.forEach((line, index) => {
+    page.drawText(line, {
+      x: left + 2,
+      y: page.getHeight() - top - 4 - size - index * lineHeight,
+      size,
+      font,
+      color: BLACK,
+    });
+  });
+}
+
 function drawPageContent(
   page: PDFPage,
   font: PDFFont,
@@ -223,7 +306,15 @@ function drawPageContent(
       5.3,
     );
   });
-
+  if (pageIndex === 0) {
+    drawReturnNote(
+      page,
+      font,
+      data.returnNote,
+      firstRowTop - 1.3,
+      ROWS_PER_PAGE * rowHeight + 1.3,
+    );
+  }
 }
 
 export function buildKewPa9Data(request: EquipmentLoanDetail): KewPa9Data {
@@ -238,6 +329,7 @@ export function buildKewPa9Data(request: EquipmentLoanDetail): KewPa9Data {
     borrowDate: request.borrowDate,
     expectedReturnDate: request.expectedReturnDate,
     returnedAt: request.returnedAt,
+    returnNote: request.returnNote,
     units: request.items.flatMap((item) =>
       item.allocatedUnits.map((unit) => ({
         serialNo: unit.serialNo,

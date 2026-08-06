@@ -165,6 +165,7 @@ export type EquipmentLoanDetail = {
   approvedAt: Date | null;
   handedOverAt: Date | null;
   returnedAt: Date | null;
+  returnNote: string;
   createdAt: Date;
   items: EquipmentLoanDetailItem[];
   documents: EquipmentLoanDocument[];

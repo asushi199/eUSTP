@@ -690,6 +690,7 @@ export const equipmentLoanRequests = pgTable(
     rejectedAt: timestamp("rejected_at", { withTimezone: true }),
     handedOverAt: timestamp("handed_over_at", { withTimezone: true }),
     returnedAt: timestamp("returned_at", { withTimezone: true }),
+    returnNote: text("return_note").notNull().default(""),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },

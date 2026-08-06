@@ -1,5 +1,16 @@
 # AI Context Log — eUSTP Manjung
 
+## 2026-08-06 — Catatan pemulangan KEW.PA-9
+
+- Semasa pentadbir mengesahkan pemulangan, dialog pilihan membolehkan catatan
+  sehingga 500 aksara direkodkan bersama transaksi pemulangan.
+- Catatan disimpan pada `equipment_loan_requests.return_note`, dimasukkan dalam
+  jejak audit `equipment_returned`, dan dipaparkan sekali sebagai kotak teks
+  merentasi ruang `Catatan` pada halaman pertama KEW.PA-9. Ia tidak diulang
+  mengikut unit atau baris aset.
+- Migrasi `0022_acoustic_aaron_stack` menambah lajur tersebut dengan nilai lalai
+  kosong supaya rekod sedia ada kekal serasi.
+
 ## 2026-08-05 — Makluman keputusan melalui WhatsApp
 
 - Selepas tempahan bilik diluluskan atau ditolak, panel pentadbir memaparkan

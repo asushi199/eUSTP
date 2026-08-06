@@ -117,6 +117,8 @@ export default function EquipmentLoanLifecycle({
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState("");
   const [confirmed, setConfirmed] = useState(false);
+  const [returnNoteOpen, setReturnNoteOpen] = useState(false);
+  const [returnNote, setReturnNote] = useState("");
   const isHandover = request.status === "approved";
   const isReturn = request.status === "handed_over";
   const showKewPa9 =
@@ -124,17 +126,18 @@ export default function EquipmentLoanLifecycle({
   const kewPa9Stage: EquipmentDocumentStage =
     request.status === "returned" ? "final" : "handover";
 
-  function submitConfirmation() {
+  function submitConfirmation(note = "") {
     startTransition(async () => {
       setError("");
       const result = isHandover
         ? await recordEquipmentHandover(pkgId, request.id)
-        : await recordEquipmentReturn(pkgId, request.id);
+        : await recordEquipmentReturn(pkgId, request.id, note);
       if (!result.ok) {
         setError(result.error ?? "Rekod tidak dapat disimpan.");
         return;
       }
       router.refresh();
+      setReturnNoteOpen(false);
     });
   }
 
@@ -187,7 +190,13 @@ export default function EquipmentLoanLifecycle({
             type="button"
             className="btn-primary mt-5"
             disabled={pending || !confirmed}
-            onClick={submitConfirmation}
+            onClick={() => {
+              if (isReturn) {
+                setReturnNoteOpen(true);
+                return;
+              }
+              submitConfirmation();
+            }}
           >
             {pending
               ? "Menyimpan..."
@@ -196,6 +205,61 @@ export default function EquipmentLoanLifecycle({
                 : "Sahkan pemulangan & pulihkan stok"}
           </button>
         </div>
+      ) : null}
+
+      {returnNoteOpen ? (
+        <>
+          <button
+            type="button"
+            aria-label="Tutup catatan pemulangan"
+            className="fixed inset-0 z-50 bg-ink/45 backdrop-blur-[1px]"
+            onClick={() => setReturnNoteOpen(false)}
+          />
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="return-note-title"
+            className="fixed inset-x-4 top-1/2 z-[60] mx-auto w-auto max-w-lg -translate-y-1/2 rounded-xl border border-fog bg-white p-5 shadow-modal sm:p-6"
+          >
+            <h3 id="return-note-title" className="text-lg font-semibold text-ink">
+              Catatan pemulangan
+            </h3>
+            <p className="mt-2 text-sm leading-relaxed text-graphite">
+              Pilihan sahaja. Catatan ini akan dipaparkan sekali dalam ruang
+              Catatan KEW.PA-9 bagi keseluruhan rekod pinjaman.
+            </p>
+            <label className="label mt-5" htmlFor="return-note">
+              Catatan (pilihan)
+            </label>
+            <textarea
+              id="return-note"
+              className="textarea min-h-28"
+              value={returnNote}
+              maxLength={500}
+              disabled={pending}
+              onChange={(event) => setReturnNote(event.target.value)}
+              placeholder="Contoh: Semua unit dan aksesori diterima dalam keadaan baik."
+            />
+            <div className="mt-5 flex flex-wrap justify-end gap-3">
+              <button
+                type="button"
+                className="btn-outline-ink"
+                disabled={pending}
+                onClick={() => setReturnNoteOpen(false)}
+              >
+                Tutup
+              </button>
+              <button
+                type="button"
+                className="btn-primary"
+                disabled={pending}
+                onClick={() => submitConfirmation(returnNote)}
+              >
+                {pending ? "Menyimpan..." : "Sahkan pemulangan"}
+              </button>
+            </div>
+          </section>
+        </>
       ) : null}
 
       {showKewPa9 ? (
