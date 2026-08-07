@@ -199,6 +199,17 @@ export default function EquipmentLoanLookup() {
                       <p className="mt-1">{request.decisionNote}</p>
                     </div>
                   ) : null}
+
+                  {request.whatsappUrl ? (
+                    <a
+                      href={request.whatsappUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn-outline-ink mt-4 inline-flex w-full justify-center"
+                    >
+                      Hantar semula WhatsApp kepada pegawai PKG
+                    </a>
+                  ) : null}
           </article>
         ))}
       </div>

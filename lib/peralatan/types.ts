@@ -184,6 +184,10 @@ export type EquipmentLoanPublicResult = {
   items: Array<{ name: string; quantity: number }>;
 };
 
+export type EquipmentLoanLookupResult = EquipmentLoanPublicResult & {
+  whatsappUrl?: string;
+};
+
 export type EquipmentDocumentStage = "handover" | "final";
 
 export type EquipmentLoanDocument = {

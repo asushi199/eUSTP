@@ -476,13 +476,25 @@ export async function countPendingEquipmentLoansByPkg(
 
 export async function listEquipmentLoansByContact(
   contactNormalized: string,
-): Promise<EquipmentLoanPublicResult[]> {
+): Promise<
+  Array<
+    EquipmentLoanPublicResult & {
+      pkgId: string;
+      applicantName: string;
+      managerPhone: string;
+    }
+  >
+> {
   const requestRows = await db
     .select({
       id: equipmentLoanRequests.id,
+      pkgId: equipmentLoanRequests.pkgId,
       referenceNo: equipmentLoanRequests.referenceNo,
       pkgName: pkgs.name,
       orgName: equipmentLoanRequests.orgName,
+      applicantName: equipmentLoanRequests.applicantName,
+      managerPhone:
+        sql<string>`coalesce(${pkgs.equipmentManagerPhone}, ${pkgs.whatsappAdminPhone}, '')`,
       borrowDate: equipmentLoanRequests.borrowDate,
       expectedReturnDate: equipmentLoanRequests.expectedReturnDate,
       status: equipmentLoanRequests.status,

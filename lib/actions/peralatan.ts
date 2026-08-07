@@ -16,6 +16,8 @@ import {
   normalizeMykad,
 } from "@/lib/peralatan/mykad";
 import { listEquipmentLoansByContact } from "@/lib/peralatan/queries";
+import { buildEquipmentLookupWhatsAppUrl } from "@/lib/peralatan/lookup-whatsapp";
+import type { EquipmentLoanLookupResult } from "@/lib/peralatan/types";
 import { buildEquipmentRequestWhatsAppUrl } from "@/lib/peralatan/whatsapp";
 import {
   equipmentCategories,
@@ -347,7 +349,7 @@ export async function createEquipmentLoanAction(
 export type EquipmentLookupState = {
   ok: boolean;
   message: string;
-  requests: Awaited<ReturnType<typeof listEquipmentLoansByContact>>;
+  requests: EquipmentLoanLookupResult[];
 };
 
 export async function checkEquipmentLoansAction(
@@ -364,13 +366,20 @@ export async function checkEquipmentLoansAction(
   }
   try {
     const requests = await withDbTimeout(listEquipmentLoansByContact(contact));
+    const baseUrl = await resolveBaseUrl();
     return {
       ok: true,
       message:
         requests.length > 0
           ? "Permohonan dijumpai."
           : "Tiada permohonan dijumpai untuk nombor telefon ini.",
-      requests,
+      requests: requests.map(({ managerPhone, applicantName, pkgId, ...request }) => ({
+        ...request,
+        whatsappUrl: buildEquipmentLookupWhatsAppUrl(
+          { ...request, managerPhone, applicantName, pkgId },
+          baseUrl,
+        ),
+      })),
     };
   } catch (error) {
     return {
