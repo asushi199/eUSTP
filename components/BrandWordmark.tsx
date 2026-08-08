@@ -26,11 +26,8 @@ export default function BrandWordmark({
           sizes="36px"
         />
       </span>
-      <span className="inline-flex items-baseline gap-1.5">
-        <span className="text-lg font-bold leading-none tracking-tight text-ink">
-          {APP_SHORT_NAME}
-          <span className="ml-1.5 font-medium text-graphite">Manjung</span>
-        </span>
+      <span className="text-lg font-bold leading-none tracking-tight text-ink">
+        {APP_SHORT_NAME}
       </span>
     </Link>
   );

@@ -91,9 +91,7 @@ export default async function HomePage() {
             <span className="block text-ink">NEXa Manjung</span>
           </h1>
           <p className="portal-home-hero-delay-3 mt-5 max-w-xl text-lg leading-relaxed text-graphite">
-            Platform setempat untuk laporan, sumber, direktori, tempahan dan khidmat
-            bantu — perkhidmatan teknologi pendidikan untuk semua sekolah daerah
-            Manjung.
+            &ldquo;Menghubungkan Teknologi. Memperkasa Pendidikan.&rdquo;
           </p>
           <a
             href="#modul"
