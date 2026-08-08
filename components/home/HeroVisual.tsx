@@ -24,8 +24,8 @@ export function HeroVisual() {
         />
       </div>
       <span className="portal-stat-pill portal-stat-pill-one">
-        <strong>07 MODUL</strong>
-        TERPUSAT
+        <strong>NEXa</strong>
+        TERPADU
       </span>
       <span className="portal-stat-pill portal-stat-pill-two">
         <strong>AKSES</strong>
