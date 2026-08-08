@@ -87,8 +87,10 @@ export default async function HomePage() {
             <span>PPD Manjung · Unit Sumber dan Teknologi Pendidikan</span>
           </p>
           <h1 className="portal-home-hero-delay-2 max-w-2xl text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl lg:text-[3.25rem]">
-            <span className="block text-graphite">Portal Digital</span>
-            <span className="block text-ink">NEXa Manjung</span>
+            <span className="block text-ink">NEXa</span>
+            <span className="mt-2 block text-2xl font-medium tracking-tight text-graphite sm:text-3xl lg:text-[1.75rem]">
+              by USTP Manjung
+            </span>
           </h1>
           <p className="portal-home-hero-delay-3 mt-5 max-w-xl text-lg leading-relaxed text-graphite">
             &ldquo;Menghubungkan Teknologi. Memperkasa Pendidikan.&rdquo;
