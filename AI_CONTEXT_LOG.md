@@ -6,8 +6,10 @@
   `APP_SHORT_NAME` / `PWA_APP_NAME` dalam `lib/branding.ts`).
 - Logo PWA (`public/icons/icon-192.png`, `icon-512.png`, `apple-touch-icon.png`)
   dan aset aplikasi (`public/nexa-logo.png`) diganti dengan logo rasmi NEXa.
-- Header (`BrandWordmark`), hero, footer, metadata tajuk halaman, mesej WhatsApp
+- Header (`BrandWordmark`), footer, metadata tajuk halaman, mesej WhatsApp
   dan penjana KEW.PA-9 dikemas kini kepada NEXa Manjung.
+- Hero bulatan (`HeroVisual`) kekal logo USTP Manjung (`/ustp-logo.png`) —
+  logo penuh NEXa tidak sesuai dalam bulatan orbit.
 - Laluan integrasi Autosijil (`/api/integrations/eustp/...`) dan nama pakej repo
   kekal tidak diubah (kontrak luaran / folder git).
 

@@ -15,7 +15,7 @@ export function HeroVisual() {
       <div className="portal-logo-core">
         <span className="portal-logo-halo" />
         <Image
-          src="/nexa-logo.png"
+          src="/ustp-logo.png"
           alt=""
           width={220}
           height={220}
