@@ -8,7 +8,7 @@ import {
 } from "@/lib/laporan-entry";
 
 export const metadata: Metadata = {
-  title: "Pelaporan — eUSTP Manjung",
+  title: "Pelaporan — NEXa Manjung",
   description: "Pilih Laporan DPD atau Laporan PSS.",
 };
 

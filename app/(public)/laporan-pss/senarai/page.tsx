@@ -5,7 +5,7 @@ import { listPssPublic } from "@/lib/stats/pss";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Senarai Laporan PSS — eUSTP Manjung",
+  title: "Senarai Laporan PSS — NEXa Manjung",
 };
 
 export default async function SenaraiPssPage({

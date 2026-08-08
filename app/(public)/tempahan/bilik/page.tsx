@@ -7,7 +7,7 @@ import { getModuleAccent } from "@/lib/module-theme";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Tempahan Bilik PKG — eUSTP Manjung" };
+export const metadata = { title: "Tempahan Bilik PKG — NEXa Manjung" };
 
 export default async function TempahanBilikPage() {
   const pkgList = await listPkgs();

@@ -43,7 +43,7 @@ export function buildEquipmentDecisionWhatsAppUrl(
   const approved = details.decision === "approved";
   const handedOver = details.decision === "handed_over";
   const message = [
-    "Makluman pinjaman peralatan eUSTP Manjung",
+    "Makluman pinjaman peralatan NEXa Manjung",
     `Salam sejahtera ${details.applicantName},`,
     `Rujukan: ${details.referenceNo}`,
     approved || handedOver

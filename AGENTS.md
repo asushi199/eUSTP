@@ -1,4 +1,4 @@
-# AGENTS.md — eUSTP Manjung
+# AGENTS.md — NEXa Manjung
 
 Panduan ringkas untuk agen AI. Baca `CLAUDE.md` untuk peraturan penuh.
 

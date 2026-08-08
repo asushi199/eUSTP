@@ -12,7 +12,7 @@ import BreakdownBarChart from "@/components/stats/BreakdownBarChart";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Statistik Laporan — eUSTP Manjung",
+  title: "Statistik Laporan — NEXa Manjung",
   description:
     "Statistik terkini Laporan DPD dan Laporan PSS sekolah-sekolah daerah Manjung.",
 };

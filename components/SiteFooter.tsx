@@ -7,7 +7,7 @@ export default function SiteFooter() {
     >
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-8">
         <p className="text-sm font-semibold">
-          eUSTP<span className="text-[#5ec4e8]">+</span> Manjung
+          NEXa<span className="text-[#5ec4e8]">+</span> Manjung
         </p>
         <p className="mt-1 text-sm text-white/70">
           Unit Sumber Teknologi Pendidikan · Pejabat Pendidikan Daerah Manjung

@@ -5,7 +5,7 @@ import PageHeader from "@/components/PageHeader";
 import PublicPageShell from "@/components/PublicPageShell";
 
 export const metadata: Metadata = {
-  title: "Semak Permohonan Peralatan — eUSTP Manjung",
+  title: "Semak Permohonan Peralatan — NEXa Manjung",
   description: "Semak status permohonan pinjaman peralatan menggunakan nombor telefon.",
 };
 

@@ -1,4 +1,15 @@
-# AI Context Log — eUSTP Manjung
+# AI Context Log — NEXa Manjung
+
+## 2026-08-08 — Jenama rasmi NEXa + logo baharu
+
+- Portal ditukar nama paparan daripada eUSTP kepada **NEXa** (`APP_DISPLAY_NAME` /
+  `APP_SHORT_NAME` / `PWA_APP_NAME` dalam `lib/branding.ts`).
+- Logo PWA (`public/icons/icon-192.png`, `icon-512.png`, `apple-touch-icon.png`)
+  dan aset aplikasi (`public/nexa-logo.png`) diganti dengan logo rasmi NEXa.
+- Header (`BrandWordmark`), hero, footer, metadata tajuk halaman, mesej WhatsApp
+  dan penjana KEW.PA-9 dikemas kini kepada NEXa Manjung.
+- Laluan integrasi Autosijil (`/api/integrations/eustp/...`) dan nama pakej repo
+  kekal tidak diubah (kontrak luaran / folder git).
 
 ## 2026-08-06 — Catatan pemulangan KEW.PA-9
 

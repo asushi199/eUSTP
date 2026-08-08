@@ -364,7 +364,7 @@ export async function generateKewPa9Pdf(
 
   output.setTitle(`KEW.PA-9 ${data.referenceNo}`);
   output.setSubject("Borang pergerakan/pinjaman aset alih (KEW.PA-9)");
-  output.setCreator("eUSTP Manjung");
-  output.setProducer("eUSTP Manjung");
+  output.setCreator("NEXa Manjung");
+  output.setProducer("NEXa Manjung");
   return Buffer.from(await output.save());
 }

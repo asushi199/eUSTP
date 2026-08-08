@@ -9,7 +9,7 @@ import { getModuleAccent } from "@/lib/module-theme";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Sumber USTP — eUSTP Manjung",
+  title: "Sumber USTP — NEXa Manjung",
   description:
     "Kertas kerja, laporan, hebahan dan bahan sokongan Unit Sumber Teknologi Pendidikan PPD Manjung.",
 };

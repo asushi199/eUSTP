@@ -4,7 +4,7 @@ import { listPublicDirectory, listSchoolOptions } from "@/lib/direktori/queries"
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Kemas Kini Direktori — eUSTP Manjung" };
+export const metadata = { title: "Kemas Kini Direktori — NEXa Manjung" };
 
 export default async function KemaskiniPage() {
   const [schools, currentRows] = await Promise.all([

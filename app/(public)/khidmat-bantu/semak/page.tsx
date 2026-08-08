@@ -7,7 +7,7 @@ import { listSchoolOptions } from "@/lib/direktori/queries";
 import { getModuleAccent } from "@/lib/module-theme";
 
 export const metadata: Metadata = {
-  title: "Semak Permohonan Khidmat Bantu — eUSTP Manjung",
+  title: "Semak Permohonan Khidmat Bantu — NEXa Manjung",
   description:
     "Semak status permohonan khidmat bantu anda ikut nombor telefon atau kod sekolah, dan hantar semula mesej WhatsApp kepada admin.",
 };

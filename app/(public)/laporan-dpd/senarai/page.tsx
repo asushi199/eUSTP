@@ -5,7 +5,7 @@ import { listDpdPublic } from "@/lib/stats/dpd";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Senarai Laporan DPD — eUSTP Manjung",
+  title: "Senarai Laporan DPD — NEXa Manjung",
 };
 
 export default async function SenaraiDpdPage({

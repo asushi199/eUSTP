@@ -6,7 +6,7 @@ import { HomeModuleIcon } from "@/components/home/HomeModuleIcon";
 import { TEMPAHAN_SECTIONS, getModuleAccent } from "@/lib/module-theme";
 
 export const metadata: Metadata = {
-  title: "CoE Booking — eUSTP Manjung",
+  title: "CoE Booking — NEXa Manjung",
   description:
     "Tempahan bilik PKG, permohonan khidmat bantu dan peminjaman peralatan USTP.",
 };

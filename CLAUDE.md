@@ -1,4 +1,4 @@
-# CLAUDE.md — eUSTP Manjung
+# CLAUDE.md — NEXa Manjung
 
 ## Projek
 

@@ -15,7 +15,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { topik } = await params;
   const meta = topikBySlug(topik);
-  return { title: meta ? `${meta.title} — eUSTP Manjung` : "Sumber USTP" };
+  return { title: meta ? `${meta.title} — NEXa Manjung` : "Sumber USTP" };
 }
 
 export default async function TopikPage({

@@ -3,7 +3,7 @@ import PageHeader from "@/components/PageHeader";
 import PublicPageShell from "@/components/PublicPageShell";
 import { getModuleAccent } from "@/lib/module-theme";
 
-export const metadata = { title: "Laporan DPD — eUSTP Manjung" };
+export const metadata = { title: "Laporan DPD — NEXa Manjung" };
 export const maxDuration = 60;
 
 export default function LaporanDpdPage() {

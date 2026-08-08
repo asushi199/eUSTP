@@ -27,7 +27,7 @@ function tokenPkgId(value: unknown): string | null {
  * Konfigurasi auth yang Edge-safe (untuk middleware).
  * JANGAN import db / bcrypt di sini — kedua-duanya tidak boleh jalan di Edge runtime.
  *
- * Model akses eUSTP: halaman awam terbuka; hanya /admin perlu log masuk.
+ * Model akses NEXa: halaman awam terbuka; hanya /admin perlu log masuk.
  */
 export const authConfig = {
   trustHost: true,

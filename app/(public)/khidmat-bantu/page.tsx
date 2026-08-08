@@ -7,7 +7,7 @@ import { listSchoolOptions } from "@/lib/direktori/queries";
 import { getModuleAccent } from "@/lib/module-theme";
 
 export const metadata: Metadata = {
-  title: "Permohonan Khidmat Bantu — eUSTP Manjung",
+  title: "Permohonan Khidmat Bantu — NEXa Manjung",
   description:
     "Mohon ceramah, bengkel, perkhidmatan MCP (siaran langsung & rakaman video), atau lain-lain dari USTP PPD Manjung.",
 };

@@ -88,7 +88,7 @@ export default async function HomePage() {
           </p>
           <h1 className="portal-home-hero-delay-2 max-w-2xl text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl lg:text-[3.25rem]">
             <span className="block text-graphite">Portal Digital</span>
-            <span className="block text-ink">eUSTP Manjung</span>
+            <span className="block text-ink">NEXa Manjung</span>
           </h1>
           <p className="portal-home-hero-delay-3 mt-5 max-w-xl text-lg leading-relaxed text-graphite">
             Platform setempat untuk laporan, sumber, direktori, tempahan dan khidmat

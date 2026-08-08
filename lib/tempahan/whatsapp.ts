@@ -73,7 +73,7 @@ export function buildBookingDecisionWhatsAppUrl(
 
   const approved = details.decision === "approved";
   const message = [
-    "Makluman tempahan bilik eUSTP Manjung",
+    "Makluman tempahan bilik NEXa Manjung",
     `Salam sejahtera ${details.name},`,
     approved
       ? "Permohonan tempahan bilik anda telah diluluskan."

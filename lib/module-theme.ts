@@ -178,7 +178,7 @@ export function getModuleThemeForPath(path: string): ModuleTheme {
       title: "Statistik Laporan",
     };
   }
-  return { accent: "#024AD8", eyebrow: "eUSTP Manjung", title: "eUSTP Manjung" };
+  return { accent: "#024AD8", eyebrow: "NEXa Manjung", title: "NEXa Manjung" };
 }
 
 export function getModuleAccent(href: string): string {

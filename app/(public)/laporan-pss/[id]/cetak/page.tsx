@@ -107,7 +107,7 @@ export default async function PssCetakPage({
       )}
 
       <footer className="mt-10 border-t hairline pt-4 text-xs text-graphite">
-        Laporan ini dijana melalui eUSTP Manjung · Unit Sumber Teknologi
+        Laporan ini dijana melalui NEXa Manjung · Unit Sumber Teknologi
         Pendidikan, PPD Manjung
       </footer>
     </div>

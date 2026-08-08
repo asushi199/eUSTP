@@ -10,7 +10,7 @@ import type { EquipmentCatalogItem } from "@/lib/peralatan/types";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Inventori Peralatan — CoE Booking — eUSTP Manjung",
+  title: "Inventori Peralatan — CoE Booking — NEXa Manjung",
   description:
     "Semak ketersediaan dan mohon pinjaman peralatan Maker Lab di lima PKG daerah Manjung.",
 };

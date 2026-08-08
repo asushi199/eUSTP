@@ -14,7 +14,7 @@ import {
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Mohon Pinjaman Peralatan — eUSTP Manjung",
+  title: "Mohon Pinjaman Peralatan — NEXa Manjung",
   description: "Hantar permohonan pinjaman peralatan daripada satu PKG.",
 };
 

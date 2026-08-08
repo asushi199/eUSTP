@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-export const metadata = { title: "Berjaya — eUSTP Manjung" };
+export const metadata = { title: "Berjaya — NEXa Manjung" };
 
 export default async function PssBerjayaPage({
   params,

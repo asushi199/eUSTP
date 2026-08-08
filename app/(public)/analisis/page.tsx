@@ -12,7 +12,7 @@ import { getModuleAccent } from "@/lib/module-theme";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Analisis USTP — eUSTP Manjung",
+  title: "Analisis USTP — NEXa Manjung",
   description:
     "Analisis DELIMa, DCS, Program Ains, Pensijilan Digital dan AI Tools (OPTIK) daerah Manjung.",
 };

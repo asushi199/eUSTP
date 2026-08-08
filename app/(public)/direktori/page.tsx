@@ -6,7 +6,7 @@ import PublicPageShell from "@/components/PublicPageShell";
 import { ROLE_GROUPS, ROLE_INFO } from "@/lib/direktori/config";
 import { getModuleAccent } from "@/lib/module-theme";
 
-export const metadata = { title: "CoE Direktori — eUSTP Manjung" };
+export const metadata = { title: "CoE Direktori — NEXa Manjung" };
 
 export default function DirektoriPage() {
   const accent = getModuleAccent("/direktori");

@@ -1,5 +1,5 @@
 /**
- * Peranan pengguna eUSTP (hanya untuk backend /admin — halaman awam tiada log masuk):
+ * Peranan pengguna NEXa (hanya untuk backend /admin — halaman awam tiada log masuk):
  * - Admin     : pentadbir penuh USTP (semua modul + pengurusan pengguna)
  * - Pegawai   : pegawai PPD — semua modul laporan/direktori, tanpa pengurusan pengguna
  * - PKG_Admin : pentadbir PKG — hanya modul tempahan bagi PKG sendiri (pkgId)

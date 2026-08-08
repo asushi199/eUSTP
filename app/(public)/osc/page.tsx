@@ -6,7 +6,7 @@ import { HomeModuleIcon } from "@/components/home/HomeModuleIcon";
 import { OSC_SECTIONS, getModuleAccent } from "@/lib/module-theme";
 
 export const metadata: Metadata = {
-  title: "OSC USTP — eUSTP Manjung",
+  title: "OSC USTP — NEXa Manjung",
   description:
     "One Stop Center Unit Sumber Teknologi Pendidikan PPD Manjung — sumber, analisis dan maklumat asas dalam satu pusat.",
 };
