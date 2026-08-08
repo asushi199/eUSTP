@@ -82,9 +82,9 @@ export default async function HomePage() {
 
       <section className="portal-home mx-auto grid w-full max-w-6xl items-center gap-10 overflow-x-clip px-4 pb-8 pt-12 sm:px-8 sm:pt-16 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12 lg:pb-10">
         <div className="min-w-0">
-          <p className="portal-home-hero-delay-1 mb-4 flex max-w-full items-center gap-3 text-[10px] font-semibold uppercase leading-snug tracking-[0.1em] text-primary sm:text-xs sm:tracking-[0.14em]">
+          <p className="portal-home-hero-delay-1 mb-4 flex max-w-full items-center gap-3 text-[10px] font-semibold leading-snug tracking-[0.04em] text-primary sm:text-xs sm:tracking-[0.06em]">
             <span className="h-0.5 w-7 shrink-0 rounded bg-primary" aria-hidden />
-            <span>PPD Manjung · Unit Sumber dan Teknologi Pendidikan</span>
+            <span>Network for Educational eXcellence &amp; Access</span>
           </p>
           <h1 className="portal-home-hero-delay-2 max-w-2xl text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl lg:text-[3.25rem]">
             <span className="block text-ink">NEXa</span>
