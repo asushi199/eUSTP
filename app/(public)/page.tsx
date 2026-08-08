@@ -181,7 +181,7 @@ export default async function HomePage() {
               {"// 01 — MODUL"}
             </p>
             <h2 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
-              Satu portal, pelbagai perkhidmatan.
+              Satu Platform, Semua Sumber.
             </h2>
           </div>
           <p className="max-w-sm text-sm leading-relaxed text-graphite">
