@@ -40,7 +40,6 @@ export default function CardEmbed({
           className="group relative mt-3 block overflow-hidden rounded-lg border border-fog"
           aria-label={`Main video: ${title}`}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={`https://img.youtube.com/vi/${embed.videoId}/hqdefault.jpg`}
             alt=""
@@ -65,7 +64,6 @@ export default function CardEmbed({
               terbuka. Sila guna pautan &ldquo;Buka Penuh&rdquo;.
             </p>
           ) : embed.mode === "image" ? (
-            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={embed.src}
               alt={title}

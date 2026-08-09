@@ -52,7 +52,6 @@ export default function PegawaiGrid({ senarai }: { senarai: PegawaiItem[] }) {
                 aria-label={`Besarkan foto ${p.nama}`}
                 className="group relative h-16 w-16 shrink-0 cursor-zoom-in overflow-hidden rounded-lg border border-fog focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={driveImageUrl(p.photoUrl)}
                   alt={p.nama}
@@ -142,7 +141,6 @@ export default function PegawaiGrid({ senarai }: { senarai: PegawaiItem[] }) {
               </button>
             </div>
             <div className="min-h-0 flex-1 overflow-auto rounded-lg bg-white/5">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={largeImageUrl(active.detailUrl || active.photoUrl)}
                 alt={`Foto penuh ${active.nama}`}

@@ -855,3 +855,14 @@ Corak berselang = instance sihat vs beracun.
   dan kelulusan dinyahaktifkan sehingga input sah.
 - Verifikasi: `tsc --noEmit` dan `next build` berjaya; build memaparkan amaran
   ESLint sedia ada yang tidak berkaitan.
+
+## 2026-08-09 - Pembersihan kod diagnostik dan lint
+
+- Dua endpoint diagnostik awam sementara, `/api/diag` dan `/diag-page`, telah
+  dibuang selepas isu sambungan PostgreSQL produksi yang direkodkan pada
+  2026-07-05 stabil. Kedua-duanya sebelum ini mendedahkan butiran diagnostik
+  infrastruktur dan tidak sesuai dikekalkan pada laluan awam.
+- Semua 19 amaran ESLint sedia ada dibersihkan: dua import tidak digunakan dan
+  17 arahan `eslint-disable` yang tidak berkesan kerana peraturan imej telah
+  dinyahaktifkan secara global. Skrip QA KEW.PA-9 yang tidak dirujuk turut
+  dibuang daripada direktori sementara.

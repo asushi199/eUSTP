@@ -31,6 +31,5 @@ export default function QrCode({ value, size = 220 }: { value: string; size?: nu
     );
   }
 
-  // eslint-disable-next-line @next/next/no-img-element
   return <img src={dataUrl} alt="Kod QR" width={size} height={size} className="rounded-lg" />;
 }

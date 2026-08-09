@@ -127,8 +127,7 @@ export default async function DpdCetakPage({
           <h2 className="text-base font-semibold">Gambar Program</h2>
           <div className="mt-3 grid grid-cols-2 gap-3">
             {laporan.photos.map((p, i) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+            <img
                 key={p.id}
                 src={p.publicUrl}
                 alt={`Gambar program ${i + 1}`}

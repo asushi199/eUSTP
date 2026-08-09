@@ -56,7 +56,6 @@ export default function PkgSettingsForm({
           Logo PKG (pilihan, ≤2MB)
         </label>
         {logoSrc && (
-          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={logoSrc}
             alt=""

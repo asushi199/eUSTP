@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { and, asc, eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { requireKandunganAccess } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { kandunganCards } from "@/lib/schema";

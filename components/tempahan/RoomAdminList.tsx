@@ -62,7 +62,6 @@ export default function RoomAdminList({
           >
             <div className="flex items-center gap-3">
               {room.imageSrc ? (
-                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={room.imageSrc}
                   alt={room.name}

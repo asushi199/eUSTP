@@ -25,7 +25,6 @@ export default async function PkgTempahanPage({
           </Link>
           <div className="mt-2 flex items-center gap-3">
             {pkg.logoSrc && (
-              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={pkg.logoSrc}
                 alt=""

@@ -36,7 +36,6 @@ export default async function TempahanBilikPage() {
           <AccentCard key={pkg.id} href={`/tempahan/${pkg.id}`} accent={accent} className="p-6">
             <div className="flex items-center gap-3">
               {pkg.logoSrc && (
-                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={pkg.logoSrc}
                   alt=""

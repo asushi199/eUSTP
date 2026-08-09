@@ -59,8 +59,7 @@ export default function PhotoInput({
       <div className="flex flex-wrap gap-3">
         {photos.map((p, i) => (
           <div key={p.previewUrl} className="relative">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+          <img
               src={p.previewUrl}
               alt={`Gambar ${i + 1}`}
               className="h-24 w-24 rounded-lg border hairline object-cover"

@@ -40,7 +40,6 @@ export default function RoomGallery({
           >
             <div className="relative aspect-[16/10] bg-cloud">
               {room.imageSrc ? (
-                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={room.imageSrc}
                   alt={`${room.name} - ${room.category}`}

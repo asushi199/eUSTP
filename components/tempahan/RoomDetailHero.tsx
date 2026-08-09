@@ -30,7 +30,6 @@ export default function RoomDetailHero({
       <section className="mt-3 flex gap-3 xl:hidden">
         <div className="h-16 w-20 shrink-0 overflow-hidden rounded-lg border hairline bg-cloud">
           {imageSrc ? (
-            // eslint-disable-next-line @next/next/no-img-element
             <img src={imageSrc} alt={name} className="h-full w-full object-cover" />
           ) : (
             <div className="flex h-full items-center justify-center text-[10px] text-graphite">Tiada</div>
@@ -78,7 +77,6 @@ export default function RoomDetailHero({
       <section className="mt-4 hidden gap-6 xl:grid xl:grid-cols-2 xl:items-start">
         <div className="overflow-hidden rounded-xl border hairline bg-cloud">
           {imageSrc ? (
-            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={imageSrc}
               alt={`${name} - ${category}`}
