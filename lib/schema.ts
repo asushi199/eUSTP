@@ -599,6 +599,9 @@ export const equipmentUnits = pgTable(
     serialNo: text("serial_no").notNull(),
     /** Belum wajib sehingga nombor aset kerajaan diterima. */
     governmentAssetNo: text("government_asset_no"),
+    /** Tarikh tepat diutamakan; tahun digunakan apabila maklumat terhad. */
+    acquisitionDate: date("acquisition_date"),
+    acquisitionYear: integer("acquisition_year"),
     status: equipmentUnitStatus("status").notNull().default("available"),
     notes: text("notes").notNull().default(""),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),

@@ -233,6 +233,37 @@ export default function EquipmentAdminForms({
                 <input id="unit-asset" name="governmentAssetNo" className="input" />
               </div>
             </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="label" htmlFor="unit-acquisition-date">
+                  Tarikh perolehan aset
+                </label>
+                <input
+                  id="unit-acquisition-date"
+                  name="acquisitionDate"
+                  type="date"
+                  className="input"
+                />
+              </div>
+              <div>
+                <label className="label" htmlFor="unit-acquisition-year">
+                  Tahun perolehan (jika tarikh tiada)
+                </label>
+                <input
+                  id="unit-acquisition-year"
+                  name="acquisitionYear"
+                  type="number"
+                  min="1900"
+                  max={new Date().getFullYear()}
+                  inputMode="numeric"
+                  className="input"
+                />
+              </div>
+            </div>
+            <p className="text-xs leading-relaxed text-graphite">
+              Tarikh penuh diutamakan. Jika hanya tahun diketahui, isi tahun
+              sahaja; kedua-duanya boleh dibiarkan kosong.
+            </p>
             <div>
               <label className="label" htmlFor="unit-notes">
                 Catatan
@@ -253,6 +284,8 @@ export default function EquipmentAdminForms({
                 Lajur wajib: <code>kod_peralatan</code> dan{" "}
                 <code>no_siri_peralatan</code>. Lajur pilihan:{" "}
                 <code>no_siri_aset_kerajaan</code> dan <code>catatan</code>.
+                Turut disokong: <code>tarikh_perolehan</code> dan{" "}
+                <code>tahun_perolehan</code>.
               </p>
               <a
                 href="/templates/import-peralatan.csv"

@@ -899,3 +899,12 @@ Corak berselang = instance sihat vs beracun.
 - Rekod pinjaman lama tanpa snapshot kekal serasi: sistem menggunakan
   maklumat pegawai PKG semasa sekali ketika pemulangan, lalu menyimpannya
   bersama rekod pemulangan tersebut.
+
+## 2026-08-10 - Usia guna aset KEW.PA-17
+
+- Setiap unit fizikal boleh menyimpan `Tarikh Perolehan` atau, jika tarikh
+  lengkap tidak diketahui, `Tahun Perolehan`. Kedua-duanya pilihan supaya
+  inventori lama kekal boleh diurus tanpa membuat andaian.
+- KEW.PA-17 hanya mengira tahun: tahun pindahan ditolak tahun perolehan,
+  sama ada daripada tarikh penuh atau tahun sahaja. Bulan dan hari tidak
+  diambil kira; jika kedua-duanya kosong, medan usia guna dibiarkan kosong.

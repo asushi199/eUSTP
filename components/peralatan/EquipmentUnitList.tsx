@@ -476,6 +476,39 @@ export default function EquipmentUnitList({
                                     placeholder="Kosongkan jika belum diterima"
                                   />
                                 </div>
+                                <div>
+                                  <label
+                                    className="label"
+                                    htmlFor={`unit-acquisition-date-${unit.id}`}
+                                  >
+                                    Tarikh perolehan aset
+                                  </label>
+                                  <input
+                                    id={`unit-acquisition-date-${unit.id}`}
+                                    name="acquisitionDate"
+                                    type="date"
+                                    className="input"
+                                    defaultValue={unit.acquisitionDate}
+                                  />
+                                </div>
+                                <div>
+                                  <label
+                                    className="label"
+                                    htmlFor={`unit-acquisition-year-${unit.id}`}
+                                  >
+                                    Tahun perolehan (jika tarikh tiada)
+                                  </label>
+                                  <input
+                                    id={`unit-acquisition-year-${unit.id}`}
+                                    name="acquisitionYear"
+                                    type="number"
+                                    min="1900"
+                                    max={new Date().getFullYear()}
+                                    inputMode="numeric"
+                                    className="input"
+                                    defaultValue={unit.acquisitionYear ?? ""}
+                                  />
+                                </div>
                                 <div className="sm:col-span-2">
                                   <label
                                     className="label"

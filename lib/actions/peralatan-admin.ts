@@ -59,6 +59,37 @@ function isValidDateInput(value: string): boolean {
   return new Date(`${value}T00:00:00.000Z`).toISOString().slice(0, 10) === value;
 }
 
+function acquisitionDetails(
+  acquisitionDateValue: string,
+  acquisitionYearValue: string,
+):
+  | { acquisitionDate: string | null; acquisitionYear: number | null }
+  | { error: string } {
+  const acquisitionDate = acquisitionDateValue.trim();
+  const acquisitionYearText = acquisitionYearValue.trim();
+  if (acquisitionDate && !isValidDateInput(acquisitionDate)) {
+    return { error: "Tarikh perolehan tidak sah." };
+  }
+  if (acquisitionDate && new Date(`${acquisitionDate}T00:00:00+08:00`) > new Date()) {
+    return { error: "Tarikh perolehan tidak boleh melebihi tarikh hari ini." };
+  }
+  if (!acquisitionYearText) {
+    return { acquisitionDate: acquisitionDate || null, acquisitionYear: null };
+  }
+  if (!/^\d{4}$/.test(acquisitionYearText)) {
+    return { error: "Tahun perolehan mesti empat digit." };
+  }
+  const acquisitionYear = Number(acquisitionYearText);
+  const currentYear = new Date().getFullYear();
+  if (acquisitionYear < 1900 || acquisitionYear > currentYear) {
+    return { error: "Tahun perolehan berada di luar julat yang sah." };
+  }
+  if (acquisitionDate && Number(acquisitionDate.slice(0, 4)) !== acquisitionYear) {
+    return { error: "Tahun perolehan mesti sepadan dengan tarikh perolehan." };
+  }
+  return { acquisitionDate: acquisitionDate || null, acquisitionYear };
+}
+
 function lines(formData: FormData, key: string, max = 100): string[] {
   return text(formData, key, 5000)
     .split(/\r?\n/)
@@ -260,7 +291,12 @@ export async function addEquipmentUnit(
   const equipmentTypeId = text(formData, "equipmentTypeId", 80);
   const serialNo = text(formData, "serialNo", 200);
   const governmentAssetNo = text(formData, "governmentAssetNo", 200);
+  const acquisition = acquisitionDetails(
+    text(formData, "acquisitionDate", 10),
+    text(formData, "acquisitionYear", 4),
+  );
   const notes = text(formData, "notes", 500);
+  if ("error" in acquisition) return { ok: false, error: acquisition.error };
   if (!z.string().uuid().safeParse(equipmentTypeId).success || !serialNo) {
     return { ok: false, error: "Jenis dan nombor siri peralatan diperlukan." };
   }
@@ -276,6 +312,7 @@ export async function addEquipmentUnit(
       pkgId,
       serialNo,
       governmentAssetNo: governmentAssetNo || null,
+      ...acquisition,
       notes,
     });
     refreshEquipmentPaths(pkgId);
@@ -347,6 +384,18 @@ export async function importEquipmentUnits(
         "government_asset_no",
         "asset_no",
       ]);
+      const acquisition = acquisitionDetails(
+        firstValue(row, [
+          "tarikh_perolehan",
+          "acquisition_date",
+          "acquisitiondate",
+        ]),
+        firstValue(row, [
+          "tahun_perolehan",
+          "acquisition_year",
+          "acquisitionyear",
+        ]),
+      );
       const notes = firstValue(row, ["catatan", "notes"]);
       const equipmentTypeId = typeByCode.get(typeCode);
       if (!equipmentTypeId || !serialNo) {
@@ -354,11 +403,15 @@ export async function importEquipmentUnits(
           `Baris ${index + 2}: kod peralatan atau nombor siri tidak sah.`,
         );
       }
+      if ("error" in acquisition) {
+        throw new Error(`Baris ${index + 2}: ${acquisition.error}`);
+      }
       return {
         equipmentTypeId,
         pkgId,
         serialNo,
         governmentAssetNo: governmentAssetNo || null,
+        ...acquisition,
         notes,
       };
     });
@@ -394,7 +447,12 @@ export async function updateEquipmentUnit(
   await requireTempahanAccess(pkgId);
   const serialNo = text(formData, "serialNo", 200);
   const governmentAssetNo = text(formData, "governmentAssetNo", 200);
+  const acquisition = acquisitionDetails(
+    text(formData, "acquisitionDate", 10),
+    text(formData, "acquisitionYear", 4),
+  );
   const notes = text(formData, "notes", 500);
+  if ("error" in acquisition) return { ok: false, error: acquisition.error };
   if (!serialNo) {
     return { ok: false, error: "Nombor siri peralatan diperlukan." };
   }
@@ -416,6 +474,7 @@ export async function updateEquipmentUnit(
       .set({
         serialNo,
         governmentAssetNo: governmentAssetNo || null,
+        ...acquisition,
         notes,
         updatedAt: new Date(),
       })

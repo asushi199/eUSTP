@@ -58,6 +58,8 @@ export type EquipmentUnitListItem = {
   typeName: string;
   serialNo: string;
   governmentAssetNo: string;
+  acquisitionDate: string;
+  acquisitionYear: number | null;
   status: EquipmentUnitStatus;
   notes: string;
 };
@@ -80,6 +82,8 @@ export type EquipmentTransferBatchDetail = {
   units: Array<{
     serialNo: string;
     governmentAssetNo: string;
+    acquisitionDate: string;
+    acquisitionYear: number | null;
     typeName: string;
     model: string;
   }>;

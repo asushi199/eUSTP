@@ -109,6 +109,8 @@ export async function getEquipmentTransferBatchDetail(
     .select({
       serialNo: equipmentUnits.serialNo,
       governmentAssetNo: equipmentUnits.governmentAssetNo,
+      acquisitionDate: equipmentUnits.acquisitionDate,
+      acquisitionYear: equipmentUnits.acquisitionYear,
       typeName: equipmentTypes.name,
       model: equipmentTypes.model,
     })
@@ -129,6 +131,7 @@ export async function getEquipmentTransferBatchDetail(
     units: units.map((unit) => ({
       ...unit,
       governmentAssetNo: unit.governmentAssetNo ?? "",
+      acquisitionDate: unit.acquisitionDate ?? "",
       model: unit.model ?? "",
     })),
   };
@@ -447,6 +450,8 @@ export async function listEquipmentUnitsForPkg(
       typeName: equipmentTypes.name,
       serialNo: equipmentUnits.serialNo,
       governmentAssetNo: equipmentUnits.governmentAssetNo,
+      acquisitionDate: equipmentUnits.acquisitionDate,
+      acquisitionYear: equipmentUnits.acquisitionYear,
       status: equipmentUnits.status,
       notes: equipmentUnits.notes,
     })
@@ -466,6 +471,7 @@ export async function listEquipmentUnitsForPkg(
     items: rows.map((row) => ({
       ...row,
       governmentAssetNo: row.governmentAssetNo ?? "",
+      acquisitionDate: row.acquisitionDate ?? "",
     })),
     total,
     page: effectivePage,

@@ -30,6 +30,32 @@ function formatDate(value: Date): string {
   }).format(value);
 }
 
+function assetAge(
+  unit: EquipmentTransferBatchDetail["units"][number],
+  movedAt: Date,
+): string {
+  if (unit.acquisitionDate) {
+    const acquiredYear = Number(unit.acquisitionDate.slice(0, 4));
+    const movedYear = Number(
+      new Intl.DateTimeFormat("en", {
+        year: "numeric",
+        timeZone: "Asia/Kuala_Lumpur",
+      }).format(movedAt),
+    );
+    return `${Math.max(0, movedYear - acquiredYear)} tahun`;
+  }
+  if (unit.acquisitionYear) {
+    const movedYear = Number(
+      new Intl.DateTimeFormat("en", {
+        year: "numeric",
+        timeZone: "Asia/Kuala_Lumpur",
+      }).format(movedAt),
+    );
+    return `${Math.max(0, movedYear - unit.acquisitionYear)} tahun`;
+  }
+  return "";
+}
+
 function fitText(font: PDFFont, value: string, width: number, size: number) {
   const text = safePdfText(value);
   let fittedSize = size;
@@ -131,7 +157,7 @@ function drawAssetTable(
       description,
       unit.governmentAssetNo,
       unit.serialNo,
-      "",
+      assetAge(unit, data.movedAt),
       data.notes,
     ];
     values.forEach((value, valueIndex) => {
