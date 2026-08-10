@@ -1,6 +1,6 @@
 "use server";
 
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { and, eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -25,6 +25,7 @@ import {
   equipmentLoanItems,
   equipmentLoanRequests,
   equipmentTypes,
+  equipmentTransferBatches,
   equipmentUnitTransfers,
   equipmentUnits,
   pkgs,
@@ -36,6 +37,7 @@ export type EquipmentAdminActionResult = {
   error?: string;
   imported?: number;
   transferred?: number;
+  transferBatchId?: string;
   publicUrl?: string;
 };
 
@@ -76,6 +78,21 @@ function refreshEquipmentPaths(pkgId: string, requestId?: string) {
   if (requestId) {
     revalidatePath(`/admin/peralatan/${pkgId}/permohonan/${requestId}`);
   }
+}
+
+function equipmentTransferReferenceNo(date = new Date()): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kuala_Lumpur",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  })
+    .formatToParts(date)
+    .reduce<Record<string, string>>((result, part) => {
+      if (part.type !== "literal") result[part.type] = part.value;
+      return result;
+    }, {});
+  return `KEW.PA-17/${parts.year}${parts.month}${parts.day}/${randomUUID().slice(0, 8).toUpperCase()}`;
 }
 
 export async function saveEquipmentType(
@@ -468,11 +485,41 @@ export async function transferEquipmentUnits(
     return { ok: false, error: "Pilih sekurang-kurangnya satu unit tersedia." };
   }
 
-  const destination = await db.query.pkgs.findFirst({
-    where: and(eq(pkgs.id, destinationPkgId), eq(pkgs.active, true)),
-    columns: { id: true },
-  });
-  if (!destination) return { ok: false, error: "PKG baharu tidak dijumpai." };
+  const [source, destination] = await Promise.all([
+    db.query.pkgs.findFirst({
+      where: and(eq(pkgs.id, pkgId), eq(pkgs.active, true)),
+      columns: {
+        id: true,
+        equipmentManagerName: true,
+        equipmentManagerPosition: true,
+      },
+    }),
+    db.query.pkgs.findFirst({
+      where: and(eq(pkgs.id, destinationPkgId), eq(pkgs.active, true)),
+      columns: {
+        id: true,
+        equipmentManagerName: true,
+        equipmentManagerPosition: true,
+      },
+    }),
+  ]);
+  if (!source || !destination) {
+    return { ok: false, error: "PKG asal atau PKG baharu tidak dijumpai." };
+  }
+
+  const sourceManagerName = source.equipmentManagerName?.trim() ?? "";
+  const destinationManagerName = destination.equipmentManagerName?.trim() ?? "";
+  if (!sourceManagerName || !destinationManagerName) {
+    return {
+      ok: false,
+      error:
+        "Nama pegawai peralatan bagi PKG asal dan PKG baharu mesti ditetapkan sebelum pemindahan.",
+    };
+  }
+
+  const movedAt = new Date();
+  const referenceNo = equipmentTransferReferenceNo(movedAt);
+  let transferBatchId = "";
 
   try {
     await db.transaction(async (tx) => {
@@ -490,13 +537,38 @@ export async function transferEquipmentUnits(
         throw new Error("UNIT_NOT_AVAILABLE");
       }
 
+      const [batch] = await tx
+        .insert(equipmentTransferBatches)
+        .values({
+          referenceNo,
+          fromPkgId: pkgId,
+          toPkgId: destinationPkgId,
+          // Pemohon ialah pegawai PKG penerima seperti diputuskan oleh pihak pengurusan.
+          applicantName: destinationManagerName,
+          applicantPosition: destination.equipmentManagerPosition?.trim() ?? "",
+          // Pelulus dan penyerah ialah pegawai PKG asal.
+          approverName: sourceManagerName,
+          approverPosition: source.equipmentManagerPosition?.trim() ?? "",
+          senderName: sourceManagerName,
+          senderPosition: source.equipmentManagerPosition?.trim() ?? "",
+          receiverName: destinationManagerName,
+          receiverPosition: destination.equipmentManagerPosition?.trim() ?? "",
+          notes,
+          movedByUserId: Number(user.id) || null,
+          movedAt,
+        })
+        .returning({ id: equipmentTransferBatches.id });
+      transferBatchId = batch.id;
+
       await tx.insert(equipmentUnitTransfers).values(
         transferable.map((unit) => ({
+          transferBatchId,
           unitId: unit.id,
           fromPkgId: pkgId,
           toPkgId: destinationPkgId,
           movedByUserId: Number(user.id) || null,
           notes,
+          movedAt,
         })),
       );
       await tx
@@ -522,7 +594,7 @@ export async function transferEquipmentUnits(
 
   refreshEquipmentPaths(pkgId);
   refreshEquipmentPaths(destinationPkgId);
-  return { ok: true, transferred: unitIds.length };
+  return { ok: true, transferred: unitIds.length, transferBatchId };
 }
 
 export async function updateEquipmentManager(

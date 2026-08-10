@@ -62,6 +62,29 @@ export type EquipmentUnitListItem = {
   notes: string;
 };
 
+export type EquipmentTransferBatchDetail = {
+  id: string;
+  referenceNo: string;
+  fromPkgName: string;
+  toPkgName: string;
+  applicantName: string;
+  applicantPosition: string;
+  approverName: string;
+  approverPosition: string;
+  senderName: string;
+  senderPosition: string;
+  receiverName: string;
+  receiverPosition: string;
+  notes: string;
+  movedAt: Date;
+  units: Array<{
+    serialNo: string;
+    governmentAssetNo: string;
+    typeName: string;
+    model: string;
+  }>;
+};
+
 export type EquipmentInventoryCard = {
   id: string;
   code: string;

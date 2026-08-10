@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 import ActionForm from "@/components/admin/ActionForm";
 import {
   transferEquipmentUnits,
@@ -45,7 +46,11 @@ export default function EquipmentUnitList({
     status: string;
   };
 }) {
+  const router = useRouter();
   const [selectedUnitIds, setSelectedUnitIds] = useState<string[]>([]);
+  const [transferNotes, setTransferNotes] = useState("");
+  const [transferError, setTransferError] = useState("");
+  const [transferPending, startTransfer] = useTransition();
   const totalPages = Math.max(1, Math.ceil(totalUnits / perPage));
 
   function listHref(typeId: string, nextPage = 1) {
@@ -63,6 +68,25 @@ export default function EquipmentUnitList({
         ? current.filter((id) => id !== unitId)
         : [...current, unitId],
     );
+  }
+
+  function submitTransfer(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setTransferError("");
+    const formData = new FormData(event.currentTarget);
+    startTransfer(async () => {
+      const result = await transferEquipmentUnits(pkgId, formData);
+      if (!result.ok || !result.transferBatchId) {
+        setTransferError(result.error ?? "Unit tidak dapat dipindahkan.");
+        return;
+      }
+      setSelectedUnitIds([]);
+      setTransferNotes("");
+      router.refresh();
+      window.location.assign(
+        `/admin/peralatan/${pkgId}/pindahan/${result.transferBatchId}/kew-pa-17`,
+      );
+    });
   }
 
   return (
@@ -257,10 +281,8 @@ export default function EquipmentUnitList({
                     </p>
                   </div>
                   {canTransfer && selectedUnitIds.length > 0 ? (
-                    <ActionForm
-                      action={transferEquipmentUnits.bind(null, pkgId)}
-                      submitLabel={`Pindahkan ${selectedUnitIds.length} unit`}
-                      submitClassName="btn-ink btn-sm"
+                    <form
+                      onSubmit={submitTransfer}
                       className="flex flex-wrap items-end gap-2"
                     >
                       {selectedUnitIds.map((unitId) => (
@@ -294,10 +316,39 @@ export default function EquipmentUnitList({
                               <option key={pkg.id} value={pkg.id}>
                                 {pkg.name}
                               </option>
-                            ))}
+                          ))}
                         </select>
                       </div>
-                    </ActionForm>
+                      <div className="min-w-48 grow">
+                        <label className="sr-only" htmlFor={`transfer-notes-${card.id}`}>
+                          Catatan pindahan
+                        </label>
+                        <input
+                          id={`transfer-notes-${card.id}`}
+                          name="notes"
+                          className="input h-10 py-1 text-sm"
+                          value={transferNotes}
+                          maxLength={500}
+                          disabled={transferPending}
+                          onChange={(event) => setTransferNotes(event.target.value)}
+                          placeholder="Catatan (pilihan)"
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        className="btn-ink btn-sm"
+                        disabled={transferPending}
+                      >
+                        {transferPending
+                          ? "Memindahkan..."
+                          : `Pindahkan ${selectedUnitIds.length} unit`}
+                      </button>
+                      {transferError ? (
+                        <p className="basis-full text-xs text-bloom-deep">
+                          {transferError}
+                        </p>
+                      ) : null}
+                    </form>
                   ) : null}
                 </div>
 

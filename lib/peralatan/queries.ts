@@ -14,6 +14,7 @@ import {
   or,
   sql,
 } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { db } from "@/lib/db";
 import {
   equipmentCategories,
@@ -21,7 +22,9 @@ import {
   equipmentLoanDocuments,
   equipmentLoanItems,
   equipmentLoanRequests,
+  equipmentTransferBatches,
   equipmentTypes,
+  equipmentUnitTransfers,
   equipmentUnits,
   pkgs,
   schools,
@@ -36,12 +39,15 @@ import type {
   EquipmentLoanPublicResult,
   EquipmentPkg,
   EquipmentSchool,
+  EquipmentTransferBatchDetail,
   EquipmentTypeAdminDetail,
   EquipmentUnitListItem,
   EquipmentUnitStatus,
 } from "./types";
 
 const ADMIN_PAGE_SIZE = 25;
+const sourcePkgs = alias(pkgs, "equipment_transfer_source_pkgs");
+const destinationPkgs = alias(pkgs, "equipment_transfer_destination_pkgs");
 const serialNoPrefixOrder = sql`
   regexp_replace(${equipmentUnits.serialNo}, '[0-9]+$', '')
 `;
@@ -58,6 +64,74 @@ export type EquipmentAdminListResult<T> = {
   page: number;
   perPage: number;
 };
+
+export async function getEquipmentTransferBatchDetail(
+  pkgId: string,
+  transferBatchId: string,
+): Promise<EquipmentTransferBatchDetail | null> {
+  const [batch] = await db
+    .select({
+      id: equipmentTransferBatches.id,
+      referenceNo: equipmentTransferBatches.referenceNo,
+      fromPkgName: sourcePkgs.name,
+      toPkgName: destinationPkgs.name,
+      applicantName: equipmentTransferBatches.applicantName,
+      applicantPosition: equipmentTransferBatches.applicantPosition,
+      approverName: equipmentTransferBatches.approverName,
+      approverPosition: equipmentTransferBatches.approverPosition,
+      senderName: equipmentTransferBatches.senderName,
+      senderPosition: equipmentTransferBatches.senderPosition,
+      receiverName: equipmentTransferBatches.receiverName,
+      receiverPosition: equipmentTransferBatches.receiverPosition,
+      notes: equipmentTransferBatches.notes,
+      movedAt: equipmentTransferBatches.movedAt,
+    })
+    .from(equipmentTransferBatches)
+    .innerJoin(
+      sourcePkgs,
+      eq(equipmentTransferBatches.fromPkgId, sourcePkgs.id),
+    )
+    .innerJoin(
+      destinationPkgs,
+      eq(equipmentTransferBatches.toPkgId, destinationPkgs.id),
+    )
+    .where(
+      and(
+        eq(equipmentTransferBatches.id, transferBatchId),
+        eq(equipmentTransferBatches.fromPkgId, pkgId),
+      ),
+    )
+    .limit(1);
+  if (!batch) return null;
+
+  const units = await db
+    .select({
+      serialNo: equipmentUnits.serialNo,
+      governmentAssetNo: equipmentUnits.governmentAssetNo,
+      typeName: equipmentTypes.name,
+      model: equipmentTypes.model,
+    })
+    .from(equipmentUnitTransfers)
+    .innerJoin(
+      equipmentUnits,
+      eq(equipmentUnitTransfers.unitId, equipmentUnits.id),
+    )
+    .innerJoin(
+      equipmentTypes,
+      eq(equipmentUnits.equipmentTypeId, equipmentTypes.id),
+    )
+    .where(eq(equipmentUnitTransfers.transferBatchId, transferBatchId))
+    .orderBy(asc(equipmentTypes.name), asc(equipmentUnits.serialNo));
+
+  return {
+    ...batch,
+    units: units.map((unit) => ({
+      ...unit,
+      governmentAssetNo: unit.governmentAssetNo ?? "",
+      model: unit.model ?? "",
+    })),
+  };
+}
 
 export type EquipmentTypeOption = {
   id: string;

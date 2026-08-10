@@ -877,3 +877,15 @@ Corak berselang = instance sihat vs beracun.
   pangkalan data.
 - Rekod `PP-2026-08AB157A` yang tersalah direkodkan sebagai `Pegawai` dengan
   nilai `STEM` dibetulkan kepada `AEE1030 — SMK TOK PERDANA`, dengan jejak audit.
+
+## 2026-08-10 - KEW.PA-17 bagi pindahan aset antara PKG
+
+- Setiap pemindahan kini direkodkan sebagai satu batch dengan nombor rujukan
+  KEW.PA-17, senarai unit dan snapshot pihak yang perlu menandatangani borang.
+- Mengikut keputusan pengurusan: `Pemohon` dan `Penerima` diambil daripada
+  pegawai peralatan PKG baharu; `Pelulus` dan `Penyerah` daripada pegawai
+  peralatan PKG asal. Nama dan jawatan dibekukan pada masa pindahan supaya
+  rekod sejarah tidak berubah apabila maklumat PKG dikemas kini.
+- Selepas pindahan selesai, sistem memuat turun KEW.PA-17 yang diisi secara
+  automatik. Hanya pentadbir utama boleh membuat pindahan atau memuat turun
+  dokumen tersebut.

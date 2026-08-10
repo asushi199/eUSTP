@@ -620,11 +620,53 @@ export const equipmentUnits = pgTable(
   }),
 );
 
+/** Satu rekod bagi setiap urusan pindahan, termasuk maklumat KEW.PA-17 yang dibekukan. */
+export const equipmentTransferBatches = pgTable(
+  "equipment_transfer_batches",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    referenceNo: text("reference_no").notNull(),
+    fromPkgId: text("from_pkg_id")
+      .notNull()
+      .references(() => pkgs.id, { onDelete: "restrict" }),
+    toPkgId: text("to_pkg_id")
+      .notNull()
+      .references(() => pkgs.id, { onDelete: "restrict" }),
+    applicantName: text("applicant_name").notNull(),
+    applicantPosition: text("applicant_position").notNull().default(""),
+    approverName: text("approver_name").notNull(),
+    approverPosition: text("approver_position").notNull().default(""),
+    senderName: text("sender_name").notNull(),
+    senderPosition: text("sender_position").notNull().default(""),
+    receiverName: text("receiver_name").notNull(),
+    receiverPosition: text("receiver_position").notNull().default(""),
+    notes: text("notes").notNull().default(""),
+    movedByUserId: integer("moved_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    movedAt: timestamp("moved_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    referenceIdx: uniqueIndex("equipment_transfer_batches_reference_idx").on(
+      t.referenceNo,
+    ),
+    fromToMovedIdx: index("equipment_transfer_batches_from_to_moved_idx").on(
+      t.fromPkgId,
+      t.toPkgId,
+      t.movedAt,
+    ),
+  }),
+);
+
 /** Jejak audit apabila unit fizikal dipindahkan antara PKG. */
 export const equipmentUnitTransfers = pgTable(
   "equipment_unit_transfers",
   {
     id: uuid("id").defaultRandom().primaryKey(),
+    transferBatchId: uuid("transfer_batch_id").references(
+      () => equipmentTransferBatches.id,
+      { onDelete: "set null" },
+    ),
     unitId: uuid("unit_id")
       .notNull()
       .references(() => equipmentUnits.id, { onDelete: "restrict" }),
