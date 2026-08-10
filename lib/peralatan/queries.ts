@@ -619,7 +619,11 @@ export async function getEquipmentLoanDetail(
 
   const pkgRow = await db.query.pkgs.findFirst({
     where: eq(pkgs.id, pkgId),
-    columns: { name: true, equipmentManagerName: true },
+    columns: {
+      name: true,
+      equipmentManagerName: true,
+      equipmentManagerPosition: true,
+    },
   });
 
   const itemRows = await db
@@ -713,10 +717,18 @@ export async function getEquipmentLoanDetail(
     applicantMykadLast4,
     ...safeRequest
   } = request;
+  const issuerName =
+    safeRequest.issuerName.trim() || pkgRow?.equipmentManagerName?.trim() || "";
+  const issuerPosition =
+    safeRequest.issuerPosition.trim() ||
+    pkgRow?.equipmentManagerPosition?.trim() ||
+    "";
   return {
     ...safeRequest,
     pkgName: pkgRow?.name ?? "PKG",
-    pkgManagerName: pkgRow?.equipmentManagerName?.trim() || "",
+    pkgManagerName: issuerName,
+    issuerName,
+    issuerPosition,
     applicantMykadMasked: applicantMykadLast4
       ? `******-**-${applicantMykadLast4}`
       : "Belum direkodkan",

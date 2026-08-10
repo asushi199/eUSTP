@@ -731,6 +731,9 @@ export const equipmentLoanRequests = pgTable(
     approvedAt: timestamp("approved_at", { withTimezone: true }),
     rejectedAt: timestamp("rejected_at", { withTimezone: true }),
     handedOverAt: timestamp("handed_over_at", { withTimezone: true }),
+    /** Pegawai PKG yang mengeluarkan aset, dibekukan semasa serahan. */
+    issuerName: text("issuer_name").notNull().default(""),
+    issuerPosition: text("issuer_position").notNull().default(""),
     returnedAt: timestamp("returned_at", { withTimezone: true }),
     returnNote: text("return_note").notNull().default(""),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),

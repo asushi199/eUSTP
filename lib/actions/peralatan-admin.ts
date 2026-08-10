@@ -848,6 +848,23 @@ async function allocatedUnitsForRequest(
     .where(eq(equipmentLoanItems.requestId, requestId));
 }
 
+async function equipmentManagerSnapshot(
+  tx: Parameters<Parameters<typeof db.transaction>[0]>[0],
+  pkgId: string,
+) {
+  const pkg = await tx.query.pkgs.findFirst({
+    where: eq(pkgs.id, pkgId),
+    columns: {
+      equipmentManagerName: true,
+      equipmentManagerPosition: true,
+    },
+  });
+  return {
+    name: pkg?.equipmentManagerName?.trim() ?? "",
+    position: pkg?.equipmentManagerPosition?.trim() ?? "",
+  };
+}
+
 export async function recordEquipmentHandover(
   pkgId: string,
   requestId: string,
@@ -868,6 +885,12 @@ export async function recordEquipmentHandover(
       if (!request.declarationAcceptedAt || !request.applicantMykadLast4) {
         throw new Error(
           "Akuan pemohon atau maklumat MyKad belum lengkap. Permohonan lama perlu disahkan secara manual.",
+        );
+      }
+      const issuer = await equipmentManagerSnapshot(tx, pkgId);
+      if (!issuer.name) {
+        throw new Error(
+          "Tetapkan nama pegawai peralatan PKG sebelum mengesahkan serahan.",
         );
       }
 
@@ -899,6 +922,8 @@ export async function recordEquipmentHandover(
         .set({
           status: "handed_over",
           handedOverAt,
+          issuerName: issuer.name,
+          issuerPosition: issuer.position,
           updatedAt: handedOverAt,
         })
         .where(eq(equipmentLoanRequests.id, requestId));
@@ -910,6 +935,8 @@ export async function recordEquipmentHandover(
           unitIds,
           declarationVersion: request.declarationVersion,
           identityChecked: true,
+          issuerName: issuer.name,
+          issuerPosition: issuer.position,
           paperSignaturesRequiredAtReturn: true,
         },
       });
@@ -953,6 +980,9 @@ export async function recordEquipmentReturn(
         throw new Error("Tiada unit pinjaman dijumpai.");
       }
       const returnedAt = new Date();
+      const issuer = request.issuerName.trim()
+        ? null
+        : await equipmentManagerSnapshot(tx, pkgId);
       const updatedUnits = await tx
         .update(equipmentUnits)
         .set({ status: "available", updatedAt: returnedAt })
@@ -985,6 +1015,9 @@ export async function recordEquipmentReturn(
           status: "returned",
           returnedAt,
           returnNote: parsedReturnNote.data,
+          issuerName: request.issuerName.trim() || issuer?.name || "",
+          issuerPosition:
+            request.issuerPosition.trim() || issuer?.position || "",
           updatedAt: returnedAt,
         })
         .where(eq(equipmentLoanRequests.id, requestId));
@@ -996,6 +1029,7 @@ export async function recordEquipmentReturn(
           unitIds,
           conditionChecked: true,
           returnNote: parsedReturnNote.data,
+          issuerName: request.issuerName.trim() || issuer?.name || "",
           paperSignaturesRequired: true,
         },
       });

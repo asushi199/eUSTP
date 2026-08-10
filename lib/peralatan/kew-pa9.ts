@@ -325,7 +325,7 @@ export function buildKewPa9Data(request: EquipmentLoanDetail): KewPa9Data {
     orgName: request.orgName,
     purpose: request.purpose,
     usageLocation: request.usageLocation,
-    issuerName: request.pkgManagerName,
+    issuerName: request.issuerName,
     borrowDate: request.borrowDate,
     expectedReturnDate: request.expectedReturnDate,
     returnedAt: request.returnedAt,

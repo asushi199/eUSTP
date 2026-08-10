@@ -169,6 +169,8 @@ export type EquipmentLoanDetail = {
   pkgId: string;
   pkgName: string;
   pkgManagerName: string;
+  issuerName: string;
+  issuerPosition: string;
   applicantType: string;
   schoolCode: string | null;
   orgName: string;

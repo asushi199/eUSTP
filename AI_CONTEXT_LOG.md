@@ -889,3 +889,13 @@ Corak berselang = instance sihat vs beracun.
 - Selepas pindahan selesai, sistem memuat turun KEW.PA-17 yang diisi secara
   automatik. Hanya pentadbir utama boleh membuat pindahan atau memuat turun
   dokumen tersebut.
+
+## 2026-08-10 - Snapshot pegawai bagi KEW.PA-9
+
+- Semasa serahan peralatan pinjaman disahkan, nama dan jawatan pegawai
+  peralatan PKG direkodkan pada permohonan sebagai pegawai yang mengeluarkan
+  aset. KEW.PA-9 sentiasa menggunakan snapshot ini selepas itu, termasuk
+  salinan yang dijana semula semasa pemulangan.
+- Rekod pinjaman lama tanpa snapshot kekal serasi: sistem menggunakan
+  maklumat pegawai PKG semasa sekali ketika pemulangan, lalu menyimpannya
+  bersama rekod pemulangan tersebut.
