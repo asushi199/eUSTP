@@ -169,6 +169,20 @@
       "when": 1786320000000,
       "tag": "0023_enforce_equipment_loan_school",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1786366800000,
+      "tag": "0024_equipment_transfer_kew_pa17",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1786366800001,
+      "tag": "0025_equipment_loan_issuer_snapshot",
+      "breakpoints": true
     }
   ]
 }
