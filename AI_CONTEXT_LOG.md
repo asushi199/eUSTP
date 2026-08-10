@@ -866,3 +866,14 @@ Corak berselang = instance sihat vs beracun.
   17 arahan `eslint-disable` yang tidak berkesan kerana peraturan imej telah
   dinyahaktifkan secara global. Skrip QA KEW.PA-9 yang tidak dirujuk turut
   dibuang daripada direktori sementara.
+
+## 2026-08-10 - Pengesahan sekolah bagi permohonan peralatan
+
+- Permohonan peralatan jenis `sekolah` kini diwajibkan menggunakan kod sekolah
+  daripada jadual induk; jenis pemohon dan ada/tiada kod sekolah dipastikan oleh
+  kekangan pangkalan data.
+- Trigger pangkalan data menyelaraskan `org_name` dengan nama daripada jadual
+  `schools` bagi setiap permohonan sekolah, termasuk jika data ditulis terus ke
+  pangkalan data.
+- Rekod `PP-2026-08AB157A` yang tersalah direkodkan sebagai `Pegawai` dengan
+  nilai `STEM` dibetulkan kepada `AEE1030 — SMK TOK PERDANA`, dengan jejak audit.

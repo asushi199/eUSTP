@@ -377,13 +377,18 @@ export default function LoanApplicationForm({
                   </select>
                 </>
               ) : (
-                <input
-                  id="loan-org"
-                  name="orgName"
-                  className="input"
-                  placeholder="Contoh: Unit Sumber dan Teknologi Pendidikan"
-                  required
-                />
+                <>
+                  <input
+                    id="loan-org"
+                    name="orgName"
+                    className="input"
+                    placeholder="Contoh: Unit Sumber dan Teknologi Pendidikan"
+                    required
+                  />
+                  <p className="mt-1 text-xs text-graphite">
+                    Untuk guru, pilih Sekolah di atas.
+                  </p>
+                </>
               )}
             </div>
             <div>
