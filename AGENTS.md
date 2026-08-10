@@ -9,9 +9,11 @@ Panduan ringkas untuk agen AI. Baca `CLAUDE.md` untuk peraturan penuh.
 - Verifikasi minimum sebelum tuntut siap: `npm run build` + `npm run typecheck`.
 - Catat keputusan besar dalam `AI_CONTEXT_LOG.md`.
 - **CodeGraph:** indeks `.codegraph/` dikongsi dalam git. Selepas perubahan
-  struktur kod (fail baharu/padam, refactor, laluan), kemas kini sendiri dengan
-  `codegraph sync .` (atau `codegraph index .` jika perlu) — jangan tunggu
-  peringatan. Sertakan `codegraph.db` dalam commit apabila pengguna minta commit.
+  struktur kod (fail baharu/padam, refactor, laluan), gunakan MCP
+  `mcp__codegraph__index_project` untuk mengemas kini indeks — jangan panggil
+  `codegraph sync .` atau `codegraph index .`, kerana `codegraph.exe` projek
+  ialah pelayan MCP dan bukannya CLI. Sertakan `codegraph.db` dalam commit
+  apabila pengguna minta commit, jika indeks berubah.
 - Data sekolah: `ABA1031` mesti dipaparkan sebagai **SK PANGKALAN TLDM II**
   (angka Rom `II`, bukan angka `11`). Kekalkan ejaan ini dalam jadual `schools`,
   semua versi direktori dan mana-mana import akan datang.
