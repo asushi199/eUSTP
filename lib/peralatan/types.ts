@@ -85,6 +85,17 @@ export type EquipmentTransferBatchDetail = {
   }>;
 };
 
+export type EquipmentTransferBatchListItem = {
+  id: string;
+  referenceNo: string;
+  fromPkgId: string;
+  fromPkgName: string;
+  toPkgName: string;
+  notes: string;
+  movedAt: Date;
+  totalUnits: number;
+};
+
 export type EquipmentInventoryCard = {
   id: string;
   code: string;

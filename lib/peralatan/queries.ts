@@ -40,6 +40,7 @@ import type {
   EquipmentPkg,
   EquipmentSchool,
   EquipmentTransferBatchDetail,
+  EquipmentTransferBatchListItem,
   EquipmentTypeAdminDetail,
   EquipmentUnitListItem,
   EquipmentUnitStatus,
@@ -131,6 +132,47 @@ export async function getEquipmentTransferBatchDetail(
       model: unit.model ?? "",
     })),
   };
+}
+
+export async function listEquipmentTransferBatchesForPkg(
+  pkgId: string,
+): Promise<EquipmentTransferBatchListItem[]> {
+  return db
+    .select({
+      id: equipmentTransferBatches.id,
+      referenceNo: equipmentTransferBatches.referenceNo,
+      fromPkgId: equipmentTransferBatches.fromPkgId,
+      fromPkgName: sourcePkgs.name,
+      toPkgName: destinationPkgs.name,
+      notes: equipmentTransferBatches.notes,
+      movedAt: equipmentTransferBatches.movedAt,
+      totalUnits: sql<number>`count(${equipmentUnitTransfers.id})::int`,
+    })
+    .from(equipmentTransferBatches)
+    .innerJoin(
+      sourcePkgs,
+      eq(equipmentTransferBatches.fromPkgId, sourcePkgs.id),
+    )
+    .innerJoin(
+      destinationPkgs,
+      eq(equipmentTransferBatches.toPkgId, destinationPkgs.id),
+    )
+    .leftJoin(
+      equipmentUnitTransfers,
+      eq(equipmentUnitTransfers.transferBatchId, equipmentTransferBatches.id),
+    )
+    .where(
+      or(
+        eq(equipmentTransferBatches.fromPkgId, pkgId),
+        eq(equipmentTransferBatches.toPkgId, pkgId),
+      ),
+    )
+    .groupBy(
+      equipmentTransferBatches.id,
+      sourcePkgs.id,
+      destinationPkgs.id,
+    )
+    .orderBy(desc(equipmentTransferBatches.movedAt));
 }
 
 export type EquipmentTypeOption = {

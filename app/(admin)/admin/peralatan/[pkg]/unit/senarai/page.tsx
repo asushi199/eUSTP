@@ -94,12 +94,22 @@ export default async function AdminEquipmentUnitListPage({
               inventori.
             </p>
           </div>
-          <Link
-            href={`/admin/peralatan/${pkgId}/unit`}
-            className="btn-outline-ink btn-sm"
-          >
-            Daftar atau import unit
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            {user.peranan !== "PKG_Admin" ? (
+              <Link
+                href={`/admin/peralatan/${pkgId}/pindahan`}
+                className="btn-ink btn-sm"
+              >
+                Rekod pindahan
+              </Link>
+            ) : null}
+            <Link
+              href={`/admin/peralatan/${pkgId}/unit`}
+              className="btn-outline-ink btn-sm"
+            >
+              Daftar atau import unit
+            </Link>
+          </div>
         </div>
 
         <div className="mt-8">
