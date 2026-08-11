@@ -17,13 +17,13 @@ export default function BrandWordmark({
       className={cn("inline-flex items-center gap-2.5", className)}
       aria-label={`${APP_DISPLAY_NAME} — laman utama`}
     >
-      <span className="relative h-9 w-9 shrink-0 overflow-hidden rounded-xl border border-primary/20 bg-white shadow-lift">
+      <span className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-primary/20 bg-white shadow-lift">
         <Image
           src={APP_LOGO_SRC}
           alt=""
           fill
-          className="object-contain p-0.5"
-          sizes="36px"
+          className="object-contain p-1"
+          sizes="40px"
         />
       </span>
       <span className="text-lg font-bold leading-none tracking-tight text-ink">
