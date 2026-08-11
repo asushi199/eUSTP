@@ -195,7 +195,7 @@ export default function LaporanAkhbarForm({
 
       <section className="card p-6">
         <h2 className="text-lg font-semibold">2. Peruntukan & perbelanjaan</h2>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <div className="mt-4 grid items-end gap-4 sm:grid-cols-2">
           <div>
             <label className="label" htmlFor="kategoriSekolah">
               Kategori sekolah *
@@ -265,11 +265,20 @@ export default function LaporanAkhbarForm({
             />
           </div>
           <div>
-            <span className="label">Baki peruntukan (RM)</span>
-            <p className="input bg-cloud text-ink">
-              {baki == null ? "—" : baki.toLocaleString("ms-MY", { minimumFractionDigits: 2 })}
-            </p>
-            <p className="mt-1 text-xs text-graphite">Dikira automatik: peruntukan − perbelanjaan</p>
+            <div className="label">
+              Baki peruntukan (RM)
+              <span className="mt-0.5 block text-xs font-normal text-graphite">
+                Dikira automatik: peruntukan − perbelanjaan
+              </span>
+            </div>
+            <div
+              className="input flex items-center bg-cloud text-ink"
+              aria-live="polite"
+            >
+              {baki == null
+                ? "—"
+                : baki.toLocaleString("ms-MY", { minimumFractionDigits: 2 })}
+            </div>
           </div>
           <div>
             <label className="label" htmlFor="dipulangkanJpnRm">

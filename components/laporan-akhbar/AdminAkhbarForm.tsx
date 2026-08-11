@@ -170,7 +170,7 @@ export default function AdminAkhbarForm({
 
       <section className="card p-6">
         <h2 className="text-lg font-semibold">Data tinjauan</h2>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <div className="mt-4 grid items-end gap-4 sm:grid-cols-2">
           <div>
             <label className="label" htmlFor="kategoriSekolah">
               Kategori sekolah *
@@ -237,10 +237,17 @@ export default function AdminAkhbarForm({
             />
           </div>
           <div>
-            <span className="label">Baki (auto)</span>
-            <p className="input bg-cloud">
-              {baki == null ? "—" : baki.toLocaleString("ms-MY", { minimumFractionDigits: 2 })}
-            </p>
+            <div className="label">
+              Baki (RM)
+              <span className="mt-0.5 block text-xs font-normal text-graphite">
+                Dikira automatik
+              </span>
+            </div>
+            <div className="input flex items-center bg-cloud text-ink" aria-live="polite">
+              {baki == null
+                ? "—"
+                : baki.toLocaleString("ms-MY", { minimumFractionDigits: 2 })}
+            </div>
           </div>
           <div>
             <label className="label" htmlFor="dipulangkanJpnRm">
