@@ -16,6 +16,10 @@ const TEMPLATE_PATH = path.join(
   "kew-pa-9-am24.pdf",
 );
 const ROWS_PER_PAGE = 20;
+const ROW_HEIGHT = 17.16;
+const RETURN_NOTE_TOP = 241.2;
+const RETURN_NOTE_LINE_HEIGHT = 6.4;
+const RETURN_NOTE_VERTICAL_PADDING = 7;
 const BLACK = rgb(0, 0, 0);
 
 type KewPa9Unit = {
@@ -175,20 +179,33 @@ function wrapPdfText(
   return lines;
 }
 
+export function getReturnNoteBoxHeight(lineCount: number): number {
+  const requiredHeight =
+    Math.max(1, lineCount) * RETURN_NOTE_LINE_HEIGHT +
+    RETURN_NOTE_VERTICAL_PADDING;
+  const rowCount = Math.min(
+    ROWS_PER_PAGE,
+    Math.max(1, Math.ceil(requiredHeight / ROW_HEIGHT)),
+  );
+  return Number((rowCount * ROW_HEIGHT).toFixed(2));
+}
+
 function drawReturnNote(
   page: PDFPage,
   font: PDFFont,
   value: string,
-  top: number,
-  height: number,
 ) {
   if (!value) return;
 
   const left = 512;
   const width = 48;
+  const size = 5.2;
+  const lines = wrapPdfText(font, value, width - 4, size);
+  const height = getReturnNoteBoxHeight(lines.length);
+  const rowCount = Math.round(height / ROW_HEIGHT);
   page.drawRectangle({
     x: left,
-    y: page.getHeight() - top - height,
+    y: page.getHeight() - RETURN_NOTE_TOP - height,
     width,
     height,
     color: rgb(1, 1, 1),
@@ -196,10 +213,19 @@ function drawReturnNote(
     borderWidth: 0.45,
   });
 
-  const size = 5.2;
-  const lineHeight = 6.4;
-  const maxLines = Math.floor((height - 6) / lineHeight);
-  const lines = wrapPdfText(font, value, width - 4, size);
+  for (let row = 1; row < rowCount; row += 1) {
+    const y = page.getHeight() - RETURN_NOTE_TOP - row * ROW_HEIGHT;
+    page.drawLine({
+      start: { x: left, y },
+      end: { x: left + width, y },
+      thickness: 0.45,
+      color: BLACK,
+    });
+  }
+
+  const maxLines = Math.floor(
+    (height - RETURN_NOTE_VERTICAL_PADDING + 1) / RETURN_NOTE_LINE_HEIGHT,
+  );
   const visibleLines = lines.slice(0, maxLines);
   if (lines.length > maxLines && visibleLines.length > 0) {
     const last = visibleLines.length - 1;
@@ -213,7 +239,12 @@ function drawReturnNote(
   visibleLines.forEach((line, index) => {
     page.drawText(line, {
       x: left + 2,
-      y: page.getHeight() - top - 4 - size - index * lineHeight,
+      y:
+        page.getHeight() -
+        RETURN_NOTE_TOP -
+        4 -
+        size -
+        index * RETURN_NOTE_LINE_HEIGHT,
       size,
       font,
       color: BLACK,
@@ -249,14 +280,13 @@ function drawPageContent(
   drawCellText(page, font, data.issuerName, 410, 173, 149, 6.8);
 
   const firstRowTop = 245.3;
-  const rowHeight = 17.16;
   // Tarikh pemulangan hanya diisi selepas peralatan dipulangkan; kosong semasa pinjaman aktif.
   const returnedDate = formatDate(data.returnedAt);
   for (let index = 0; index < ROWS_PER_PAGE; index += 1) {
-    coverTemplateText(page, 42, 241.2 + index * rowHeight, 24, 16.2);
+    coverTemplateText(page, 42, RETURN_NOTE_TOP + index * ROW_HEIGHT, 24, 16.2);
   }
   units.forEach((unit, index) => {
-    const top = firstRowTop + index * rowHeight;
+    const top = firstRowTop + index * ROW_HEIGHT;
     drawCenteredCellText(
       page,
       font,
@@ -307,13 +337,7 @@ function drawPageContent(
     );
   });
   if (pageIndex === 0) {
-    drawReturnNote(
-      page,
-      font,
-      data.returnNote,
-      firstRowTop - 1.3,
-      ROWS_PER_PAGE * rowHeight + 1.3,
-    );
+    drawReturnNote(page, font, data.returnNote);
   }
 }
 
