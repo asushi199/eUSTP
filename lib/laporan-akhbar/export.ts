@@ -5,6 +5,7 @@ import path from "path";
 import {
   AKHBAR_PPD,
   AKHBAR_YEAR,
+  resolveAkhbarPegawaiPpd,
 } from "@/lib/laporan-akhbar/enums";
 import { listAkhbarAdminRows } from "@/lib/laporan-akhbar/queries";
 
@@ -116,7 +117,7 @@ export async function buildLaporanAkhbarWorkbook(): Promise<{
       cell(semakWs, `E${r}`, rec.semakanLengkap);
       cell(semakWs, `F${r}`, rec.disahkan);
       cell(semakWs, `G${r}`, rec.perluPembetulan);
-      cell(semakWs, `H${r}`, rec.pegawaiPpd || null);
+      cell(semakWs, `H${r}`, resolveAkhbarPegawaiPpd(rec.pegawaiPpd));
       cell(semakWs, `I${r}`, rec.tarikhSemakan);
     }
   });

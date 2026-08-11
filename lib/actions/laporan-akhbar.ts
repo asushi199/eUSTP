@@ -14,6 +14,7 @@ import {
   isStatusAkhbar,
   isYaTidak,
   parseRm,
+  resolveAkhbarPegawaiPpd,
 } from "@/lib/laporan-akhbar/enums";
 import {
   getLaporanAkhbarBySchool,
@@ -222,8 +223,10 @@ export async function adminSaveLaporanAkhbar(formData: FormData): Promise<Akhbar
     return { ok: false, error: e instanceof Error ? e.message : "Semakan PPD tidak sah" };
   }
 
-  const pegawaiPpd =
-    textField(formData.get("pegawaiPpd"), 200) || user.nama || "";
+  const pegawaiPpd = resolveAkhbarPegawaiPpd(
+    textField(formData.get("pegawaiPpd"), 200),
+    user.nama,
+  );
   const tarikhSemakanRaw = textField(formData.get("tarikhSemakan"), 10);
   const tarikhSemakan =
     tarikhSemakanRaw && /^\d{4}-\d{2}-\d{2}$/.test(tarikhSemakanRaw)

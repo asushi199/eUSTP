@@ -9,6 +9,7 @@ import {
 import {
   computeBaki,
   KATEGORI_SEKOLAH,
+  resolveAkhbarPegawaiPpd,
   STATUS_AKHBAR,
   YA_TIDAK,
 } from "@/lib/laporan-akhbar/enums";
@@ -82,12 +83,10 @@ export default function AdminAkhbarForm({
   schoolCode,
   schoolName,
   record,
-  defaultPegawai,
 }: {
   schoolCode: string;
   schoolName: string;
   record: LaporanAkhbarRow | null;
-  defaultPegawai: string;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -365,7 +364,7 @@ export default function AdminAkhbarForm({
               id="pegawaiPpd"
               name="pegawaiPpd"
               className="input"
-              defaultValue={record?.pegawaiPpd || defaultPegawai}
+              defaultValue={resolveAkhbarPegawaiPpd(record?.pegawaiPpd)}
             />
           </div>
           <div>

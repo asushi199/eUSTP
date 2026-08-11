@@ -3,6 +3,26 @@
 export const AKHBAR_YEAR = 2026;
 export const AKHBAR_PPD = "Manjung";
 
+/** Jawatan rasmi pegawai penyemak PPD (bukan nama akaun log masuk). */
+export const AKHBAR_PEGAWAI_PPD_DEFAULT =
+  "Penolong PPD (Unit Sumber dan Teknologi)";
+
+/**
+ * Guna jawatan rasmi jika medan kosong, atau nilai lama masih nama akaun
+ * (tiada sebutan PPD). Nilai yang sudah mengandungi "PPD" dikekalkan.
+ */
+export function resolveAkhbarPegawaiPpd(
+  stored?: string | null,
+  accountName?: string | null,
+): string {
+  const v = (stored ?? "").trim();
+  if (!v) return AKHBAR_PEGAWAI_PPD_DEFAULT;
+  const account = (accountName ?? "").trim();
+  if (account && v === account) return AKHBAR_PEGAWAI_PPD_DEFAULT;
+  if (!/ppd/i.test(v)) return AKHBAR_PEGAWAI_PPD_DEFAULT;
+  return v;
+}
+
 export const YA_TIDAK = ["Ya", "Tidak"] as const;
 export type YaTidak = (typeof YA_TIDAK)[number];
 

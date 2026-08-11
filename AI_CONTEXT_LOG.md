@@ -8,6 +8,13 @@
 - `LAPORAN_SECTIONS` + `LAPORAN_HUB` dalam `lib/module-theme.ts`; BottomTabBar
   dilabel semula "CoE Laporan".
 
+## 2026-08-11 — Laporan Akhbar: jawatan Pegawai PPD automatik
+
+- Medan Pegawai (semakan PPD) auto isi
+  `Penolong PPD (Unit Sumber dan Teknologi)` — bukan nama akaun log masuk.
+- Eksport Excel juga resolve nilai lama (cth. “Pentadbir USTP”) kepada jawatan
+  rasmi.
+
 ## 2026-08-11 — Laporan Akhbar: perakuan + nombor tiket
 
 - Borang awam menambah kotak **Perakuan pemohon** (wajib tick) di bawah Catatan,

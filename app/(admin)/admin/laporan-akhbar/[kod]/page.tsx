@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import AdminAkhbarForm from "@/components/laporan-akhbar/AdminAkhbarForm";
-import { requireKandunganAccess, requireUser } from "@/lib/rbac";
+import { requireKandunganAccess } from "@/lib/rbac";
 import {
   getLaporanAkhbarBySchool,
   getSchoolByCode,
@@ -15,7 +15,6 @@ type Props = {
 
 export default async function AdminLaporanAkhbarDetailPage({ params }: Props) {
   await requireKandunganAccess();
-  const user = await requireUser();
   const { kod: raw } = await params;
   const kod = decodeURIComponent(raw).trim().toUpperCase();
   const school = await getSchoolByCode(kod);
@@ -40,7 +39,6 @@ export default async function AdminLaporanAkhbarDetailPage({ params }: Props) {
         schoolCode={school.code}
         schoolName={school.name}
         record={record}
-        defaultPegawai={user.nama}
       />
     </>
   );
