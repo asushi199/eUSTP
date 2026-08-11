@@ -17,9 +17,13 @@ const TEMPLATE_PATH = path.join(
 );
 const ROWS_PER_PAGE = 20;
 const ROW_HEIGHT = 17.16;
-const RETURN_NOTE_TOP = 241.2;
+const TABLE_FIRST_ROW_TOP = 241.2;
+const RETURN_NOTE_TOP = 241.13;
 const RETURN_NOTE_LINE_HEIGHT = 6.4;
 const RETURN_NOTE_VERTICAL_PADDING = 7;
+const CATATAN_LEFT = 510.48;
+const CATATAN_RIGHT = 562.44;
+const TEMPLATE_GRID_LINE_WIDTH = 0.6;
 const BLACK = rgb(0, 0, 0);
 
 type KewPa9Unit = {
@@ -190,6 +194,18 @@ export function getReturnNoteBoxHeight(lineCount: number): number {
   return Number((rowCount * ROW_HEIGHT).toFixed(2));
 }
 
+export function getReturnNoteBox(lineCount: number) {
+  return {
+    left: CATATAN_LEFT,
+    top: RETURN_NOTE_TOP,
+    width: Number((CATATAN_RIGHT - CATATAN_LEFT).toFixed(2)),
+    // Berhenti tepat sebelum garisan baris seterusnya supaya ia kekal sebagai sempadan bawah.
+    height: Number(
+      (getReturnNoteBoxHeight(lineCount) - TEMPLATE_GRID_LINE_WIDTH).toFixed(2),
+    ),
+  };
+}
+
 function drawReturnNote(
   page: PDFPage,
   font: PDFFont,
@@ -197,34 +213,19 @@ function drawReturnNote(
 ) {
   if (!value) return;
 
-  const left = 512;
-  const width = 48;
   const size = 5.2;
-  const lines = wrapPdfText(font, value, width - 4, size);
-  const height = getReturnNoteBoxHeight(lines.length);
-  const rowCount = Math.round(height / ROW_HEIGHT);
+  const lines = wrapPdfText(font, value, CATATAN_RIGHT - CATATAN_LEFT - 4, size);
+  const box = getReturnNoteBox(lines.length);
   page.drawRectangle({
-    x: left,
-    y: page.getHeight() - RETURN_NOTE_TOP - height,
-    width,
-    height,
+    x: box.left,
+    y: page.getHeight() - box.top - box.height,
+    width: box.width,
+    height: box.height,
     color: rgb(1, 1, 1),
-    borderColor: BLACK,
-    borderWidth: 0.45,
   });
 
-  for (let row = 1; row < rowCount; row += 1) {
-    const y = page.getHeight() - RETURN_NOTE_TOP - row * ROW_HEIGHT;
-    page.drawLine({
-      start: { x: left, y },
-      end: { x: left + width, y },
-      thickness: 0.45,
-      color: BLACK,
-    });
-  }
-
   const maxLines = Math.floor(
-    (height - RETURN_NOTE_VERTICAL_PADDING + 1) / RETURN_NOTE_LINE_HEIGHT,
+    (box.height - RETURN_NOTE_VERTICAL_PADDING + 1) / RETURN_NOTE_LINE_HEIGHT,
   );
   const visibleLines = lines.slice(0, maxLines);
   if (lines.length > maxLines && visibleLines.length > 0) {
@@ -232,16 +233,16 @@ function drawReturnNote(
     visibleLines[last] = fitText(
       font,
       `${visibleLines[last]}...`,
-      width - 4,
+      box.width - 4,
       size,
     ).text;
   }
   visibleLines.forEach((line, index) => {
     page.drawText(line, {
-      x: left + 2,
+      x: box.left + 2,
       y:
         page.getHeight() -
-        RETURN_NOTE_TOP -
+        box.top -
         4 -
         size -
         index * RETURN_NOTE_LINE_HEIGHT,
@@ -283,7 +284,13 @@ function drawPageContent(
   // Tarikh pemulangan hanya diisi selepas peralatan dipulangkan; kosong semasa pinjaman aktif.
   const returnedDate = formatDate(data.returnedAt);
   for (let index = 0; index < ROWS_PER_PAGE; index += 1) {
-    coverTemplateText(page, 42, RETURN_NOTE_TOP + index * ROW_HEIGHT, 24, 16.2);
+    coverTemplateText(
+      page,
+      42,
+      TABLE_FIRST_ROW_TOP + index * ROW_HEIGHT,
+      24,
+      16.2,
+    );
   }
   units.forEach((unit, index) => {
     const top = firstRowTop + index * ROW_HEIGHT;
