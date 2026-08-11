@@ -923,6 +923,14 @@ Corak berselang = instance sihat vs beracun.
   maklumat pegawai PKG semasa sekali ketika pemulangan, lalu menyimpannya
   bersama rekod pemulangan tersebut.
 
+## 2026-08-11 - Pelulus dan penerima KEW.PA-9
+
+- Pelulus KEW.PA-9 ialah nama dan jawatan pegawai peralatan PKG yang aktif
+  pada masa kelulusan, bukan akaun pentadbir yang menekan butang lulus.
+- Penerima ialah pegawai peralatan PKG yang aktif pada masa pemulangan. Kedua-
+  dua peranan disimpan sebagai snapshot bersama rekod pinjaman supaya pertukaran
+  pegawai PKG pada masa hadapan tidak mengubah dokumen yang telah selesai.
+
 ## 2026-08-10 - Usia guna aset KEW.PA-17
 
 - Setiap unit fizikal boleh menyimpan `Tarikh Perolehan` atau, jika tarikh

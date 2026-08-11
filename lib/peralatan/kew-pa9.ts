@@ -89,8 +89,8 @@ export function buildKewPa9SignatureDetails(input: {
   approverName: string;
   approverPosition: string;
   approvedAt: Date | null;
-  issuerName: string;
-  issuerPosition: string;
+  receiverName: string;
+  receiverPosition: string;
   returnedAt: Date | null;
 }): KewPa9SignatureDetails {
   const borrower = {
@@ -107,8 +107,8 @@ export function buildKewPa9SignatureDetails(input: {
     : { name: "", position: "", date: "" };
   const receiver = input.returnedAt
     ? {
-        name: input.issuerName,
-        position: input.issuerPosition,
+        name: input.receiverName,
+        position: input.receiverPosition,
         date: formatDate(input.returnedAt),
       }
     : { name: "", position: "", date: "" };
@@ -445,8 +445,8 @@ export function buildKewPa9Data(request: EquipmentLoanDetail): KewPa9Data {
       approverName: request.approverName,
       approverPosition: request.approverPosition,
       approvedAt: request.approvedAt,
-      issuerName: request.issuerName,
-      issuerPosition: request.issuerPosition,
+      receiverName: request.receiverName,
+      receiverPosition: request.receiverPosition,
       returnedAt: request.returnedAt,
     }),
     units: request.items.flatMap((item) =>

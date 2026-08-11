@@ -777,12 +777,18 @@ export const equipmentLoanRequests = pgTable(
       onDelete: "set null",
     }),
     approvedAt: timestamp("approved_at", { withTimezone: true }),
+    /** Pegawai peralatan PKG yang meluluskan pinjaman, dibekukan semasa kelulusan. */
+    approverName: text("approver_name").notNull().default(""),
+    approverPosition: text("approver_position").notNull().default(""),
     rejectedAt: timestamp("rejected_at", { withTimezone: true }),
     handedOverAt: timestamp("handed_over_at", { withTimezone: true }),
     /** Pegawai PKG yang mengeluarkan aset, dibekukan semasa serahan. */
     issuerName: text("issuer_name").notNull().default(""),
     issuerPosition: text("issuer_position").notNull().default(""),
     returnedAt: timestamp("returned_at", { withTimezone: true }),
+    /** Pegawai peralatan PKG yang menerima pemulangan, dibekukan semasa pemulangan. */
+    receiverName: text("receiver_name").notNull().default(""),
+    receiverPosition: text("receiver_position").notNull().default(""),
     returnNote: text("return_note").notNull().default(""),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),

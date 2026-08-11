@@ -28,7 +28,6 @@ import {
   equipmentUnits,
   pkgs,
   schools,
-  users,
 } from "@/lib/schema";
 import type {
   EquipmentCatalogItem,
@@ -674,13 +673,6 @@ export async function getEquipmentLoanDetail(
       equipmentManagerPosition: true,
     },
   });
-  const approverRow = request.approvedByUserId
-    ? await db.query.users.findFirst({
-        where: eq(users.id, request.approvedByUserId),
-        columns: { nama: true, jawatan: true },
-      })
-    : null;
-
   const itemRows = await db
     .select({
       id: equipmentLoanItems.id,
@@ -778,14 +770,28 @@ export async function getEquipmentLoanDetail(
     safeRequest.issuerPosition.trim() ||
     pkgRow?.equipmentManagerPosition?.trim() ||
     "";
+  const approverName =
+    safeRequest.approverName.trim() || pkgRow?.equipmentManagerName?.trim() || "";
+  const approverPosition =
+    safeRequest.approverPosition.trim() ||
+    pkgRow?.equipmentManagerPosition?.trim() ||
+    "";
+  const receiverName =
+    safeRequest.receiverName.trim() || pkgRow?.equipmentManagerName?.trim() || "";
+  const receiverPosition =
+    safeRequest.receiverPosition.trim() ||
+    pkgRow?.equipmentManagerPosition?.trim() ||
+    "";
   return {
     ...safeRequest,
     pkgName: pkgRow?.name ?? "PKG",
     pkgManagerName: issuerName,
     issuerName,
     issuerPosition,
-    approverName: approverRow?.nama.trim() ?? "",
-    approverPosition: approverRow?.jawatan.trim() ?? "",
+    approverName,
+    approverPosition,
+    receiverName,
+    receiverPosition,
     applicantMykadMasked: applicantMykadLast4
       ? `******-**-${applicantMykadLast4}`
       : "Belum direkodkan",

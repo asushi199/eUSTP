@@ -723,6 +723,12 @@ export async function approveEquipmentLoan(
       if (!request || request.status !== "pending") {
         throw new Error("Permohonan ini tidak lagi menunggu kelulusan.");
       }
+      const approver = await equipmentManagerSnapshot(tx, pkgId);
+      if (!approver.name) {
+        throw new Error(
+          "Tetapkan nama pegawai peralatan PKG sebelum meluluskan permohonan.",
+        );
+      }
 
       const items = await tx
         .select()
@@ -810,6 +816,7 @@ export async function approveEquipmentLoan(
             .where(eq(equipmentLoanItems.id, item.id)),
         ),
       );
+      const approvedAt = new Date();
       await tx
         .update(equipmentLoanRequests)
         .set({
@@ -818,8 +825,10 @@ export async function approveEquipmentLoan(
           borrowDate: approvedBorrowDate,
           expectedReturnDate: approvedReturnDate,
           approvedByUserId: Number(user.id),
-          approvedAt: new Date(),
-          updatedAt: new Date(),
+          approvedAt,
+          approverName: approver.name,
+          approverPosition: approver.position,
+          updatedAt: approvedAt,
         })
         .where(eq(equipmentLoanRequests.id, requestId));
       await tx.insert(equipmentLoanEvents).values({
@@ -833,6 +842,8 @@ export async function approveEquipmentLoan(
           requestedReturnDate: request.expectedReturnDate,
           approvedBorrowDate,
           approvedReturnDate,
+          approverName: approver.name,
+          approverPosition: approver.position,
           requestedItems: items.map((item) => ({
             id: item.id,
             quantity: item.quantity,
@@ -1042,6 +1053,12 @@ export async function recordEquipmentReturn(
       const issuer = request.issuerName.trim()
         ? null
         : await equipmentManagerSnapshot(tx, pkgId);
+      const receiver = await equipmentManagerSnapshot(tx, pkgId);
+      if (!receiver.name) {
+        throw new Error(
+          "Tetapkan nama pegawai peralatan PKG sebelum mengesahkan pemulangan.",
+        );
+      }
       const updatedUnits = await tx
         .update(equipmentUnits)
         .set({ status: "available", updatedAt: returnedAt })
@@ -1077,6 +1094,8 @@ export async function recordEquipmentReturn(
           issuerName: request.issuerName.trim() || issuer?.name || "",
           issuerPosition:
             request.issuerPosition.trim() || issuer?.position || "",
+          receiverName: receiver.name,
+          receiverPosition: receiver.position,
           updatedAt: returnedAt,
         })
         .where(eq(equipmentLoanRequests.id, requestId));
@@ -1089,6 +1108,8 @@ export async function recordEquipmentReturn(
           conditionChecked: true,
           returnNote: parsedReturnNote.data,
           issuerName: request.issuerName.trim() || issuer?.name || "",
+          receiverName: receiver.name,
+          receiverPosition: receiver.position,
           paperSignaturesRequired: true,
         },
       });

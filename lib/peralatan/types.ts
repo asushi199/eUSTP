@@ -188,6 +188,8 @@ export type EquipmentLoanDetail = {
   issuerPosition: string;
   approverName: string;
   approverPosition: string;
+  receiverName: string;
+  receiverPosition: string;
   applicantType: string;
   schoolCode: string | null;
   orgName: string;

@@ -26,7 +26,7 @@ test("fills the Catatan cell interior without drawing through the return note", 
   });
 });
 
-test("builds KEW.PA-9 signature details from the recorded loan roles", () => {
+test("uses the return receiver snapshot instead of the handover issuer", () => {
   assert.deepEqual(
     buildKewPa9SignatureDetails({
       applicantName: "Nur Aisyah Binti Ali",
@@ -35,8 +35,8 @@ test("builds KEW.PA-9 signature details from the recorded loan roles", () => {
       approverName: "Ahmad Bin Salleh",
       approverPosition: "Pegawai Pendidikan Daerah",
       approvedAt: new Date("2026-08-03T09:00:00+08:00"),
-      issuerName: "Siti Binti Rahman",
-      issuerPosition: "Pegawai Teknologi Pendidikan",
+      receiverName: "Puan Pengurus PKG",
+      receiverPosition: "Penolong Pegawai Pendidikan Daerah",
       returnedAt: new Date("2026-08-11T15:00:00+08:00"),
     }),
     {
@@ -56,8 +56,8 @@ test("builds KEW.PA-9 signature details from the recorded loan roles", () => {
         date: "11/08/2026",
       },
       receiver: {
-        name: "Siti Binti Rahman",
-        position: "Pegawai Teknologi Pendidikan",
+        name: "Puan Pengurus PKG",
+        position: "Penolong Pegawai Pendidikan Daerah",
         date: "11/08/2026",
       },
     },
