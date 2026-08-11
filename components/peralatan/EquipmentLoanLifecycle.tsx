@@ -27,6 +27,7 @@ function KewPa9Action({
   const document = request.documents.find((item) => item.stage === stage);
   const downloadUrl = `/admin/peralatan/${pkgId}/permohonan/${request.id}/kew-pa-9?stage=${stage}`;
   const isActiveLoan = stage === "handover";
+  const hasReadyDocument = document?.status === "ready";
 
   return (
     <div className="rounded-xl border border-fog bg-white p-4">
@@ -65,11 +66,13 @@ function KewPa9Action({
         </a>
         <button
           type="button"
-          className="btn-primary btn-sm"
-          disabled={pending || isActiveLoan}
+          className={hasReadyDocument ? "btn-outline-ink btn-sm" : "btn-primary btn-sm"}
+          disabled={pending || isActiveLoan || hasReadyDocument}
           title={
             isActiveLoan
               ? "Simpan ke Drive hanya selepas pemulangan."
+              : hasReadyDocument
+                ? "KEW.PA-9 telah berjaya dijana dan disimpan ke Drive."
               : undefined
           }
           onClick={() =>
@@ -88,7 +91,13 @@ function KewPa9Action({
             })
           }
         >
-          {pending ? "Menyimpan..." : "Jana & simpan ke Drive"}
+          {pending
+            ? "Menyimpan..."
+            : hasReadyDocument
+              ? "KEW.PA-9 telah dijana"
+              : document?.status === "failed"
+                ? "Cuba jana semula"
+                : "Jana & simpan ke Drive"}
         </button>
       </div>
       {isActiveLoan ? (

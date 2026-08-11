@@ -1134,6 +1134,19 @@ export async function generateAndStoreEquipmentKewPa9(
       error: "Lengkapkan pemulangan dahulu.",
     };
   }
+  const [readyDocument] = await db
+    .select({ publicUrl: equipmentLoanDocuments.publicUrl })
+    .from(equipmentLoanDocuments)
+    .where(
+      and(
+        eq(equipmentLoanDocuments.requestId, requestId),
+        eq(equipmentLoanDocuments.stage, stage),
+        eq(equipmentLoanDocuments.status, "ready"),
+      ),
+    );
+  if (readyDocument) {
+    return { ok: true, publicUrl: readyDocument.publicUrl ?? undefined };
+  }
   if (!isGasStorageConfigured()) {
     return {
       ok: false,
