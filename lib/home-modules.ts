@@ -1,1 +1,1 @@
-export { HOME_MODULES, MODULES } from "./module-theme";
+export { HOME_MODULES, MODULES, LAPORAN_SECTIONS, TEMPAHAN_SECTIONS, OSC_SECTIONS } from "./module-theme";

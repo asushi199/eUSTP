@@ -1,16 +1,11 @@
 import Link from "next/link";
-import { resolveLaporanModuleHref } from "@/lib/laporan-entry";
 import BrandWordmark from "./BrandWordmark";
 import PwaInstallButton from "./PwaInstallButton";
 
-const dpdNav = resolveLaporanModuleHref("dpd", "/laporan-dpd");
-const pssNav = resolveLaporanModuleHref("pss", "/laporan-pss");
-
 const NAV_LINKS = [
-  { href: dpdNav.href, label: "Laporan DPD", external: dpdNav.external },
-  { href: pssNav.href, label: "Laporan PSS", external: pssNav.external },
-  { href: "/direktori", label: "CoE Direktori", external: false },
-  { href: "/tempahan", label: "CoE Booking", external: false },
+  { href: "/laporan", label: "CoE Laporan" },
+  { href: "/direktori", label: "CoE Direktori" },
+  { href: "/tempahan", label: "CoE Booking" },
 ] as const;
 
 const navLinkClass = "rounded-md px-4 py-2 text-[15px] text-ink hover:bg-cloud";
@@ -22,23 +17,11 @@ export default function TopNav() {
       <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-4 sm:px-8">
         <BrandWordmark />
         <nav className="hidden items-center gap-1 md:flex">
-          {NAV_LINKS.map((l) =>
-            l.external ? (
-              <a
-                key={l.label}
-                href={l.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={navLinkClass}
-              >
-                {l.label}
-              </a>
-            ) : (
-              <Link key={l.href} href={l.href} className={navLinkClass}>
-                {l.label}
-              </Link>
-            ),
-          )}
+          {NAV_LINKS.map((l) => (
+            <Link key={l.href} href={l.href} className={navLinkClass}>
+              {l.label}
+            </Link>
+          ))}
         </nav>
         <div className="flex items-center gap-2">
           <PwaInstallButton variant="nav-link" className="pwa-topnav" />

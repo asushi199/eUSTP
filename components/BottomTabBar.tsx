@@ -35,7 +35,7 @@ const TABS: Tab[] = [
   },
   {
     href: "/laporan",
-    label: "Laporan",
+    label: "CoE Laporan",
     match: (p) => p.startsWith("/laporan"),
     icon: (
       <svg {...iconProps}>

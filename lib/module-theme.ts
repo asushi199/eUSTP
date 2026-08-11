@@ -21,6 +21,18 @@ const OSC_MODULE = {
   iconKey: "osc" as const,
 } as const;
 
+/** Hub CoE Laporan — menggabungkan DPD, PSS & Akhbar. */
+const LAPORAN_HUB = {
+  href: "/laporan",
+  internalHref: "/laporan",
+  external: false,
+  title: "CoE Laporan",
+  description:
+    "Laporan DPD, Laporan PSS dan tinjauan Langganan Akhbar daerah Manjung.",
+  accent: "#DB2777",
+  iconKey: "laporan" as const,
+} as const;
+
 /** Hub CoE Booking — menggabungkan perkhidmatan tempahan USTP. */
 const TEMPAHAN_HUB = {
   href: "/tempahan",
@@ -34,6 +46,7 @@ const TEMPAHAN_HUB = {
 } as const;
 
 export const MODULES = [
+  LAPORAN_HUB,
   {
     href: dpdEntry.href,
     internalHref: "/laporan-dpd",
@@ -53,6 +66,16 @@ export const MODULES = [
       "Pelaporan aktiviti Pusat Sumber Sekolah untuk semua sekolah daerah Manjung.",
     accent: "#7C3AED",
     iconKey: "pss" as const,
+  },
+  {
+    href: "/laporan-akhbar",
+    internalHref: "/laporan-akhbar",
+    external: false,
+    title: "Laporan Akhbar",
+    description:
+      "Tinjauan penyelarasan peruntukan Program Langganan Akhbar 2026 (PPD Manjung).",
+    accent: "#024AD8",
+    iconKey: "akhbar" as const,
   },
   {
     href: "/direktori",
@@ -133,13 +156,18 @@ export const OSC_SECTIONS = MODULES.filter((m) =>
   ["/sumber", "/analisis", "/maklumat-asas"].includes(m.internalHref),
 );
 
+/** Sub-modul di bawah hub /laporan — dipapar dalam halaman CoE Laporan. */
+export const LAPORAN_SECTIONS = MODULES.filter((m) =>
+  ["/laporan-dpd", "/laporan-pss", "/laporan-akhbar"].includes(m.internalHref),
+);
+
 /** Sub-modul di bawah hub /tempahan — dipapar dalam halaman tempahan. */
 export const TEMPAHAN_SECTIONS = MODULES.filter((m) =>
   ["/tempahan/bilik", "/khidmat-bantu", "/tempahan/peralatan"].includes(m.internalHref),
 );
 
 /**
- * Kad halaman utama — sub-modul OSC & Tempahan digabung di hub masing-masing.
+ * Kad halaman utama — sub-modul OSC, Laporan & Tempahan digabung di hub masing-masing.
  * OSC (/osc) kini dalaman sahaja (perlu log masuk) — jadi tidak dipapar
  * sebagai kad awam; diuruskan melalui /admin/osc. OSC_MODULE dikekalkan dalam
  * MODULES supaya carian tema (getModuleAccent/getModuleThemeForPath) berfungsi.
@@ -149,6 +177,7 @@ export const HOME_MODULES = MODULES.filter(
   (m) =>
     m.internalHref !== "/osc" &&
     !OSC_SECTIONS.some((s) => s.internalHref === m.internalHref) &&
+    !LAPORAN_SECTIONS.some((s) => s.internalHref === m.internalHref) &&
     !TEMPAHAN_SECTIONS.some((s) => s.internalHref === m.internalHref),
 );
 
@@ -162,7 +191,11 @@ export function getModuleThemeForPath(path: string): ModuleTheme {
     }
   }
   if (path.startsWith("/laporan")) {
-    return { accent: "#DB2777", eyebrow: "Pelaporan", title: "Pelaporan" };
+    return {
+      accent: LAPORAN_HUB.accent,
+      eyebrow: LAPORAN_HUB.title,
+      title: LAPORAN_HUB.title,
+    };
   }
   if (path.startsWith("/tempahan")) {
     return {

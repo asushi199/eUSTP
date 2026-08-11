@@ -1,8 +1,9 @@
 /**
- * Override sementara pautan Laporan DPD/PSS — TopNav desktop, kad halaman utama & hub /laporan (2026).
+ * Override sementara pautan Laporan DPD/PSS — hub /laporan & kad sub-modul (2026).
  *
  * Set `enabled: false` untuk pulih pautan dalaman (/laporan-dpd, /laporan-pss).
  * Laluan dalaman kekal hidup walaupun override aktif — pentadbir boleh uji terus URL.
+ * Hub CoE Laporan (/laporan) sentiasa dalaman; hanya DPD/PSS boleh dialihkan ke Looker.
  */
 export const LAPORAN_ENTRY_OVERRIDE = {
   enabled: true,

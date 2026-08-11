@@ -7,6 +7,8 @@ type AccentCardProps = {
   accent?: string;
   className?: string;
   children: ReactNode;
+  /** Pautan luar (cth. Looker Studio) — buka tab baharu. */
+  external?: boolean;
 };
 
 export default function AccentCard({
@@ -14,6 +16,7 @@ export default function AccentCard({
   accent = "#024AD8",
   className,
   children,
+  external = false,
 }: AccentCardProps) {
   const style = { "--card-accent": accent } as CSSProperties;
   const classes = cn(
@@ -22,6 +25,19 @@ export default function AccentCard({
   );
 
   if (href) {
+    if (external) {
+      return (
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={classes}
+          style={style}
+        >
+          {children}
+        </a>
+      );
+    }
     return (
       <Link href={href} className={classes} style={style}>
         {children}

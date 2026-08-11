@@ -1,5 +1,13 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-08-11 — CoE Laporan hub (desktop + home)
+
+- Halaman utama & TopNav desktop kini memaparkan **CoE Laporan** (bukan dua kad
+  DPD/PSS berasingan), sama corak CoE Booking → hub `/laporan` dengan 3 pilihan:
+  DPD, PSS, Akhbar.
+- `LAPORAN_SECTIONS` + `LAPORAN_HUB` dalam `lib/module-theme.ts`; BottomTabBar
+  dilabel semula "CoE Laporan".
+
 ## 2026-08-11 — Laporan Akhbar (Langganan Akhbar 2026)
 
 - Modul baharu tinjauan penyelarasan peruntukan Program Langganan Akhbar 2026

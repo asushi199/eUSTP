@@ -38,6 +38,21 @@ export function HomeModuleIcon({ iconKey }: { iconKey: IconKey }) {
           <path d="M9 7h6" />
         </svg>
       );
+    case "akhbar":
+      return (
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.6}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={iconClass}
+        >
+          <rect x="4" y="5" width="16" height="14" rx="1.5" />
+          <path d="M8 9h8M8 12h8M8 15h5" />
+        </svg>
+      );
     case "direktori":
       return (
         <svg

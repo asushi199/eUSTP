@@ -1,36 +1,82 @@
 import type { Metadata } from "next";
-import LaporanHubChoiceCard from "@/components/laporan/LaporanHubChoice";
+import AccentCard from "@/components/AccentCard";
 import PageHeader from "@/components/PageHeader";
 import PublicPageShell from "@/components/PublicPageShell";
-import {
-  getLaporanHubChoices,
-  LAPORAN_ENTRY_OVERRIDE,
-} from "@/lib/laporan-entry";
+import { HomeModuleIcon } from "@/components/home/HomeModuleIcon";
+import { LAPORAN_ENTRY_OVERRIDE } from "@/lib/laporan-entry";
+import { LAPORAN_SECTIONS, getModuleAccent } from "@/lib/module-theme";
 
 export const metadata: Metadata = {
-  title: "Pelaporan — NEXa Manjung",
-  description: "Pilih Laporan DPD, PSS atau Laporan Akhbar.",
+  title: "CoE Laporan — NEXa Manjung",
+  description: "Pilih Laporan DPD, Laporan PSS atau Laporan Akhbar.",
+};
+
+const SECTION_TAG: Record<string, string> = {
+  "/laporan-dpd": "Pendigitalan",
+  "/laporan-pss": "Pusat Sumber Sekolah",
+  "/laporan-akhbar": "Langganan Akhbar 2026",
 };
 
 export default function LaporanHubPage() {
-  const choices = getLaporanHubChoices();
+  const accent = getModuleAccent("/laporan");
   const looker = LAPORAN_ENTRY_OVERRIDE.enabled;
 
   return (
-    <PublicPageShell narrow>
+    <PublicPageShell>
       <PageHeader
-        eyebrow="Pelaporan"
+        eyebrow="CoE Laporan"
         title="Pilih Jenis Laporan"
-        accent="#DB2777"
+        accent={accent}
         description={
           looker
-            ? "Pilih dashboard Looker Studio di bawah. Pautan akan dibuka dalam tab baharu."
+            ? "Pilih modul laporan di bawah. DPD dan PSS dibuka di Looker Studio; Laporan Akhbar diisi dalam portal."
             : "Pilih modul laporan untuk meneruskan hantaran borang."
         }
       />
+
       <div className="mt-8 grid gap-4">
-        {choices.map((choice) => (
-          <LaporanHubChoiceCard key={choice.kind} choice={choice} />
+        {LAPORAN_SECTIONS.map((s) => (
+          <AccentCard
+            key={s.internalHref}
+            href={s.href}
+            accent={s.accent}
+            external={s.external}
+            className="flex items-start gap-4 p-6"
+          >
+            <span
+              className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"
+              style={{ backgroundColor: `${s.accent}14`, color: s.accent }}
+              aria-hidden
+            >
+              <HomeModuleIcon iconKey={s.iconKey} />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="flex items-center justify-between gap-2">
+                <span className="font-semibold text-ink">{s.title}</span>
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke={s.accent}
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-5 w-5 shrink-0 transition group-hover:translate-x-0.5"
+                >
+                  <path d="M5 12h14M13 6l6 6-6 6" />
+                </svg>
+              </span>
+              <span
+                className="mt-0.5 block text-[11px] font-semibold uppercase tracking-[0.12em]"
+                style={{ color: s.accent }}
+              >
+                {SECTION_TAG[s.internalHref]}
+                {s.external ? " · Looker Studio" : ""}
+              </span>
+              <span className="mt-1.5 block text-sm leading-relaxed text-graphite">
+                {s.description}
+              </span>
+            </span>
+          </AccentCard>
         ))}
       </div>
     </PublicPageShell>
