@@ -133,11 +133,11 @@ export default function AdminAkhbarForm({
     startTransition(async () => {
       const res = await adminRegenerateAkhbarReceipt(schoolCode);
       if (!res.ok || !res.receiptToken) {
-        setError(res.error ?? "Gagal jana resit.");
+        setError(res.error ?? "Gagal jana tiket.");
         return;
       }
       setReceipt(res.receiptToken);
-      setOkMsg("Nombor resit baharu dijana.");
+      setOkMsg("Nombor tiket baharu dijana.");
       router.refresh();
     });
   }
@@ -152,7 +152,7 @@ export default function AdminAkhbarForm({
         <p className="text-sm text-graphite">PPD Manjung</p>
         {receipt && (
           <p className="mt-3 text-sm">
-            Resit sekolah:{" "}
+            Nombor tiket sekolah:{" "}
             <span className="font-mono font-semibold tracking-wide">{receipt}</span>
           </p>
         )}
@@ -163,7 +163,7 @@ export default function AdminAkhbarForm({
             disabled={pending}
             onClick={onRegen}
           >
-            Jana semula resit
+            Jana semula tiket
           </button>
         )}
       </section>

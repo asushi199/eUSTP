@@ -127,7 +127,7 @@ function revalidateAkhbar(schoolCode?: string) {
   if (schoolCode) revalidatePath(`/admin/laporan-akhbar/${schoolCode}`);
 }
 
-/** Hantar atau kemaskini tinjauan awam. Kemaskini wajib resit jika rekod wujud. */
+/** Hantar atau kemaskini tinjauan awam. Kemaskini wajib nombor tiket jika rekod wujud. */
 export async function submitLaporanAkhbar(formData: FormData): Promise<AkhbarActionResult> {
   const parsed = parseSurveyForm(formData);
   if (!parsed.success) {
@@ -136,6 +136,16 @@ export async function submitLaporanAkhbar(formData: FormData): Promise<AkhbarAct
       error: parsed.error.issues?.[0]?.message ?? "Input tidak sah",
     };
   }
+
+  const declarationAccepted =
+    textField(formData.get("declarationAccepted"), 10).toLowerCase() === "yes";
+  if (!declarationAccepted) {
+    return {
+      ok: false,
+      error: "Sila tandakan kotak perakuan sebelum menghantar.",
+    };
+  }
+
   const data = parsed.data;
   const school = await getSchoolByCode(data.schoolCode);
   if (!school) return { ok: false, error: "Kod sekolah tidak dijumpai dalam direktori." };
@@ -155,7 +165,7 @@ export async function submitLaporanAkhbar(formData: FormData): Promise<AkhbarAct
       return {
         ok: false,
         error:
-          "Sekolah ini sudah menghantar. Sila masukkan nombor resit untuk mengemaskini.",
+          "Sekolah ini sudah menghantar. Sila masukkan nombor tiket untuk mengemaskini.",
       };
     }
 

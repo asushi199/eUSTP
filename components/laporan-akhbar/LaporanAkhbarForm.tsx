@@ -4,6 +4,10 @@ import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { submitLaporanAkhbar } from "@/lib/actions/laporan-akhbar";
 import {
+  AKHBAR_DECLARATION_TEXT,
+  AKHBAR_TICKET_FOOTNOTE,
+} from "@/lib/laporan-akhbar/declaration";
+import {
   computeBaki,
   KATEGORI_SEKOLAH,
   STATUS_AKHBAR,
@@ -16,7 +20,7 @@ type Props = {
   schools: SchoolOption[];
   initialSchoolCode?: string;
   existing?: LaporanAkhbarRow | null;
-  /** Jika true, minta resit untuk kemaskini. */
+  /** Jika true, minta nombor tiket untuk kemaskini. */
   requireReceipt?: boolean;
 };
 
@@ -175,7 +179,7 @@ export default function LaporanAkhbarForm({
         {needsReceipt && (
           <div className="mt-4">
             <label className="label" htmlFor="receiptToken">
-              Nombor resit (untuk kemaskini) *
+              Nombor tiket (untuk kemaskini) *
             </label>
             <input
               id="receiptToken"
@@ -186,7 +190,7 @@ export default function LaporanAkhbarForm({
               placeholder="Contoh: A1B2C3D4…"
             />
             <p className="mt-1 text-xs text-graphite">
-              Sekolah ini sudah menghantar. Masukkan nombor resit yang diterima semasa
+              Sekolah ini sudah menghantar. Masukkan nombor tiket yang diterima semasa
               hantaran pertama.
             </p>
           </div>
@@ -371,6 +375,24 @@ export default function LaporanAkhbarForm({
               rows={3}
               defaultValue={existing?.catatan ?? ""}
             />
+          </div>
+
+          <div className="sm:col-span-2 rounded-xl border border-fog bg-cloud/60 p-4 text-sm leading-relaxed text-charcoal">
+            <p className="font-medium text-ink">Perakuan pemohon</p>
+            <p className="mt-2">{AKHBAR_DECLARATION_TEXT}</p>
+            <label className="mt-4 flex items-start gap-3 text-sm font-medium leading-relaxed text-ink">
+              <input
+                type="checkbox"
+                name="declarationAccepted"
+                value="yes"
+                className="mt-1 h-4 w-4 shrink-0 accent-primary"
+                required
+              />
+              <span>
+                Saya telah membaca, memahami dan bersetuju dengan perakuan di atas.
+              </span>
+            </label>
+            <p className="mt-4 text-xs text-graphite">*{AKHBAR_TICKET_FOOTNOTE}</p>
           </div>
         </div>
       </section>

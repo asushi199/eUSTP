@@ -32,7 +32,7 @@ export default async function SemakLaporanAkhbarPage({ searchParams }: Props) {
       error = "Kod sekolah tidak dijumpai.";
     } else {
       record = await getLaporanAkhbarByReceipt(kod, resit);
-      if (!record) error = "Resit tidak sepadan atau rekod tidak dijumpai.";
+      if (!record) error = "Nombor tiket tidak sepadan atau rekod tidak dijumpai.";
     }
   }
 
@@ -42,7 +42,7 @@ export default async function SemakLaporanAkhbarPage({ searchParams }: Props) {
         eyebrow="Pelaporan"
         title="Semak / kemaskini Laporan Akhbar"
         accent="#024ad8"
-        description="Masukkan kod sekolah dan nombor resit."
+        description="Masukkan kod sekolah dan nombor tiket."
       />
 
       <form className="card mt-8 grid gap-4 p-6 sm:grid-cols-2" method="get">
@@ -61,7 +61,7 @@ export default async function SemakLaporanAkhbarPage({ searchParams }: Props) {
         </div>
         <div>
           <label className="label" htmlFor="resit">
-            Nombor resit
+            Nombor tiket
           </label>
           <input
             id="resit"
@@ -128,7 +128,7 @@ export default async function SemakLaporanAkhbarPage({ searchParams }: Props) {
             Kemaskini borang
           </Link>
           <p className="text-xs text-graphite">
-            Pada halaman kemaskini, masukkan semula nombor resit yang sama.
+            Pada halaman kemaskini, masukkan semula nombor tiket yang sama.
           </p>
         </div>
       )}

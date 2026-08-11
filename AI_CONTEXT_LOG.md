@@ -8,13 +8,21 @@
 - `LAPORAN_SECTIONS` + `LAPORAN_HUB` dalam `lib/module-theme.ts`; BottomTabBar
   dilabel semula "CoE Laporan".
 
+## 2026-08-11 — Laporan Akhbar: perakuan + nombor tiket
+
+- Borang awam menambah kotak **Perakuan pemohon** (wajib tick) di bawah Catatan,
+  dengan semakan pelayan. Label UI “nombor resit” diganti kepada **nombor tiket**
+  (lajur DB kekal `receipt_token`).
+- Halaman berjaya: peringatan kuat + salin / muat turun `.txt` / cetak (semua di
+  sisi klien; tiada storan pelayan).
+
 ## 2026-08-11 — Laporan Akhbar (Langganan Akhbar 2026)
 
 - Modul baharu tinjauan penyelarasan peruntukan Program Langganan Akhbar 2026
   untuk **PPD Manjung sahaja** (spec:
   `docs/superpowers/specs/2026-08-11-laporan-akhbar-design.md`).
 - Awam: `/laporan-akhbar` (satu borang gabungan), `/laporan-akhbar/berjaya`,
-  `/laporan-akhbar/semak` (kod + nombor resit). Hub `/laporan` menambah kad
+  `/laporan-akhbar/semak` (kod + nombor tiket). Hub `/laporan` menambah kad
   ketiga (laluan dalaman; DPD/PSS kekal Looker override).
 - Admin: `/admin/laporan-akhbar` senarai ikut kod, detail semakan PPD,
   `/admin/laporan-akhbar/export` jana Excel dari template JPN (SheetJS/`xlsx`).
