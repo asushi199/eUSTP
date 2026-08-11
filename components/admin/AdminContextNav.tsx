@@ -68,6 +68,7 @@ const PELAPORAN_PATHS = [
   "/admin/pelaporan",
   "/admin/laporan-dpd",
   "/admin/laporan-pss",
+  "/admin/laporan-akhbar",
 ];
 
 function matchPath(pathname: string, paths: string[]): boolean {

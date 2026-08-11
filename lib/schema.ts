@@ -206,6 +206,51 @@ export const laporanPhotos = pgTable(
   }),
 );
 
+/**
+ * Laporan Akhbar — tinjauan penyelarasan peruntukan Langganan Akhbar (JPN Perak).
+ * Satu baris per sekolah per tahun program. Lihat docs/superpowers/specs/2026-08-11-laporan-akhbar-design.md.
+ */
+export const laporanAkhbar = pgTable(
+  "laporan_akhbar",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    year: integer("year").notNull().default(2026),
+    schoolCode: text("school_code")
+      .notNull()
+      .references(() => schools.code, { onDelete: "restrict" }),
+    kategoriSekolah: text("kategori_sekolah").notNull(),
+    liputanPkb: text("liputan_pkb").notNull(),
+    peruntukanDiterimaRm: doublePrecision("peruntukan_diterima_rm").notNull().default(0),
+    perbelanjaanDigunakanRm: doublePrecision("perbelanjaan_digunakan_rm").notNull().default(0),
+    bayaranTertunggakRm: doublePrecision("bayaran_tertunggak_rm").notNull().default(0),
+    bakiPeruntukanRm: doublePrecision("baki_peruntukan_rm").notNull().default(0),
+    dipulangkanJpnRm: doublePrecision("dipulangkan_jpn_rm").notNull().default(0),
+    tambahanDipohonRm: doublePrecision("tambahan_dipohon_rm").notNull().default(0),
+    bayaranTertunggakSelesai: text("bayaran_tertunggak_selesai").notNull(),
+    bakiDipulangkan: text("baki_dipulangkan").notNull(),
+    tiadaBakiKwk: text("tiada_baki_kwk").notNull(),
+    mohonTambahan: text("mohon_tambahan").notNull(),
+    dokumenLengkap: text("dokumen_lengkap").notNull(),
+    statusSekolah: text("status_sekolah").notNull().default("Belum"),
+    tarikhHantar: timestamp("tarikh_hantar", { withTimezone: true }),
+    catatan: text("catatan").notNull().default(""),
+    semakanLengkap: text("semakan_lengkap"),
+    disahkan: text("disahkan"),
+    perluPembetulan: text("perlu_pembetulan"),
+    pegawaiPpd: text("pegawai_ppd").notNull().default(""),
+    tarikhSemakan: date("tarikh_semakan"),
+    catatanPpd: text("catatan_ppd").notNull().default(""),
+    receiptToken: text("receipt_token").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    schoolYearUq: uniqueIndex("laporan_akhbar_school_year_uq").on(t.schoolCode, t.year),
+    yearIdx: index("laporan_akhbar_year_idx").on(t.year),
+    statusIdx: index("laporan_akhbar_status_idx").on(t.statusSekolah),
+  }),
+);
+
 /* ==================== Modul Kandungan (Sumber USTP + Bahan Sokongan) ==================== */
 
 export const kandunganTopik = pgEnum("kandungan_topik", [

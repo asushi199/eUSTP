@@ -16,6 +16,11 @@ const CARDS: AdminCard[] = [
     title: "Laporan PSS",
     description: "Arkib bulanan dan statistik pelaporan PSS.",
   },
+  {
+    href: "/admin/laporan-akhbar",
+    title: "Laporan Akhbar",
+    description: "Tinjauan Langganan Akhbar 2026 — semakan PPD & eksport Excel JPN.",
+  },
 ];
 
 export default async function AdminPelaporanPage() {
@@ -25,7 +30,7 @@ export default async function AdminPelaporanPage() {
     <>
       <h1 className="text-2xl font-semibold tracking-tight">Pelaporan</h1>
       <p className="mt-1 text-sm text-graphite">
-        Urus laporan DPD dan PSS daerah Manjung.
+        Urus laporan DPD, PSS dan Akhbar daerah Manjung.
       </p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

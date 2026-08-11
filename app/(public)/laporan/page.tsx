@@ -9,7 +9,7 @@ import {
 
 export const metadata: Metadata = {
   title: "Pelaporan — NEXa Manjung",
-  description: "Pilih Laporan DPD atau Laporan PSS.",
+  description: "Pilih Laporan DPD, PSS atau Laporan Akhbar.",
 };
 
 export default function LaporanHubPage() {

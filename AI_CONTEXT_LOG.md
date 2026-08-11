@@ -1,5 +1,20 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-08-11 — Laporan Akhbar (Langganan Akhbar 2026)
+
+- Modul baharu tinjauan penyelarasan peruntukan Program Langganan Akhbar 2026
+  untuk **PPD Manjung sahaja** (spec:
+  `docs/superpowers/specs/2026-08-11-laporan-akhbar-design.md`).
+- Awam: `/laporan-akhbar` (satu borang gabungan), `/laporan-akhbar/berjaya`,
+  `/laporan-akhbar/semak` (kod + nombor resit). Hub `/laporan` menambah kad
+  ketiga (laluan dalaman; DPD/PSS kekal Looker override).
+- Admin: `/admin/laporan-akhbar` senarai ikut kod, detail semakan PPD,
+  `/admin/laporan-akhbar/export` jana Excel dari template JPN (SheetJS/`xlsx`).
+  Sheet **Tindakan JPN** dibiarkan kosong. Tiada lampiran.
+- Skema `laporan_akhbar` + migrasi `0027_laporan_akhbar`. Enum ketat dari sheet
+  `Senarai` (Ya/Tidak, Status, Kategori SR/SM PKB).
+- Template disalin ke `public/templates/laporan-akhbar-2026.xlsx`.
+
 ## 2026-08-08 — Jenama rasmi NEXa + logo baharu
 
 - Portal ditukar nama paparan daripada eUSTP kepada **NEXa** (`APP_DISPLAY_NAME` /

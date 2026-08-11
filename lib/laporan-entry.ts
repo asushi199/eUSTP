@@ -19,7 +19,7 @@ export const LAPORAN_ENTRY_OVERRIDE = {
 } as const;
 
 export type LaporanHubChoice = {
-  kind: "dpd" | "pss";
+  kind: "dpd" | "pss" | "akhbar";
   title: string;
   description: string;
   href: string;
@@ -38,7 +38,7 @@ export function resolveLaporanModuleHref(
   return { href: entry.lookerHref, external: true };
 }
 
-/** Pilihan DPD / PSS untuk halaman hub /laporan (tab mudah alih & laluan terpusat). */
+/** Pilihan DPD / PSS / Akhbar untuk halaman hub /laporan. */
 export function getLaporanHubChoices(): LaporanHubChoice[] {
   const dpd = resolveLaporanModuleHref("dpd", LAPORAN_ENTRY_OVERRIDE.dpd.internalHref);
   const pss = resolveLaporanModuleHref("pss", LAPORAN_ENTRY_OVERRIDE.pss.internalHref);
@@ -64,6 +64,15 @@ export function getLaporanHubChoices(): LaporanHubChoice[] {
       href: pss.href,
       external: pss.external,
       accent: "#7C3AED",
+    },
+    {
+      kind: "akhbar",
+      title: "Laporan Akhbar",
+      description:
+        "Tinjauan penyelarasan peruntukan Program Langganan Akhbar 2026 (PPD Manjung).",
+      href: "/laporan-akhbar",
+      external: false,
+      accent: "#024ad8",
     },
   ];
 }
