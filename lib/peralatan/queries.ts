@@ -28,6 +28,7 @@ import {
   equipmentUnits,
   pkgs,
   schools,
+  users,
 } from "@/lib/schema";
 import type {
   EquipmentCatalogItem,
@@ -673,6 +674,12 @@ export async function getEquipmentLoanDetail(
       equipmentManagerPosition: true,
     },
   });
+  const approverRow = request.approvedByUserId
+    ? await db.query.users.findFirst({
+        where: eq(users.id, request.approvedByUserId),
+        columns: { nama: true, jawatan: true },
+      })
+    : null;
 
   const itemRows = await db
     .select({
@@ -777,6 +784,8 @@ export async function getEquipmentLoanDetail(
     pkgManagerName: issuerName,
     issuerName,
     issuerPosition,
+    approverName: approverRow?.nama.trim() ?? "",
+    approverPosition: approverRow?.jawatan.trim() ?? "",
     applicantMykadMasked: applicantMykadLast4
       ? `******-**-${applicantMykadLast4}`
       : "Belum direkodkan",

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  buildKewPa9SignatureDetails,
   getReturnNoteBox,
   getReturnNoteBoxHeight,
 } from "../../lib/peralatan/kew-pa9";
@@ -23,4 +24,42 @@ test("fills the Catatan cell interior without drawing through the return note", 
     width: 51.96,
     height: 50.88,
   });
+});
+
+test("builds KEW.PA-9 signature details from the recorded loan roles", () => {
+  assert.deepEqual(
+    buildKewPa9SignatureDetails({
+      applicantName: "Nur Aisyah Binti Ali",
+      applicantPosition: "Guru",
+      borrowDate: "2026-08-05",
+      approverName: "Ahmad Bin Salleh",
+      approverPosition: "Pegawai Pendidikan Daerah",
+      approvedAt: new Date("2026-08-03T09:00:00+08:00"),
+      issuerName: "Siti Binti Rahman",
+      issuerPosition: "Pegawai Teknologi Pendidikan",
+      returnedAt: new Date("2026-08-11T15:00:00+08:00"),
+    }),
+    {
+      borrower: {
+        name: "Nur Aisyah Binti Ali",
+        position: "Guru",
+        date: "05/08/2026",
+      },
+      approver: {
+        name: "Ahmad Bin Salleh",
+        position: "Pegawai Pendidikan Daerah",
+        date: "03/08/2026",
+      },
+      returner: {
+        name: "Nur Aisyah Binti Ali",
+        position: "Guru",
+        date: "11/08/2026",
+      },
+      receiver: {
+        name: "Siti Binti Rahman",
+        position: "Pegawai Teknologi Pendidikan",
+        date: "11/08/2026",
+      },
+    },
+  );
 });

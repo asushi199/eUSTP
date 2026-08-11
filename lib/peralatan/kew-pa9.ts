@@ -32,6 +32,19 @@ type KewPa9Unit = {
   description: string;
 };
 
+type KewPa9Signature = {
+  name: string;
+  position: string;
+  date: string;
+};
+
+export type KewPa9SignatureDetails = {
+  borrower: KewPa9Signature;
+  approver: KewPa9Signature;
+  returner: KewPa9Signature;
+  receiver: KewPa9Signature;
+};
+
 export type KewPa9Data = {
   referenceNo: string;
   applicantName: string;
@@ -45,6 +58,7 @@ export type KewPa9Data = {
   expectedReturnDate: string;
   returnedAt: Date | null;
   returnNote: string;
+  signatures: KewPa9SignatureDetails;
   units: KewPa9Unit[];
 };
 
@@ -66,6 +80,49 @@ function formatDate(value: string | Date | null): string {
     year: "numeric",
     timeZone: "Asia/Kuala_Lumpur",
   }).format(date);
+}
+
+export function buildKewPa9SignatureDetails(input: {
+  applicantName: string;
+  applicantPosition: string;
+  borrowDate: string;
+  approverName: string;
+  approverPosition: string;
+  approvedAt: Date | null;
+  issuerName: string;
+  issuerPosition: string;
+  returnedAt: Date | null;
+}): KewPa9SignatureDetails {
+  const borrower = {
+    name: input.applicantName,
+    position: input.applicantPosition,
+    date: formatDate(input.borrowDate),
+  };
+  const returner = input.returnedAt
+    ? {
+        name: input.applicantName,
+        position: input.applicantPosition,
+        date: formatDate(input.returnedAt),
+      }
+    : { name: "", position: "", date: "" };
+  const receiver = input.returnedAt
+    ? {
+        name: input.issuerName,
+        position: input.issuerPosition,
+        date: formatDate(input.returnedAt),
+      }
+    : { name: "", position: "", date: "" };
+
+  return {
+    borrower,
+    approver: {
+      name: input.approverName,
+      position: input.approverPosition,
+      date: formatDate(input.approvedAt),
+    },
+    returner,
+    receiver,
+  };
 }
 
 function fitText(
@@ -253,6 +310,20 @@ function drawReturnNote(
   });
 }
 
+function drawSignatureDetails(
+  page: PDFPage,
+  font: PDFFont,
+  signature: KewPa9Signature,
+  left: number,
+  top: number,
+  width: number,
+  lineHeight: number,
+) {
+  drawCellText(page, font, signature.name, left, top, width, 7.2);
+  drawCellText(page, font, signature.position, left, top + lineHeight, width, 7.2);
+  drawCellText(page, font, signature.date, left, top + lineHeight * 2, width, 7.2);
+}
+
 function drawPageContent(
   page: PDFPage,
   font: PDFFont,
@@ -346,6 +417,12 @@ function drawPageContent(
   if (pageIndex === 0) {
     drawReturnNote(page, font, data.returnNote);
   }
+  if (pageIndex === pageCount - 1) {
+    drawSignatureDetails(page, font, data.signatures.borrower, 82, 633, 230, 14);
+    drawSignatureDetails(page, font, data.signatures.approver, 374, 633, 184, 14);
+    drawSignatureDetails(page, font, data.signatures.returner, 82, 730, 230, 16.2);
+    drawSignatureDetails(page, font, data.signatures.receiver, 374, 730, 184, 16.2);
+  }
 }
 
 export function buildKewPa9Data(request: EquipmentLoanDetail): KewPa9Data {
@@ -361,6 +438,17 @@ export function buildKewPa9Data(request: EquipmentLoanDetail): KewPa9Data {
     expectedReturnDate: request.expectedReturnDate,
     returnedAt: request.returnedAt,
     returnNote: request.returnNote,
+    signatures: buildKewPa9SignatureDetails({
+      applicantName: request.applicantName,
+      applicantPosition: request.position,
+      borrowDate: request.borrowDate,
+      approverName: request.approverName,
+      approverPosition: request.approverPosition,
+      approvedAt: request.approvedAt,
+      issuerName: request.issuerName,
+      issuerPosition: request.issuerPosition,
+      returnedAt: request.returnedAt,
+    }),
     units: request.items.flatMap((item) =>
       item.allocatedUnits.map((unit) => ({
         serialNo: unit.serialNo,
