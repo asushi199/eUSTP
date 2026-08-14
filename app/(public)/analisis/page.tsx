@@ -1,5 +1,12 @@
 import type { Metadata } from "next";
-import { deriveBelumBil, getAnalisisData, metricNum, metricText } from "@/lib/analisis/queries";
+import {
+  deriveBelumBil,
+  getAnalisisData,
+  metricNum,
+  metricText,
+  optikTovLabel,
+  optikTovValue,
+} from "@/lib/analisis/queries";
 import AnalisisKpiTiles from "@/components/analisis/AnalisisKpiTiles";
 import KpiGroups from "@/components/analisis/KpiGroups";
 import DelimaTrendChart from "@/components/analisis/DelimaTrendChart";
@@ -116,7 +123,7 @@ export default async function AnalisisPage() {
 
   /* ---------- OPTIK ---------- */
   const optikSeries = [
-    { bulan: "TOV 2024", jumlah: metricNum(optik.metrics, "tov2024", "tov_2024") ?? 0 },
+    { bulan: optikTovLabel(optik.metrics), jumlah: optikTovValue(optik.metrics) ?? 0 },
     { bulan: "AR1 (Jul)", jumlah: metricNum(optik.metrics, "ar1_julai", "ar1") ?? 0 },
     { bulan: "AR2 (Okt)", jumlah: metricNum(optik.metrics, "ar2_okt", "ar2") ?? 0 },
     { bulan: "Selesai", jumlah: metricNum(optik.metrics, "selesai_pct") ?? 0 },

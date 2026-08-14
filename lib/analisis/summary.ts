@@ -1,6 +1,13 @@
 import "server-only";
 
-import { deriveBelumBil, getAnalisisData, metricNum, metricText } from "./queries";
+import {
+  deriveBelumBil,
+  getAnalisisData,
+  metricNum,
+  metricText,
+  optikTovLabel,
+  optikTovValue,
+} from "./queries";
 
 /** Bentuk data boleh-serialize untuk kad + modal analisis di halaman utama. */
 export type HomeBarChart = {
@@ -234,7 +241,7 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
       title: "Perkembangan Penggunaan AI Tools (%)",
       seriesName: "%",
       data: [
-        { bulan: "TOV 2024", jumlah: metricNum(optik.metrics, "tov2024", "tov_2024") ?? 0 },
+        { bulan: optikTovLabel(optik.metrics), jumlah: optikTovValue(optik.metrics) ?? 0 },
         { bulan: "AR1 (Jul)", jumlah: metricNum(optik.metrics, "ar1_julai", "ar1") ?? 0 },
         { bulan: "AR2 (Okt)", jumlah: metricNum(optik.metrics, "ar2_okt", "ar2") ?? 0 },
         { bulan: "Selesai", jumlah: optikSelesai ?? 0 },

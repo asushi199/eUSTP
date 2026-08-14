@@ -81,6 +81,13 @@ export default async function AdminAnalisisPage({
       {/* ---------- Metrik KV ---------- */}
       <section className="mt-6">
         <h2 className="text-lg font-semibold">Metrik (kunci → nilai)</h2>
+        {modul === "optik" ? (
+          <p className="mt-1 text-xs text-graphite">
+            Label titik pertama carta: kunci <code>tov_year</code> (cth. 2025) dipaparkan
+            sebagai &quot;TOV 2025&quot;. Nilai peratus kekal pada kunci <code>tov</code>{" "}
+            atau <code>tov2024</code>.
+          </p>
+        ) : null}
         <div className="card mt-3 divide-y divide-fog">
           {metrics.map((m) => (
             <div key={m.id} className="flex flex-wrap items-center gap-2 px-4 py-2">

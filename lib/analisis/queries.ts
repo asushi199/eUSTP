@@ -74,6 +74,25 @@ export function metricText(metrics: MetricMap, ...keys: string[]): string {
   return "";
 }
 
+const DEFAULT_TOV_YEAR = "2024";
+
+/** Tahun label TOV carta AI Tools. Pentadbir tetapkan kunci `tov_year` (cth. 2025). */
+export function optikTovYear(metrics: MetricMap): string {
+  const year = metricText(metrics, "tov_year");
+  return /^\d{4}$/.test(year) ? year : DEFAULT_TOV_YEAR;
+}
+
+/** Label paksi-X titik pertama carta AI Tools, cth. "TOV 2025". */
+export function optikTovLabel(metrics: MetricMap): string {
+  return `TOV ${optikTovYear(metrics)}`;
+}
+
+/** Peratus TOV — utamakan `tov`, kemudian kunci berasaskan tahun, kemudian `tov2024`. */
+export function optikTovValue(metrics: MetricMap): number | null {
+  const year = optikTovYear(metrics);
+  return metricNum(metrics, "tov", `tov${year}`, `tov_${year}`, "tov2024", "tov_2024");
+}
+
 /**
  * Anggar bilangan "belum selesai" daripada bilangan "selesai" + peratusan kedua-duanya
  * (cth. OPTIK hanya simpan bilangan siap, bukan bilangan belum siap).
