@@ -204,6 +204,13 @@
       "when": 1786752000001,
       "tag": "0028_equipment_loan_signer_snapshots",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1786982400000,
+      "tag": "0029_laporan_akhbar_tahun_2425",
+      "breakpoints": true
     }
   ]
 }

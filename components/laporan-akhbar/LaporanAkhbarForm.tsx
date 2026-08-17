@@ -199,6 +199,9 @@ export default function LaporanAkhbarForm({
 
       <section className="card p-6">
         <h2 className="text-lg font-semibold">2. Peruntukan & perbelanjaan</h2>
+        <p className="mt-1 text-sm text-graphite">
+          Isi amaun 2026, kemudian terimaan dan baki peruntukan tahun 2024–2025.
+        </p>
         <div className="mt-4 grid items-end gap-4 sm:grid-cols-2">
           <div>
             <label className="label" htmlFor="kategoriSekolah">
@@ -229,7 +232,7 @@ export default function LaporanAkhbarForm({
           />
           <div>
             <label className="label" htmlFor="peruntukanDiterimaRm">
-              Peruntukan diterima (RM) *
+              2026 Peruntukan diterima (RM) *
             </label>
             <input
               id="peruntukanDiterimaRm"
@@ -243,7 +246,7 @@ export default function LaporanAkhbarForm({
           </div>
           <div>
             <label className="label" htmlFor="perbelanjaanDigunakanRm">
-              Perbelanjaan digunakan (RM) *
+              2026 Perbelanjaan digunakan (RM) *
             </label>
             <input
               id="perbelanjaanDigunakanRm"
@@ -257,7 +260,7 @@ export default function LaporanAkhbarForm({
           </div>
           <div>
             <label className="label" htmlFor="bayaranTertunggakRm">
-              Bayaran tertunggak (RM) *
+              2026 Bayaran tertunggak (RM) *
             </label>
             <input
               id="bayaranTertunggakRm"
@@ -270,7 +273,7 @@ export default function LaporanAkhbarForm({
           </div>
           <div>
             <div className="label">
-              Baki peruntukan (RM)
+              2026 Baki peruntukan (RM)
               <span className="mt-0.5 block text-xs font-normal text-graphite">
                 Dikira automatik: peruntukan − perbelanjaan
               </span>
@@ -286,7 +289,7 @@ export default function LaporanAkhbarForm({
           </div>
           <div>
             <label className="label" htmlFor="dipulangkanJpnRm">
-              Dipulangkan kepada JPN (RM) *
+              2026 Dipulangkan kepada JPN (RM) *
             </label>
             <input
               id="dipulangkanJpnRm"
@@ -308,6 +311,32 @@ export default function LaporanAkhbarForm({
               inputMode="decimal"
               required
               defaultValue={existing ? String(existing.tambahanDipohonRm) : "0"}
+            />
+          </div>
+          <div>
+            <label className="label" htmlFor="terimaanTahun20242025Rm">
+              Terimaan tahun 2024–2025 (RM) *
+            </label>
+            <input
+              id="terimaanTahun20242025Rm"
+              name="terimaanTahun20242025Rm"
+              className="input"
+              inputMode="decimal"
+              required
+              defaultValue={existing ? String(existing.terimaanTahun20242025Rm) : ""}
+            />
+          </div>
+          <div>
+            <label className="label" htmlFor="bakiPeruntukan20242025Rm">
+              Baki peruntukan tahun 2024–2025 (RM) *
+            </label>
+            <input
+              id="bakiPeruntukan20242025Rm"
+              name="bakiPeruntukan20242025Rm"
+              className="input"
+              inputMode="decimal"
+              required
+              defaultValue={existing ? String(existing.bakiPeruntukan20242025Rm) : ""}
             />
           </div>
         </div>

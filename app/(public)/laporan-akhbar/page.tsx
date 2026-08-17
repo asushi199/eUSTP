@@ -30,7 +30,7 @@ export default async function LaporanAkhbarPage({ searchParams }: Props) {
         eyebrow="Pelaporan"
         title="Laporan Akhbar 2026"
         accent="#024ad8"
-        description="Isi sekali sahaja. Data akan dikumpulkan oleh PPD Manjung untuk dihantar kepada JPN."
+        description="Isi sekali sahaja, termasuk amaun 2026 serta terimaan dan baki peruntukan 2024–2025. Data akan dikumpulkan oleh PPD Manjung untuk dihantar kepada JPN."
       />
       <div className="mt-4 flex flex-wrap gap-3 text-sm">
         <Link href="/laporan" className="text-graphite hover:text-ink">

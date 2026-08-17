@@ -226,6 +226,12 @@ export const laporanAkhbar = pgTable(
     bakiPeruntukanRm: doublePrecision("baki_peruntukan_rm").notNull().default(0),
     dipulangkanJpnRm: doublePrecision("dipulangkan_jpn_rm").notNull().default(0),
     tambahanDipohonRm: doublePrecision("tambahan_dipohon_rm").notNull().default(0),
+    terimaanTahun20242025Rm: doublePrecision("terimaan_tahun_2024_2025_rm")
+      .notNull()
+      .default(0),
+    bakiPeruntukan20242025Rm: doublePrecision("baki_peruntukan_2024_2025_rm")
+      .notNull()
+      .default(0),
     bayaranTertunggakSelesai: text("bayaran_tertunggak_selesai").notNull(),
     bakiDipulangkan: text("baki_dipulangkan").notNull(),
     tiadaBakiKwk: text("tiada_baki_kwk").notNull(),

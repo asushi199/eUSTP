@@ -199,7 +199,7 @@ export default function AdminAkhbarForm({
           />
           <div>
             <label className="label" htmlFor="peruntukanDiterimaRm">
-              Peruntukan diterima (RM) *
+              2026 Peruntukan diterima (RM) *
             </label>
             <input
               id="peruntukanDiterimaRm"
@@ -212,7 +212,7 @@ export default function AdminAkhbarForm({
           </div>
           <div>
             <label className="label" htmlFor="perbelanjaanDigunakanRm">
-              Perbelanjaan digunakan (RM) *
+              2026 Perbelanjaan digunakan (RM) *
             </label>
             <input
               id="perbelanjaanDigunakanRm"
@@ -225,7 +225,7 @@ export default function AdminAkhbarForm({
           </div>
           <div>
             <label className="label" htmlFor="bayaranTertunggakRm">
-              Bayaran tertunggak (RM) *
+              2026 Bayaran tertunggak (RM) *
             </label>
             <input
               id="bayaranTertunggakRm"
@@ -237,7 +237,7 @@ export default function AdminAkhbarForm({
           </div>
           <div>
             <div className="label">
-              Baki (RM)
+              2026 Baki peruntukan (RM)
               <span className="mt-0.5 block text-xs font-normal text-graphite">
                 Dikira automatik
               </span>
@@ -250,7 +250,7 @@ export default function AdminAkhbarForm({
           </div>
           <div>
             <label className="label" htmlFor="dipulangkanJpnRm">
-              Dipulangkan JPN (RM) *
+              2026 Dipulangkan kepada JPN (RM) *
             </label>
             <input
               id="dipulangkanJpnRm"
@@ -270,6 +270,30 @@ export default function AdminAkhbarForm({
               className="input"
               required
               defaultValue={record ? String(record.tambahanDipohonRm) : "0"}
+            />
+          </div>
+          <div>
+            <label className="label" htmlFor="terimaanTahun20242025Rm">
+              Terimaan tahun 2024–2025 (RM) *
+            </label>
+            <input
+              id="terimaanTahun20242025Rm"
+              name="terimaanTahun20242025Rm"
+              className="input"
+              required
+              defaultValue={record ? String(record.terimaanTahun20242025Rm) : "0"}
+            />
+          </div>
+          <div>
+            <label className="label" htmlFor="bakiPeruntukan20242025Rm">
+              Baki peruntukan tahun 2024–2025 (RM) *
+            </label>
+            <input
+              id="bakiPeruntukan20242025Rm"
+              name="bakiPeruntukan20242025Rm"
+              className="input"
+              required
+              defaultValue={record ? String(record.bakiPeruntukan20242025Rm) : "0"}
             />
           </div>
           <SelectRequiredYaTidak

@@ -113,9 +113,25 @@ export default async function SemakLaporanAkhbarPage({ searchParams }: Props) {
               <dd>{record.perluPembetulan ?? "—"}</dd>
             </div>
             <div>
-              <dt className="text-graphite">Baki (RM)</dt>
+              <dt className="text-graphite">2026 Baki peruntukan (RM)</dt>
               <dd>
                 {record.bakiPeruntukanRm.toLocaleString("ms-MY", {
+                  minimumFractionDigits: 2,
+                })}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-graphite">Terimaan 2024–2025 (RM)</dt>
+              <dd>
+                {record.terimaanTahun20242025Rm.toLocaleString("ms-MY", {
+                  minimumFractionDigits: 2,
+                })}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-graphite">Baki peruntukan 2024–2025 (RM)</dt>
+              <dd>
+                {record.bakiPeruntukan20242025Rm.toLocaleString("ms-MY", {
                   minimumFractionDigits: 2,
                 })}
               </dd>

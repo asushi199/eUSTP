@@ -35,7 +35,7 @@ export default async function AdminLaporanAkhbarPage() {
               <th className="px-4 py-3 font-semibold">Sekolah</th>
               <th className="px-4 py-3 font-semibold">Status</th>
               <th className="px-4 py-3 font-semibold">Semakan PPD</th>
-              <th className="px-4 py-3 font-semibold">Baki (RM)</th>
+              <th className="px-4 py-3 font-semibold">Baki 2026 (RM)</th>
               <th className="px-4 py-3" />
             </tr>
           </thead>

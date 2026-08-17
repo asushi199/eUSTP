@@ -42,11 +42,17 @@ const surveySchema = z.object({
   schoolCode: z.string().min(1),
   kategoriSekolah: z.string().refine(isKategoriSekolah, "Kategori sekolah tidak sah"),
   liputanPkb: z.string().refine(isYaTidak, "Liputan PKB tidak sah"),
-  peruntukanDiterimaRm: z.number({ invalid_type_error: "Peruntukan tidak sah" }),
-  perbelanjaanDigunakanRm: z.number({ invalid_type_error: "Perbelanjaan tidak sah" }),
-  bayaranTertunggakRm: z.number({ invalid_type_error: "Bayaran tertunggak tidak sah" }),
-  dipulangkanJpnRm: z.number({ invalid_type_error: "Jumlah dipulangkan tidak sah" }),
+  peruntukanDiterimaRm: z.number({ invalid_type_error: "Peruntukan 2026 tidak sah" }),
+  perbelanjaanDigunakanRm: z.number({ invalid_type_error: "Perbelanjaan 2026 tidak sah" }),
+  bayaranTertunggakRm: z.number({ invalid_type_error: "Bayaran tertunggak 2026 tidak sah" }),
+  dipulangkanJpnRm: z.number({ invalid_type_error: "Jumlah dipulangkan 2026 tidak sah" }),
   tambahanDipohonRm: z.number({ invalid_type_error: "Tambahan dipohon tidak sah" }),
+  terimaanTahun20242025Rm: z.number({
+    invalid_type_error: "Terimaan tahun 2024–2025 tidak sah",
+  }),
+  bakiPeruntukan20242025Rm: z.number({
+    invalid_type_error: "Baki peruntukan tahun 2024–2025 tidak sah",
+  }),
   bayaranTertunggakSelesai: z.string().refine(isYaTidak, "Checklist tidak sah"),
   bakiDipulangkan: z.string().refine(isYaTidak, "Checklist tidak sah"),
   tiadaBakiKwk: z.string().refine(isYaTidak, "Checklist tidak sah"),
@@ -63,6 +69,8 @@ function parseSurveyForm(formData: FormData) {
     "bayaranTertunggakRm",
     "dipulangkanJpnRm",
     "tambahanDipohonRm",
+    "terimaanTahun20242025Rm",
+    "bakiPeruntukan20242025Rm",
   ] as const;
 
   const amounts: Partial<Record<(typeof fields)[number], number>> = {};
@@ -107,6 +115,8 @@ function surveyValues(data: z.infer<typeof surveySchema>, receiptToken: string) 
     bakiPeruntukanRm: baki,
     dipulangkanJpnRm: data.dipulangkanJpnRm,
     tambahanDipohonRm: data.tambahanDipohonRm,
+    terimaanTahun20242025Rm: data.terimaanTahun20242025Rm,
+    bakiPeruntukan20242025Rm: data.bakiPeruntukan20242025Rm,
     bayaranTertunggakSelesai: data.bayaranTertunggakSelesai,
     bakiDipulangkan: data.bakiDipulangkan,
     tiadaBakiKwk: data.tiadaBakiKwk,

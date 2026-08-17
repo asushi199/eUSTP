@@ -19,7 +19,7 @@ const CARDS: AdminCard[] = [
   {
     href: "/admin/laporan-akhbar",
     title: "Laporan Akhbar",
-    description: "Tinjauan Langganan Akhbar 2026 — semakan PPD & eksport Excel JPN.",
+    description: "Tinjauan Langganan Akhbar 2026 — termasuk data 2024–2025, semakan PPD & eksport Excel JPN.",
   },
 ];
 

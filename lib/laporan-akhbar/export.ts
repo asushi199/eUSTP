@@ -11,11 +11,7 @@ import { listAkhbarAdminRows } from "@/lib/laporan-akhbar/queries";
 
 const TEMPLATE_CANDIDATES = [
   path.join(process.cwd(), "public", "templates", "laporan-akhbar-2026.xlsx"),
-  path.join(
-    process.cwd(),
-    "docs",
-    "Template_Penyelarasan_Peruntukan_Program_Langganan_Akhbar_2026_JPN_Perak.xlsx",
-  ),
+  path.join(process.cwd(), "docs", "fixed template penyelarasan akhbar.xlsx"),
 ];
 
 function cell(ws: Record<string, unknown>, addr: string, value: string | number | null) {
@@ -70,7 +66,7 @@ export async function buildLaporanAkhbarWorkbook(): Promise<{
     const rec = item.record;
     const bil = i + 1;
 
-    // Data Sekolah A–O
+    // Data Sekolah A–Q (template 2026 + terimaan/baki 2024–2025)
     cell(dataWs, `A${r}`, bil);
     cell(dataWs, `B${r}`, item.schoolCode);
     cell(dataWs, `C${r}`, item.schoolName);
@@ -84,15 +80,17 @@ export async function buildLaporanAkhbarWorkbook(): Promise<{
       cell(dataWs, `J${r}`, rec.bakiPeruntukanRm);
       cell(dataWs, `K${r}`, rec.dipulangkanJpnRm);
       cell(dataWs, `L${r}`, rec.tambahanDipohonRm);
-      cell(dataWs, `M${r}`, rec.statusSekolah);
+      cell(dataWs, `M${r}`, rec.terimaanTahun20242025Rm);
+      cell(dataWs, `N${r}`, rec.bakiPeruntukan20242025Rm);
+      cell(dataWs, `O${r}`, rec.statusSekolah);
       cell(
         dataWs,
-        `N${r}`,
+        `P${r}`,
         rec.tarikhHantar
           ? new Date(rec.tarikhHantar).toISOString().slice(0, 10)
           : null,
       );
-      cell(dataWs, `O${r}`, rec.catatan || null);
+      cell(dataWs, `Q${r}`, rec.catatan || null);
     }
 
     // Checklist Sekolah A–I
@@ -123,8 +121,9 @@ export async function buildLaporanAkhbarWorkbook(): Promise<{
   });
 
   const last = rows.length + 1;
-  for (const ws of [dataWs, checkWs, semakWs]) {
-    ws["!ref"] = `A1:${colLetter(15)}${Math.max(last, 2)}`;
+  dataWs["!ref"] = `A1:${colLetter(17)}${Math.max(last, 2)}`;
+  for (const ws of [checkWs, semakWs]) {
+    ws["!ref"] = `A1:${colLetter(9)}${Math.max(last, 2)}`;
   }
 
   // Biarkan Tindakan JPN kosong (JPN isi sendiri).

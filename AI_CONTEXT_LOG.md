@@ -1,5 +1,14 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-08-17 — Laporan Akhbar: tahun 2026 + data 2024–2025
+
+- Template eksport ditukar kepada `docs/fixed template penyelarasan akhbar.xlsx`
+  (disalin ke `public/templates/laporan-akhbar-2026.xlsx`).
+- Lajur amaun sedia ada dilabel **2026**; dua medan baharu wajib diisi sekolah:
+  **Terimaan tahun 2024–2025** dan **Baki peruntukan tahun 2024–2025**.
+- Eksport `Data Sekolah` kini A–Q (Status/Tarikh/Catatan beralih ke O–Q).
+- Migrasi `0029_laporan_akhbar_tahun_2425` menambah dua lajur pada `laporan_akhbar`.
+
 ## 2026-08-11 — CoE Laporan hub (desktop + home)
 
 - Halaman utama & TopNav desktop kini memaparkan **CoE Laporan** (bukan dua kad
