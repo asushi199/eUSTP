@@ -7,6 +7,9 @@
   senarai tarikh/slot. Semua hari berkongsi pautan dan token poster yang sama.
 - Poster QR memaparkan julat tarikh serta jadual setiap hari. Pembatalan atau
   pindaan satu hari akan menyegerakkan semula jadual event yang sama.
+- Skrip `merge-legacy-booking-groups.ts` hanya memilih rekod sejarah yang
+  dicipta dalam transaksi sama dan bertarikh berturutan. Ia memindahkan
+  kehadiran ke event baharu sebelum membuang event lama dan menyatukan poster.
 
 ## 2026-08-21 — Kemaskini Laporan Akhbar tanpa tiket berulang
 

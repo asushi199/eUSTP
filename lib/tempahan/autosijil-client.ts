@@ -29,6 +29,12 @@ export type AutosijilCreateEventResult = {
   adminUrl: string;
 };
 
+export type AutosijilLegacySourceEvent = {
+  eventId: string;
+  sessionDate: string;
+  slot: "am" | "pm" | "full_day";
+};
+
 function autosijilConfig() {
   const baseUrl = (process.env.AUTOSIJIL_BASE_URL ?? "").replace(/\/$/, "");
   const secret = process.env.AUTOSIJIL_INTEGRATION_SECRET ?? "";
@@ -112,4 +118,15 @@ export async function updateAutosijilEvent(
 
 export async function cancelAutosijilEvent(externalBookingId: string): Promise<void> {
   await autosijilFetch("/api/integrations/eustp/events/cancel", { externalBookingId });
+}
+
+/** Memindahkan kehadiran event lama sebelum event tersebut dibuang. */
+export async function mergeLegacyAutosijilEvents(
+  externalBookingId: string,
+  sourceEvents: AutosijilLegacySourceEvent[],
+): Promise<void> {
+  await autosijilFetch("/api/integrations/eustp/events/merge-legacy", {
+    externalBookingId,
+    sourceEvents,
+  });
 }
