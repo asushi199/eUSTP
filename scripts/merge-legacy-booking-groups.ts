@@ -56,6 +56,13 @@ function groupRows(rows: BookingRow[]) {
   );
 }
 
+function legacyGroupId(firstBookingId: string) {
+  // Elak bertembung dengan external_booking_id event harian lama, tetapi kekal
+  // deterministik supaya cubaan semula menggunakan event baharu yang sama.
+  const last = firstBookingId.at(-1);
+  return `${firstBookingId.slice(0, -1)}${last === "0" ? "1" : "0"}`;
+}
+
 async function main() {
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error("DATABASE_URL tidak ditemui.");
@@ -91,8 +98,7 @@ async function main() {
 
     for (const group of groups) {
       const first = group[0]!;
-      // UUID baris pertama dijadikan group ID agar cubaan semula kekal idempotent.
-      const groupId = first.id;
+      const groupId = legacyGroupId(first.id);
       const sessions = group.map((row) => ({ date: row.date, slot: row.slot }));
       const title = first.purpose.trim() || "Program PKG";
       const location = [first.room_name ?? first.room_slug, first.pkg_name].filter(Boolean).join(" / ") || null;
