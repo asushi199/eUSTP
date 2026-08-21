@@ -17,6 +17,16 @@ test("sizes the KEW.PA-9 return-note overlay to its wrapped text", () => {
   assert.ok(oneLine < fullGrid);
 });
 
+test("extends the Catatan box across every listed unit", () => {
+  assert.equal(getReturnNoteBoxHeight(1, 15), 257.4);
+  assert.deepEqual(getReturnNoteBox(1, 15), {
+    left: 510.48,
+    top: 241.13,
+    width: 51.96,
+    height: 256.8,
+  });
+});
+
 test("fills the Catatan cell interior without drawing through the return note", () => {
   assert.deepEqual(getReturnNoteBox(5), {
     left: 510.48,

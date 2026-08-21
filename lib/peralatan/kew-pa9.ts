@@ -240,25 +240,31 @@ function wrapPdfText(
   return lines;
 }
 
-export function getReturnNoteBoxHeight(lineCount: number): number {
+export function getReturnNoteBoxHeight(
+  lineCount: number,
+  unitCount = 1,
+): number {
   const requiredHeight =
     Math.max(1, lineCount) * RETURN_NOTE_LINE_HEIGHT +
     RETURN_NOTE_VERTICAL_PADDING;
   const rowCount = Math.min(
     ROWS_PER_PAGE,
-    Math.max(1, Math.ceil(requiredHeight / ROW_HEIGHT)),
+    Math.max(unitCount, 1, Math.ceil(requiredHeight / ROW_HEIGHT)),
   );
   return Number((rowCount * ROW_HEIGHT).toFixed(2));
 }
 
-export function getReturnNoteBox(lineCount: number) {
+export function getReturnNoteBox(lineCount: number, unitCount = 1) {
   return {
     left: CATATAN_LEFT,
     top: RETURN_NOTE_TOP,
     width: Number((CATATAN_RIGHT - CATATAN_LEFT).toFixed(2)),
     // Berhenti tepat sebelum garisan baris seterusnya supaya ia kekal sebagai sempadan bawah.
     height: Number(
-      (getReturnNoteBoxHeight(lineCount) - TEMPLATE_GRID_LINE_WIDTH).toFixed(2),
+      (
+        getReturnNoteBoxHeight(lineCount, unitCount) -
+        TEMPLATE_GRID_LINE_WIDTH
+      ).toFixed(2),
     ),
   };
 }
@@ -267,12 +273,13 @@ function drawReturnNote(
   page: PDFPage,
   font: PDFFont,
   value: string,
+  unitCount: number,
 ) {
   if (!value) return;
 
   const size = 5.2;
   const lines = wrapPdfText(font, value, CATATAN_RIGHT - CATATAN_LEFT - 4, size);
-  const box = getReturnNoteBox(lines.length);
+  const box = getReturnNoteBox(lines.length, unitCount);
   page.drawRectangle({
     x: box.left,
     y: page.getHeight() - box.top - box.height,
@@ -415,7 +422,7 @@ function drawPageContent(
     );
   });
   if (pageIndex === 0) {
-    drawReturnNote(page, font, data.returnNote);
+    drawReturnNote(page, font, data.returnNote, units.length);
   }
   if (pageIndex === pageCount - 1) {
     drawSignatureDetails(page, font, data.signatures.borrower, 82, 633, 230, 14);
