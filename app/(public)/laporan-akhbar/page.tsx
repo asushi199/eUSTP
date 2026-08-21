@@ -4,7 +4,7 @@ import LaporanAkhbarForm from "@/components/laporan-akhbar/LaporanAkhbarForm";
 import PageHeader from "@/components/PageHeader";
 import PublicPageShell from "@/components/PublicPageShell";
 import { listSchoolOptions } from "@/lib/direktori/queries";
-import { getLaporanAkhbarBySchool } from "@/lib/laporan-akhbar/queries";
+import { getLaporanAkhbarByReceipt } from "@/lib/laporan-akhbar/queries";
 
 export const metadata: Metadata = {
   title: "Laporan Akhbar — NEXa Manjung",
@@ -14,15 +14,17 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 type Props = {
-  searchParams: Promise<{ kod?: string; kemaskini?: string }>;
+  searchParams: Promise<{ kod?: string; resit?: string; kemaskini?: string }>;
 };
 
 export default async function LaporanAkhbarPage({ searchParams }: Props) {
   const sp = await searchParams;
   const schools = await listSchoolOptions();
   const kod = sp.kod?.trim().toUpperCase();
-  const existing = kod ? await getLaporanAkhbarBySchool(kod) : null;
-  const wantUpdate = sp.kemaskini === "1" || Boolean(existing && kod);
+  const resit = sp.resit?.trim().toUpperCase();
+  const wantUpdate = sp.kemaskini === "1";
+  const existing =
+    wantUpdate && kod && resit ? await getLaporanAkhbarByReceipt(kod, resit) : null;
 
   return (
     <PublicPageShell narrow>
@@ -44,8 +46,8 @@ export default async function LaporanAkhbarPage({ searchParams }: Props) {
         <LaporanAkhbarForm
           schools={schools}
           initialSchoolCode={kod}
-          existing={wantUpdate ? existing : null}
-          requireReceipt={Boolean(wantUpdate && existing)}
+          existing={existing}
+          initialReceiptToken={existing ? resit : undefined}
         />
       </div>
     </PublicPageShell>

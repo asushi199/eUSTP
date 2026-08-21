@@ -138,14 +138,11 @@ export default async function SemakLaporanAkhbarPage({ searchParams }: Props) {
             </div>
           </dl>
           <Link
-            href={`/laporan-akhbar?kod=${encodeURIComponent(kod)}&kemaskini=1`}
+            href={`/laporan-akhbar?kod=${encodeURIComponent(kod)}&resit=${encodeURIComponent(resit)}&kemaskini=1`}
             className="btn-primary inline-flex"
           >
             Kemaskini borang
           </Link>
-          <p className="text-xs text-graphite">
-            Pada halaman kemaskini, masukkan semula nombor tiket yang sama.
-          </p>
         </div>
       )}
 

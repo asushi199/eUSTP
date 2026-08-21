@@ -20,8 +20,8 @@ type Props = {
   schools: SchoolOption[];
   initialSchoolCode?: string;
   existing?: LaporanAkhbarRow | null;
-  /** Jika true, minta nombor tiket untuk kemaskini. */
-  requireReceipt?: boolean;
+  /** Nombor tiket yang telah disahkan di halaman semakan. */
+  initialReceiptToken?: string;
 };
 
 function SelectYaTidak({
@@ -67,7 +67,7 @@ export default function LaporanAkhbarForm({
   schools,
   initialSchoolCode,
   existing,
-  requireReceipt,
+  initialReceiptToken,
 }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -82,7 +82,7 @@ export default function LaporanAkhbarForm({
   const [perbelanjaan, setPerbelanjaan] = useState(
     existing ? String(existing.perbelanjaanDigunakanRm) : "",
   );
-  const [receiptToken, setReceiptToken] = useState("");
+  const [receiptToken, setReceiptToken] = useState(initialReceiptToken ?? "");
 
   const filteredSchools = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -110,7 +110,8 @@ export default function LaporanAkhbarForm({
     return computeBaki(a, b);
   })();
 
-  const needsReceipt = Boolean(requireReceipt || existing);
+  const isUpdateLocked = Boolean(existing && initialReceiptToken);
+  const needsReceipt = Boolean(existing);
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -147,6 +148,7 @@ export default function LaporanAkhbarForm({
               className="input"
               placeholder="Kod atau nama"
               value={query}
+              disabled={isUpdateLocked}
               onChange={(e) => setQuery(e.target.value)}
             />
           </div>
@@ -159,7 +161,7 @@ export default function LaporanAkhbarForm({
               className="input"
               required
               value={schoolCode}
-              disabled={Boolean(existing) || filteredSchools.length === 0}
+              disabled={isUpdateLocked || filteredSchools.length === 0}
               onChange={(e) => setSchoolCode(e.target.value)}
             >
               {filteredSchools.map((s) => (
@@ -186,12 +188,14 @@ export default function LaporanAkhbarForm({
               className="input font-mono uppercase"
               required
               value={receiptToken}
+              disabled={isUpdateLocked}
               onChange={(e) => setReceiptToken(e.target.value.toUpperCase())}
               placeholder="Contoh: A1B2C3D4…"
             />
             <p className="mt-1 text-xs text-graphite">
-              Sekolah ini sudah menghantar. Masukkan nombor tiket yang diterima semasa
-              hantaran pertama.
+              {isUpdateLocked
+                ? "Nombor tiket telah disahkan."
+                : "Sekolah ini sudah menghantar. Masukkan nombor tiket yang diterima semasa hantaran pertama."}
             </p>
           </div>
         )}

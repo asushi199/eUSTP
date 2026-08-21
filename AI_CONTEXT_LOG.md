@@ -1,5 +1,13 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-08-21 — Kemaskini Laporan Akhbar tanpa tiket berulang
+
+- Selepas kod sekolah dan nombor tiket berjaya disahkan pada halaman semakan,
+  pautan **Kemaskini borang** kini membawa kedua-dua nilai tersebut ke borang.
+  Halaman kemaskini mengesahkan semula padanan tiket di pelayan, lalu mengunci
+  carian/sekolah dan nombor tiket supaya responden boleh terus mengemas kini
+  data tanpa menukarnya atau memasukkan tiket kali kedua.
+
 ## 2026-08-17 — Laporan Akhbar: tahun 2026 + data 2024–2025
 
 - Template eksport ditukar kepada `docs/fixed template penyelarasan akhbar.xlsx`
