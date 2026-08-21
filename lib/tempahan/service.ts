@@ -11,7 +11,7 @@ import {
   pushBookingDetailsToAutosijil,
   syncApprovedBookingToAutosijil,
 } from "./autosijil-sync";
-import { getBooking, listActiveBookings } from "./queries";
+import { getBooking, listActiveBookings, listBookingGroup } from "./queries";
 
 
 function attendanceTokensFor(existing: {
@@ -57,6 +57,10 @@ export async function approveBookingCore(
   if (!existing) throw new Error("Tempahan tidak dijumpai.");
 
   const requiresCertificate = Boolean(opts.requiresCertificate);
+  const group = existing.groupId ? await listBookingGroup(pkgId, existing.groupId) : [existing];
+  if (group.some((booking) => booking.status === "rejected" || booking.status === "cancelled")) {
+    throw new Error("Salah satu hari dalam tempahan ini telah ditolak atau dibatalkan.");
+  }
 
   await db
     .update(bookings)
@@ -66,16 +70,26 @@ export async function approveBookingCore(
       rejectedAt: null,
       requiresCertificate,
     })
-    .where(and(eq(bookings.pkgId, pkgId), eq(bookings.id, id)));
+    .where(
+      existing.groupId
+        ? and(eq(bookings.pkgId, pkgId), eq(bookings.groupId, existing.groupId))
+        : and(eq(bookings.pkgId, pkgId), eq(bookings.id, id)),
+    );
 
   await syncApprovedBookingToAutosijil(pkgId, id);
 }
 
 export async function rejectBookingCore(pkgId: string, id: string): Promise<void> {
+  const existing = await getBooking(pkgId, id);
+  if (!existing) throw new Error("Tempahan tidak dijumpai.");
   await db
     .update(bookings)
     .set({ status: "rejected", rejectedAt: new Date() })
-    .where(and(eq(bookings.pkgId, pkgId), eq(bookings.id, id)));
+    .where(
+      existing.groupId
+        ? and(eq(bookings.pkgId, pkgId), eq(bookings.groupId, existing.groupId))
+        : and(eq(bookings.pkgId, pkgId), eq(bookings.id, id)),
+    );
 }
 
 export async function cancelBookingCore(pkgId: string, id: string): Promise<void> {

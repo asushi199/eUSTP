@@ -92,6 +92,7 @@ export default function BookingAgendaRow({
             cetakToken={booking.cetakToken}
             autosijilAdminUrl={booking.autosijilAdminUrl}
             requiresCertificate={booking.requiresCertificate}
+            isMultiDay={Boolean(booking.groupId)}
           />
         </div>
       </AgendaRow>

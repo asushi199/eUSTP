@@ -7,6 +7,7 @@ export default function CetakKehadiranPoster({
   programName,
   dateLine,
   timeLine,
+  scheduleLines,
   locationLine,
   qrUrl,
   requiresCertificate,
@@ -16,6 +17,7 @@ export default function CetakKehadiranPoster({
   programName: string;
   dateLine: string;
   timeLine: string;
+  scheduleLines?: string[];
   locationLine: string;
   qrUrl: string;
   requiresCertificate: boolean;
@@ -54,7 +56,13 @@ export default function CetakKehadiranPoster({
         <div className="mt-8 space-y-2 text-sm font-semibold italic leading-snug sm:text-base">
           <p className="uppercase">{programName}</p>
           <p className="uppercase">{dateLine}</p>
-          <p className="uppercase">{timeLine}</p>
+          {scheduleLines?.length ? (
+            <div className="space-y-1 not-italic text-xs font-medium sm:text-sm">
+              {scheduleLines.map((line) => <p key={line}>{line}</p>)}
+            </div>
+          ) : (
+            <p className="uppercase">{timeLine}</p>
+          )}
           <p className="uppercase">{locationLine}</p>
         </div>
 

@@ -1,5 +1,13 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-08-21 — Tempahan lintas hari: satu QR AutoSijil
+
+- Baris tempahan lintas hari kini berkongsi `group_id`. Kelulusan satu hari
+  meluluskan seluruh kumpulan dan menyegerakkan satu event AutoSijil dengan
+  senarai tarikh/slot. Semua hari berkongsi pautan dan token poster yang sama.
+- Poster QR memaparkan julat tarikh serta jadual setiap hari. Pembatalan atau
+  pindaan satu hari akan menyegerakkan semula jadual event yang sama.
+
 ## 2026-08-21 — Kemaskini Laporan Akhbar tanpa tiket berulang
 
 - Selepas kod sekolah dan nombor tiket berjaya disahkan pada halaman semakan,

@@ -2,6 +2,8 @@ export type AutosijilCreateEventInput = {
   externalBookingId: string;
   title: string;
   eventDate: string | null;
+  eventEndDate?: string | null;
+  sessions?: Array<{ date: string; slot: string }>;
   location: string | null;
   requiresCertificate: boolean;
   description: string | null;
@@ -13,8 +15,11 @@ export type AutosijilUpdateEventInput = {
   externalBookingId: string;
   title: string;
   eventDate: string | null;
+  eventEndDate?: string | null;
+  sessions?: Array<{ date: string; slot: string }>;
   location: string | null;
   description: string | null;
+  requiresCertificate?: boolean;
 };
 
 export type AutosijilCreateEventResult = {

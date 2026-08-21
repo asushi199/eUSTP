@@ -5,6 +5,7 @@ import { formatDayNameLong, fromIsoDate } from "@/lib/tempahan/date";
 import {
   getBookingByCetakToken,
   getPkg,
+  listBookingGroup,
   getRoomBySlug,
 } from "@/lib/tempahan/queries";
 
@@ -40,14 +41,25 @@ export default async function CetakKehadiranPage({
     );
   }
 
-  const room = await getRoomBySlug(pkgId, booking.roomSlug);
+  const [room, group] = await Promise.all([
+    getRoomBySlug(pkgId, booking.roomSlug),
+    booking.groupId ? listBookingGroup(pkgId, booking.groupId) : Promise.resolve([booking]),
+  ]);
+  const schedule = group.filter((row) => row.status === "approved");
   const duration =
     booking.slot === "full_day"
       ? "1 HARI"
       : booking.slot === "am"
         ? "PAGI"
         : "PETANG";
-  const dateLine = `${formatPosterDate(booking.date)} - ${duration}`;
+  const dateLine =
+    schedule.length > 1
+      ? `${formatPosterDate(schedule[0]!.date)} HINGGA ${formatPosterDate(schedule.at(-1)!.date)} - ${schedule.length} HARI`
+      : `${formatPosterDate(booking.date)} - ${duration}`;
+  const scheduleLines =
+    schedule.length > 1
+      ? schedule.map((row) => `${formatPosterDate(row.date)} · ${formatSlotTimeRange(row.slot)}`)
+      : undefined;
   const locationLine = [room?.name ?? booking.roomSlug, pkg.name]
     .filter(Boolean)
     .join(" / ");
@@ -58,6 +70,7 @@ export default async function CetakKehadiranPage({
       programName={booking.purpose}
       dateLine={dateLine}
       timeLine={formatSlotTimeRange(booking.slot)}
+      scheduleLines={scheduleLines}
       locationLine={locationLine}
       qrUrl={booking.autosijilPublicUrl}
       requiresCertificate={booking.requiresCertificate}

@@ -160,6 +160,7 @@ export async function createBookingAction(
       token: string;
       hash: string;
     }> = [];
+    const bookingGroupId = days.length > 1 ? randomUUID() : null;
 
     for (const day of days) {
       const id = randomUUID();
@@ -173,6 +174,7 @@ export async function createBookingAction(
           id: row.id,
           pkgId,
           roomSlug,
+          groupId: bookingGroupId,
           date: row.date,
           slot: row.slot,
           name,

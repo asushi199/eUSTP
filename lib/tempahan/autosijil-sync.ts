@@ -8,11 +8,28 @@ import {
   isAutosijilConfigured,
   updateAutosijilEvent,
 } from "@/lib/tempahan/autosijil-client";
-import { getBooking, getPkg, getRoomBySlug, type BookingRow } from "@/lib/tempahan/queries";
+import {
+  getBooking,
+  getPkg,
+  getRoomBySlug,
+  listBookingGroup,
+  type BookingRow,
+} from "@/lib/tempahan/queries";
 
 export type SyncResult = { ok: boolean; error?: string };
 
-async function buildAutosijilFields(pkgId: string, booking: BookingRow) {
+async function relatedBookings(pkgId: string, booking: BookingRow): Promise<BookingRow[]> {
+  return booking.groupId ? listBookingGroup(pkgId, booking.groupId) : [booking];
+}
+
+function groupWhere(pkgId: string, booking: BookingRow) {
+  return booking.groupId
+    ? and(eq(bookings.pkgId, pkgId), eq(bookings.groupId, booking.groupId))
+    : and(eq(bookings.pkgId, pkgId), eq(bookings.id, booking.id));
+}
+
+async function buildAutosijilFields(pkgId: string, rows: BookingRow[]) {
+  const booking = rows[0]!;
   const [pkg, room] = await Promise.all([
     getPkg(pkgId),
     getRoomBySlug(pkgId, booking.roomSlug),
@@ -25,11 +42,15 @@ async function buildAutosijilFields(pkgId: string, booking: BookingRow) {
 
   // Penerangan awam Autosijil: jangan dedahkan maklumat pemohon.
   // Butiran program (tajuk/tarikh/lokasi) sudah ada medan berasingan.
+  const approved = rows.filter((row) => row.status === "approved");
+  const sessions = approved.map((row) => ({ date: row.date, slot: row.slot }));
   return {
     title,
     location: location || null,
     description: null as string | null,
-    eventDate: booking.date,
+    eventDate: sessions[0]?.date ?? booking.date,
+    eventEndDate: sessions.at(-1)?.date ?? booking.date,
+    sessions,
   };
 }
 
@@ -40,7 +61,8 @@ export async function syncApprovedBookingToAutosijil(
 ): Promise<SyncResult> {
   const booking = await getBooking(pkgId, bookingId);
   if (!booking) return { ok: false, error: "Tempahan tidak dijumpai." };
-  if (booking.status !== "approved") {
+  const rows = await relatedBookings(pkgId, booking);
+  if (!rows.some((row) => row.status === "approved")) {
     return { ok: false, error: "Hanya tempahan diluluskan boleh disegerakkan." };
   }
 
@@ -52,7 +74,7 @@ export async function syncApprovedBookingToAutosijil(
         autosijilSyncStatus: "failed",
         autosijilSyncError: error,
       })
-      .where(and(eq(bookings.pkgId, pkgId), eq(bookings.id, bookingId)));
+      .where(groupWhere(pkgId, booking));
     return { ok: false, error };
   }
 
@@ -62,15 +84,17 @@ export async function syncApprovedBookingToAutosijil(
       autosijilSyncStatus: "pending",
       autosijilSyncError: null,
     })
-    .where(and(eq(bookings.pkgId, pkgId), eq(bookings.id, bookingId)));
+    .where(groupWhere(pkgId, booking));
 
   try {
-    const fields = await buildAutosijilFields(pkgId, booking);
+    const fields = await buildAutosijilFields(pkgId, rows);
 
     const created = await createAutosijilEvent({
-      externalBookingId: booking.id,
+      externalBookingId: booking.groupId ?? booking.id,
       title: fields.title,
       eventDate: fields.eventDate,
+      eventEndDate: fields.eventEndDate,
+      sessions: fields.sessions,
       location: fields.location,
       requiresCertificate: booking.requiresCertificate,
       description: fields.description,
@@ -78,7 +102,7 @@ export async function syncApprovedBookingToAutosijil(
       slot: booking.slot,
     });
 
-    const cetakToken = booking.cetakToken ?? generateAttendanceToken();
+    const cetakToken = rows.find((row) => row.cetakToken)?.cetakToken ?? generateAttendanceToken();
 
     await db
       .update(bookings)
@@ -92,7 +116,7 @@ export async function syncApprovedBookingToAutosijil(
         autosijilSyncError: null,
         autosijilSyncedAt: new Date(),
       })
-      .where(and(eq(bookings.pkgId, pkgId), eq(bookings.id, bookingId)));
+      .where(groupWhere(pkgId, booking));
 
     return { ok: true };
   } catch (e) {
@@ -103,7 +127,7 @@ export async function syncApprovedBookingToAutosijil(
         autosijilSyncStatus: "failed",
         autosijilSyncError: error,
       })
-      .where(and(eq(bookings.pkgId, pkgId), eq(bookings.id, bookingId)));
+      .where(groupWhere(pkgId, booking));
     return { ok: false, error };
   }
 }
@@ -118,7 +142,8 @@ export async function pushBookingDetailsToAutosijil(
 ): Promise<SyncResult> {
   const booking = await getBooking(pkgId, bookingId);
   if (!booking) return { ok: false, error: "Tempahan tidak dijumpai." };
-  if (!booking.autosijilEventId) return { ok: true };
+  const rows = await relatedBookings(pkgId, booking);
+  if (!rows.some((row) => row.autosijilEventId)) return { ok: true };
 
   if (!isAutosijilConfigured()) {
     const error = "Autosijil belum dikonfigurasi (AUTOSIJIL_BASE_URL / SECRET).";
@@ -128,18 +153,21 @@ export async function pushBookingDetailsToAutosijil(
         autosijilSyncStatus: "failed",
         autosijilSyncError: error,
       })
-      .where(and(eq(bookings.pkgId, pkgId), eq(bookings.id, bookingId)));
+      .where(groupWhere(pkgId, booking));
     return { ok: false, error };
   }
 
   try {
-    const fields = await buildAutosijilFields(pkgId, booking);
+    const fields = await buildAutosijilFields(pkgId, rows);
     await updateAutosijilEvent({
-      externalBookingId: booking.id,
+      externalBookingId: booking.groupId ?? booking.id,
       title: fields.title,
       eventDate: fields.eventDate,
+      eventEndDate: fields.eventEndDate,
+      sessions: fields.sessions,
       location: fields.location,
       description: fields.description,
+      requiresCertificate: booking.requiresCertificate,
     });
 
     await db
@@ -149,7 +177,7 @@ export async function pushBookingDetailsToAutosijil(
         autosijilSyncError: null,
         autosijilSyncedAt: new Date(),
       })
-      .where(and(eq(bookings.pkgId, pkgId), eq(bookings.id, bookingId)));
+      .where(groupWhere(pkgId, booking));
 
     return { ok: true };
   } catch (e) {
@@ -160,7 +188,7 @@ export async function pushBookingDetailsToAutosijil(
         autosijilSyncStatus: "failed",
         autosijilSyncError: error,
       })
-      .where(and(eq(bookings.pkgId, pkgId), eq(bookings.id, bookingId)));
+      .where(groupWhere(pkgId, booking));
     return { ok: false, error };
   }
 }
@@ -171,7 +199,13 @@ export async function cancelAutosijilForBooking(
   bookingId: string,
 ): Promise<void> {
   const booking = await getBooking(pkgId, bookingId);
-  if (!booking?.autosijilEventId && !booking?.autosijilSyncStatus) return;
+  if (!booking) return;
+  const rows = await relatedBookings(pkgId, booking);
+  if (rows.some((row) => row.status === "approved")) {
+    await pushBookingDetailsToAutosijil(pkgId, bookingId);
+    return;
+  }
+  if (!rows.some((row) => row.autosijilEventId || row.autosijilSyncStatus)) return;
 
   if (!isAutosijilConfigured()) {
     await db
@@ -180,12 +214,12 @@ export async function cancelAutosijilForBooking(
         autosijilSyncStatus: "failed",
         autosijilSyncError: "Autosijil belum dikonfigurasi; event tidak ditutup.",
       })
-      .where(and(eq(bookings.pkgId, pkgId), eq(bookings.id, bookingId)));
+      .where(groupWhere(pkgId, booking));
     return;
   }
 
   try {
-    await cancelAutosijilEvent(bookingId);
+    await cancelAutosijilEvent(booking.groupId ?? booking.id);
     await db
       .update(bookings)
       .set({
@@ -193,7 +227,7 @@ export async function cancelAutosijilForBooking(
         autosijilSyncError: null,
         autosijilSyncedAt: new Date(),
       })
-      .where(and(eq(bookings.pkgId, pkgId), eq(bookings.id, bookingId)));
+      .where(groupWhere(pkgId, booking));
   } catch (e) {
     const error = e instanceof Error ? e.message : "Gagal tutup event Autosijil.";
     await db
@@ -202,6 +236,6 @@ export async function cancelAutosijilForBooking(
         autosijilSyncStatus: "failed",
         autosijilSyncError: error,
       })
-      .where(and(eq(bookings.pkgId, pkgId), eq(bookings.id, bookingId)));
+      .where(groupWhere(pkgId, booking));
   }
 }

@@ -70,6 +70,15 @@ export async function getBooking(pkgId: string, id: string): Promise<BookingRow 
   return row ?? null;
 }
 
+/** Semua hari dalam satu tempahan lintas hari, diisih mengikut tarikh. */
+export async function listBookingGroup(pkgId: string, groupId: string): Promise<BookingRow[]> {
+  return db
+    .select()
+    .from(bookings)
+    .where(and(eq(bookings.pkgId, pkgId), eq(bookings.groupId, groupId)))
+    .orderBy(asc(bookings.date));
+}
+
 export async function listBookingsByContact(
   pkgId: string,
   contactNormalized: string,

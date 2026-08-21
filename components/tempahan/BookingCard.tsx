@@ -90,6 +90,7 @@ export default function BookingCard({
           cetakToken={booking.cetakToken}
           autosijilAdminUrl={booking.autosijilAdminUrl}
           requiresCertificate={booking.requiresCertificate}
+          isMultiDay={Boolean(booking.groupId)}
         />
       </div>
     </div>

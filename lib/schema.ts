@@ -463,6 +463,8 @@ export const bookings = pgTable(
       .references(() => pkgs.id, { onDelete: "cascade" }),
     /** merujuk rooms.slug dalam PKG yang sama */
     roomSlug: text("room_slug").notNull(),
+    /** Mengikat baris tempahan lintas hari sebagai satu aktiviti/QR Autosijil. */
+    groupId: uuid("group_id"),
     date: date("date").notNull(),
     slot: bookingSlot("slot").notNull(),
     name: text("name").notNull(),
@@ -506,6 +508,7 @@ export const bookings = pgTable(
       t.contactNormalized,
       t.status,
     ),
+    groupIdx: index("bookings_group_idx").on(t.pkgId, t.groupId, t.date),
     attendanceTokenIdx: index("bookings_attendance_token_idx").on(t.attendanceToken),
     manageTokenIdx: index("bookings_manage_token_idx").on(t.attendanceManageToken),
     cetakTokenIdx: index("bookings_cetak_token_idx").on(t.cetakToken),

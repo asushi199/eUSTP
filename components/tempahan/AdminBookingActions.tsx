@@ -38,6 +38,7 @@ export default function AdminBookingActions({
   cetakToken = null,
   autosijilAdminUrl = null,
   requiresCertificate = false,
+  isMultiDay = false,
 }: {
   pkgId: string;
   bookingId: string;
@@ -53,6 +54,7 @@ export default function AdminBookingActions({
   cetakToken?: string | null;
   autosijilAdminUrl?: string | null;
   requiresCertificate?: boolean;
+  isMultiDay?: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -125,7 +127,7 @@ export default function AdminBookingActions({
               disabled={pending}
               onClick={() => run(() => adminApproveBooking(pkgId, bookingId, needSijil))}
             >
-              Lulus
+              {isMultiDay ? "Lulus semua hari" : "Lulus"}
             </button>
             <button
               type="button"
@@ -133,7 +135,7 @@ export default function AdminBookingActions({
               disabled={pending}
               onClick={() => run(() => adminRejectBooking(pkgId, bookingId))}
             >
-              Tolak
+              {isMultiDay ? "Tolak semua hari" : "Tolak"}
             </button>
           </>
         )}
