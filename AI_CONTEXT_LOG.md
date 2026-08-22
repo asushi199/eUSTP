@@ -1,5 +1,11 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-08-22 — Tapisan admin Laporan Akhbar
+
+- `/admin/laporan-akhbar` menambah tapisan senarai: Semua / Belum hantar /
+  Sudah hantar, plus carian kod/nama/zon. URL `?status=belum-hantar` boleh
+  dikongsi untuk senarai sekolah yang belum mengisi tinjauan.
+
 ## 2026-08-21 — Tempahan lintas hari: satu QR AutoSijil
 
 - Baris tempahan lintas hari kini berkongsi `group_id`. Kelulusan satu hari
