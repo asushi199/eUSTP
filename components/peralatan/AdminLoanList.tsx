@@ -1,16 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import {
+  ADMIN_LOAN_PAGE_SIZE,
   EQUIPMENT_LOAN_WORKFLOW_ORDER,
+  equipmentLoanListHref,
   filterEquipmentLoans,
   type EquipmentLoanListRow,
 } from "@/lib/peralatan/loan-list";
 import { EQUIPMENT_LOAN_STATUS_LABEL } from "@/lib/peralatan/status";
 import type { EquipmentLoanStatus } from "@/lib/peralatan/types";
-
-const PAGE_SIZE = 25;
 
 function LoanRow({
   pkgId,
@@ -68,70 +69,137 @@ function LoanRow({
 export default function AdminLoanList({
   pkgId,
   loans,
-  initialMonth,
-  initialStatus,
-  initialSearch,
+  pendingLoans,
+  pendingTotal,
+  month: selectedMonth,
+  status: selectedStatus,
+  search: selectedSearch,
+  total,
+  page,
+  totalPages,
 }: {
   pkgId: string;
   loans: EquipmentLoanListRow[];
-  initialMonth: string;
-  initialStatus: EquipmentLoanStatus | "";
-  initialSearch: string;
+  pendingLoans: EquipmentLoanListRow[];
+  pendingTotal: number;
+  month: string;
+  status: EquipmentLoanStatus | "";
+  search: string;
+  total: number;
+  page: number;
+  totalPages: number;
 }) {
-  const [month, setMonth] = useState(initialMonth);
-  const [status, setStatus] = useState<EquipmentLoanStatus | "">(initialStatus);
-  const [search, setSearch] = useState(initialSearch);
-  const [page, setPage] = useState(1);
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const scopedToMonth = Boolean(selectedMonth);
+  const [status, setStatus] = useState<EquipmentLoanStatus | "">(selectedStatus);
+  const [search, setSearch] = useState(selectedSearch);
 
-  const pending = useMemo(
-    () => filterEquipmentLoans(loans, { status: "pending" }),
-    [loans],
-  );
+  useEffect(() => {
+    setStatus(selectedStatus);
+    setSearch(selectedSearch);
+  }, [selectedMonth, selectedStatus, selectedSearch]);
+
   const filtered = useMemo(
-    () => filterEquipmentLoans(loans, { month, status, search }),
-    [loans, month, status, search],
+    () =>
+      scopedToMonth
+        ? filterEquipmentLoans(loans, { status, search })
+        : loans,
+    [loans, scopedToMonth, status, search],
   );
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const currentPage = Math.min(page, totalPages);
-  const pageItems = filtered.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE,
+  const [clientPage, setClientPage] = useState(1);
+  const clientTotalPages = Math.max(
+    1,
+    Math.ceil(filtered.length / ADMIN_LOAN_PAGE_SIZE),
   );
-  const showPendingQueue = !status && pending.length > 0;
+  const safeClientPage = Math.min(clientPage, clientTotalPages);
+  const pageItems = scopedToMonth
+    ? filtered.slice(
+        (safeClientPage - 1) * ADMIN_LOAN_PAGE_SIZE,
+        safeClientPage * ADMIN_LOAN_PAGE_SIZE,
+      )
+    : loans;
+  const visibleTotal = scopedToMonth ? filtered.length : total;
+  const showPendingQueue = !status && pendingLoans.length > 0;
 
-  function syncUrl(
+  useEffect(() => {
+    setClientPage(1);
+  }, [status, search, selectedMonth]);
+
+  useEffect(() => {
+    if (scopedToMonth) return;
+    const handle = window.setTimeout(() => {
+      if (search.trim() === selectedSearch.trim()) return;
+      startTransition(() => {
+        router.replace(
+          equipmentLoanListHref(pkgId, {
+            month: "",
+            status,
+            search,
+            page: 1,
+          }),
+          { scroll: false },
+        );
+      });
+    }, 300);
+    return () => window.clearTimeout(handle);
+  }, [pkgId, router, scopedToMonth, search, selectedSearch, status]);
+
+  function href(next: {
+    month?: string;
+    status?: EquipmentLoanStatus | "";
+    search?: string;
+    page?: number;
+  }) {
+    return equipmentLoanListHref(pkgId, {
+      month: next.month ?? selectedMonth,
+      status: next.status ?? status,
+      search: next.search ?? search,
+      page: next.page,
+    });
+  }
+
+  function replaceUrl(
     nextMonth: string,
     nextStatus: EquipmentLoanStatus | "",
     nextSearch: string,
   ) {
-    const values = new URLSearchParams();
-    values.set("bulan", nextMonth);
-    if (nextStatus) values.set("status", nextStatus);
-    const trimmed = nextSearch.trim();
-    if (trimmed) values.set("cari", trimmed);
-    window.history.replaceState(
-      null,
-      "",
-      `/admin/peralatan/${pkgId}/permohonan?${values.toString()}`,
-    );
+    window.history.replaceState(null, "", href({
+      month: nextMonth,
+      status: nextStatus,
+      search: nextSearch,
+    }));
+  }
+
+  function navigate(next: {
+    month?: string;
+    status?: EquipmentLoanStatus | "";
+    search?: string;
+    page?: number;
+  }) {
+    startTransition(() => {
+      router.replace(href(next), { scroll: false });
+    });
   }
 
   function changeMonth(nextMonth: string) {
-    setMonth(nextMonth);
-    setPage(1);
-    syncUrl(nextMonth, status, search);
+    navigate({ month: nextMonth, status, search, page: 1 });
   }
 
   function changeStatus(nextStatus: EquipmentLoanStatus | "") {
-    setStatus(nextStatus);
-    setPage(1);
-    syncUrl(month, nextStatus, search);
+    if (scopedToMonth) {
+      setStatus(nextStatus);
+      replaceUrl(selectedMonth, nextStatus, search);
+      return;
+    }
+    navigate({ month: "", status: nextStatus, search, page: 1 });
   }
 
   function changeSearch(nextSearch: string) {
     setSearch(nextSearch);
-    setPage(1);
-    syncUrl(month, status, nextSearch);
+    if (scopedToMonth) {
+      replaceUrl(selectedMonth, status, nextSearch);
+    }
   }
 
   return (
@@ -153,19 +221,20 @@ export default function AdminLoanList({
             <button
               type="button"
               className="text-sm font-semibold text-charcoal hover:text-ink"
-              onClick={() => {
-                setMonth("");
-                setStatus("pending");
-                setSearch("");
-                setPage(1);
-                syncUrl("", "pending", "");
-              }}
+              onClick={() =>
+                navigate({
+                  month: "",
+                  status: "pending",
+                  search: "",
+                  page: 1,
+                })
+              }
             >
-              Lihat semua ({pending.length})
+              Lihat semua ({pendingTotal})
             </button>
           </div>
           <div className="mt-4 space-y-3">
-            {pending.slice(0, 5).map((loan) => (
+            {pendingLoans.map((loan) => (
               <LoanRow key={loan.id} pkgId={pkgId} loan={loan} />
             ))}
           </div>
@@ -177,8 +246,9 @@ export default function AdminLoanList({
           <div>
             <h2 className="font-semibold text-ink">Tapis permohonan</h2>
             <p className="mt-1 text-sm text-graphite">
-              Tapisan digunakan serta-merta. Bulan merujuk kepada tarikh pinjaman
-              yang dipohon.
+              {scopedToMonth
+                ? "Status dan carian dalam bulan ini digunakan serta-merta. Menukar bulan memuatkan semula rekod bulan itu sahaja."
+                : "Semua bulan dimuatkan 25 rekod setiap muka surat. Status dan carian menapis di pelayan tanpa butang Tapis."}
             </p>
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-[180px_210px_minmax(220px,1fr)_auto]">
@@ -191,7 +261,7 @@ export default function AdminLoanList({
                 name="bulan"
                 type="month"
                 className="input"
-                value={month}
+                value={selectedMonth}
                 onChange={(event) => changeMonth(event.target.value)}
               />
             </div>
@@ -230,7 +300,7 @@ export default function AdminLoanList({
                 autoComplete="off"
               />
               <p className="mt-1 text-xs text-graphite">
-                {filtered.length.toLocaleString("ms-MY")} permohonan sepadan
+                {visibleTotal.toLocaleString("ms-MY")} permohonan sepadan
               </p>
             </div>
             <div className="flex flex-wrap items-end gap-2">
@@ -238,7 +308,7 @@ export default function AdminLoanList({
                 type="button"
                 className="btn-outline-ink btn-sm"
                 onClick={() => changeMonth("")}
-                disabled={!month}
+                disabled={!selectedMonth}
               >
                 Semua bulan
               </button>
@@ -246,58 +316,96 @@ export default function AdminLoanList({
           </div>
         </div>
 
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold text-ink">
-            Senarai mengikut tapisan
-          </h2>
-          <span className="text-sm font-semibold tabular-nums text-charcoal">
-            {filtered.length.toLocaleString("ms-MY")} permohonan
-          </span>
-        </div>
-        <div className="mt-4 space-y-3">
-          {pageItems.length === 0 ? (
-            <div className="card p-6 text-sm text-graphite">
-              Tiada permohonan sepadan. Ubah bulan, status atau kata carian.
-            </div>
-          ) : (
-            pageItems.map((loan) => (
-              <LoanRow key={loan.id} pkgId={pkgId} loan={loan} />
-            ))
-          )}
-        </div>
-
-        {totalPages > 1 ? (
-          <nav
-            className="mt-5 flex items-center justify-between text-sm"
-            aria-label="Muka surat senarai permohonan"
-          >
-            {currentPage > 1 ? (
-              <button
-                type="button"
-                className="btn-outline-ink btn-sm"
-                onClick={() => setPage(currentPage - 1)}
-              >
-                Sebelum
-              </button>
-            ) : (
-              <span />
-            )}
-            <span className="text-graphite">
-              Muka {currentPage} / {totalPages}
+        <div
+          className={`mt-5 ${isPending ? "pointer-events-none opacity-60" : ""}`}
+          aria-busy={isPending}
+        >
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold text-ink">
+              Senarai mengikut tapisan
+            </h2>
+            <span className="text-sm font-semibold tabular-nums text-charcoal">
+              {visibleTotal.toLocaleString("ms-MY")} permohonan
             </span>
-            {currentPage < totalPages ? (
-              <button
-                type="button"
-                className="btn-outline-ink btn-sm"
-                onClick={() => setPage(currentPage + 1)}
-              >
-                Seterusnya
-              </button>
+          </div>
+          <div className="mt-4 space-y-3">
+            {pageItems.length === 0 ? (
+              <div className="card p-6 text-sm text-graphite">
+                Tiada permohonan sepadan. Ubah bulan, status atau kata carian.
+              </div>
             ) : (
-              <span />
+              pageItems.map((loan) => (
+                <LoanRow key={loan.id} pkgId={pkgId} loan={loan} />
+              ))
             )}
-          </nav>
-        ) : null}
+          </div>
+
+          {scopedToMonth && clientTotalPages > 1 ? (
+            <nav
+              className="mt-5 flex items-center justify-between text-sm"
+              aria-label="Muka surat senarai permohonan"
+            >
+              {safeClientPage > 1 ? (
+                <button
+                  type="button"
+                  className="btn-outline-ink btn-sm"
+                  onClick={() => setClientPage(safeClientPage - 1)}
+                >
+                  Sebelum
+                </button>
+              ) : (
+                <span />
+              )}
+              <span className="text-graphite">
+                Muka {safeClientPage} / {clientTotalPages}
+              </span>
+              {safeClientPage < clientTotalPages ? (
+                <button
+                  type="button"
+                  className="btn-outline-ink btn-sm"
+                  onClick={() => setClientPage(safeClientPage + 1)}
+                >
+                  Seterusnya
+                </button>
+              ) : (
+                <span />
+              )}
+            </nav>
+          ) : null}
+
+          {!scopedToMonth && totalPages > 1 ? (
+            <nav
+              className="mt-5 flex items-center justify-between text-sm"
+              aria-label="Muka surat senarai permohonan"
+            >
+              {page > 1 ? (
+                <Link
+                  href={href({ month: "", page: page - 1 })}
+                  className="btn-outline-ink btn-sm"
+                  scroll={false}
+                >
+                  Sebelum
+                </Link>
+              ) : (
+                <span />
+              )}
+              <span className="text-graphite">
+                Muka {page} / {totalPages}
+              </span>
+              {page < totalPages ? (
+                <Link
+                  href={href({ month: "", page: page + 1 })}
+                  className="btn-outline-ink btn-sm"
+                  scroll={false}
+                >
+                  Seterusnya
+                </Link>
+              ) : (
+                <span />
+              )}
+            </nav>
+          ) : null}
+        </div>
       </section>
     </>
   );

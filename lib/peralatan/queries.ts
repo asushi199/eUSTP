@@ -47,6 +47,18 @@ import type {
 } from "./types";
 
 const ADMIN_PAGE_SIZE = 25;
+/** Keep in sync with EQUIPMENT_LOAN_WORKFLOW_ORDER in loan-list.ts */
+const equipmentLoanWorkflowOrderBy = sql`
+  case ${equipmentLoanRequests.status}
+    when 'pending' then 0
+    when 'approved' then 1
+    when 'handed_over' then 2
+    when 'cancelled' then 3
+    when 'returned' then 4
+    when 'rejected' then 5
+    else 6
+  end
+`;
 const sourcePkgs = alias(pkgs, "equipment_transfer_source_pkgs");
 const destinationPkgs = alias(pkgs, "equipment_transfer_destination_pkgs");
 const serialNoPrefixOrder = sql`
@@ -488,8 +500,10 @@ export async function listEquipmentLoansForPkg(
     page?: number;
     perPage?: number;
     all?: boolean;
+    sort?: "recent" | "workflow";
   } = {},
 ): Promise<EquipmentAdminListResult<EquipmentLoanListItem>> {
+  // `all` only loads every row in the selected month, never the full PKG history.
   const page = normalizedPage(filters.page);
   const perPage = Math.min(100, Math.max(1, filters.perPage ?? ADMIN_PAGE_SIZE));
   const search = filters.search?.trim().slice(0, 200) ?? "";
@@ -510,6 +524,11 @@ export async function listEquipmentLoansForPkg(
     if (searchCondition) conditions.push(searchCondition);
   }
   const where = and(...conditions);
+  const orderBy =
+    filters.sort === "workflow"
+      ? [equipmentLoanWorkflowOrderBy, desc(equipmentLoanRequests.createdAt)]
+      : [desc(equipmentLoanRequests.createdAt)];
+  const loadAllForMonth = Boolean(filters.all && range);
   const loanListQuery = db
     .select({
       id: equipmentLoanRequests.id,
@@ -530,9 +549,9 @@ export async function listEquipmentLoansForPkg(
     )
     .where(where)
     .groupBy(equipmentLoanRequests.id)
-    .orderBy(desc(equipmentLoanRequests.createdAt));
+    .orderBy(...orderBy);
 
-  if (filters.all) {
+  if (loadAllForMonth) {
     const rows = await loanListQuery;
     return {
       items: rows,

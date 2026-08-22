@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   compareEquipmentLoansByWorkflow,
+  EQUIPMENT_LOAN_WORKFLOW_ORDER,
+  equipmentLoanListHref,
   filterEquipmentLoans,
   loanMatchesMonth,
   loanMatchesSearch,
@@ -27,7 +29,22 @@ function loan(partial: {
   };
 }
 
-test("sorts loans by workflow then newest first", () => {
+test("builds semua bulan href without loading extra query params", () => {
+  assert.equal(
+    equipmentLoanListHref("beruas", { month: "" }),
+    "/admin/peralatan/beruas/permohonan?bulan=",
+  );
+  assert.equal(
+    equipmentLoanListHref("beruas", {
+      month: "",
+      status: "pending",
+      page: 2,
+    }),
+    "/admin/peralatan/beruas/permohonan?bulan=&status=pending&page=2",
+  );
+});
+
+test("workflow order keeps pending first and rejected last across months", () => {
   const rows = [
     loan({
       id: "returned-old",
@@ -85,6 +102,14 @@ test("sorts loans by workflow then newest first", () => {
       "rejected",
     ],
   );
+  assert.deepEqual(EQUIPMENT_LOAN_WORKFLOW_ORDER, [
+    "pending",
+    "approved",
+    "handed_over",
+    "cancelled",
+    "returned",
+    "rejected",
+  ]);
 });
 
 test("filters loans by month, status and school search without extra queries", () => {

@@ -2,6 +2,7 @@ import Link from "next/link";
 import AdminLoanList from "@/components/peralatan/AdminLoanList";
 import { withDbTimeout } from "@/lib/db";
 import {
+  ADMIN_LOAN_PAGE_SIZE,
   currentMonthInMalaysia,
   serializeEquipmentLoanListItem,
 } from "@/lib/peralatan/loan-list";
@@ -32,6 +33,7 @@ export default async function AdminEquipmentApplicationsPage({
     bulan?: string;
     status?: string;
     cari?: string;
+    page?: string;
   }>;
 }) {
   const { pkg: pkgId } = await params;
@@ -48,6 +50,7 @@ export default async function AdminEquipmentApplicationsPage({
     ? (query.status as EquipmentLoanStatus)
     : "";
   const search = query.cari?.trim().slice(0, 200) ?? "";
+  const page = Math.max(1, Number(query.page) || 1);
 
   try {
     const pkgs = await withDbTimeout(listEquipmentPkgs());
@@ -65,8 +68,32 @@ export default async function AdminEquipmentApplicationsPage({
       );
     }
     const result = await withDbTimeout(
-      listEquipmentLoansForPkg(pkgId, { all: true }),
+      month
+        ? listEquipmentLoansForPkg(pkgId, {
+            month,
+            sort: "workflow",
+            all: true,
+          })
+        : listEquipmentLoansForPkg(pkgId, {
+            status: status || undefined,
+            search: search || undefined,
+            page,
+            perPage: ADMIN_LOAN_PAGE_SIZE,
+            sort: "workflow",
+          }),
     );
+    const pending =
+      status === "pending"
+        ? { items: [], total: 0 }
+        : await withDbTimeout(
+            listEquipmentLoansForPkg(pkgId, {
+              status: "pending",
+              page: 1,
+              perPage: 5,
+              sort: "workflow",
+            }),
+          );
+    const totalPages = Math.max(1, Math.ceil(result.total / result.perPage));
 
     return (
       <>
@@ -96,9 +123,14 @@ export default async function AdminEquipmentApplicationsPage({
         <AdminLoanList
           pkgId={pkgId}
           loans={result.items.map(serializeEquipmentLoanListItem)}
-          initialMonth={month}
-          initialStatus={status}
-          initialSearch={search}
+          pendingLoans={pending.items.map(serializeEquipmentLoanListItem)}
+          pendingTotal={pending.total}
+          month={month}
+          status={status}
+          search={search}
+          total={result.total}
+          page={result.page}
+          totalPages={totalPages}
         />
       </>
     );

@@ -13,6 +13,26 @@ export const EQUIPMENT_LOAN_WORKFLOW_ORDER: EquipmentLoanStatus[] = [
   "rejected",
 ];
 
+export const ADMIN_LOAN_PAGE_SIZE = 25;
+
+export function equipmentLoanListHref(
+  pkgId: string,
+  filters: {
+    month?: string;
+    status?: string;
+    search?: string;
+    page?: number;
+  },
+) {
+  const values = new URLSearchParams();
+  values.set("bulan", filters.month ?? "");
+  if (filters.status) values.set("status", filters.status);
+  const search = filters.search?.trim();
+  if (search) values.set("cari", search);
+  if (filters.page && filters.page > 1) values.set("page", String(filters.page));
+  return `/admin/peralatan/${pkgId}/permohonan?${values.toString()}`;
+}
+
 export function currentMonthInMalaysia(now = new Date()) {
   const parts = new Intl.DateTimeFormat("en", {
     timeZone: "Asia/Kuala_Lumpur",
