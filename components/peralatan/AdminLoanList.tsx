@@ -251,19 +251,29 @@ export default function AdminLoanList({
                 : "Semua bulan dimuatkan 25 rekod setiap muka surat. Status dan carian menapis di pelayan tanpa butang Tapis."}
             </p>
           </div>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-[180px_210px_minmax(220px,1fr)_auto]">
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <div>
               <label className="label" htmlFor="loan-month">
                 Bulan pinjaman
               </label>
-              <input
-                id="loan-month"
-                name="bulan"
-                type="month"
-                className="input"
-                value={selectedMonth}
-                onChange={(event) => changeMonth(event.target.value)}
-              />
+              <div className="flex items-center gap-2">
+                <input
+                  id="loan-month"
+                  name="bulan"
+                  type="month"
+                  className="input min-w-0 flex-1"
+                  value={selectedMonth}
+                  onChange={(event) => changeMonth(event.target.value)}
+                />
+                <button
+                  type="button"
+                  className="btn-outline-ink shrink-0 whitespace-nowrap px-4 text-xs"
+                  onClick={() => changeMonth("")}
+                  disabled={!selectedMonth}
+                >
+                  Semua bulan
+                </button>
+              </div>
             </div>
             <div>
               <label className="label" htmlFor="loan-status">
@@ -286,7 +296,7 @@ export default function AdminLoanList({
                 ))}
               </select>
             </div>
-            <div>
+            <div className="sm:col-span-2 lg:col-span-1">
               <label className="label" htmlFor="loan-search">
                 Cari sekolah
               </label>
@@ -302,16 +312,6 @@ export default function AdminLoanList({
               <p className="mt-1 text-xs text-graphite">
                 {visibleTotal.toLocaleString("ms-MY")} permohonan sepadan
               </p>
-            </div>
-            <div className="flex flex-wrap items-end gap-2">
-              <button
-                type="button"
-                className="btn-outline-ink btn-sm"
-                onClick={() => changeMonth("")}
-                disabled={!selectedMonth}
-              >
-                Semua bulan
-              </button>
             </div>
           </div>
         </div>
