@@ -8,9 +8,9 @@ export const EQUIPMENT_LOAN_WORKFLOW_ORDER: EquipmentLoanStatus[] = [
   "pending",
   "approved",
   "handed_over",
-  "rejected",
   "cancelled",
   "returned",
+  "rejected",
 ];
 
 export function currentMonthInMalaysia(now = new Date()) {

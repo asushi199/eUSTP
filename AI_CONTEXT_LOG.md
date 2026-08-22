@@ -6,7 +6,7 @@
   kemudian menapis di pelayar. Menukar bulan, status atau kata carian tidak
   memanggil semula pangkalan data, jadi butang `Tapis` dibuang.
 - Susunan senarai mengikut alur kerja: menunggu kelulusan, diluluskan, telah
-  diserahkan, ditolak, dibatalkan, kemudian dipulangkan di bawah sekali. Dalam
+  diserahkan, dibatalkan, dipulangkan, kemudian ditolak di bawah sekali. Dalam
   status yang sama, rekod terbaharu kekal di atas.
 - Carian sekolah meniru direktori: padanan segera pada kod sekolah, nama
   sekolah, nama pemohon atau nombor rujukan, dengan kiraan rekod semasa.

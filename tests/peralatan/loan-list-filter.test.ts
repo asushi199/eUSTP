@@ -80,9 +80,9 @@ test("sorts loans by workflow then newest first", () => {
       "pending-old",
       "approved",
       "handed",
-      "rejected",
       "cancelled",
       "returned-old",
+      "rejected",
     ],
   );
 });
