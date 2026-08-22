@@ -145,6 +145,7 @@ export type EquipmentLoanStatus =
 export type EquipmentLoanListItem = {
   id: string;
   referenceNo: string;
+  schoolCode: string | null;
   orgName: string;
   applicantName: string;
   borrowDate: string;

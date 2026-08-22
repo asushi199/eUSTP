@@ -487,6 +487,7 @@ export async function listEquipmentLoansForPkg(
     search?: string;
     page?: number;
     perPage?: number;
+    all?: boolean;
   } = {},
 ): Promise<EquipmentAdminListResult<EquipmentLoanListItem>> {
   const page = normalizedPage(filters.page);
@@ -504,20 +505,16 @@ export async function listEquipmentLoansForPkg(
       ilike(equipmentLoanRequests.referenceNo, `%${search}%`),
       ilike(equipmentLoanRequests.applicantName, `%${search}%`),
       ilike(equipmentLoanRequests.orgName, `%${search}%`),
+      ilike(equipmentLoanRequests.schoolCode, `%${search}%`),
     );
     if (searchCondition) conditions.push(searchCondition);
   }
   const where = and(...conditions);
-  const totalRows = await db
-    .select({ total: count() })
-    .from(equipmentLoanRequests)
-    .where(where);
-  const total = totalRows[0]?.total ?? 0;
-  const effectivePage = Math.min(page, Math.max(1, Math.ceil(total / perPage)));
-  const rows = await db
+  const loanListQuery = db
     .select({
       id: equipmentLoanRequests.id,
       referenceNo: equipmentLoanRequests.referenceNo,
+      schoolCode: equipmentLoanRequests.schoolCode,
       orgName: equipmentLoanRequests.orgName,
       applicantName: equipmentLoanRequests.applicantName,
       borrowDate: equipmentLoanRequests.borrowDate,
@@ -533,7 +530,25 @@ export async function listEquipmentLoansForPkg(
     )
     .where(where)
     .groupBy(equipmentLoanRequests.id)
-    .orderBy(desc(equipmentLoanRequests.createdAt))
+    .orderBy(desc(equipmentLoanRequests.createdAt));
+
+  if (filters.all) {
+    const rows = await loanListQuery;
+    return {
+      items: rows,
+      total: rows.length,
+      page: 1,
+      perPage: Math.max(1, rows.length),
+    };
+  }
+
+  const totalRows = await db
+    .select({ total: count() })
+    .from(equipmentLoanRequests)
+    .where(where);
+  const total = totalRows[0]?.total ?? 0;
+  const effectivePage = Math.min(page, Math.max(1, Math.ceil(total / perPage)));
+  const rows = await loanListQuery
     .limit(perPage)
     .offset((effectivePage - 1) * perPage);
 

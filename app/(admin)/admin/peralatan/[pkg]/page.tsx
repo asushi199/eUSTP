@@ -92,7 +92,7 @@ export default async function AdminPkgPeralatanPage({
               Senarai permohonan
             </h2>
             <p className="mt-1 text-sm leading-relaxed text-graphite">
-              Tapis mengikut bulan, status, nama pemohon atau sekolah.
+              Tapis serta-merta mengikut bulan, status, nama pemohon atau sekolah.
             </p>
           </div>
           <Link
