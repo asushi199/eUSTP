@@ -74,7 +74,7 @@ export default function LaporanAkhbarForm({
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [schoolCode, setSchoolCode] = useState(
-    initialSchoolCode || existing?.schoolCode || schools[0]?.code || "",
+    initialSchoolCode || existing?.schoolCode || "",
   );
   const [peruntukan, setPeruntukan] = useState(
     existing ? String(existing.peruntukanDiterimaRm) : "",
@@ -94,11 +94,11 @@ export default function LaporanAkhbarForm({
 
   useEffect(() => {
     if (filteredSchools.length === 0) {
-      setSchoolCode("");
+      if (schoolCode) setSchoolCode("");
       return;
     }
-    if (!filteredSchools.some((s) => s.code === schoolCode)) {
-      setSchoolCode(filteredSchools[0].code);
+    if (schoolCode && !filteredSchools.some((s) => s.code === schoolCode)) {
+      setSchoolCode("");
     }
   }, [filteredSchools, schoolCode]);
 
@@ -164,6 +164,9 @@ export default function LaporanAkhbarForm({
               disabled={isUpdateLocked || filteredSchools.length === 0}
               onChange={(e) => setSchoolCode(e.target.value)}
             >
+              <option value="" disabled>
+                Pilih sekolah…
+              </option>
               {filteredSchools.map((s) => (
                 <option key={s.code} value={s.code}>
                   {s.code} — {s.name}
