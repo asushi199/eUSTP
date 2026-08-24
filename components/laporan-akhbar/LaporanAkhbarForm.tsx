@@ -24,6 +24,13 @@ type Props = {
   initialReceiptToken?: string;
 };
 
+function matchesSchoolQuery(school: SchoolOption, rawQuery: string) {
+  const tokens = rawQuery.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  if (tokens.length === 0) return true;
+  const haystack = [school.code, school.name, school.zone].join(" ").toLowerCase();
+  return tokens.every((token) => haystack.includes(token));
+}
+
 function SelectYaTidak({
   id,
   name,
@@ -84,23 +91,21 @@ export default function LaporanAkhbarForm({
   );
   const [receiptToken, setReceiptToken] = useState(initialReceiptToken ?? "");
 
-  const filteredSchools = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return schools;
-    return schools.filter((s) =>
-      [s.code, s.name, s.zone].join(" ").toLowerCase().includes(q),
-    );
-  }, [query, schools]);
+  const filteredSchools = useMemo(
+    () => schools.filter((school) => matchesSchoolQuery(school, query)),
+    [query, schools],
+  );
 
   useEffect(() => {
+    if (query.trim() === "") return;
     if (filteredSchools.length === 0) {
-      if (schoolCode) setSchoolCode("");
+      setSchoolCode("");
       return;
     }
-    if (schoolCode && !filteredSchools.some((s) => s.code === schoolCode)) {
-      setSchoolCode("");
+    if (!filteredSchools.some((s) => s.code === schoolCode)) {
+      setSchoolCode(filteredSchools[0].code);
     }
-  }, [filteredSchools, schoolCode]);
+  }, [filteredSchools, schoolCode, query]);
 
   const selected = schools.find((s) => s.code === schoolCode);
   const baki = (() => {
@@ -146,11 +151,15 @@ export default function LaporanAkhbarForm({
             <input
               id="carian-sekolah"
               className="input"
-              placeholder="Kod atau nama"
+              placeholder="Kod atau nama sekolah"
+              autoComplete="off"
               value={query}
               disabled={isUpdateLocked}
               onChange={(e) => setQuery(e.target.value)}
             />
+            <p className="mt-1 text-xs text-graphite">
+              {filteredSchools.length} sekolah sepadan
+            </p>
           </div>
           <div>
             <label className="label" htmlFor="sekolah">
@@ -179,6 +188,39 @@ export default function LaporanAkhbarForm({
               </p>
             )}
           </div>
+          {query.trim() && !isUpdateLocked ? (
+            <div className="sm:col-span-2">
+              {filteredSchools.length === 0 ? (
+                <p className="rounded-lg border hairline bg-fog/40 px-4 py-3 text-sm text-graphite">
+                  Tiada sekolah sepadan. Cuba kod atau sebahagian nama.
+                </p>
+              ) : (
+                <ul className="max-h-56 overflow-auto rounded-lg border hairline">
+                  {filteredSchools.map((s) => {
+                    const active = s.code === schoolCode;
+                    return (
+                      <li key={s.code} className="border-b hairline last:border-0">
+                        <button
+                          type="button"
+                          className={`flex w-full items-baseline gap-3 px-4 py-2.5 text-left text-sm ${
+                            active
+                              ? "bg-cloud font-medium text-ink"
+                              : "text-ink hover:bg-cloud/55"
+                          }`}
+                          onClick={() => setSchoolCode(s.code)}
+                        >
+                          <span className="shrink-0 font-mono text-xs text-graphite">
+                            {s.code}
+                          </span>
+                          <span>{s.name}</span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          ) : null}
         </div>
 
         {needsReceipt && (
