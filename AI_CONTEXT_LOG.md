@@ -988,3 +988,12 @@ Corak berselang = instance sihat vs beracun.
 - KEW.PA-17 hanya mengira tahun: tahun pindahan ditolak tahun perolehan,
   sama ada daripada tarikh penuh atau tahun sahaja. Bulan dan hari tidak
   diambil kira; jika kedua-duanya kosong, medan usia guna dibiarkan kosong.
+# 2026-08-25 — Notifikasi peribadi Telegram pentadbir
+
+- Telegram diikat sendiri oleh setiap pengguna pentadbir melalui pautan `/start`
+  sekali guna yang sah selama 10 minit; Chat ID tidak perlu dimasukkan secara manual.
+- Tempahan bilik dan peminjaman peralatan dihantar kepada `PKG_Admin` aktif mengikut
+  `pkgId`; Khidmat Bantu dihantar kepada `Admin` dan `Pegawai` aktif yang telah
+  menyambungkan Telegram.
+- WhatsApp kepada pegawai dikekalkan sebagai fallback apabila tiada mesej Telegram
+  berjaya dihantar. WhatsApp keputusan kepada pemohon tidak diubah.

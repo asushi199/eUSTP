@@ -13,7 +13,8 @@
     "db:seed": "tsx scripts/seed.ts",
     "db:seed-dashboard": "tsx scripts/seed-dashboard.ts",
     "db:create-user": "tsx scripts/create-user.ts",
-    "db:check-url": "tsx scripts/check-db-url.ts"
+    "db:check-url": "tsx scripts/check-db-url.ts",
+    "telegram:set-webhook": "tsx scripts/setup-telegram-webhook.ts"
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.9",

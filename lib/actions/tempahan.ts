@@ -44,7 +44,11 @@ import {
   friendlyBookingError,
   rejectBookingCore,
 } from "@/lib/tempahan/service";
-import { buildWhatsAppShareUrl } from "@/lib/tempahan/whatsapp";
+import { notifyPkgAdministrators } from "@/lib/telegram/notifications";
+import {
+  buildWhatsAppMessage,
+  buildWhatsAppShareUrl,
+} from "@/lib/tempahan/whatsapp";
 
 /* --------------------------- helpers --------------------------- */
 
@@ -191,27 +195,35 @@ export async function createBookingAction(
     const first = prepared[0]!;
     const baseUrl = await resolveBaseUrl();
     const approvalUrl = `${baseUrl}/tempahan/${pkgId}/approve/${first.id}?token=${encodeURIComponent(first.token)}`;
+    const notificationDetails = {
+      name,
+      room: room.name,
+      purpose,
+      approvalUrl,
+      entries: prepared.map((row) => ({
+        date: formatMalayDate(row.date),
+        slot: formatSlot(row.slot),
+      })),
+    };
+    const telegramSent = await notifyPkgAdministrators(pkgId, {
+      text: buildWhatsAppMessage(notificationDetails),
+      actionUrl: approvalUrl,
+    });
     const adminPhone = pkg.whatsappAdminPhone?.trim() || "";
-    const whatsappUrl = adminPhone
-      ? buildWhatsAppShareUrl(adminPhone, {
-          name,
-          room: room.name,
-          purpose,
-          approvalUrl,
-          entries: prepared.map((row) => ({
-            date: formatMalayDate(row.date),
-            slot: formatSlot(row.slot),
-          })),
-        })
+    const whatsappUrl = telegramSent === 0 && adminPhone
+      ? buildWhatsAppShareUrl(adminPhone, notificationDetails)
       : "";
 
     revalidatePath(`/tempahan/${pkgId}`);
     revalidatePath(`/admin/tempahan/${pkgId}`);
 
     const dayCount = prepared.length;
-    const successBase = adminPhone
-      ? "Permohonan diterima. Sila hantar mesej WhatsApp kepada admin untuk kelulusan."
-      : "Permohonan diterima. Nombor WhatsApp admin belum ditetapkan — hubungi PKG secara terus.";
+    const successBase =
+      telegramSent > 0
+        ? "Permohonan diterima. Pentadbir PKG telah dimaklumkan melalui Telegram."
+        : adminPhone
+          ? "Permohonan diterima. Sila hantar mesej WhatsApp kepada admin untuk kelulusan."
+          : "Permohonan diterima. Sila tunggu kelulusan dan semak status melalui Semak Permohonan.";
 
     return {
       ok: true,

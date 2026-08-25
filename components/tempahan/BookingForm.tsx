@@ -136,8 +136,8 @@ export default function BookingForm({
         </span>
       </div>
       <p className="mt-2 text-xs text-graphite xl:text-sm">
-        Boleh tempah sehingga {MAX_BOOKING_DAYS} hari berturut-turut. Selepas dihantar, klik WhatsApp
-        untuk maklumkan admin.
+        Boleh tempah sehingga {MAX_BOOKING_DAYS} hari berturut-turut. Sistem akan memaklumkan
+        pentadbir selepas permohonan dihantar.
       </p>
 
       <RoomCapacityBadge capacity={roomCapacity} prominent className="mt-3" />

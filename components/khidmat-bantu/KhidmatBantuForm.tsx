@@ -70,7 +70,7 @@ export default function KhidmatBantuForm({ schools }: { schools: SchoolOption[] 
         </span>
       </div>
       <p className="text-xs text-graphite">
-        Selepas permohonan dihantar, klik butang WhatsApp untuk maklumkan admin USTP.
+        Sistem akan memaklumkan pentadbir USTP selepas permohonan dihantar.
       </p>
 
       {state.message && state.ok ? (

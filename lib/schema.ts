@@ -32,6 +32,14 @@ export const users = pgTable(
     /** Skop PKG untuk PKG_Admin (slug pkg, cth. "sitiawan"); null untuk peranan lain. */
     pkgId: text("pkg_id"),
     aktif: boolean("aktif").notNull().default(true),
+    /** Destinasi notifikasi peribadi Telegram; diisi melalui pautan ikatan sekali guna. */
+    telegramChatId: text("telegram_chat_id"),
+    telegramUsername: text("telegram_username"),
+    telegramBoundAt: timestamp("telegram_bound_at", { withTimezone: true }),
+    telegramBindTokenHash: text("telegram_bind_token_hash"),
+    telegramBindTokenExpiresAt: timestamp("telegram_bind_token_expires_at", {
+      withTimezone: true,
+    }),
     mustChangePassword: boolean("must_change_password").notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
@@ -39,6 +47,10 @@ export const users = pgTable(
   (t) => ({
     usernameIdx: uniqueIndex("users_username_idx").on(t.username),
     aktifIdx: index("users_aktif_idx").on(t.aktif),
+    telegramChatIdx: uniqueIndex("users_telegram_chat_id_idx").on(t.telegramChatId),
+    telegramBindTokenIdx: uniqueIndex("users_telegram_bind_token_hash_idx").on(
+      t.telegramBindTokenHash,
+    ),
   }),
 );
 
