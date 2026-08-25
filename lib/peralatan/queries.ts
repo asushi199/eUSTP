@@ -47,6 +47,18 @@ import type {
 } from "./types";
 
 const ADMIN_PAGE_SIZE = 25;
+/** Keep in sync with EQUIPMENT_LOAN_WORKFLOW_ORDER in loan-list.ts */
+const equipmentLoanWorkflowOrderBy = sql`
+  case ${equipmentLoanRequests.status}
+    when 'pending' then 0
+    when 'approved' then 1
+    when 'handed_over' then 2
+    when 'cancelled' then 3
+    when 'returned' then 4
+    when 'rejected' then 5
+    else 6
+  end
+`;
 const sourcePkgs = alias(pkgs, "equipment_transfer_source_pkgs");
 const destinationPkgs = alias(pkgs, "equipment_transfer_destination_pkgs");
 const serialNoPrefixOrder = sql`
@@ -487,8 +499,11 @@ export async function listEquipmentLoansForPkg(
     search?: string;
     page?: number;
     perPage?: number;
+    all?: boolean;
+    sort?: "recent" | "workflow";
   } = {},
 ): Promise<EquipmentAdminListResult<EquipmentLoanListItem>> {
+  // `all` only loads every row in the selected month, never the full PKG history.
   const page = normalizedPage(filters.page);
   const perPage = Math.min(100, Math.max(1, filters.perPage ?? ADMIN_PAGE_SIZE));
   const search = filters.search?.trim().slice(0, 200) ?? "";
@@ -504,20 +519,21 @@ export async function listEquipmentLoansForPkg(
       ilike(equipmentLoanRequests.referenceNo, `%${search}%`),
       ilike(equipmentLoanRequests.applicantName, `%${search}%`),
       ilike(equipmentLoanRequests.orgName, `%${search}%`),
+      ilike(equipmentLoanRequests.schoolCode, `%${search}%`),
     );
     if (searchCondition) conditions.push(searchCondition);
   }
   const where = and(...conditions);
-  const totalRows = await db
-    .select({ total: count() })
-    .from(equipmentLoanRequests)
-    .where(where);
-  const total = totalRows[0]?.total ?? 0;
-  const effectivePage = Math.min(page, Math.max(1, Math.ceil(total / perPage)));
-  const rows = await db
+  const orderBy =
+    filters.sort === "workflow"
+      ? [equipmentLoanWorkflowOrderBy, desc(equipmentLoanRequests.createdAt)]
+      : [desc(equipmentLoanRequests.createdAt)];
+  const loadAllForMonth = Boolean(filters.all && range);
+  const loanListQuery = db
     .select({
       id: equipmentLoanRequests.id,
       referenceNo: equipmentLoanRequests.referenceNo,
+      schoolCode: equipmentLoanRequests.schoolCode,
       orgName: equipmentLoanRequests.orgName,
       applicantName: equipmentLoanRequests.applicantName,
       borrowDate: equipmentLoanRequests.borrowDate,
@@ -533,7 +549,25 @@ export async function listEquipmentLoansForPkg(
     )
     .where(where)
     .groupBy(equipmentLoanRequests.id)
-    .orderBy(desc(equipmentLoanRequests.createdAt))
+    .orderBy(...orderBy);
+
+  if (loadAllForMonth) {
+    const rows = await loanListQuery;
+    return {
+      items: rows,
+      total: rows.length,
+      page: 1,
+      perPage: Math.max(1, rows.length),
+    };
+  }
+
+  const totalRows = await db
+    .select({ total: count() })
+    .from(equipmentLoanRequests)
+    .where(where);
+  const total = totalRows[0]?.total ?? 0;
+  const effectivePage = Math.min(page, Math.max(1, Math.ceil(total / perPage)));
+  const rows = await loanListQuery
     .limit(perPage)
     .offset((effectivePage - 1) * perPage);
 

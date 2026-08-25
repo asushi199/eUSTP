@@ -1,5 +1,28 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-08-22 — Senarai permohonan aset: muatan mengikut bulan
+
+- Halaman admin tidak lagi memuatkan seluruh sejarah PKG pada mula. Bulan
+  aktif (lalai: bulan semasa) dimuatkan sekali, lalu status/carian ditapis di
+  pelayar.
+- `Semua bulan` mengekalkan susunan alur kerja merentas bulan (menunggu
+  kelulusan dahulu, ditolak paling bawah), tetapi hanya 25 rekod setiap muka
+  surat dari pelayan. Status dan carian pada paparan ini dihantar ke pelayan
+  tanpa butang Tapis (carian ditangguh 300ms).
+- Barisan menunggu kelulusan kekal pertanyaan kecil (5 rekod) tanpa mengira
+  bulan.
+
+## 2026-08-22 — Senarai permohonan aset: susunan alur + tapisan segera
+
+- `/admin/peralatan/[pkg]/permohonan` memuatkan semua permohonan PKG sekali,
+  kemudian menapis di pelayar. Menukar bulan, status atau kata carian tidak
+  memanggil semula pangkalan data, jadi butang `Tapis` dibuang.
+- Susunan senarai mengikut alur kerja: menunggu kelulusan, diluluskan, telah
+  diserahkan, dibatalkan, dipulangkan, kemudian ditolak di bawah sekali. Dalam
+  status yang sama, rekod terbaharu kekal di atas.
+- Carian sekolah meniru direktori: padanan segera pada kod sekolah, nama
+  sekolah, nama pemohon atau nombor rujukan, dengan kiraan rekod semasa.
+
 ## 2026-08-22 — Tapisan admin Laporan Akhbar
 
 - `/admin/laporan-akhbar` menambah tapisan senarai: Semua / Belum hantar /
