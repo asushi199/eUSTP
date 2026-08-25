@@ -18,7 +18,10 @@ import {
 import { listEquipmentLoansByContact } from "@/lib/peralatan/queries";
 import { buildEquipmentLookupWhatsAppUrl } from "@/lib/peralatan/lookup-whatsapp";
 import type { EquipmentLoanLookupResult } from "@/lib/peralatan/types";
-import { buildEquipmentRequestWhatsAppUrl } from "@/lib/peralatan/whatsapp";
+import {
+  buildEquipmentRequestMessage,
+  buildEquipmentRequestWhatsAppUrl,
+} from "@/lib/peralatan/whatsapp";
 import {
   equipmentCategories,
   equipmentLoanEvents,
@@ -30,6 +33,7 @@ import {
   schools,
 } from "@/lib/schema";
 import { normalizePhoneNumber } from "@/lib/tempahan/booking-rules";
+import { notifyPkgAdministrators } from "@/lib/telegram/notifications";
 
 function isDbTimeoutError(error: unknown): boolean {
   return (
@@ -303,16 +307,22 @@ export async function createEquipmentLoanAction(
     );
 
     const baseUrl = await resolveBaseUrl();
+    const approvalUrl = `${baseUrl}/admin/peralatan/${pkgId}/permohonan/${requestId}`;
+    const notificationDetails = {
+      referenceNo,
+      applicantName,
+      orgName,
+      borrowDate,
+      expectedReturnDate,
+      approvalUrl,
+    };
+    const telegramSent = await notifyPkgAdministrators(pkgId, {
+      text: buildEquipmentRequestMessage(notificationDetails),
+      actionUrl: approvalUrl,
+    });
     const managerPhone = pkg.equipmentManagerPhone ?? pkg.whatsappAdminPhone ?? "";
-    const whatsappUrl = managerPhone
-      ? buildEquipmentRequestWhatsAppUrl(managerPhone, {
-          referenceNo,
-          applicantName,
-          orgName,
-          borrowDate,
-          expectedReturnDate,
-          approvalUrl: `${baseUrl}/admin/peralatan/${pkgId}/permohonan/${requestId}`,
-        })
+    const whatsappUrl = telegramSent === 0 && managerPhone
+      ? buildEquipmentRequestWhatsAppUrl(managerPhone, notificationDetails)
       : "";
 
     revalidatePath("/tempahan/peralatan");
@@ -322,7 +332,9 @@ export async function createEquipmentLoanAction(
     return {
       ok: true,
       message:
-        "Permohonan berjaya dihantar. Sila tunggu kelulusan pentadbir dan gunakan Semak Permohonan untuk menyemak status.",
+        telegramSent > 0
+          ? "Permohonan berjaya dihantar dan pentadbir PKG telah dimaklumkan melalui Telegram. Gunakan Semak Permohonan untuk menyemak status."
+          : "Permohonan berjaya dihantar. Sila tunggu kelulusan pentadbir dan gunakan Semak Permohonan untuk menyemak status.",
       referenceNo,
       whatsappUrl,
     };

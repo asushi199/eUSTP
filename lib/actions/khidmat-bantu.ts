@@ -22,6 +22,7 @@ import {
 import { getServiceTitle } from "@/lib/khidmat-bantu/date-group";
 import {
   buildRequestSummary,
+  buildWhatsAppMessage,
   buildWhatsAppShareUrl,
 } from "@/lib/khidmat-bantu/whatsapp";
 import { getSessionUser } from "@/lib/rbac";
@@ -35,6 +36,7 @@ import type {
 import { khidmatBantuRequests } from "@/lib/schema";
 import { createApprovalToken, verifyApprovalToken } from "@/lib/tempahan/approval-token";
 import { normalizePhoneNumber } from "@/lib/tempahan/booking-rules";
+import { notifyKhidmatAdministrators } from "@/lib/telegram/notifications";
 import { approveKhidmatCore, rejectKhidmatCore } from "@/lib/khidmat-bantu/service";
 import { uploadSuratPermohonan } from "@/lib/khidmat-bantu/surat-permohonan";
 import { isGasStorageConfigured } from "@/lib/gas-upload";
@@ -217,16 +219,21 @@ export async function createKhidmatBantuAction(
     const approvalUrl = `${baseUrl}/khidmat-bantu/approve/${requestId}?token=${encodeURIComponent(token)}`;
     const adminPhone = await getKhidmatBantuWhatsappAdmin();
     const summary = buildRequestSummary(serviceType, details);
-    const whatsappUrl = adminPhone
-      ? buildWhatsAppShareUrl(adminPhone, {
-          applicantName,
-          orgName,
-          serviceType,
-          applicantType,
-          contact: contactNormalized,
-          summary,
-          approvalUrl,
-        })
+    const notificationDetails = {
+      applicantName,
+      orgName,
+      serviceType,
+      applicantType,
+      contact: contactNormalized,
+      summary,
+      approvalUrl,
+    };
+    const telegramSent = await notifyKhidmatAdministrators({
+      text: buildWhatsAppMessage(notificationDetails),
+      actionUrl: approvalUrl,
+    });
+    const whatsappUrl = telegramSent === 0 && adminPhone
+      ? buildWhatsAppShareUrl(adminPhone, notificationDetails)
       : "";
 
     revalidatePath("/khidmat-bantu");
@@ -234,9 +241,12 @@ export async function createKhidmatBantuAction(
 
     return {
       ok: true,
-      message: adminPhone
-        ? "Permohonan diterima. Sila hantar mesej WhatsApp kepada admin untuk kelulusan."
-        : "Permohonan diterima. Nombor WhatsApp admin belum ditetapkan — hubungi USTP secara terus.",
+      message:
+        telegramSent > 0
+          ? "Permohonan diterima. Pentadbir USTP telah dimaklumkan melalui Telegram."
+          : adminPhone
+            ? "Permohonan diterima. Sila hantar mesej WhatsApp kepada admin untuk kelulusan."
+            : "Permohonan diterima. Sila tunggu kelulusan dan semak status melalui Semak Permohonan.",
       whatsappUrl,
     };
   } catch (error) {

@@ -13,7 +13,19 @@ export function buildEquipmentRequestWhatsAppUrl(
 ): string {
   const normalized = normalizeWhatsAppPhone(phone);
   if (!normalized) return "";
-  const message = [
+  const message = buildEquipmentRequestMessage(details);
+  return `https://wa.me/${normalized}?text=${encodeURIComponent(message)}`;
+}
+
+export function buildEquipmentRequestMessage(details: {
+  referenceNo: string;
+  applicantName: string;
+  orgName: string;
+  borrowDate: string;
+  expectedReturnDate: string;
+  approvalUrl: string;
+}): string {
+  return [
     "Permohonan pinjaman peralatan baharu:",
     `Rujukan: ${details.referenceNo}`,
     `Pemohon: ${details.applicantName}`,
@@ -21,7 +33,6 @@ export function buildEquipmentRequestWhatsAppUrl(
     `Tempoh: ${details.borrowDate} hingga ${details.expectedReturnDate}`,
     `Pautan pentadbir: ${details.approvalUrl}`,
   ].join("\n");
-  return `https://wa.me/${normalized}?text=${encodeURIComponent(message)}`;
 }
 
 export function buildEquipmentDecisionWhatsAppUrl(
