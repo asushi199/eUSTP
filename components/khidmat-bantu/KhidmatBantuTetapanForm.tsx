@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import PhoneInput from "@/components/PhoneInput";
 import { saveKhidmatBantuTetapan } from "@/lib/actions/khidmat-bantu-admin";
+import { formatTelegramResponsibleOption } from "@/lib/telegram/recipients";
 
 export default function KhidmatBantuTetapanForm({
   whatsappAdminPhone,
@@ -56,8 +57,7 @@ export default function KhidmatBantuTetapanForm({
           <option value="">Gunakan semua pentadbir sedia ada</option>
           {responsibleUsers.map((user) => (
             <option key={user.id} value={user.id}>
-              {user.nama} — {user.jawatan || user.peranan}
-              {user.telegramBoundAt ? "" : " (Telegram belum disambungkan)"}
+              {formatTelegramResponsibleOption(user)}
             </option>
           ))}
         </select>

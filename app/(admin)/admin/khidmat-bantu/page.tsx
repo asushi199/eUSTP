@@ -28,7 +28,7 @@ export default async function AdminKhidmatBantuPage({
           </h1>
         </div>
         <Link href="/admin/khidmat-bantu/tetapan" className="btn-outline-ink btn-sm">
-          Tetapan WhatsApp
+          Tetapan
         </Link>
       </div>
 

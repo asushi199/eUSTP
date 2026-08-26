@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import PhoneInput from "@/components/PhoneInput";
 import { updatePkgSettings } from "@/lib/actions/tempahan-admin";
+import { formatTelegramResponsibleOption } from "@/lib/telegram/recipients";
 
 export default function PkgSettingsForm({
   pkgId,
@@ -60,8 +61,7 @@ export default function PkgSettingsForm({
           <option value="">Gunakan penerima PKG sedia ada</option>
           {responsibleUsers.map((user) => (
             <option key={user.id} value={user.id}>
-              {user.nama} — {user.jawatan || user.peranan}
-              {user.telegramBoundAt ? "" : " (Telegram belum disambungkan)"}
+              {formatTelegramResponsibleOption(user)}
             </option>
           ))}
         </select>

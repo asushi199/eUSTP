@@ -15,6 +15,7 @@ import {
   listPkgTelegramResponsibleUsers,
 } from "@/lib/tempahan/queries";
 import { uploadPkgLogo, uploadRoomPhoto } from "@/lib/tempahan/room-photos";
+import { parseTelegramResponsibleUserId } from "@/lib/telegram/recipients";
 import {
   approveBookingCore,
   cancelBookingCore,
@@ -260,15 +261,16 @@ export async function updatePkgSettings(
   if (phone && !/^\+?[0-9 -]{7,20}$/.test(phone)) {
     return { ok: false, error: "Nombor WhatsApp tidak sah." };
   }
-  const responsibleUserIdText = String(formData.get("telegramResponsibleUserId") ?? "").trim();
-  if (responsibleUserIdText && !/^[1-9]\d*$/.test(responsibleUserIdText)) {
+  const parsedResponsible = parseTelegramResponsibleUserId(
+    String(formData.get("telegramResponsibleUserId") ?? ""),
+  );
+  if (!parsedResponsible.ok) {
     return { ok: false, error: "Pegawai Telegram tidak sah." };
   }
-  const responsibleUserId = responsibleUserIdText ? Number(responsibleUserIdText) : null;
+  const responsibleUserId = parsedResponsible.userId;
   if (responsibleUserId !== null) {
-    const selectedResponsibleUserId = responsibleUserId;
     const eligibleUsers = await listPkgTelegramResponsibleUsers(pkgId);
-    if (!eligibleUsers.some((user) => user.id === selectedResponsibleUserId)) {
+    if (!eligibleUsers.some((user) => user.id === responsibleUserId)) {
       return { ok: false, error: "Pegawai yang dipilih tidak mempunyai akses kepada PKG ini." };
     }
   }
@@ -298,5 +300,6 @@ export async function updatePkgSettings(
 
   revalidatePath(`/admin/tempahan/${pkgId}`);
   revalidatePath(`/admin/tempahan/${pkgId}/tetapan`);
+  revalidatePath("/admin/telegram");
   return { ok: true };
 }

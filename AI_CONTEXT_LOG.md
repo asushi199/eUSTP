@@ -1030,3 +1030,12 @@ Corak berselang = instance sihat vs beracun.
   Jika belum dipilih, semua penerima lama kekal digunakan.
 - Semua laluan terus mengekalkan WhatsApp sebagai fallback apabila Telegram gagal
   dihantar, supaya guru boleh menghubungi pegawai melalui nombor rasmi.
+
+# 2026-08-26 — Tetapan pegawai Telegram dipaparkan di halaman Telegram
+
+- Halaman `/admin/telegram` (menu avatar) kini menyenaraikan pilihan pegawai penerima
+  bagi setiap PKG, plus Khidmat Bantu untuk Admin/Pegawai. Tetapan PKG lama di
+  `/admin/tempahan/[pkg]/tetapan` kekal.
+- Tempahan Bilik dan Peralatan terus berkongsi seorang pegawai bagi setiap PKG.
+- Jika lajur `telegram_responsible_user_id` belum wujud, halaman memaparkan arahan
+  migrasi dan tidak meruntuhkan kad ikatan peribadi.
