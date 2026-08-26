@@ -15,16 +15,16 @@ import type { SchoolOption } from "@/lib/direktori/queries";
 
 const initialState: KhidmatBantuFormState = { ok: false, message: "" };
 
+type ApplicantType = (typeof APPLICANT_TYPES)[number]["id"];
+
 export default function KhidmatBantuForm({ schools }: { schools: SchoolOption[] }) {
   const [state, formAction, pending] = useActionState(createKhidmatBantuAction, initialState);
 
-  const [applicantType, setApplicantType] = useState<(typeof APPLICANT_TYPES)[number]["id"]>(
-    "sekolah",
-  );
+  const [applicantType, setApplicantType] = useState<ApplicantType | "">("");
   const [serviceType, setServiceType] = useState<(typeof SERVICE_TYPES)[number]["id"]>("ceramah");
   const [query, setQuery] = useState("");
-  const [schoolCode, setSchoolCode] = useState(schools[0]?.code ?? "");
-  const [orgName, setOrgName] = useState(() => schools[0]?.name ?? "");
+  const [schoolCode, setSchoolCode] = useState("");
+  const [orgName, setOrgName] = useState("");
   const [activityDate, setActivityDate] = useState("");
   const [suratReady, setSuratReady] = useState(false);
 
@@ -37,12 +37,8 @@ export default function KhidmatBantuForm({ schools }: { schools: SchoolOption[] 
   }, [query, schools]);
 
   useEffect(() => {
-    if (filteredSchools.length === 0) {
-      setSchoolCode("");
-      return;
-    }
     if (!filteredSchools.some((s) => s.code === schoolCode)) {
-      setSchoolCode(filteredSchools[0].code);
+      setSchoolCode("");
     }
   }, [filteredSchools, schoolCode]);
 
@@ -108,11 +104,18 @@ export default function KhidmatBantuForm({ schools }: { schools: SchoolOption[] 
                 id="applicantType"
                 name="applicantType"
                 className="input"
+                required
                 value={applicantType}
-                onChange={(e) =>
-                  setApplicantType(e.target.value as (typeof APPLICANT_TYPES)[number]["id"])
-                }
+                onChange={(e) => {
+                  setApplicantType(e.target.value as ApplicantType | "");
+                  setQuery("");
+                  setSchoolCode("");
+                  setOrgName("");
+                }}
               >
+                <option value="" disabled>
+                  — Sila pilih —
+                </option>
                 {APPLICANT_TYPES.map((a) => (
                   <option key={a.id} value={a.id}>
                     {a.label}
@@ -130,6 +133,7 @@ export default function KhidmatBantuForm({ schools }: { schools: SchoolOption[] 
                   <input
                     id="carian-sekolah"
                     className="input"
+                    autoComplete="off"
                     placeholder="Kod atau nama sekolah"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
@@ -146,19 +150,29 @@ export default function KhidmatBantuForm({ schools }: { schools: SchoolOption[] 
                     id="sekolah"
                     name="schoolCode"
                     className="input"
+                    required
                     value={schoolCode}
+                    disabled={filteredSchools.length === 0}
                     onChange={(e) => setSchoolCode(e.target.value)}
                   >
+                    <option value="" disabled>
+                      — Sila pilih —
+                    </option>
                     {filteredSchools.map((s) => (
                       <option key={s.code} value={s.code}>
                         {s.code} — {s.name}
                       </option>
                     ))}
                   </select>
+                  {filteredSchools.length === 0 && (
+                    <p className="mt-1 text-xs text-bloom-deep">
+                      Tiada sekolah dijumpai. Cuba kata kunci lain.
+                    </p>
+                  )}
                 </div>
                 <input type="hidden" name="orgName" value={orgName} />
               </>
-            ) : (
+            ) : applicantType ? (
               <div>
                 <label className="label" htmlFor="orgName">
                   {applicantType === "pegawai_ppd" ? "Nama jabatan / unit" : "Nama organisasi"}
@@ -177,7 +191,7 @@ export default function KhidmatBantuForm({ schools }: { schools: SchoolOption[] 
                   }
                 />
               </div>
-            )}
+            ) : null}
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
