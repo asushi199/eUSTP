@@ -94,9 +94,11 @@ export function HomeModuleIcon({ iconKey }: { iconKey: IconKey }) {
           strokeLinejoin="round"
           className={iconClass}
         >
-          <rect x="6" y="5" width="12" height="16" rx="2" />
-          <path d="M9 5V4a3 3 0 0 1 6 0v1" />
-          <path d="M9 12h6M9 16h4" />
+          <path d="m11 17 2 2a1 1 0 1 0 3-3" />
+          <path d="m14 14 2 2a1 1 0 1 0 3-3" />
+          <path d="m17 11 1 1a1 1 0 1 0 3-3l-4.2-4.2a2 2 0 0 0-2.8 0L12 7" />
+          <path d="m7 11-1.5 1.5a1 1 0 0 0 0 1.4l6.4 6.4a1 1 0 0 0 1.4-1.4L12 17" />
+          <path d="M3 9 5 7l5 5M13 7l1-1a2 2 0 0 1 2.8 0L21 10" />
         </svg>
       );
     case "peralatan":
