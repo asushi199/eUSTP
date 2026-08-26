@@ -5,6 +5,8 @@
 - Lulus/tolak dari panel admin (tempahan, khidmat bantu, pinjaman peralatan)
   kini membuka popup **Maklumkan pemohon?** supaya pentadbir boleh hantar
   WhatsApp terus, atau tutup dan hantar kemudian dari permohonan itu.
+- Popup dipasang pada layout admin (`NotifyPemohonProvider`) supaya ia tidak
+  hilang apabila kad pending dimuat semula selepas `revalidatePath`.
 - Pautan kelulusan Telegram kekal ke halaman keputusan; butang WhatsApp pada
   kad/halaman permohonan tidak dibuang.
 

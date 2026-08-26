@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import NotifyPemohonDialog from "@/components/admin/NotifyPemohonDialog";
+import { useNotifyPemohon } from "@/components/admin/NotifyPemohonProvider";
 import WhatsAppPemohonLink from "@/components/admin/WhatsAppPemohonLink";
 import {
   adminApproveKhidmat,
@@ -31,13 +31,9 @@ export default function AdminKhidmatActions({
   whatsappDetails?: KhidmatWhatsAppDetails;
 }) {
   const router = useRouter();
+  const { promptNotifyPemohon } = useNotifyPemohon();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const [notify, setNotify] = useState<NotifyPemohonPrompt | null>(null);
-  const [resolvedDecision, setResolvedDecision] = useState<
-    NotifyPemohonPrompt["decision"] | null
-  >(null);
-  const displayStatus = resolvedDecision ?? status;
 
   function decisionUrl(decision: NotifyPemohonPrompt["decision"]) {
     if (!whatsappDetails) return "";
@@ -48,14 +44,7 @@ export default function AdminKhidmatActions({
   }
 
   const decisionWhatsappUrl =
-    displayStatus === "approved" || displayStatus === "rejected"
-      ? decisionUrl(displayStatus)
-      : "";
-
-  function closeNotify() {
-    setNotify(null);
-    router.refresh();
-  }
+    status === "approved" || status === "rejected" ? decisionUrl(status) : "";
 
   function run(
     action: () => Promise<{ ok: boolean; error?: string }>,
@@ -68,20 +57,21 @@ export default function AdminKhidmatActions({
         setError(res.error ?? "Tindakan gagal.");
         return;
       }
-      setResolvedDecision(notifyDecision);
-      setNotify({
+      const prompt = {
         href: decisionUrl(notifyDecision),
         decision: notifyDecision,
-      });
+      };
+      window.setTimeout(() => promptNotifyPemohon(prompt), 0);
+      router.refresh();
     });
   }
 
-  if (displayStatus !== "pending" && !decisionWhatsappUrl && !notify) return null;
+  if (status !== "pending" && !decisionWhatsappUrl) return null;
 
   return (
     <div>
       <div className="flex flex-wrap items-center gap-2">
-        {displayStatus === "pending" ? (
+        {status === "pending" ? (
           <>
             <button
               type="button"
@@ -105,12 +95,6 @@ export default function AdminKhidmatActions({
         )}
       </div>
       {error && <p className="mt-1 text-xs text-bloom-deep">{error}</p>}
-      <NotifyPemohonDialog
-        open={Boolean(notify)}
-        href={notify?.href ?? ""}
-        decision={notify?.decision ?? "approved"}
-        onClose={closeNotify}
-      />
     </div>
   );
 }

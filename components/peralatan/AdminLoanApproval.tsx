@@ -7,7 +7,7 @@ import {
   rejectEquipmentLoan,
 } from "@/lib/actions/peralatan-admin";
 import type { NotifyPemohonPrompt } from "@/lib/admin/notify-pemohon";
-import NotifyPemohonDialog from "@/components/admin/NotifyPemohonDialog";
+import { useNotifyPemohon } from "@/components/admin/NotifyPemohonProvider";
 import { buildEquipmentDecisionWhatsAppUrl } from "@/lib/peralatan/whatsapp";
 import { EQUIPMENT_LOAN_STATUS_LABEL } from "@/lib/peralatan/status";
 import type { EquipmentLoanDetail } from "@/lib/peralatan/types";
@@ -25,6 +25,7 @@ export default function AdminLoanApproval({
   request: EquipmentLoanDetail;
 }) {
   const router = useRouter();
+  const { promptNotifyPemohon } = useNotifyPemohon();
   const [pending, startTransition] = useTransition();
   const [decisionNote, setDecisionNote] = useState(request.decisionNote);
   const [approvedBorrowDate, setApprovedBorrowDate] = useState(
@@ -44,8 +45,6 @@ export default function AdminLoanApproval({
     ),
   );
   const [error, setError] = useState("");
-  const [notify, setNotify] = useState<NotifyPemohonPrompt | null>(null);
-  const [notifyOpen, setNotifyOpen] = useState(false);
   const [selections, setSelections] = useState<Record<string, string[]>>(() =>
     Object.fromEntries(
       request.items.map((item) => [
@@ -74,8 +73,7 @@ export default function AdminLoanApproval({
     );
   });
   const decisionWhatsappUrl =
-    notify?.href ||
-    (request.status === "approved" ||
+    request.status === "approved" ||
     request.status === "rejected" ||
     request.status === "handed_over"
       ? buildEquipmentDecisionWhatsAppUrl(request.contact, {
@@ -93,7 +91,7 @@ export default function AdminLoanApproval({
                 ? "handed_over"
                 : "approved",
         })
-      : "");
+      : "";
 
   function updateApprovedQuantity(
     itemId: string,
@@ -216,14 +214,13 @@ export default function AdminLoanApproval({
         }),
         decision: notifyDecision,
       };
-      setNotify(prompt);
-      setNotifyOpen(true);
+      window.setTimeout(() => promptNotifyPemohon(prompt), 0);
+      router.refresh();
     });
   }
 
   return (
-    <>
-      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+    <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
       <div className="space-y-5">
         <section className="card p-5 sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
@@ -489,7 +486,7 @@ export default function AdminLoanApproval({
             </p>
           ) : null}
 
-          {request.status === "pending" && !notify ? (
+          {request.status === "pending" ? (
             <>
               <button
                 type="button"
@@ -534,15 +531,5 @@ export default function AdminLoanApproval({
         </section>
       </aside>
     </div>
-      <NotifyPemohonDialog
-        open={notifyOpen}
-        href={notify?.href ?? ""}
-        decision={notify?.decision ?? "approved"}
-        onClose={() => {
-          setNotifyOpen(false);
-          router.refresh();
-        }}
-      />
-    </>
   );
 }

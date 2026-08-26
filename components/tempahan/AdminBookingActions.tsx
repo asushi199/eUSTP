@@ -20,7 +20,7 @@ import {
   type BookingStatus,
   type Slot,
 } from "@/lib/tempahan/booking-rules";
-import NotifyPemohonDialog from "@/components/admin/NotifyPemohonDialog";
+import { useNotifyPemohon } from "@/components/admin/NotifyPemohonProvider";
 import type { NotifyPemohonPrompt } from "@/lib/admin/notify-pemohon";
 import { buildBookingDecisionWhatsAppUrl } from "@/lib/tempahan/whatsapp";
 import { formatMalayDate } from "@/lib/tempahan/date";
@@ -59,33 +59,24 @@ export default function AdminBookingActions({
   isMultiDay?: boolean;
 }) {
   const router = useRouter();
+  const { promptNotifyPemohon } = useNotifyPemohon();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [date, setDate] = useState(currentDate);
   const [slot, setSlot] = useState<Slot>(currentSlot);
   const [needSijil, setNeedSijil] = useState(requiresCertificate);
-  const [notify, setNotify] = useState<NotifyPemohonPrompt | null>(null);
-  const [resolvedDecision, setResolvedDecision] = useState<
-    NotifyPemohonPrompt["decision"] | null
-  >(null);
-  const displayStatus = resolvedDecision ?? status;
   const decisionWhatsappUrl =
-    displayStatus === "approved" || displayStatus === "rejected"
+    status === "approved" || status === "rejected"
       ? buildBookingDecisionWhatsAppUrl(applicantPhone, {
           name: applicantName,
           room: roomName,
           purpose,
           date: formatMalayDate(currentDate),
           slot: formatSlot(currentSlot),
-          decision: displayStatus,
+          decision: status,
         })
       : "";
-
-  function closeNotify() {
-    setNotify(null);
-    router.refresh();
-  }
 
   function run(
     action: () => Promise<{ ok: boolean; error?: string }>,
@@ -101,8 +92,7 @@ export default function AdminBookingActions({
         return;
       }
       if (notifyDecision) {
-        setResolvedDecision(notifyDecision);
-        setNotify({
+        const prompt = {
           href: buildBookingDecisionWhatsAppUrl(applicantPhone, {
             name: applicantName,
             room: roomName,
@@ -112,8 +102,8 @@ export default function AdminBookingActions({
             decision: notifyDecision,
           }),
           decision: notifyDecision,
-        });
-        return;
+        };
+        window.setTimeout(() => promptNotifyPemohon(prompt), 0);
       }
       router.refresh();
     });
@@ -138,7 +128,7 @@ export default function AdminBookingActions({
 
   return (
     <div>
-      {displayStatus === "pending" && (
+      {status === "pending" && (
         <label className="mb-2 flex items-center gap-2 text-sm text-ink">
           <input
             type="checkbox"
@@ -150,7 +140,7 @@ export default function AdminBookingActions({
         </label>
       )}
       <div className="flex flex-wrap items-center gap-2">
-        {displayStatus === "pending" && (
+        {status === "pending" && (
           <>
             <button
               type="button"
@@ -221,7 +211,7 @@ export default function AdminBookingActions({
         )}
       </div>
 
-      {displayStatus === "approved" && (
+      {status === "approved" && (
         <div className="mt-2 flex flex-wrap items-center gap-2">
           {decisionWhatsappUrl && (
             <a
@@ -267,7 +257,7 @@ export default function AdminBookingActions({
         </div>
       )}
 
-      {displayStatus === "rejected" && decisionWhatsappUrl && (
+      {status === "rejected" && decisionWhatsappUrl && (
         <div className="mt-2">
           <a
             href={decisionWhatsappUrl}
@@ -340,12 +330,6 @@ export default function AdminBookingActions({
         </form>
       )}
       {error && <p className="mt-1 text-xs text-bloom-deep">{error}</p>}
-      <NotifyPemohonDialog
-        open={Boolean(notify)}
-        href={notify?.href ?? ""}
-        decision={notify?.decision ?? "approved"}
-        onClose={closeNotify}
-      />
     </div>
   );
 }
