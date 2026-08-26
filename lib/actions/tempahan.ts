@@ -220,10 +220,10 @@ export async function createBookingAction(
     const dayCount = prepared.length;
     const successBase =
       telegramSent > 0
-        ? "Permohonan diterima. Pentadbir PKG telah dimaklumkan melalui Telegram."
+        ? "Permohonan diterima. Pentadbir PKG telah dimaklumkan. Sila tunggu kelulusan dan semak status melalui Semak Tempahan."
         : adminPhone
           ? "Permohonan diterima. Sila hantar mesej WhatsApp kepada admin untuk kelulusan."
-          : "Permohonan diterima. Sila tunggu kelulusan dan semak status melalui Semak Permohonan.";
+          : "Permohonan diterima. Sila tunggu kelulusan dan semak status melalui Semak Tempahan.";
 
     return {
       ok: true,

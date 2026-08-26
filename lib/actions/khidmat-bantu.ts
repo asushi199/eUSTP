@@ -243,7 +243,7 @@ export async function createKhidmatBantuAction(
       ok: true,
       message:
         telegramSent > 0
-          ? "Permohonan diterima. Pentadbir USTP telah dimaklumkan melalui Telegram."
+          ? "Permohonan diterima. Pentadbir USTP telah dimaklumkan. Sila tunggu kelulusan dan semak status melalui Semak Permohonan."
           : adminPhone
             ? "Permohonan diterima. Sila hantar mesej WhatsApp kepada admin untuk kelulusan."
             : "Permohonan diterima. Sila tunggu kelulusan dan semak status melalui Semak Permohonan.",

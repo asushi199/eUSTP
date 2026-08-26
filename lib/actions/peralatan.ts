@@ -333,7 +333,7 @@ export async function createEquipmentLoanAction(
       ok: true,
       message:
         telegramSent > 0
-          ? "Permohonan berjaya dihantar dan pentadbir PKG telah dimaklumkan melalui Telegram. Gunakan Semak Permohonan untuk menyemak status."
+          ? "Permohonan berjaya dihantar. Pentadbir PKG telah dimaklumkan. Gunakan Semak Permohonan untuk menyemak status."
           : "Permohonan berjaya dihantar. Sila tunggu kelulusan pentadbir dan gunakan Semak Permohonan untuk menyemak status.",
       referenceNo,
       whatsappUrl,
