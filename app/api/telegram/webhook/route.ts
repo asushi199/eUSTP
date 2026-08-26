@@ -5,8 +5,8 @@ import { pkgs, telegramDestinations, users } from "@/lib/schema";
 import {
   hashTelegramBindToken,
   isValidTelegramWebhookSecret,
-  KHIDMAT_TELEGRAM_DESTINATION_ID,
   parseTelegramStartBindToken,
+  telegramDestinationLabel,
 } from "@/lib/telegram/binding";
 import { sendTelegramMessage } from "@/lib/telegram/client";
 
@@ -19,11 +19,6 @@ type TelegramUpdate = {
     from?: { id?: number; username?: string };
   };
 };
-
-function destinationLabel(id: string, pkgName?: string | null): string {
-  if (id === KHIDMAT_TELEGRAM_DESTINATION_ID) return "Khidmat Bantu";
-  return pkgName ? `PKG ${pkgName}` : "modul yang dipilih";
-}
 
 export async function POST(request: Request) {
   if (
@@ -126,7 +121,7 @@ export async function POST(request: Request) {
       : null;
     await sendTelegramMessage(
       String(chatId),
-      `Telegram telah disambungkan dengan ${destinationLabel(destination.id, pkg?.name)}. Notifikasi permohonan akan dihantar ke sini.`,
+      `Telegram telah disambungkan dengan ${telegramDestinationLabel(destination.id, pkg?.name)}. Notifikasi permohonan akan dihantar ke sini.`,
     );
   } catch {
     await sendTelegramMessage(

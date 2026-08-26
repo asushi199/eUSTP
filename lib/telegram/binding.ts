@@ -7,6 +7,14 @@ export function pkgTelegramDestinationId(pkgId: string): string {
   return `pkg:${pkgId}`;
 }
 
+export function telegramDestinationLabel(
+  id: string,
+  pkgName?: string | null,
+): string {
+  if (id === KHIDMAT_TELEGRAM_DESTINATION_ID) return "Khidmat Bantu";
+  return pkgName ? `Admin ${pkgName}` : "modul yang dipilih";
+}
+
 export function parseTelegramStartBindToken(text: string | undefined): string | null {
   const match = text?.match(/^\/start\s+bind_([A-Za-z0-9_-]{32})$/);
   return match?.[1] ?? null;
