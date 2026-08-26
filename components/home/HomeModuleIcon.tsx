@@ -94,10 +94,9 @@ export function HomeModuleIcon({ iconKey }: { iconKey: IconKey }) {
           strokeLinejoin="round"
           className={iconClass}
         >
-          <path d="M12 3v12" />
-          <path d="M8 7h8" />
-          <rect x="4" y="15" width="16" height="6" rx="2" />
-          <path d="M10 18h4" />
+          <rect x="6" y="5" width="12" height="16" rx="2" />
+          <path d="M9 5V4a3 3 0 0 1 6 0v1" />
+          <path d="M9 12h6M9 16h4" />
         </svg>
       );
     case "peralatan":
@@ -111,8 +110,8 @@ export function HomeModuleIcon({ iconKey }: { iconKey: IconKey }) {
           strokeLinejoin="round"
           className={iconClass}
         >
-          <rect x="4" y="7" width="16" height="11" rx="2" />
-          <path d="M8 7V5h8v2M8 12h8M12 12v3" />
+          <path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z" />
+          <path d="m4 7.5 8 4.5 8-4.5M12 12v9" />
         </svg>
       );
     case "sumber":
