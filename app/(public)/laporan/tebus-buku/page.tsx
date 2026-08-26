@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Semak Tebus Buku — CoE Laporan — NEXa Manjung",
   description:
-    "Semak status tebus dan guna buku digital pelajar sekolah menengah daerah Manjung.",
+    "Semak status tebus dan guna baucar buku pelajar sekolah menengah daerah Manjung.",
 };
 
 export default async function TebusBukuIndexPage() {
@@ -44,7 +44,7 @@ export default async function TebusBukuIndexPage() {
         description={
           tarikh
             ? `Pilih sekolah, kemudian cari pelajar. Data sekolah menengah Manjung setakat ${tarikh}.`
-            : "Pilih sekolah, kemudian cari pelajar untuk semak status tebus dan guna buku digital."
+            : "Pilih sekolah, kemudian cari pelajar untuk semak status tebus dan guna baucar buku."
         }
         className="mt-2"
       />

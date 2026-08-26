@@ -16,7 +16,7 @@ const SECTION_TAG: Record<string, string> = {
   "/laporan-dpd": "Pendigitalan",
   "/laporan-pss": "Pusat Sumber Sekolah",
   "/laporan-akhbar": "Langganan Akhbar 2026",
-  "/laporan/tebus-buku": "Buku Digital",
+  "/laporan/tebus-buku": "Baucar Buku",
 };
 
 export default function LaporanHubPage() {
@@ -32,7 +32,7 @@ export default function LaporanHubPage() {
         description={
           looker
             ? "Pilih modul di bawah. DPD dan PSS dibuka di Looker Studio; Laporan Akhbar dan Semak Tebus Buku kekal dalam portal."
-            : "Pilih modul laporan atau semak status tebus buku digital."
+            : "Pilih modul laporan atau semak status tebus baucar buku."
         }
       />
 

@@ -28,7 +28,7 @@ const LAPORAN_HUB = {
   external: false,
   title: "CoE Laporan",
   description:
-    "Laporan DPD, Laporan PSS, tinjauan Langganan Akhbar dan semakan tebus buku digital.",
+    "Laporan DPD, Laporan PSS, tinjauan Langganan Akhbar dan semakan tebus baucar buku.",
   accent: "#DB2777",
   iconKey: "laporan" as const,
 } as const;
@@ -83,7 +83,7 @@ export const MODULES = [
     external: false,
     title: "Semak Tebus Buku",
     description:
-      "Cari pelajar sekolah menengah Manjung — semak sama ada sudah tebus dan sudah guna buku digital.",
+      "Cari pelajar sekolah menengah Manjung — semak sama ada sudah tebus dan sudah guna baucar buku.",
     accent: "#6D28D9",
     iconKey: "tebus" as const,
   },

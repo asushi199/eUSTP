@@ -1,9 +1,15 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-08-26 — Semak Tebus Buku: baucar buku, bukan buku digital
+
+- Tag kad **Semak Tebus Buku** di hub `/laporan` ditukar kepada **Baucar Buku**.
+  Penerangan kad, halaman senarai sekolah dan metadata ikut menyebut tebus/guna
+  baucar buku, bukan buku digital.
+
 ## 2026-08-26 — Semak Tebus Buku (CoE Laporan)
 
 - Kad baharu **Semak Tebus Buku** di hub `/laporan`. Bukan borang — direktori
-  semakan status tebus/guna buku digital untuk 21 sekolah menengah Manjung.
+  semakan status tebus/guna baucar buku untuk 21 sekolah menengah Manjung.
 - Alur: pilih sekolah → senarai pelajar sekolah itu, dengan carian nama,
   tingkatan dan status. Emel tidak didedahkan di halaman awam. Sekolah boleh
   muat turun CSV mengikut tapisan semasa.

@@ -270,7 +270,7 @@ export const laporanAkhbar = pgTable(
 );
 
 /**
- * Status tebus/guna buku digital pelajar (snapshot CSV JPN).
+ * Status tebus/guna baucar buku pelajar (snapshot CSV JPN).
  * Emel disimpan untuk identiti unik semasa import semula — jangan papar di halaman awam.
  */
 export const tebusBukuPelajar = pgTable(
