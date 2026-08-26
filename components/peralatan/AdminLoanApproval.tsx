@@ -6,6 +6,8 @@ import {
   approveEquipmentLoan,
   rejectEquipmentLoan,
 } from "@/lib/actions/peralatan-admin";
+import type { NotifyPemohonPrompt } from "@/lib/admin/notify-pemohon";
+import { useNotifyPemohon } from "@/components/admin/NotifyPemohonProvider";
 import { buildEquipmentDecisionWhatsAppUrl } from "@/lib/peralatan/whatsapp";
 import { EQUIPMENT_LOAN_STATUS_LABEL } from "@/lib/peralatan/status";
 import type { EquipmentLoanDetail } from "@/lib/peralatan/types";
@@ -23,6 +25,7 @@ export default function AdminLoanApproval({
   request: EquipmentLoanDetail;
 }) {
   const router = useRouter();
+  const { promptNotifyPemohon } = useNotifyPemohon();
   const [pending, startTransition] = useTransition();
   const [decisionNote, setDecisionNote] = useState(request.decisionNote);
   const [approvedBorrowDate, setApprovedBorrowDate] = useState(
@@ -186,6 +189,32 @@ export default function AdminLoanApproval({
         setError(result.error ?? "Tindakan tidak berjaya.");
         return;
       }
+      const notifyDecision = decision === "approve" ? "approved" : "rejected";
+      const prompt: NotifyPemohonPrompt = {
+        href: buildEquipmentDecisionWhatsAppUrl(request.contact, {
+          referenceNo: request.referenceNo,
+          applicantName: request.applicantName,
+          pkgName: request.pkgName,
+          borrowDate:
+            decision === "approve" ? approvedBorrowDate : request.borrowDate,
+          expectedReturnDate:
+            decision === "approve"
+              ? approvedReturnDate
+              : request.expectedReturnDate,
+          items: request.items.map(
+            (item) =>
+              `${item.categoryName} (${
+                decision === "approve"
+                  ? approvedQuantities[item.id]
+                  : item.quantity
+              })`,
+          ),
+          decisionNote,
+          decision: notifyDecision,
+        }),
+        decision: notifyDecision,
+      };
+      window.setTimeout(() => promptNotifyPemohon(prompt), 0);
       router.refresh();
     });
   }

@@ -2,26 +2,54 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useNotifyPemohon } from "@/components/admin/NotifyPemohonProvider";
 import WhatsAppPemohonLink from "@/components/admin/WhatsAppPemohonLink";
 import {
   adminApproveKhidmat,
   adminRejectKhidmat,
 } from "@/lib/actions/khidmat-bantu-admin";
+import type { NotifyPemohonPrompt } from "@/lib/admin/notify-pemohon";
+import { buildKhidmatDecisionWhatsAppUrl } from "@/lib/khidmat-bantu/whatsapp";
+
+type KhidmatWhatsAppDetails = {
+  applicantName: string;
+  orgName: string;
+  serviceLabel: string;
+  title: string;
+  date: string;
+};
 
 export default function AdminKhidmatActions({
   requestId,
   status,
-  decisionWhatsappUrl = "",
+  applicantPhone = "",
+  whatsappDetails,
 }: {
   requestId: string;
   status: string;
-  decisionWhatsappUrl?: string;
+  applicantPhone?: string;
+  whatsappDetails?: KhidmatWhatsAppDetails;
 }) {
   const router = useRouter();
+  const { promptNotifyPemohon } = useNotifyPemohon();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  function run(action: () => Promise<{ ok: boolean; error?: string }>) {
+  function decisionUrl(decision: NotifyPemohonPrompt["decision"]) {
+    if (!whatsappDetails) return "";
+    return buildKhidmatDecisionWhatsAppUrl(applicantPhone, {
+      ...whatsappDetails,
+      decision,
+    });
+  }
+
+  const decisionWhatsappUrl =
+    status === "approved" || status === "rejected" ? decisionUrl(status) : "";
+
+  function run(
+    action: () => Promise<{ ok: boolean; error?: string }>,
+    notifyDecision: NotifyPemohonPrompt["decision"],
+  ) {
     setError(null);
     startTransition(async () => {
       const res = await action();
@@ -29,6 +57,11 @@ export default function AdminKhidmatActions({
         setError(res.error ?? "Tindakan gagal.");
         return;
       }
+      const prompt = {
+        href: decisionUrl(notifyDecision),
+        decision: notifyDecision,
+      };
+      window.setTimeout(() => promptNotifyPemohon(prompt), 0);
       router.refresh();
     });
   }
@@ -44,7 +77,7 @@ export default function AdminKhidmatActions({
               type="button"
               className="btn-primary btn-sm"
               disabled={pending}
-              onClick={() => run(() => adminApproveKhidmat(requestId))}
+              onClick={() => run(() => adminApproveKhidmat(requestId), "approved")}
             >
               Lulus
             </button>
@@ -52,7 +85,7 @@ export default function AdminKhidmatActions({
               type="button"
               className="btn-outline-ink btn-sm"
               disabled={pending}
-              onClick={() => run(() => adminRejectKhidmat(requestId))}
+              onClick={() => run(() => adminRejectKhidmat(requestId), "rejected")}
             >
               Tolak
             </button>

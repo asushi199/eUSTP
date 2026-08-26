@@ -3,7 +3,6 @@ import {
   getApplicantTypeLabel,
   getServiceTypeLabel,
 } from "@/lib/khidmat-bantu/config";
-import { buildKhidmatDecisionWhatsAppUrl } from "@/lib/khidmat-bantu/whatsapp";
 import {
   getServiceDate,
   getServiceLokasi,
@@ -89,18 +88,14 @@ export default function KhidmatRequestCard({
           <AdminKhidmatActions
             requestId={row.id}
             status={row.status}
-            decisionWhatsappUrl={
-              row.status === "approved" || row.status === "rejected"
-                ? buildKhidmatDecisionWhatsAppUrl(row.contact, {
-                    applicantName: row.applicantName,
-                    orgName: row.orgName,
-                    serviceLabel: getServiceTypeLabel(row.serviceType),
-                    title: getServiceTitle(row),
-                    date: date ? formatMalayDate(date) : "—",
-                    decision: row.status,
-                  })
-                : ""
-            }
+            applicantPhone={row.contact}
+            whatsappDetails={{
+              applicantName: row.applicantName,
+              orgName: row.orgName,
+              serviceLabel: getServiceTypeLabel(row.serviceType),
+              title: getServiceTitle(row),
+              date: date ? formatMalayDate(date) : "—",
+            }}
           />
         </div>
       )}

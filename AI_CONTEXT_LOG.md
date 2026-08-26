@@ -1,5 +1,15 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-08-26 — Popup WhatsApp pemohon dari panel admin
+
+- Lulus/tolak dari panel admin (tempahan, khidmat bantu, pinjaman peralatan)
+  kini membuka popup **Maklumkan pemohon?** supaya pentadbir boleh hantar
+  WhatsApp terus, atau tutup dan hantar kemudian dari permohonan itu.
+- Popup dipasang pada layout admin (`NotifyPemohonProvider`) supaya ia tidak
+  hilang apabila kad pending dimuat semula selepas `revalidatePath`.
+- Pautan kelulusan Telegram kekal ke halaman keputusan; butang WhatsApp pada
+  kad/halaman permohonan tidak dibuang.
+
 ## 2026-08-26 — WhatsApp pemohon selepas lulus/tolak
 
 - Selepas pentadbir lulus atau tolak, butang **WhatsApp pemohon** (mesej

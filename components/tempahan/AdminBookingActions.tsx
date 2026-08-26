@@ -20,6 +20,8 @@ import {
   type BookingStatus,
   type Slot,
 } from "@/lib/tempahan/booking-rules";
+import { useNotifyPemohon } from "@/components/admin/NotifyPemohonProvider";
+import type { NotifyPemohonPrompt } from "@/lib/admin/notify-pemohon";
 import { buildBookingDecisionWhatsAppUrl } from "@/lib/tempahan/whatsapp";
 import { formatMalayDate } from "@/lib/tempahan/date";
 
@@ -57,6 +59,7 @@ export default function AdminBookingActions({
   isMultiDay?: boolean;
 }) {
   const router = useRouter();
+  const { promptNotifyPemohon } = useNotifyPemohon();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
@@ -75,7 +78,11 @@ export default function AdminBookingActions({
         })
       : "";
 
-  function run(action: () => Promise<{ ok: boolean; error?: string }>, confirmMsg?: string) {
+  function run(
+    action: () => Promise<{ ok: boolean; error?: string }>,
+    confirmMsg?: string,
+    notifyDecision?: NotifyPemohonPrompt["decision"],
+  ) {
     if (confirmMsg && !window.confirm(confirmMsg)) return;
     setError(null);
     startTransition(async () => {
@@ -83,6 +90,20 @@ export default function AdminBookingActions({
       if (!res.ok) {
         setError(res.error ?? "Tindakan gagal.");
         return;
+      }
+      if (notifyDecision) {
+        const prompt = {
+          href: buildBookingDecisionWhatsAppUrl(applicantPhone, {
+            name: applicantName,
+            room: roomName,
+            purpose,
+            date: formatMalayDate(currentDate),
+            slot: formatSlot(currentSlot),
+            decision: notifyDecision,
+          }),
+          decision: notifyDecision,
+        };
+        window.setTimeout(() => promptNotifyPemohon(prompt), 0);
       }
       router.refresh();
     });
@@ -125,7 +146,9 @@ export default function AdminBookingActions({
               type="button"
               className="btn-primary btn-sm"
               disabled={pending}
-              onClick={() => run(() => adminApproveBooking(pkgId, bookingId, needSijil))}
+              onClick={() =>
+                run(() => adminApproveBooking(pkgId, bookingId, needSijil), undefined, "approved")
+              }
             >
               {isMultiDay ? "Lulus semua hari" : "Lulus"}
             </button>
@@ -133,7 +156,9 @@ export default function AdminBookingActions({
               type="button"
               className="btn-outline-ink btn-sm"
               disabled={pending}
-              onClick={() => run(() => adminRejectBooking(pkgId, bookingId))}
+              onClick={() =>
+                run(() => adminRejectBooking(pkgId, bookingId), undefined, "rejected")
+              }
             >
               {isMultiDay ? "Tolak semua hari" : "Tolak"}
             </button>
