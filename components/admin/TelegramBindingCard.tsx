@@ -37,8 +37,8 @@ export default function TelegramBindingCard({
         <div>
           <h2 className="font-semibold text-ink">Notifikasi peribadi Telegram</h2>
           <p className="mt-1 text-sm leading-relaxed text-graphite">
-            Sambungkan akaun sekali sahaja. Notifikasi dihantar mengikut peranan dan
-            skop PKG akaun pentadbir ini.
+            Sambungkan akaun sekali sahaja. Pegawai penerima notifikasi ditetapkan
+            di bawah mengikut PKG.
           </p>
         </div>
         <span className="status-badge">

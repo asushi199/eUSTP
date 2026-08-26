@@ -24,7 +24,7 @@ export default async function AdminKhidmatBantuTetapanPage() {
       </Link>
       <h1 className="mt-2 text-2xl font-semibold tracking-tight">Tetapan Khidmat Bantu</h1>
       <p className="mt-1 text-sm text-graphite">
-        Nombor WhatsApp untuk mesej kelulusan permohonan khidmat bantu.
+        Pilih pegawai Telegram dan nombor WhatsApp untuk mesej kelulusan permohonan.
       </p>
       <div className="mt-6 max-w-lg">
         <KhidmatBantuTetapanForm

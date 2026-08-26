@@ -11,6 +11,7 @@ import { listKhidmatBantuTelegramResponsibleUsers } from "@/lib/khidmat-bantu/qu
 import { approveKhidmatCore, rejectKhidmatCore } from "@/lib/khidmat-bantu/service";
 import { requireKandunganAccess } from "@/lib/rbac";
 import { appSettings } from "@/lib/schema";
+import { parseTelegramResponsibleUserId } from "@/lib/telegram/recipients";
 
 type ActionResult = { ok: boolean; error?: string };
 
@@ -18,6 +19,7 @@ function refreshPaths() {
   revalidatePath("/khidmat-bantu");
   revalidatePath("/admin/khidmat-bantu");
   revalidatePath("/admin/khidmat-bantu/tetapan");
+  revalidatePath("/admin/telegram");
 }
 
 export async function adminApproveKhidmat(requestId: string): Promise<ActionResult> {
@@ -55,11 +57,14 @@ export async function saveKhidmatBantuTetapan(
   const phone = String(formData.get("whatsappAdminPhone") ?? "")
     .trim()
     .replace(/\D/g, "");
-  const responsibleUserIdText = String(formData.get("telegramResponsibleUserId") ?? "").trim();
-  if (responsibleUserIdText && !/^[1-9]\d*$/.test(responsibleUserIdText)) {
+  const parsedResponsible = parseTelegramResponsibleUserId(
+    String(formData.get("telegramResponsibleUserId") ?? ""),
+  );
+  if (!parsedResponsible.ok) {
     return { ok: false, error: "Pegawai Telegram tidak sah." };
   }
-  const responsibleUserId = responsibleUserIdText ? Number(responsibleUserIdText) : null;
+  const responsibleUserId = parsedResponsible.userId;
+  const responsibleUserIdText = responsibleUserId === null ? "" : String(responsibleUserId);
   if (responsibleUserId !== null) {
     const eligibleUsers = await listKhidmatBantuTelegramResponsibleUsers();
     if (!eligibleUsers.some((user) => user.id === responsibleUserId)) {
