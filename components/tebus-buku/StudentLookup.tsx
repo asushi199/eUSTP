@@ -7,12 +7,44 @@ import type { TebusBukuStudent } from "@/lib/tebus-buku/types";
 
 type StatusFilter = "semua" | "belum-tebus" | "belum-guna" | "sudah-siap";
 
-const STATUS_LABEL: Record<StatusFilter, string> = {
-  semua: "Semua",
-  "belum-tebus": "Belum tebus",
-  "belum-guna": "Belum guna",
-  "sudah-siap": "Sudah siap",
+const STATUS_BUTTONS: ReadonlyArray<[StatusFilter, string]> = [
+  ["semua", "Semua"],
+  ["belum-tebus", "Belum tebus"],
+  ["belum-guna", "Belum guna"],
+  ["sudah-siap", "Selesai"],
+];
+
+const STATUS_SUMMARY: Record<StatusFilter, string> = {
+  semua: "",
+  "belum-tebus": "Belum tebus dan belum guna baucar",
+  "belum-guna": "Sudah tebus baucar, belum guna baucar",
+  "sudah-siap": "Selesai",
 };
+
+const STATUS_PENERANGAN: ReadonlyArray<{ key: StatusFilter; title: string; meaning: string }> = [
+  {
+    key: "belum-tebus",
+    title: "Belum tebus",
+    meaning: "belum tebus dan belum guna baucar",
+  },
+  {
+    key: "belum-guna",
+    title: "Belum guna",
+    meaning: "sudah tebus baucar, belum guna baucar",
+  },
+  {
+    key: "sudah-siap",
+    title: "Selesai",
+    meaning: "sudah tebus dan sudah guna baucar",
+  },
+];
+
+function matchesStatus(student: TebusBukuStudent, status: StatusFilter) {
+  if (status === "belum-tebus") return !student.sudahTebus && !student.sudahGuna;
+  if (status === "belum-guna") return student.sudahTebus && !student.sudahGuna;
+  if (status === "sudah-siap") return student.sudahTebus && student.sudahGuna;
+  return true;
+}
 
 function StatusMark({ done, label }: { done: boolean; label: string }) {
   return (
@@ -64,12 +96,7 @@ export default function StudentLookup({
         if (hasQuery && !student.nama.toLowerCase().includes(normalizedQuery)) {
           return false;
         }
-        if (status === "belum-tebus" && student.sudahTebus) return false;
-        if (status === "belum-guna" && student.sudahGuna) return false;
-        if (status === "sudah-siap" && !(student.sudahTebus && student.sudahGuna)) {
-          return false;
-        }
-        return true;
+        return matchesStatus(student, status);
       })
       .sort((a, b) => {
         const byTingkatan = compareTingkatan(a.tingkatan, b.tingkatan);
@@ -162,15 +189,23 @@ export default function StudentLookup({
         </select>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label="Tapisan status">
-        {(
-          [
-            ["semua", "Semua"],
-            ["belum-tebus", "Belum tebus"],
-            ["belum-guna", "Belum guna"],
-            ["sudah-siap", "Sudah siap"],
-          ] as const
-        ).map(([value, label]) => {
+      <div className="mt-4 rounded-xl border border-fog/70 bg-cloud/60 p-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.7px] text-graphite">
+          Penerangan
+        </p>
+        <ul className="mt-2 space-y-1.5 text-sm text-charcoal">
+          {STATUS_PENERANGAN.map((item) => (
+            <li key={item.key}>
+              <span className="font-semibold text-ink">{item.title}</span>
+              {" = "}
+              {item.meaning}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Tapisan status">
+        {STATUS_BUTTONS.map(([value, label]) => {
           const active = status === value;
           return (
             <button
@@ -192,7 +227,7 @@ export default function StudentLookup({
         <p className="text-sm text-graphite">
           {results.length} pelajar
           {hasTingkatan ? ` · ${tingkatanFilter}` : ""}
-          {status !== "semua" ? ` · ${STATUS_LABEL[status]}` : ""}
+          {status !== "semua" ? ` · ${STATUS_SUMMARY[status]}` : ""}
         </p>
         <button
           type="button"
