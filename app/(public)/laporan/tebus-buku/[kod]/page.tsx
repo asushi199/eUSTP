@@ -68,7 +68,12 @@ export default async function TebusBukuSchoolPage({ params }: Props) {
       <p className="mt-4 text-sm text-graphite">
         {tebus} / {total} sudah tebus · {guna} sudah guna
       </p>
-      <StudentLookup students={page.students} tingkatan={page.tingkatan} />
+      <StudentLookup
+        schoolCode={page.school.code}
+        schoolName={page.school.name}
+        students={page.students}
+        tingkatan={page.tingkatan}
+      />
     </PublicPageShell>
   );
 }

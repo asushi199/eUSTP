@@ -2,18 +2,21 @@
 
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/cn";
+import { compareTingkatan, csvCell } from "@/lib/tebus-buku/format";
 import type { TebusBukuStudent } from "@/lib/tebus-buku/types";
 
 type StatusFilter = "semua" | "belum-tebus" | "belum-guna" | "sudah-siap";
 
+const STATUS_LABEL: Record<StatusFilter, string> = {
+  semua: "Semua",
+  "belum-tebus": "Belum tebus",
+  "belum-guna": "Belum guna",
+  "sudah-siap": "Sudah siap",
+};
+
 function StatusMark({ done, label }: { done: boolean; label: string }) {
   return (
-    <span
-      className={cn(
-        "status-badge",
-        done ? "text-ink" : "text-graphite",
-      )}
-    >
+    <span className={cn("status-badge", done ? "text-ink" : "text-graphite")}>
       <span
         className="status-dot"
         style={{ backgroundColor: done ? "#1a1a1a" : "#c8c8c8" }}
@@ -23,10 +26,26 @@ function StatusMark({ done, label }: { done: boolean; label: string }) {
   );
 }
 
+function tebusLabel(done: boolean) {
+  return done ? "Sudah Tebus" : "Belum Tebus";
+}
+
+function gunaLabel(done: boolean) {
+  return done ? "Sudah Guna" : "Belum Guna";
+}
+
+function fileSlug(value: string) {
+  return value.replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
 export default function StudentLookup({
+  schoolCode,
+  schoolName,
   students,
   tingkatan,
 }: {
+  schoolCode: string;
+  schoolName: string;
   students: TebusBukuStudent[];
   tingkatan: string[];
 }) {
@@ -37,23 +56,65 @@ export default function StudentLookup({
   const normalizedQuery = query.trim().toLowerCase();
   const hasQuery = normalizedQuery.length >= 2;
   const hasTingkatan = tingkatanFilter !== "";
-  const ready = hasQuery || hasTingkatan;
 
   const results = useMemo(() => {
-    if (!ready) return [];
-    return students.filter((student) => {
-      if (hasTingkatan && student.tingkatan !== tingkatanFilter) return false;
-      if (hasQuery && !student.nama.toLowerCase().includes(normalizedQuery)) {
-        return false;
-      }
-      if (status === "belum-tebus" && student.sudahTebus) return false;
-      if (status === "belum-guna" && student.sudahGuna) return false;
-      if (status === "sudah-siap" && !(student.sudahTebus && student.sudahGuna)) {
-        return false;
-      }
-      return true;
+    return students
+      .filter((student) => {
+        if (hasTingkatan && student.tingkatan !== tingkatanFilter) return false;
+        if (hasQuery && !student.nama.toLowerCase().includes(normalizedQuery)) {
+          return false;
+        }
+        if (status === "belum-tebus" && student.sudahTebus) return false;
+        if (status === "belum-guna" && student.sudahGuna) return false;
+        if (status === "sudah-siap" && !(student.sudahTebus && student.sudahGuna)) {
+          return false;
+        }
+        return true;
+      })
+      .sort((a, b) => {
+        const byTingkatan = compareTingkatan(a.tingkatan, b.tingkatan);
+        if (byTingkatan !== 0) return byTingkatan;
+        return a.nama.localeCompare(b.nama, "ms");
+      });
+  }, [hasQuery, hasTingkatan, normalizedQuery, status, students, tingkatanFilter]);
+
+  function downloadCsv() {
+    if (results.length === 0) return;
+    const header = [
+      "Kod Sekolah",
+      "Nama Sekolah",
+      "Nama Pelajar",
+      "Tingkatan",
+      "Tebus",
+      "Guna",
+    ];
+    const rows = results.map((student) => [
+      schoolCode,
+      schoolName,
+      student.nama,
+      student.tingkatan,
+      tebusLabel(student.sudahTebus),
+      gunaLabel(student.sudahGuna),
+    ]);
+    const csv = [header, ...rows]
+      .map((row) => row.map(csvCell).join(","))
+      .join("\r\n");
+    const blob = new Blob([`\uFEFF${csv}\r\n`], {
+      type: "text/csv;charset=utf-8",
     });
-  }, [hasQuery, hasTingkatan, normalizedQuery, ready, status, students, tingkatanFilter]);
+    const parts = [
+      "tebus-buku",
+      schoolCode,
+      hasTingkatan ? tingkatanFilter : null,
+      status === "semua" ? null : status,
+      hasQuery ? "carian" : null,
+    ].filter(Boolean);
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${parts.map((part) => fileSlug(String(part))).join("-")}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
 
   return (
     <div className="mt-8">
@@ -77,7 +138,7 @@ export default function StudentLookup({
           className="input pl-10"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Taip sekurang-kurangnya 2 huruf nama"
+          placeholder="Nama pelajar"
           autoComplete="off"
         />
       </div>
@@ -127,15 +188,26 @@ export default function StudentLookup({
         })}
       </div>
 
-      {!ready ? (
-        <p className="mt-6 text-sm leading-relaxed text-graphite">
-          Taip nama pelajar atau pilih tingkatan. Senarai penuh tidak dipaparkan
-          supaya carian kekal kemas.
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-graphite">
+          {results.length} pelajar
+          {hasTingkatan ? ` · ${tingkatanFilter}` : ""}
+          {status !== "semua" ? ` · ${STATUS_LABEL[status]}` : ""}
         </p>
-      ) : results.length === 0 ? (
-        <p className="mt-6 text-sm text-graphite">Tiada pelajar yang sepadan.</p>
+        <button
+          type="button"
+          className="btn-outline-ink btn-sm"
+          onClick={downloadCsv}
+          disabled={results.length === 0}
+        >
+          Muat Turun CSV
+        </button>
+      </div>
+
+      {results.length === 0 ? (
+        <p className="mt-4 text-sm text-graphite">Tiada pelajar yang sepadan.</p>
       ) : (
-        <ul className="mt-5 divide-y divide-fog/80 rounded-xl border border-fog/70 bg-white">
+        <ul className="mt-3 divide-y divide-fog/80 rounded-xl border border-fog/70 bg-white">
           {results.map((student, index) => (
             <li
               key={`${student.tingkatan}-${student.nama}-${index}`}
@@ -153,10 +225,6 @@ export default function StudentLookup({
           ))}
         </ul>
       )}
-
-      {ready && results.length > 0 ? (
-        <p className="mt-3 text-sm text-graphite">{results.length} pelajar</p>
-      ) : null}
     </div>
   );
 }

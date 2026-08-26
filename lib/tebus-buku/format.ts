@@ -31,6 +31,13 @@ export function formatCount(value: number): string {
   return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
+export function csvCell(value: string): string {
+  if (/[",\n\r]/.test(value)) {
+    return `"${value.replace(/"/g, '""')}"`;
+  }
+  return value;
+}
+
 export function formatTarikhSnapshot(value: string | Date | null): string | null {
   if (!value) return null;
   const iso = typeof value === "string" ? value : value.toISOString().slice(0, 10);

@@ -4,8 +4,9 @@
 
 - Kad baharu **Semak Tebus Buku** di hub `/laporan`. Bukan borang — direktori
   semakan status tebus/guna buku digital untuk 21 sekolah menengah Manjung.
-- Alur: pilih sekolah → cari nama (min. 2 huruf) atau pilih tingkatan. Senarai
-  penuh 17,610 pelajar tidak dipaparkan. Emel tidak didedahkan di halaman awam.
+- Alur: pilih sekolah → senarai pelajar sekolah itu, dengan carian nama,
+  tingkatan dan status. Emel tidak didedahkan di halaman awam. Sekolah boleh
+  muat turun CSV mengikut tapisan semasa.
 - Data snapshot CSV (26 Ogos 2026) diimport ke jadual `tebus_buku_pelajar`.
   Kemas kini: `npm run db:import-tebus-buku` (atau lalui fail CSV sebagai argumen).
 - Senarai sekolah dihalaman awam diisih ikut kod sekolah.
