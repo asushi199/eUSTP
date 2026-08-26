@@ -8,6 +8,7 @@
   penuh 17,610 pelajar tidak dipaparkan. Emel tidak didedahkan di halaman awam.
 - Data snapshot CSV (26 Ogos 2026) diimport ke jadual `tebus_buku_pelajar`.
   Kemas kini: `npm run db:import-tebus-buku` (atau lalui fail CSV sebagai argumen).
+- Senarai sekolah dihalaman awam diisih ikut kod sekolah.
 
 ## 2026-08-26 — Popup WhatsApp pemohon dari panel admin
 
