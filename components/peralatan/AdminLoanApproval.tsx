@@ -6,6 +6,8 @@ import {
   approveEquipmentLoan,
   rejectEquipmentLoan,
 } from "@/lib/actions/peralatan-admin";
+import type { NotifyPemohonPrompt } from "@/lib/admin/notify-pemohon";
+import NotifyPemohonDialog from "@/components/admin/NotifyPemohonDialog";
 import { buildEquipmentDecisionWhatsAppUrl } from "@/lib/peralatan/whatsapp";
 import { EQUIPMENT_LOAN_STATUS_LABEL } from "@/lib/peralatan/status";
 import type { EquipmentLoanDetail } from "@/lib/peralatan/types";
@@ -42,6 +44,8 @@ export default function AdminLoanApproval({
     ),
   );
   const [error, setError] = useState("");
+  const [notify, setNotify] = useState<NotifyPemohonPrompt | null>(null);
+  const [notifyOpen, setNotifyOpen] = useState(false);
   const [selections, setSelections] = useState<Record<string, string[]>>(() =>
     Object.fromEntries(
       request.items.map((item) => [
@@ -70,7 +74,8 @@ export default function AdminLoanApproval({
     );
   });
   const decisionWhatsappUrl =
-    request.status === "approved" ||
+    notify?.href ||
+    (request.status === "approved" ||
     request.status === "rejected" ||
     request.status === "handed_over"
       ? buildEquipmentDecisionWhatsAppUrl(request.contact, {
@@ -88,7 +93,7 @@ export default function AdminLoanApproval({
                 ? "handed_over"
                 : "approved",
         })
-      : "";
+      : "");
 
   function updateApprovedQuantity(
     itemId: string,
@@ -186,12 +191,39 @@ export default function AdminLoanApproval({
         setError(result.error ?? "Tindakan tidak berjaya.");
         return;
       }
-      router.refresh();
+      const notifyDecision = decision === "approve" ? "approved" : "rejected";
+      const prompt: NotifyPemohonPrompt = {
+        href: buildEquipmentDecisionWhatsAppUrl(request.contact, {
+          referenceNo: request.referenceNo,
+          applicantName: request.applicantName,
+          pkgName: request.pkgName,
+          borrowDate:
+            decision === "approve" ? approvedBorrowDate : request.borrowDate,
+          expectedReturnDate:
+            decision === "approve"
+              ? approvedReturnDate
+              : request.expectedReturnDate,
+          items: request.items.map(
+            (item) =>
+              `${item.categoryName} (${
+                decision === "approve"
+                  ? approvedQuantities[item.id]
+                  : item.quantity
+              })`,
+          ),
+          decisionNote,
+          decision: notifyDecision,
+        }),
+        decision: notifyDecision,
+      };
+      setNotify(prompt);
+      setNotifyOpen(true);
     });
   }
 
   return (
-    <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+    <>
+      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
       <div className="space-y-5">
         <section className="card p-5 sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
@@ -457,7 +489,7 @@ export default function AdminLoanApproval({
             </p>
           ) : null}
 
-          {request.status === "pending" ? (
+          {request.status === "pending" && !notify ? (
             <>
               <button
                 type="button"
@@ -502,5 +534,15 @@ export default function AdminLoanApproval({
         </section>
       </aside>
     </div>
+      <NotifyPemohonDialog
+        open={notifyOpen}
+        href={notify?.href ?? ""}
+        decision={notify?.decision ?? "approved"}
+        onClose={() => {
+          setNotifyOpen(false);
+          router.refresh();
+        }}
+      />
+    </>
   );
 }
