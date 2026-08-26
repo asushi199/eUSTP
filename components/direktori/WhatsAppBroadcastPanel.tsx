@@ -53,6 +53,7 @@ export default function WhatsAppBroadcastPanel({ records }: { records: Broadcast
   const [message, setMessage] = useState(DEFAULT_MESSAGE);
   const [openedPhones, setOpenedPhones] = useState<string[]>([]);
   const [copied, setCopied] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const { recipients, invalidContacts, duplicateCount } = useMemo(() => {
     const unique = new Map<string, Recipient>();
@@ -135,18 +136,32 @@ export default function WhatsAppBroadcastPanel({ records }: { records: Broadcast
 
   return (
     <section className="card overflow-hidden">
-      <div className="border-b hairline bg-blue-50/60 px-5 py-4 sm:px-6">
+      <button
+        type="button"
+        className="w-full bg-blue-50/60 px-5 py-4 text-left transition-colors hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand sm:px-6"
+        onClick={() => setIsExpanded((current) => !current)}
+        aria-expanded={isExpanded}
+        aria-controls="siaran-whatsapp-kandungan"
+      >
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand">Penghantaran mengikut sasaran</p>
-        <div className="mt-1 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
+        <div className="mt-1 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-lg font-semibold tracking-tight text-ink">Siaran WhatsApp</h2>
             <p className="mt-1 text-sm text-graphite">Pilih PKG dan jawatan, kemudian buka perbualan seorang demi seorang.</p>
           </div>
-          <p className="text-sm font-medium tabular-nums text-brand">{recipients.length} nombor unik</p>
+          <span className="flex items-center gap-3 self-start sm:self-auto">
+            <span className="text-sm font-medium tabular-nums text-brand">{recipients.length} nombor unik</span>
+            <span className="inline-flex items-center gap-1 rounded-full border border-brand/20 bg-white px-3 py-1.5 text-sm font-medium text-brand">
+              {isExpanded ? "Sembunyikan" : "Buka siaran"}
+              <svg aria-hidden="true" viewBox="0 0 20 20" className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path d="m5 7.5 5 5 5-5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </span>
+          </span>
         </div>
-      </div>
+      </button>
 
-      <div className="grid gap-6 p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.8fr)]">
+      {isExpanded && <div id="siaran-whatsapp-kandungan" className="grid gap-6 border-t hairline p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.8fr)]">
         <div className="space-y-6">
           <fieldset>
             <legend className="label">PKG / zon sekolah</legend>
@@ -247,7 +262,7 @@ export default function WhatsAppBroadcastPanel({ records }: { records: Broadcast
 
           <p className="mt-4 border-t hairline pt-3 text-xs leading-relaxed text-graphite">Untuk melindungi akaun WhatsApp, sistem tidak menghantar mesej secara automatik. Semak dan tekan hantar dalam setiap perbualan yang dibuka.</p>
         </aside>
-      </div>
+      </div>}
     </section>
   );
 }
