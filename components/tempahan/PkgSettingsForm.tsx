@@ -66,8 +66,11 @@ export default function PkgSettingsForm({
           ))}
         </select>
         <p className="mt-1 text-xs text-graphite">
-          Seorang pegawai menerima kedua-dua permohonan Bilik dan Peralatan bagi PKG ini.
-          Pegawai tersebut perlu menyambungkan Telegram dalam akaun sendiri.
+          Cadangan: jana pautan sambungan Telegram bagi PKG ini di halaman{" "}
+          <a href="/admin/telegram" className="link-blue">
+            Telegram
+          </a>
+          . Pilihan ini hanya sebagai sandaran jika pautan PKG belum digunakan.
         </p>
       </div>
       <div>

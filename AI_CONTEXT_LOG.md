@@ -1039,3 +1039,11 @@ Corak berselang = instance sihat vs beracun.
 - Tempahan Bilik dan Peralatan terus berkongsi seorang pegawai bagi setiap PKG.
 - Jika lajur `telegram_responsible_user_id` belum wujud, halaman memaparkan arahan
   migrasi dan tidak meruntuhkan kad ikatan peribadi.
+
+# 2026-08-26 — Jana pautan Telegram bagi setiap PKG
+
+- Halaman `/admin/telegram` menjana pautan `/start bind_…` berasingan untuk setiap
+  PKG (dan Khidmat Bantu). Pegawai buka pautan di Telegram tanpa log masuk portal.
+- Destinasi disimpan dalam jadual `telegram_destinations` (`pkg:<slug>` / `khidmat`)
+  dan mengatasi pilihan pengguna serta penerima `PKG_Admin` lama.
+- Akaun Telegram pentadbir yang log masuk kekal sebagai ikatan peribadi di bahagian bawah.
