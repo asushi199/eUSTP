@@ -2,7 +2,7 @@ import BrandWordmark from "@/components/BrandWordmark";
 import { AdminDesktopNav, AdminMobileNav } from "@/components/admin/AdminContextNav";
 import AdminUserMenu from "@/components/admin/AdminUserMenu";
 import { requireUser } from "@/lib/rbac";
-import { canManageKandungan, canManageUsers, PERANAN_LABEL } from "@/lib/roles";
+import { canManageKandungan, PERANAN_LABEL } from "@/lib/roles";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
@@ -18,11 +18,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             </span>
           </div>
           <AdminDesktopNav showContent={showContent} />
-          <AdminUserMenu
-            nama={user.nama}
-            peranan={PERANAN_LABEL[user.peranan]}
-            canManageUsers={canManageUsers(user.peranan)}
-          />
+          <AdminUserMenu nama={user.nama} peranan={PERANAN_LABEL[user.peranan]} />
         </div>
       </header>
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 pb-24 sm:px-8 md:pb-8">

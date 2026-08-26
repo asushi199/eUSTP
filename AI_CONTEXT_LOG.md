@@ -1,5 +1,21 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-08-26 — WhatsApp pemohon selepas lulus/tolak
+
+- Selepas pentadbir lulus atau tolak, butang **WhatsApp pemohon** (mesej
+  praset) dipaparkan terus: pautan kelulusan Telegram (halaman keputusan),
+  kad admin Khidmat Bantu, dan halaman kelulusan jika sudah diproses.
+- Tempahan bilik di panel admin dan halaman terperinci pinjaman peralatan
+  sudah ada butang ini; peralatan kini lebih ketara selepas keputusan.
+- Nombor pemohon tidak didedahkan pada halaman keputusan tanpa sesi pentadbir.
+
+## 2026-08-26 — Buang pautan Pengguna yang tiada halaman
+
+- Menu avatar admin ada item **Pengguna** ke `/admin/users`, tetapi halaman
+  itu tidak wujud. Akaun backend kekal dicipta melalui `scripts/create-user.ts`.
+- Pautan dan helper RBAC yang hanya untuk halaman itu (`canManageUsers`,
+  `requireUserManagement`, `requireAdmin`, `isFullAdmin`) dibuang.
+
 ## 2026-08-22 — Senarai permohonan aset: muatan mengikut bulan
 
 - Halaman admin tidak lagi memuatkan seluruh sejarah PKG pada mula. Bulan

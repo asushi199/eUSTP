@@ -492,7 +492,7 @@ export default function AdminLoanApproval({
                   href={decisionWhatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="btn-outline-ink btn-sm"
+                  className="btn-primary mt-3 w-full"
                 >
                   WhatsApp pemohon
                 </a>

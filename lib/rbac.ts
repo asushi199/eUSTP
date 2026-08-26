@@ -1,12 +1,7 @@
 import type { Session } from "next-auth";
 import { redirect } from "next/navigation";
 import { auth } from "./auth";
-import {
-  canManageKandungan,
-  canManageTempahan,
-  canManageUsers,
-  isFullAdmin,
-} from "./roles";
+import { canManageKandungan, canManageTempahan } from "./roles";
 
 export type SessionUser = Session["user"];
 
@@ -14,13 +9,6 @@ export async function requireUser(): Promise<SessionUser> {
   const session = (await auth()) as Session | null;
   if (!session?.user) redirect("/login");
   return session.user;
-}
-
-/** Pentadbir penuh — pengurusan pengguna dll. */
-export async function requireAdmin(): Promise<SessionUser> {
-  const user = await requireUser();
-  if (!isFullAdmin(user.peranan)) redirect("/admin");
-  return user;
 }
 
 /** Laporan DPD/PSS + Direktori (admin) — Admin dan Pegawai sahaja. */
@@ -38,12 +26,6 @@ export async function requireTempahanAccess(pkgId: string): Promise<SessionUser>
   const user = await requireUser();
   if (!canManageTempahan(user.peranan)) redirect("/admin");
   if (user.peranan === "PKG_Admin" && user.pkgId !== pkgId) redirect("/admin");
-  return user;
-}
-
-export async function requireUserManagement(): Promise<SessionUser> {
-  const user = await requireUser();
-  if (!canManageUsers(user.peranan)) redirect("/admin");
   return user;
 }
 

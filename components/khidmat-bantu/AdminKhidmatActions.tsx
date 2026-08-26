@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import WhatsAppPemohonLink from "@/components/admin/WhatsAppPemohonLink";
 import {
   adminApproveKhidmat,
   adminRejectKhidmat,
@@ -10,9 +11,11 @@ import {
 export default function AdminKhidmatActions({
   requestId,
   status,
+  decisionWhatsappUrl = "",
 }: {
   requestId: string;
   status: string;
+  decisionWhatsappUrl?: string;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -30,27 +33,33 @@ export default function AdminKhidmatActions({
     });
   }
 
-  if (status !== "pending") return null;
+  if (status !== "pending" && !decisionWhatsappUrl) return null;
 
   return (
     <div>
       <div className="flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          className="btn-primary btn-sm"
-          disabled={pending}
-          onClick={() => run(() => adminApproveKhidmat(requestId))}
-        >
-          Lulus
-        </button>
-        <button
-          type="button"
-          className="btn-outline-ink btn-sm"
-          disabled={pending}
-          onClick={() => run(() => adminRejectKhidmat(requestId))}
-        >
-          Tolak
-        </button>
+        {status === "pending" ? (
+          <>
+            <button
+              type="button"
+              className="btn-primary btn-sm"
+              disabled={pending}
+              onClick={() => run(() => adminApproveKhidmat(requestId))}
+            >
+              Lulus
+            </button>
+            <button
+              type="button"
+              className="btn-outline-ink btn-sm"
+              disabled={pending}
+              onClick={() => run(() => adminRejectKhidmat(requestId))}
+            >
+              Tolak
+            </button>
+          </>
+        ) : (
+          <WhatsAppPemohonLink href={decisionWhatsappUrl} className="btn-primary btn-sm" />
+        )}
       </div>
       {error && <p className="mt-1 text-xs text-bloom-deep">{error}</p>}
     </div>
