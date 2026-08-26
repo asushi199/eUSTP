@@ -8,10 +8,20 @@ import { updatePkgSettings } from "@/lib/actions/tempahan-admin";
 export default function PkgSettingsForm({
   pkgId,
   whatsappAdminPhone,
+  telegramResponsibleUserId,
+  responsibleUsers,
   logoSrc,
 }: {
   pkgId: string;
   whatsappAdminPhone: string;
+  telegramResponsibleUserId: number | null;
+  responsibleUsers: Array<{
+    id: number;
+    nama: string;
+    jawatan: string;
+    peranan: string;
+    telegramBoundAt: Date | null;
+  }>;
   logoSrc: string | null;
 }) {
   const router = useRouter();
@@ -37,6 +47,29 @@ export default function PkgSettingsForm({
 
   return (
     <form onSubmit={onSubmit} className="card space-y-4 p-6">
+      <div>
+        <label className="label" htmlFor="telegramResponsibleUserId">
+          Pegawai Telegram Tempahan Bilik dan Peralatan
+        </label>
+        <select
+          id="telegramResponsibleUserId"
+          name="telegramResponsibleUserId"
+          defaultValue={telegramResponsibleUserId?.toString() ?? ""}
+          className="input"
+        >
+          <option value="">Gunakan penerima PKG sedia ada</option>
+          {responsibleUsers.map((user) => (
+            <option key={user.id} value={user.id}>
+              {user.nama} — {user.jawatan || user.peranan}
+              {user.telegramBoundAt ? "" : " (Telegram belum disambungkan)"}
+            </option>
+          ))}
+        </select>
+        <p className="mt-1 text-xs text-graphite">
+          Seorang pegawai menerima kedua-dua permohonan Bilik dan Peralatan bagi PKG ini.
+          Pegawai tersebut perlu menyambungkan Telegram dalam akaun sendiri.
+        </p>
+      </div>
       <div>
         <label className="label" htmlFor="whatsappAdminPhone">
           No. WhatsApp Admin (untuk mesej kelulusan)

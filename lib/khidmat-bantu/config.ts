@@ -1,4 +1,5 @@
 export const KHIDMAT_BANTU_WHATSAPP_KEY = "khidmat_bantu_whatsapp_admin";
+export const KHIDMAT_BANTU_TELEGRAM_USER_ID_KEY = "khidmat_bantu_telegram_user_id";
 
 export const APPLICANT_TYPES = [
   { id: "sekolah", label: "Sekolah" },

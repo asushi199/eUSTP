@@ -7,8 +7,18 @@ import { saveKhidmatBantuTetapan } from "@/lib/actions/khidmat-bantu-admin";
 
 export default function KhidmatBantuTetapanForm({
   whatsappAdminPhone,
+  telegramResponsibleUserId,
+  responsibleUsers,
 }: {
   whatsappAdminPhone: string;
+  telegramResponsibleUserId: number | null;
+  responsibleUsers: Array<{
+    id: number;
+    nama: string;
+    jawatan: string;
+    peranan: string;
+    telegramBoundAt: Date | null;
+  }>;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -33,6 +43,28 @@ export default function KhidmatBantuTetapanForm({
 
   return (
     <form onSubmit={onSubmit} className="card space-y-4 p-6">
+      <div>
+        <label className="label" htmlFor="telegramResponsibleUserId">
+          Pegawai Telegram Khidmat Bantu
+        </label>
+        <select
+          id="telegramResponsibleUserId"
+          name="telegramResponsibleUserId"
+          defaultValue={telegramResponsibleUserId?.toString() ?? ""}
+          className="input"
+        >
+          <option value="">Gunakan semua pentadbir sedia ada</option>
+          {responsibleUsers.map((user) => (
+            <option key={user.id} value={user.id}>
+              {user.nama} — {user.jawatan || user.peranan}
+              {user.telegramBoundAt ? "" : " (Telegram belum disambungkan)"}
+            </option>
+          ))}
+        </select>
+        <p className="mt-1 text-xs text-graphite">
+          Seorang pegawai menerima semua permohonan Khidmat Bantu dan perlu menyambungkan Telegram.
+        </p>
+      </div>
       <div>
         <label className="label" htmlFor="whatsappAdminPhone">
           No. WhatsApp Admin (untuk mesej kelulusan)

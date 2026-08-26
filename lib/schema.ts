@@ -435,6 +435,11 @@ export const pkgs = pgTable("pkgs", {
   equipmentManagerName: text("equipment_manager_name"),
   equipmentManagerPosition: text("equipment_manager_position"),
   equipmentManagerPhone: text("equipment_manager_phone"),
+  /** Seorang pegawai yang menerima notifikasi Telegram Bilik + Peralatan PKG ini. */
+  telegramResponsibleUserId: integer("telegram_responsible_user_id").references(
+    () => users.id,
+    { onDelete: "set null" },
+  ),
   logoSrc: text("logo_src"),
   active: boolean("active").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),

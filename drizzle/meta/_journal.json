@@ -225,6 +225,13 @@
       "when": 1787661183953,
       "tag": "0031_milky_reavers",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1787707924915,
+      "tag": "0032_brainy_echo",
+      "breakpoints": true
     }
   ]
 }

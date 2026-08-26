@@ -9,7 +9,11 @@ import { requireTempahanAccess } from "@/lib/rbac";
 import { canEditBookingFromAdmin } from "@/lib/tempahan/admin-booking";
 import { slugifyRoomName } from "@/lib/tempahan/booking-rules";
 import { parseCapacityInput } from "@/lib/tempahan/room-capacity";
-import { getBooking, getRoomBySlug } from "@/lib/tempahan/queries";
+import {
+  getBooking,
+  getRoomBySlug,
+  listPkgTelegramResponsibleUsers,
+} from "@/lib/tempahan/queries";
 import { uploadPkgLogo, uploadRoomPhoto } from "@/lib/tempahan/room-photos";
 import {
   approveBookingCore,
@@ -256,6 +260,18 @@ export async function updatePkgSettings(
   if (phone && !/^\+?[0-9 -]{7,20}$/.test(phone)) {
     return { ok: false, error: "Nombor WhatsApp tidak sah." };
   }
+  const responsibleUserIdText = String(formData.get("telegramResponsibleUserId") ?? "").trim();
+  if (responsibleUserIdText && !/^[1-9]\d*$/.test(responsibleUserIdText)) {
+    return { ok: false, error: "Pegawai Telegram tidak sah." };
+  }
+  const responsibleUserId = responsibleUserIdText ? Number(responsibleUserIdText) : null;
+  if (responsibleUserId !== null) {
+    const selectedResponsibleUserId = responsibleUserId;
+    const eligibleUsers = await listPkgTelegramResponsibleUsers(pkgId);
+    if (!eligibleUsers.some((user) => user.id === selectedResponsibleUserId)) {
+      return { ok: false, error: "Pegawai yang dipilih tidak mempunyai akses kepada PKG ini." };
+    }
+  }
 
   let logoSrc: string | undefined;
   const logo = formData.get("logo");
@@ -273,7 +289,11 @@ export async function updatePkgSettings(
 
   await db
     .update(pkgs)
-    .set({ whatsappAdminPhone: phone || null, ...(logoSrc ? { logoSrc } : {}) })
+    .set({
+      whatsappAdminPhone: phone || null,
+      telegramResponsibleUserId: responsibleUserId,
+      ...(logoSrc ? { logoSrc } : {}),
+    })
     .where(eq(pkgs.id, pkgId));
 
   revalidatePath(`/admin/tempahan/${pkgId}`);

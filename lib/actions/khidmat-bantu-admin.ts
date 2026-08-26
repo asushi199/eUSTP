@@ -3,7 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { sql } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { KHIDMAT_BANTU_WHATSAPP_KEY } from "@/lib/khidmat-bantu/config";
+import {
+  KHIDMAT_BANTU_TELEGRAM_USER_ID_KEY,
+  KHIDMAT_BANTU_WHATSAPP_KEY,
+} from "@/lib/khidmat-bantu/config";
+import { listKhidmatBantuTelegramResponsibleUsers } from "@/lib/khidmat-bantu/queries";
 import { approveKhidmatCore, rejectKhidmatCore } from "@/lib/khidmat-bantu/service";
 import { requireKandunganAccess } from "@/lib/rbac";
 import { appSettings } from "@/lib/schema";
@@ -51,14 +55,34 @@ export async function saveKhidmatBantuTetapan(
   const phone = String(formData.get("whatsappAdminPhone") ?? "")
     .trim()
     .replace(/\D/g, "");
+  const responsibleUserIdText = String(formData.get("telegramResponsibleUserId") ?? "").trim();
+  if (responsibleUserIdText && !/^[1-9]\d*$/.test(responsibleUserIdText)) {
+    return { ok: false, error: "Pegawai Telegram tidak sah." };
+  }
+  const responsibleUserId = responsibleUserIdText ? Number(responsibleUserIdText) : null;
+  if (responsibleUserId !== null) {
+    const eligibleUsers = await listKhidmatBantuTelegramResponsibleUsers();
+    if (!eligibleUsers.some((user) => user.id === responsibleUserId)) {
+      return { ok: false, error: "Pegawai yang dipilih tidak mempunyai akses Khidmat Bantu." };
+    }
+  }
 
-  await db
-    .insert(appSettings)
-    .values({ key: KHIDMAT_BANTU_WHATSAPP_KEY, value: phone })
-    .onConflictDoUpdate({
-      target: appSettings.key,
-      set: { value: phone, updatedAt: sql`now()` },
-    });
+  await Promise.all([
+    db
+      .insert(appSettings)
+      .values({ key: KHIDMAT_BANTU_WHATSAPP_KEY, value: phone })
+      .onConflictDoUpdate({
+        target: appSettings.key,
+        set: { value: phone, updatedAt: sql`now()` },
+      }),
+    db
+      .insert(appSettings)
+      .values({ key: KHIDMAT_BANTU_TELEGRAM_USER_ID_KEY, value: responsibleUserIdText })
+      .onConflictDoUpdate({
+        target: appSettings.key,
+        set: { value: responsibleUserIdText, updatedAt: sql`now()` },
+      }),
+  ]);
 
   refreshPaths();
   return { ok: true };

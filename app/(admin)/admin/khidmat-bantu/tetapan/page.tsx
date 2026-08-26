@@ -1,13 +1,21 @@
 import Link from "next/link";
 import KhidmatBantuTetapanForm from "@/components/khidmat-bantu/KhidmatBantuTetapanForm";
-import { getKhidmatBantuWhatsappAdmin } from "@/lib/khidmat-bantu/queries";
+import {
+  getKhidmatBantuTelegramResponsibleUserId,
+  getKhidmatBantuWhatsappAdmin,
+  listKhidmatBantuTelegramResponsibleUsers,
+} from "@/lib/khidmat-bantu/queries";
 import { requireKandunganAccess } from "@/lib/rbac";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminKhidmatBantuTetapanPage() {
   await requireKandunganAccess();
-  const whatsappAdminPhone = await getKhidmatBantuWhatsappAdmin();
+  const [whatsappAdminPhone, telegramResponsibleUserId, responsibleUsers] = await Promise.all([
+    getKhidmatBantuWhatsappAdmin(),
+    getKhidmatBantuTelegramResponsibleUserId(),
+    listKhidmatBantuTelegramResponsibleUsers(),
+  ]);
 
   return (
     <>
@@ -19,7 +27,11 @@ export default async function AdminKhidmatBantuTetapanPage() {
         Nombor WhatsApp untuk mesej kelulusan permohonan khidmat bantu.
       </p>
       <div className="mt-6 max-w-lg">
-        <KhidmatBantuTetapanForm whatsappAdminPhone={whatsappAdminPhone} />
+        <KhidmatBantuTetapanForm
+          whatsappAdminPhone={whatsappAdminPhone}
+          telegramResponsibleUserId={telegramResponsibleUserId}
+          responsibleUsers={responsibleUsers}
+        />
       </div>
     </>
   );

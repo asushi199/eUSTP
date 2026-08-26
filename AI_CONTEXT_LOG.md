@@ -1020,3 +1020,13 @@ Corak berselang = instance sihat vs beracun.
   menyambungkan Telegram.
 - WhatsApp kepada pegawai dikekalkan sebagai fallback apabila tiada mesej Telegram
   berjaya dihantar. WhatsApp keputusan kepada pemohon tidak diubah.
+
+# 2026-08-26 — Pegawai Telegram boleh diurus mengikut PKG
+
+- Tetapan setiap PKG kini memilih seorang pegawai Telegram untuk kedua-dua Tempahan
+  Bilik dan Peralatan. Pemilihan ini mengatasi penerima `PKG_Admin` lama; jika belum
+  dipilih, laluan lama kekal sebagai keserasian.
+- Tetapan Khidmat Bantu kini boleh memilih seorang pegawai `Admin` atau `Pegawai`.
+  Jika belum dipilih, semua penerima lama kekal digunakan.
+- Semua laluan terus mengekalkan WhatsApp sebagai fallback apabila Telegram gagal
+  dihantar, supaya guru boleh menghubungi pegawai melalui nombor rasmi.

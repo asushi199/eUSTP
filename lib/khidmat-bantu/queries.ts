@@ -1,8 +1,8 @@
 import "server-only";
 
-import { and, asc, count, desc, eq, gte, lt, ne } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, inArray, lt, ne } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { khidmatBantuRequests } from "@/lib/schema";
+import { khidmatBantuRequests, users } from "@/lib/schema";
 import type { KhidmatBantuDetails } from "@/lib/schema";
 
 export type KhidmatBantuRow = {
@@ -162,4 +162,27 @@ export async function getKhidmatBantuWhatsappAdmin(): Promise<string> {
   const { KHIDMAT_BANTU_WHATSAPP_KEY } = await import("@/lib/khidmat-bantu/config");
   const map = await getSettings([KHIDMAT_BANTU_WHATSAPP_KEY]);
   return map.get(KHIDMAT_BANTU_WHATSAPP_KEY)?.trim() ?? "";
+}
+
+export async function getKhidmatBantuTelegramResponsibleUserId(): Promise<number | null> {
+  const { getSettings } = await import("@/lib/maklumat/queries");
+  const { KHIDMAT_BANTU_TELEGRAM_USER_ID_KEY } = await import("@/lib/khidmat-bantu/config");
+  const value = (await getSettings([KHIDMAT_BANTU_TELEGRAM_USER_ID_KEY]))
+    .get(KHIDMAT_BANTU_TELEGRAM_USER_ID_KEY)
+    ?.trim();
+  return value && /^[1-9]\d*$/.test(value) ? Number(value) : null;
+}
+
+export async function listKhidmatBantuTelegramResponsibleUsers() {
+  return db
+    .select({
+      id: users.id,
+      nama: users.nama,
+      jawatan: users.jawatan,
+      peranan: users.peranan,
+      telegramBoundAt: users.telegramBoundAt,
+    })
+    .from(users)
+    .where(and(eq(users.aktif, true), inArray(users.peranan, ["Admin", "Pegawai"])))
+    .orderBy(asc(users.nama));
 }

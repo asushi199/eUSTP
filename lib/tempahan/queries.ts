@@ -1,8 +1,8 @@
 import "server-only";
 
-import { and, asc, count, desc, eq, gte, inArray, lt, ne } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, inArray, lt, ne, or } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { attendees, bookings, pkgs, rooms } from "@/lib/schema";
+import { attendees, bookings, pkgs, rooms, users } from "@/lib/schema";
 
 export type PkgRow = typeof pkgs.$inferSelect;
 export type RoomRow = typeof rooms.$inferSelect;
@@ -16,6 +16,29 @@ export async function listPkgs(): Promise<PkgRow[]> {
 export async function getPkg(pkgId: string): Promise<PkgRow | null> {
   const row = await db.query.pkgs.findFirst({ where: eq(pkgs.id, pkgId) });
   return row && row.active ? row : null;
+}
+
+/** Pengguna yang boleh bertindak atas permohonan bagi PKG ini. */
+export async function listPkgTelegramResponsibleUsers(pkgId: string) {
+  return db
+    .select({
+      id: users.id,
+      nama: users.nama,
+      jawatan: users.jawatan,
+      peranan: users.peranan,
+      telegramBoundAt: users.telegramBoundAt,
+    })
+    .from(users)
+    .where(
+      and(
+        eq(users.aktif, true),
+        or(
+          inArray(users.peranan, ["Admin", "Pegawai"]),
+          and(eq(users.peranan, "PKG_Admin"), eq(users.pkgId, pkgId)),
+        ),
+      ),
+    )
+    .orderBy(asc(users.nama));
 }
 
 /**

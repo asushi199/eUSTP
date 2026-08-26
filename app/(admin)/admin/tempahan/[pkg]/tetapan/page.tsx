@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import PkgSettingsForm from "@/components/tempahan/PkgSettingsForm";
 import { requireTempahanAccess } from "@/lib/rbac";
-import { getPkg } from "@/lib/tempahan/queries";
+import { getPkg, listPkgTelegramResponsibleUsers } from "@/lib/tempahan/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +14,10 @@ export default async function AdminPkgSettingsPage({
   const { pkg: pkgId } = await params;
   await requireTempahanAccess(pkgId);
 
-  const pkg = await getPkg(pkgId);
+  const [pkg, responsibleUsers] = await Promise.all([
+    getPkg(pkgId),
+    listPkgTelegramResponsibleUsers(pkgId),
+  ]);
   if (!pkg) notFound();
 
   return (
@@ -28,6 +31,8 @@ export default async function AdminPkgSettingsPage({
         <PkgSettingsForm
           pkgId={pkgId}
           whatsappAdminPhone={pkg.whatsappAdminPhone ?? ""}
+          telegramResponsibleUserId={pkg.telegramResponsibleUserId}
+          responsibleUsers={responsibleUsers}
           logoSrc={pkg.logoSrc}
         />
       </div>
