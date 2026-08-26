@@ -37,10 +37,18 @@ export default function KhidmatBantuForm({ schools }: { schools: SchoolOption[] 
   }, [query, schools]);
 
   useEffect(() => {
-    if (!filteredSchools.some((s) => s.code === schoolCode)) {
+    if (query.trim() === "") {
       setSchoolCode("");
+      return;
     }
-  }, [filteredSchools, schoolCode]);
+    if (filteredSchools.length === 0) {
+      setSchoolCode("");
+      return;
+    }
+    if (!filteredSchools.some((s) => s.code === schoolCode)) {
+      setSchoolCode(filteredSchools[0].code);
+    }
+  }, [filteredSchools, schoolCode, query]);
 
   useEffect(() => {
     if (applicantType === "sekolah") {
