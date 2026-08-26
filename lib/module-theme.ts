@@ -28,7 +28,7 @@ const LAPORAN_HUB = {
   external: false,
   title: "CoE Laporan",
   description:
-    "Laporan DPD, Laporan PSS dan tinjauan Langganan Akhbar daerah Manjung.",
+    "Laporan DPD, Laporan PSS, tinjauan Langganan Akhbar dan semakan tebus buku digital.",
   accent: "#DB2777",
   iconKey: "laporan" as const,
 } as const;
@@ -76,6 +76,16 @@ export const MODULES = [
       "Tinjauan penyelarasan peruntukan Program Langganan Akhbar 2026 (PPD Manjung).",
     accent: "#024AD8",
     iconKey: "akhbar" as const,
+  },
+  {
+    href: "/laporan/tebus-buku",
+    internalHref: "/laporan/tebus-buku",
+    external: false,
+    title: "Semak Tebus Buku",
+    description:
+      "Cari pelajar sekolah menengah Manjung — semak sama ada sudah tebus dan sudah guna buku digital.",
+    accent: "#6D28D9",
+    iconKey: "tebus" as const,
   },
   {
     href: "/direktori",
@@ -158,7 +168,9 @@ export const OSC_SECTIONS = MODULES.filter((m) =>
 
 /** Sub-modul di bawah hub /laporan — dipapar dalam halaman CoE Laporan. */
 export const LAPORAN_SECTIONS = MODULES.filter((m) =>
-  ["/laporan-dpd", "/laporan-pss", "/laporan-akhbar"].includes(m.internalHref),
+  ["/laporan-dpd", "/laporan-pss", "/laporan-akhbar", "/laporan/tebus-buku"].includes(
+    m.internalHref,
+  ),
 );
 
 /** Sub-modul di bawah hub /tempahan — dipapar dalam halaman tempahan. */

@@ -14,6 +14,7 @@
     "db:seed-dashboard": "tsx scripts/seed-dashboard.ts",
     "db:create-user": "tsx scripts/create-user.ts",
     "db:check-url": "tsx scripts/check-db-url.ts",
+    "db:import-tebus-buku": "tsx scripts/import-tebus-buku.ts",
     "telegram:set-webhook": "tsx scripts/setup-telegram-webhook.ts"
   },
   "dependencies": {

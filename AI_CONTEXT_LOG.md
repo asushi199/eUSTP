@@ -1,5 +1,14 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-08-26 — Semak Tebus Buku (CoE Laporan)
+
+- Kad baharu **Semak Tebus Buku** di hub `/laporan`. Bukan borang — direktori
+  semakan status tebus/guna buku digital untuk 21 sekolah menengah Manjung.
+- Alur: pilih sekolah → cari nama (min. 2 huruf) atau pilih tingkatan. Senarai
+  penuh 17,610 pelajar tidak dipaparkan. Emel tidak didedahkan di halaman awam.
+- Data snapshot CSV (26 Ogos 2026) diimport ke jadual `tebus_buku_pelajar`.
+  Kemas kini: `npm run db:import-tebus-buku` (atau lalui fail CSV sebagai argumen).
+
 ## 2026-08-26 — Popup WhatsApp pemohon dari panel admin
 
 - Lulus/tolak dari panel admin (tempahan, khidmat bantu, pinjaman peralatan)

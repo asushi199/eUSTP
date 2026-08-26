@@ -269,6 +269,30 @@ export const laporanAkhbar = pgTable(
   }),
 );
 
+/**
+ * Status tebus/guna buku digital pelajar (snapshot CSV JPN).
+ * Emel disimpan untuk identiti unik semasa import semula — jangan papar di halaman awam.
+ */
+export const tebusBukuPelajar = pgTable(
+  "tebus_buku_pelajar",
+  {
+    id: serial("id").primaryKey(),
+    schoolCode: text("school_code").notNull(),
+    schoolName: text("school_name").notNull(),
+    nama: text("nama").notNull(),
+    email: text("email").notNull(),
+    tingkatan: text("tingkatan").notNull(),
+    sudahTebus: boolean("sudah_tebus").notNull(),
+    sudahGuna: boolean("sudah_guna").notNull(),
+    sourcedAt: date("sourced_at").notNull(),
+    importedAt: timestamp("imported_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    emailUq: uniqueIndex("tebus_buku_pelajar_email_idx").on(t.email),
+    schoolIdx: index("tebus_buku_pelajar_school_idx").on(t.schoolCode, t.nama),
+  }),
+);
+
 /* ==================== Modul Kandungan (Sumber USTP + Bahan Sokongan) ==================== */
 
 export const kandunganTopik = pgEnum("kandungan_topik", [

@@ -239,6 +239,13 @@
       "when": 1787715030945,
       "tag": "0033_kind_genesis",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1787739910209,
+      "tag": "0034_volatile_mister_fear",
+      "breakpoints": true
     }
   ]
 }

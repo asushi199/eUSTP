@@ -8,13 +8,15 @@ import { LAPORAN_SECTIONS, getModuleAccent } from "@/lib/module-theme";
 
 export const metadata: Metadata = {
   title: "CoE Laporan — NEXa Manjung",
-  description: "Pilih Laporan DPD, Laporan PSS atau Laporan Akhbar.",
+  description:
+    "Pilih Laporan DPD, Laporan PSS, Laporan Akhbar atau Semak Tebus Buku.",
 };
 
 const SECTION_TAG: Record<string, string> = {
   "/laporan-dpd": "Pendigitalan",
   "/laporan-pss": "Pusat Sumber Sekolah",
   "/laporan-akhbar": "Langganan Akhbar 2026",
+  "/laporan/tebus-buku": "Buku Digital",
 };
 
 export default function LaporanHubPage() {
@@ -29,8 +31,8 @@ export default function LaporanHubPage() {
         accent={accent}
         description={
           looker
-            ? "Pilih modul laporan di bawah. DPD dan PSS dibuka di Looker Studio; Laporan Akhbar diisi dalam portal."
-            : "Pilih modul laporan untuk meneruskan hantaran borang."
+            ? "Pilih modul di bawah. DPD dan PSS dibuka di Looker Studio; Laporan Akhbar dan Semak Tebus Buku kekal dalam portal."
+            : "Pilih modul laporan atau semak status tebus buku digital."
         }
       />
 
