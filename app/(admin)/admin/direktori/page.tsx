@@ -2,6 +2,7 @@ import Link from "next/link";
 import AdminSchoolsTable from "@/components/direktori/AdminSchoolsTable";
 import ExportGuruMenu from "@/components/direktori/ExportGuruMenu";
 import TambahSekolahForm from "@/components/direktori/TambahSekolahForm";
+import WhatsAppBroadcastPanel from "@/components/direktori/WhatsAppBroadcastPanel";
 import { requireKandunganAccess } from "@/lib/rbac";
 import { listAdminSchools } from "@/lib/direktori/queries";
 
@@ -30,6 +31,10 @@ export default async function AdminDirektoriPage() {
             CSV Sekolah
           </Link>
         </div>
+      </div>
+
+      <div className="mt-6">
+        <WhatsAppBroadcastPanel records={records} />
       </div>
 
       <div className="mt-6">

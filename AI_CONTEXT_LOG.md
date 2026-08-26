@@ -1073,3 +1073,15 @@ Corak berselang = instance sihat vs beracun.
 - Destinasi disimpan dalam jadual `telegram_destinations` (`pkg:<slug>` / `khidmat`)
   dan mengatasi pilihan pengguna serta penerima `PKG_Admin` lama.
 - Akaun Telegram pentadbir yang log masuk kekal sebagai ikatan peribadi di bahagian bawah.
+
+## 2026-08-26 - Siaran WhatsApp Direktori
+
+- Halaman admin Direktori menyediakan siaran WhatsApp bantuan: pentadbir boleh
+  menapis sekolah mengikut PKG/zonnya dan memilih satu atau beberapa jawatan,
+  dengan PGB dipilih secara lalai.
+- Penghantaran menggunakan pautan `wa.me` seorang demi seorang, bukan automasi
+  WhatsApp Business API. Sistem menyahgandakan nombor, mengecualikan nombor tidak
+  sah dan menyatakan dengan jelas bahawa pentadbir masih perlu menyemak serta
+  menghantar mesej dalam WhatsApp.
+- Rekod yang tidak boleh dihantar kini dipaparkan bersama sekolah, jawatan,
+  nama dan sebabnya supaya pentadbir boleh menyemak atau membetulkan Direktori.
