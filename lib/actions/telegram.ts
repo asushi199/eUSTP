@@ -7,10 +7,12 @@ import { KHIDMAT_BANTU_TELEGRAM_USER_ID_KEY } from "@/lib/khidmat-bantu/config";
 import { listKhidmatBantuTelegramResponsibleUsers } from "@/lib/khidmat-bantu/queries";
 import { db } from "@/lib/db";
 import { requireKandunganAccess, requireTempahanAccess, requireUser } from "@/lib/rbac";
-import { appSettings, pkgs, users } from "@/lib/schema";
+import { appSettings, pkgs, telegramDestinations, users } from "@/lib/schema";
 import { listPkgTelegramResponsibleUsers } from "@/lib/tempahan/queries";
 import {
   hashTelegramBindToken,
+  KHIDMAT_TELEGRAM_DESTINATION_ID,
+  pkgTelegramDestinationId,
   TELEGRAM_BIND_TOKEN_TTL_MS,
 } from "@/lib/telegram/binding";
 import { parseTelegramResponsibleUserId } from "@/lib/telegram/recipients";
@@ -25,19 +27,63 @@ function getBotUsername(): string {
   return (process.env.TELEGRAM_BOT_USERNAME ?? "").trim().replace(/^@/, "");
 }
 
-export async function createTelegramBindingLink(): Promise<TelegramBindingActionResult> {
-  const sessionUser = await requireUser();
+function telegramBotError(): string | null {
   const botUsername = getBotUsername();
   if (
     !process.env.TELEGRAM_BOT_TOKEN?.trim() ||
     !process.env.TELEGRAM_WEBHOOK_SECRET?.trim() ||
     !/^[A-Za-z0-9_]{5,32}$/.test(botUsername)
   ) {
-    return {
-      ok: false,
-      error: "Telegram Bot belum dikonfigurasi oleh pentadbir sistem.",
-    };
+    return "Telegram Bot belum dikonfigurasi oleh pentadbir sistem.";
   }
+  return null;
+}
+
+function buildBindUrl(token: string): string {
+  return `https://t.me/${getBotUsername()}?start=bind_${token}`;
+}
+
+async function issueDestinationBindToken(
+  destinationId: string,
+): Promise<TelegramBindingActionResult> {
+  const configError = telegramBotError();
+  if (configError) return { ok: false, error: configError };
+
+  const token = randomBytes(24).toString("base64url");
+  const bindTokenHash = hashTelegramBindToken(token);
+  const bindTokenExpiresAt = new Date(Date.now() + TELEGRAM_BIND_TOKEN_TTL_MS);
+  await db
+    .insert(telegramDestinations)
+    .values({
+      id: destinationId,
+      bindTokenHash,
+      bindTokenExpiresAt,
+    })
+    .onConflictDoUpdate({
+      target: telegramDestinations.id,
+      set: { bindTokenHash, bindTokenExpiresAt },
+    });
+  return { ok: true, url: buildBindUrl(token) };
+}
+
+async function clearDestination(destinationId: string): Promise<void> {
+  await db
+    .update(telegramDestinations)
+    .set({
+      chatId: null,
+      username: null,
+      boundAt: null,
+      bindTokenHash: null,
+      bindTokenExpiresAt: null,
+    })
+    .where(eq(telegramDestinations.id, destinationId));
+  revalidatePath("/admin/telegram");
+}
+
+export async function createTelegramBindingLink(): Promise<TelegramBindingActionResult> {
+  const sessionUser = await requireUser();
+  const configError = telegramBotError();
+  if (configError) return { ok: false, error: configError };
 
   const token = randomBytes(24).toString("base64url");
   await db
@@ -49,10 +95,7 @@ export async function createTelegramBindingLink(): Promise<TelegramBindingAction
     })
     .where(eq(users.id, Number(sessionUser.id)));
 
-  return {
-    ok: true,
-    url: `https://t.me/${botUsername}?start=bind_${token}`,
-  };
+  return { ok: true, url: buildBindUrl(token) };
 }
 
 export async function disconnectTelegram(): Promise<void> {
@@ -69,6 +112,28 @@ export async function disconnectTelegram(): Promise<void> {
     })
     .where(eq(users.id, Number(sessionUser.id)));
   revalidatePath("/admin/telegram");
+}
+
+export async function createPkgTelegramBindingLink(
+  pkgId: string,
+): Promise<TelegramBindingActionResult> {
+  await requireTempahanAccess(pkgId);
+  return issueDestinationBindToken(pkgTelegramDestinationId(pkgId));
+}
+
+export async function disconnectPkgTelegram(pkgId: string): Promise<void> {
+  await requireTempahanAccess(pkgId);
+  await clearDestination(pkgTelegramDestinationId(pkgId));
+}
+
+export async function createKhidmatTelegramBindingLink(): Promise<TelegramBindingActionResult> {
+  await requireKandunganAccess();
+  return issueDestinationBindToken(KHIDMAT_TELEGRAM_DESTINATION_ID);
+}
+
+export async function disconnectKhidmatTelegram(): Promise<void> {
+  await requireKandunganAccess();
+  await clearDestination(KHIDMAT_TELEGRAM_DESTINATION_ID);
 }
 
 export async function saveTelegramResponsible(

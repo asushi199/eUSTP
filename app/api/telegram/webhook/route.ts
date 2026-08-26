@@ -1,10 +1,12 @@
 import { and, eq, gt } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { users } from "@/lib/schema";
+import { pkgs, telegramDestinations, users } from "@/lib/schema";
 import {
   hashTelegramBindToken,
   isValidTelegramWebhookSecret,
+  KHIDMAT_TELEGRAM_DESTINATION_ID,
+  parseTelegramStartBindToken,
 } from "@/lib/telegram/binding";
 import { sendTelegramMessage } from "@/lib/telegram/client";
 
@@ -17,6 +19,11 @@ type TelegramUpdate = {
     from?: { id?: number; username?: string };
   };
 };
+
+function destinationLabel(id: string, pkgName?: string | null): string {
+  if (id === KHIDMAT_TELEGRAM_DESTINATION_ID) return "Khidmat Bantu";
+  return pkgName ? `PKG ${pkgName}` : "modul yang dipilih";
+}
 
 export async function POST(request: Request) {
   if (
@@ -37,12 +44,12 @@ export async function POST(request: Request) {
 
   const message = update.message;
   const chatId = message?.chat?.id;
-  const match = message?.text?.match(/^\/start\s+bind_([A-Za-z0-9_-]{32})$/);
-  if (message?.chat?.type !== "private" || !chatId || !match) {
+  const token = parseTelegramStartBindToken(message?.text);
+  if (message?.chat?.type !== "private" || !chatId || !token) {
     return NextResponse.json({ ok: true });
   }
 
-  const tokenHash = hashTelegramBindToken(match[1]);
+  const tokenHash = hashTelegramBindToken(token);
   const user = await db.query.users.findFirst({
     columns: { id: true },
     where: and(
@@ -52,7 +59,41 @@ export async function POST(request: Request) {
     ),
   });
 
-  if (!user) {
+  if (user) {
+    try {
+      await db
+        .update(users)
+        .set({
+          telegramChatId: String(chatId),
+          telegramUsername: message?.from?.username ?? null,
+          telegramBoundAt: new Date(),
+          telegramBindTokenHash: null,
+          telegramBindTokenExpiresAt: null,
+          updatedAt: new Date(),
+        })
+        .where(and(eq(users.id, user.id), eq(users.telegramBindTokenHash, tokenHash)));
+      await sendTelegramMessage(
+        String(chatId),
+        "Telegram telah disambungkan dengan portal NEXa Manjung. Notifikasi akan dihantar mengikut peranan anda.",
+      );
+    } catch {
+      await sendTelegramMessage(
+        String(chatId),
+        "Akaun Telegram ini tidak dapat disambungkan. Sila hubungi pentadbir sistem.",
+      );
+    }
+    return NextResponse.json({ ok: true });
+  }
+
+  const destination = await db.query.telegramDestinations.findFirst({
+    columns: { id: true },
+    where: and(
+      eq(telegramDestinations.bindTokenHash, tokenHash),
+      gt(telegramDestinations.bindTokenExpiresAt, new Date()),
+    ),
+  });
+
+  if (!destination) {
     await sendTelegramMessage(
       String(chatId),
       "Pautan sambungan tidak sah atau telah tamat. Jana pautan baharu dalam portal pentadbir.",
@@ -62,19 +103,30 @@ export async function POST(request: Request) {
 
   try {
     await db
-      .update(users)
+      .update(telegramDestinations)
       .set({
-        telegramChatId: String(chatId),
-        telegramUsername: message?.from?.username ?? null,
-        telegramBoundAt: new Date(),
-        telegramBindTokenHash: null,
-        telegramBindTokenExpiresAt: null,
-        updatedAt: new Date(),
+        chatId: String(chatId),
+        username: message?.from?.username ?? null,
+        boundAt: new Date(),
+        bindTokenHash: null,
+        bindTokenExpiresAt: null,
       })
-      .where(and(eq(users.id, user.id), eq(users.telegramBindTokenHash, tokenHash)));
+      .where(
+        and(
+          eq(telegramDestinations.id, destination.id),
+          eq(telegramDestinations.bindTokenHash, tokenHash),
+        ),
+      );
+    const pkgId = destination.id.startsWith("pkg:") ? destination.id.slice(4) : null;
+    const pkg = pkgId
+      ? await db.query.pkgs.findFirst({
+          columns: { name: true },
+          where: eq(pkgs.id, pkgId),
+        })
+      : null;
     await sendTelegramMessage(
       String(chatId),
-      "Telegram telah disambungkan dengan portal NEXa Manjung. Notifikasi akan dihantar mengikut peranan anda.",
+      `Telegram telah disambungkan dengan ${destinationLabel(destination.id, pkg?.name)}. Notifikasi permohonan akan dihantar ke sini.`,
     );
   } catch {
     await sendTelegramMessage(

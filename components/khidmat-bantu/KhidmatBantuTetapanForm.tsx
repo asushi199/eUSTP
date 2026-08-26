@@ -62,7 +62,11 @@ export default function KhidmatBantuTetapanForm({
           ))}
         </select>
         <p className="mt-1 text-xs text-graphite">
-          Seorang pegawai menerima semua permohonan Khidmat Bantu dan perlu menyambungkan Telegram.
+          Cadangan: jana pautan sambungan Telegram di halaman{" "}
+          <a href="/admin/telegram" className="link-blue">
+            Telegram
+          </a>
+          . Pilihan ini hanya sebagai sandaran jika pautan Khidmat Bantu belum digunakan.
         </p>
       </div>
       <div>

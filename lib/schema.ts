@@ -445,6 +445,29 @@ export const pkgs = pgTable("pkgs", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+/**
+ * Destinasi Telegram bagi modul (bukan akaun log masuk).
+ * id: `pkg:<slug>` atau `khidmat`.
+ */
+export const telegramDestinations = pgTable(
+  "telegram_destinations",
+  {
+    id: text("id").primaryKey(),
+    chatId: text("telegram_chat_id"),
+    username: text("telegram_username"),
+    boundAt: timestamp("telegram_bound_at", { withTimezone: true }),
+    bindTokenHash: text("telegram_bind_token_hash"),
+    bindTokenExpiresAt: timestamp("telegram_bind_token_expires_at", {
+      withTimezone: true,
+    }),
+  },
+  (t) => ({
+    bindTokenIdx: uniqueIndex("telegram_destinations_bind_token_hash_idx").on(
+      t.bindTokenHash,
+    ),
+  }),
+);
+
 export const rooms = pgTable(
   "rooms",
   {

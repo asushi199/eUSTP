@@ -232,6 +232,13 @@
       "when": 1787707924915,
       "tag": "0032_brainy_echo",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1787715030945,
+      "tag": "0033_kind_genesis",
+      "breakpoints": true
     }
   ]
 }

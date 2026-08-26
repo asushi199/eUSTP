@@ -4,6 +4,11 @@ import { and, eq, inArray, isNotNull } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { pkgs, users } from "@/lib/schema";
 import { isTelegramConfigured, sendTelegramMessage } from "./client";
+import {
+  getTelegramDestinationChatId,
+  KHIDMAT_TELEGRAM_DESTINATION_ID,
+  pkgTelegramDestinationId,
+} from "./destinations";
 import { resolveTelegramRecipientChatIds } from "./recipients";
 
 type Notification = {
@@ -25,6 +30,11 @@ async function sendToChats(chatIds: string[], notification: Notification): Promi
 }
 
 async function getPkgRecipientChatIds(pkgId: string): Promise<string[]> {
+  const destinationChatId = await getTelegramDestinationChatId(
+    pkgTelegramDestinationId(pkgId),
+  );
+  if (destinationChatId) return [destinationChatId];
+
   const configuredRows = await db
     .select({ chatId: users.telegramChatId })
     .from(pkgs)
@@ -54,6 +64,11 @@ async function getPkgRecipientChatIds(pkgId: string): Promise<string[]> {
 }
 
 async function getKhidmatRecipientChatIds(): Promise<string[]> {
+  const destinationChatId = await getTelegramDestinationChatId(
+    KHIDMAT_TELEGRAM_DESTINATION_ID,
+  );
+  if (destinationChatId) return [destinationChatId];
+
   const { getKhidmatBantuTelegramResponsibleUserId } = await import(
     "@/lib/khidmat-bantu/queries"
   );
