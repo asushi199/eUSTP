@@ -1,13 +1,17 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import WhatsAppPemohonLink from "@/components/admin/WhatsAppPemohonLink";
 import { approveKhidmatByTokenAction } from "@/lib/actions/khidmat-bantu";
 import {
   getApplicantTypeLabel,
   getServiceTypeLabel,
   isMcpService,
 } from "@/lib/khidmat-bantu/config";
+import { getServiceDate, getServiceTitle } from "@/lib/khidmat-bantu/date-group";
 import { getKhidmatBantuRequest } from "@/lib/khidmat-bantu/queries";
+import { buildKhidmatDecisionWhatsAppUrl } from "@/lib/khidmat-bantu/whatsapp";
 import { formatBookingStatus } from "@/lib/tempahan/booking-rules";
+import { formatMalayDate } from "@/lib/tempahan/date";
 import { verifyApprovalToken } from "@/lib/tempahan/approval-token";
 import { driveViewUrl } from "@/lib/gas-upload";
 import type { KhidmatMcpDetails, KhidmatProgramDetails } from "@/lib/schema";
@@ -85,6 +89,7 @@ export default async function ApproveKhidmatBantuPage({
   }
 
   const detailRows = formatDetails(request.serviceType, request.details);
+  const activityDate = getServiceDate(request);
 
   return (
     <div className="mx-auto max-w-xl px-4 py-12 sm:px-8">
@@ -142,9 +147,24 @@ export default async function ApproveKhidmatBantuPage({
           </button>
         </form>
       ) : (
-        <p className="mt-6 rounded-md bg-cloud px-4 py-3 text-sm text-graphite">
-          Permohonan ini telah diproses ({formatBookingStatus(request.status)}).
-        </p>
+        <div className="mt-6 space-y-3">
+          <p className="rounded-md bg-cloud px-4 py-3 text-sm text-graphite">
+            Permohonan ini telah diproses ({formatBookingStatus(request.status)}).
+          </p>
+          {(request.status === "approved" || request.status === "rejected") && (
+            <WhatsAppPemohonLink
+              href={buildKhidmatDecisionWhatsAppUrl(request.contact, {
+                applicantName: request.applicantName,
+                orgName: request.orgName,
+                serviceLabel: getServiceTypeLabel(request.serviceType),
+                title: getServiceTitle(request),
+                date: activityDate ? formatMalayDate(activityDate) : "—",
+                decision: request.status,
+              })}
+              className="btn-primary"
+            />
+          )}
+        </div>
       )}
       <p className="mt-3 text-xs text-graphite">
         Anda perlu log masuk sebagai pentadbir USTP untuk meluluskan.

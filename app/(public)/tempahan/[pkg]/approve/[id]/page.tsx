@@ -1,9 +1,11 @@
 import { notFound } from "next/navigation";
+import WhatsAppPemohonLink from "@/components/admin/WhatsAppPemohonLink";
 import { approveByTokenAction } from "@/lib/actions/tempahan";
 import { verifyApprovalToken } from "@/lib/tempahan/approval-token";
 import { formatBookingStatus, formatSlot } from "@/lib/tempahan/booking-rules";
 import { formatMalayDate } from "@/lib/tempahan/date";
 import { getBooking, getPkg, getRoomBySlug } from "@/lib/tempahan/queries";
+import { buildBookingDecisionWhatsAppUrl } from "@/lib/tempahan/whatsapp";
 
 export const dynamic = "force-dynamic";
 
@@ -83,9 +85,24 @@ export default async function ApproveBookingPage({
           </div>
         </form>
       ) : (
-        <p className="mt-6 rounded-md bg-cloud px-4 py-3 text-sm text-graphite">
-          Tempahan ini telah diproses ({formatBookingStatus(booking.status)}).
-        </p>
+        <div className="mt-6 space-y-3">
+          <p className="rounded-md bg-cloud px-4 py-3 text-sm text-graphite">
+            Tempahan ini telah diproses ({formatBookingStatus(booking.status)}).
+          </p>
+          {(booking.status === "approved" || booking.status === "rejected") && (
+            <WhatsAppPemohonLink
+              href={buildBookingDecisionWhatsAppUrl(booking.contact, {
+                name: booking.name,
+                room: room?.name ?? booking.roomSlug,
+                purpose: booking.purpose,
+                date: formatMalayDate(booking.date),
+                slot: formatSlot(booking.slot),
+                decision: booking.status,
+              })}
+              className="btn-primary"
+            />
+          )}
+        </div>
       )}
       <p className="mt-3 text-xs text-graphite">
         Anda perlu log masuk sebagai pentadbir untuk meluluskan.

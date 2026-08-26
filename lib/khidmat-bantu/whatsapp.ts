@@ -31,6 +31,44 @@ export function buildWhatsAppShareUrl(phone: string, details: WhatsAppKhidmatDet
   return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
 }
 
+export type WhatsAppKhidmatDecision = "approved" | "rejected";
+
+export type WhatsAppKhidmatDecisionDetails = {
+  applicantName: string;
+  orgName: string;
+  serviceLabel: string;
+  title: string;
+  date: string;
+  decision: WhatsAppKhidmatDecision;
+};
+
+/** Pautan untuk pentadbir memaklumkan keputusan khidmat bantu kepada pemohon. */
+export function buildKhidmatDecisionWhatsAppUrl(
+  phone: string,
+  details: WhatsAppKhidmatDecisionDetails,
+) {
+  const cleanPhone = normalizeWhatsAppPhone(phone);
+  if (!cleanPhone) return "";
+
+  const approved = details.decision === "approved";
+  const message = [
+    "Makluman khidmat bantu NEXa Manjung",
+    `Salam sejahtera ${details.applicantName},`,
+    approved
+      ? "Permohonan khidmat bantu anda telah diluluskan."
+      : "Permohonan khidmat bantu anda tidak dapat diluluskan.",
+    `Perkhidmatan: ${details.serviceLabel}`,
+    `Tajuk: ${details.title}`,
+    `Unit: ${details.orgName}`,
+    `Tarikh: ${details.date}`,
+    approved
+      ? "Sila simpan makluman ini untuk rekod anda. Terima kasih."
+      : "Sila hubungi USTP PPD Manjung jika anda memerlukan maklumat lanjut.",
+  ].join("\n");
+
+  return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+}
+
 export function buildRequestSummary(serviceType: string, details: KhidmatBantuDetails): string {
   if (isMcpService(serviceType)) {
     const d = details as Extract<KhidmatBantuDetails, { tarikh: string }>;

@@ -290,7 +290,7 @@ export async function approveKhidmatByTokenAction(formData: FormData) {
   }
 
   if (request.status !== "pending") {
-    redirect(`${resultBase}?status=processed`);
+    redirect(`${resultBase}?status=processed&id=${encodeURIComponent(request.id)}`);
   }
 
   try {
@@ -298,13 +298,13 @@ export async function approveKhidmatByTokenAction(formData: FormData) {
       await approveKhidmatCore(request.id);
       revalidatePath("/khidmat-bantu");
       revalidatePath("/admin/khidmat-bantu");
-      redirect(`${resultBase}?status=approved`);
+      redirect(`${resultBase}?status=approved&id=${encodeURIComponent(request.id)}`);
     }
     if (decision === "reject") {
       await rejectKhidmatCore(request.id);
       revalidatePath("/khidmat-bantu");
       revalidatePath("/admin/khidmat-bantu");
-      redirect(`${resultBase}?status=rejected`);
+      redirect(`${resultBase}?status=rejected&id=${encodeURIComponent(request.id)}`);
     }
   } catch (e) {
     if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;

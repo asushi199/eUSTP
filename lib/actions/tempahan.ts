@@ -448,7 +448,7 @@ export async function approveByTokenAction(formData: FormData) {
   }
 
   if (booking.status !== "pending") {
-    redirect(`${resultBase}?status=processed`);
+    redirect(`${resultBase}?status=processed&id=${encodeURIComponent(booking.id)}`);
   }
 
   try {
@@ -457,13 +457,13 @@ export async function approveByTokenAction(formData: FormData) {
       await approveBookingCore(pkgId, booking.id, { requiresCertificate });
       revalidatePath(`/tempahan/${pkgId}`);
       revalidatePath(`/admin/tempahan/${pkgId}`);
-      redirect(`${resultBase}?status=approved`);
+      redirect(`${resultBase}?status=approved&id=${encodeURIComponent(booking.id)}`);
     }
     if (decision === "reject") {
       await rejectBookingCore(pkgId, booking.id);
       revalidatePath(`/tempahan/${pkgId}`);
       revalidatePath(`/admin/tempahan/${pkgId}`);
-      redirect(`${resultBase}?status=rejected`);
+      redirect(`${resultBase}?status=rejected&id=${encodeURIComponent(booking.id)}`);
     }
   } catch (e) {
     // redirect() melontar NEXT_REDIRECT — biarkan ia naik

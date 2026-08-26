@@ -3,6 +3,7 @@ import {
   getApplicantTypeLabel,
   getServiceTypeLabel,
 } from "@/lib/khidmat-bantu/config";
+import { buildKhidmatDecisionWhatsAppUrl } from "@/lib/khidmat-bantu/whatsapp";
 import {
   getServiceDate,
   getServiceLokasi,
@@ -26,7 +27,7 @@ const STATUS_DOT: Record<string, string> = {
 /**
  * Kad ringkas satu permohonan. `bare` guna sempadan nipis (untuk item dalam
  * senarai/kalendar terkumpul); default penuh `.card` (untuk gilir tindakan).
- * Butang tindakan hanya muncul apabila status pending.
+ * Butang tindakan: lulus/tolak semasa pending; WhatsApp pemohon selepas keputusan.
  */
 export default function KhidmatRequestCard({
   row,
@@ -81,9 +82,26 @@ export default function KhidmatRequestCard({
         </p>
       )}
 
-      {row.status === "pending" && (
+      {(row.status === "pending" ||
+        row.status === "approved" ||
+        row.status === "rejected") && (
         <div className="mt-3">
-          <AdminKhidmatActions requestId={row.id} status={row.status} />
+          <AdminKhidmatActions
+            requestId={row.id}
+            status={row.status}
+            decisionWhatsappUrl={
+              row.status === "approved" || row.status === "rejected"
+                ? buildKhidmatDecisionWhatsAppUrl(row.contact, {
+                    applicantName: row.applicantName,
+                    orgName: row.orgName,
+                    serviceLabel: getServiceTypeLabel(row.serviceType),
+                    title: getServiceTitle(row),
+                    date: date ? formatMalayDate(date) : "—",
+                    decision: row.status,
+                  })
+                : ""
+            }
+          />
         </div>
       )}
     </div>
