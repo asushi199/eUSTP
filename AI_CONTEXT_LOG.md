@@ -1,5 +1,11 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-08-27 — Senarai admin Laporan Akhbar: baki 2024–2025
+
+- `/admin/laporan-akhbar` kini memaparkan **Baki 2024–2025 (RM)** di samping
+  lajur Baki 2026. Nilai diambil daripada `baki_peruntukan_2024_2025_rm`
+  yang sudah diisi sekolah; sekolah belum hantar kekal `—`.
+
 ## 2026-08-27 — Siaran WhatsApp: tampal senarai sekolah
 
 - Panel Siaran WhatsApp di `/admin/direktori` menerima tampalan senarai sekolah

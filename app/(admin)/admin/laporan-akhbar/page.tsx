@@ -38,6 +38,10 @@ function listHref(status: StatusFilter, cari: string) {
   return qs ? `/admin/laporan-akhbar?${qs}` : "/admin/laporan-akhbar";
 }
 
+function formatRm(value: number) {
+  return value.toLocaleString("ms-MY", { minimumFractionDigits: 2 });
+}
+
 export default async function AdminLaporanAkhbarPage({
   searchParams,
 }: {
@@ -156,13 +160,14 @@ export default async function AdminLaporanAkhbarPage({
               <th className="px-4 py-3 font-semibold">Status</th>
               <th className="px-4 py-3 font-semibold">Semakan PPD</th>
               <th className="px-4 py-3 font-semibold">Baki 2026 (RM)</th>
+              <th className="px-4 py-3 font-semibold">Baki 2024–2025 (RM)</th>
               <th className="px-4 py-3" />
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-graphite">
+                <td colSpan={7} className="px-4 py-8 text-center text-graphite">
                   Tiada sekolah sepadan. Ubah tapisan atau kata carian.
                 </td>
               </tr>
@@ -194,12 +199,11 @@ export default async function AdminLaporanAkhbarPage({
                         "—"
                       )}
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      {rec
-                        ? rec.bakiPeruntukanRm.toLocaleString("ms-MY", {
-                            minimumFractionDigits: 2,
-                          })
-                        : "—"}
+                    <td className="px-4 py-3 whitespace-nowrap tabular-nums">
+                      {rec ? formatRm(rec.bakiPeruntukanRm) : "—"}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap tabular-nums">
+                      {rec ? formatRm(rec.bakiPeruntukan20242025Rm) : "—"}
                     </td>
                     <td className="px-4 py-3">
                       <Link
