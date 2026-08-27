@@ -1,12 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   DIRECTORY_ROLES,
   ROLE_INFO,
   normalizeMalaysianMobile,
   type DirectoryRole,
 } from "@/lib/direktori/config";
+import {
+  isSchoolListQuery,
+  matchSchoolLines,
+  parseSchoolListQuery,
+} from "@/lib/direktori/school-name-match";
 
 type BroadcastSchool = {
   schoolCode: string;
@@ -50,21 +55,99 @@ export default function WhatsAppBroadcastPanel({ records }: { records: Broadcast
   );
   const [selectedZones, setSelectedZones] = useState<string[]>([]);
   const [selectedRoles, setSelectedRoles] = useState<DirectoryRole[]>(["PGB"]);
+  const [schoolQuery, setSchoolQuery] = useState("");
+  const [schoolCode, setSchoolCode] = useState("");
+  const [picks, setPicks] = useState<Record<string, string>>({});
   const [message, setMessage] = useState(DEFAULT_MESSAGE);
   const [openedPhones, setOpenedPhones] = useState<string[]>([]);
   const [copied, setCopied] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
+  const schoolsInZones = useMemo(() => {
+    if (selectedZones.length === 0) return records;
+    return records.filter((school) => selectedZones.includes(school.zone));
+  }, [records, selectedZones]);
+
+  const listLines = useMemo(() => parseSchoolListQuery(schoolQuery), [schoolQuery]);
+  const listMode = isSchoolListQuery(schoolQuery);
+
+  const lineMatches = useMemo(() => {
+    if (!listMode) return [];
+    return matchSchoolLines(
+      listLines,
+      schoolsInZones.map((school) => ({ code: school.schoolCode, name: school.schoolName })),
+    );
+  }, [listLines, listMode, schoolsInZones]);
+
+  useEffect(() => {
+    const allowed = new Set(listLines);
+    setPicks((current) => {
+      const next: Record<string, string> = {};
+      for (const [query, code] of Object.entries(current)) {
+        if (allowed.has(query)) next[query] = code;
+      }
+      const same =
+        Object.keys(next).length === Object.keys(current).length &&
+        Object.keys(next).every((key) => next[key] === current[key]);
+      return same ? current : next;
+    });
+  }, [listLines]);
+
+  useEffect(() => {
+    if (schoolCode && !schoolsInZones.some((school) => school.schoolCode === schoolCode)) {
+      setSchoolCode("");
+    }
+  }, [schoolCode, schoolsInZones]);
+
+  const selectedSchoolCodes = useMemo(() => {
+    if (listMode) {
+      const codes = new Set<string>();
+      for (const row of lineMatches) {
+        if (row.status === "matched") codes.add(row.school.code);
+        else if (row.status === "ambiguous" && picks[row.query]) codes.add(picks[row.query]);
+      }
+      return codes;
+    }
+    if (schoolCode) return new Set([schoolCode]);
+    return null;
+  }, [lineMatches, listMode, picks, schoolCode]);
+
+  const searchedSchools = useMemo(() => {
+    if (listMode) {
+      return schoolsInZones.filter((school) => selectedSchoolCodes?.has(school.schoolCode));
+    }
+    const q = schoolQuery.trim().toLowerCase();
+    if (!q) return schoolsInZones;
+    return schoolsInZones.filter((school) => {
+      const haystack = [school.schoolCode, school.schoolName, ...school.roles.map((c) => c.teacherName)]
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [listMode, schoolQuery, schoolsInZones, selectedSchoolCodes]);
+
+  const matchSummary = useMemo(() => {
+    const matched = lineMatches.filter((row) => row.status === "matched").length;
+    const ambiguous = lineMatches.filter((row) => row.status === "ambiguous");
+    const unresolved = ambiguous.filter((row) => !picks[row.query]);
+    const unmatched = lineMatches.filter((row) => row.status === "unmatched");
+    return { matched, ambiguous, unresolved, unmatched };
+  }, [lineMatches, picks]);
+
   const { recipients, invalidContacts, duplicateCount } = useMemo(() => {
     const unique = new Map<string, Recipient>();
     const invalid: InvalidContact[] = [];
     let duplicates = 0;
+    const q = listMode ? "" : schoolQuery.trim().toLowerCase();
 
-    for (const school of records) {
-      if (selectedZones.length > 0 && !selectedZones.includes(school.zone)) continue;
+    for (const school of searchedSchools) {
+      if (selectedSchoolCodes && !selectedSchoolCodes.has(school.schoolCode)) continue;
+      const schoolMatches =
+        !q || `${school.schoolCode} ${school.schoolName}`.toLowerCase().includes(q);
 
       for (const contact of school.roles) {
         if (!selectedRoles.includes(contact.role)) continue;
+        if (q && !schoolMatches && !contact.teacherName.toLowerCase().includes(q)) continue;
         const phone = normalizeMalaysianMobile(contact.phoneNormalized || contact.phone);
         if (!phone) {
           invalid.push({
@@ -104,7 +187,7 @@ export default function WhatsAppBroadcastPanel({ records }: { records: Broadcast
       ),
       duplicateCount: duplicates,
     };
-  }, [records, selectedRoles, selectedZones]);
+  }, [listMode, schoolQuery, searchedSchools, selectedRoles, selectedSchoolCodes]);
 
   function toggleZone(zone: string) {
     setSelectedZones((current) =>
@@ -141,7 +224,9 @@ export default function WhatsAppBroadcastPanel({ records }: { records: Broadcast
         <div className="mt-1 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-lg font-semibold tracking-tight text-ink">Siaran WhatsApp</h2>
-            <p className="mt-1 text-sm text-graphite">Pilih PKG dan jawatan, kemudian buka perbualan seorang demi seorang.</p>
+            <p className="mt-1 text-sm text-graphite">
+              Tampal senarai sekolah atau pilih PKG dan jawatan, kemudian buka perbualan seorang demi seorang.
+            </p>
           </div>
           <div className="flex items-center gap-3 self-start sm:self-auto">
             <span className="text-sm font-medium tabular-nums text-brand">{recipients.length} nombor unik</span>
@@ -178,6 +263,73 @@ export default function WhatsAppBroadcastPanel({ records }: { records: Broadcast
               })}
             </div>
           </fieldset>
+
+          <div>
+            <label className="label" htmlFor="carian-sekolah-siaran">Cari atau tampal senarai sekolah</label>
+            <textarea
+              id="carian-sekolah-siaran"
+              className="input min-h-28 resize-y"
+              placeholder={"Kod, nama, atau tampal senarai — satu sekolah satu baris.\nContoh: SK BERUAS\nSJKC HWA LIAN 1"}
+              value={schoolQuery}
+              onChange={(event) => setSchoolQuery(event.target.value)}
+            />
+            {listMode ? (
+              <div className="mt-2 space-y-2">
+                <p className="text-xs text-graphite">
+                  {matchSummary.matched + (matchSummary.ambiguous.length - matchSummary.unresolved.length)}/{listLines.length} sekolah sepadan
+                  {matchSummary.unresolved.length > 0 ? ` · ${matchSummary.unresolved.length} perlu pilih` : ""}
+                  {matchSummary.unmatched.length > 0 ? ` · ${matchSummary.unmatched.length} tidak dijumpai` : ""}
+                </p>
+                {matchSummary.unresolved.map((row) => (
+                  row.status === "ambiguous" ? (
+                    <div key={row.query} className="rounded-lg border border-amber-200 bg-amber-50/70 p-3">
+                      <p className="text-sm font-medium text-ink">Pilih sekolah untuk “{row.query}”</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {row.schools.map((school) => (
+                          <button
+                            key={school.code}
+                            type="button"
+                            className="btn-outline-ink btn-sm"
+                            onClick={() => setPicks((current) => ({ ...current, [row.query]: school.code }))}
+                          >
+                            {school.code} — {school.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null
+                ))}
+                {matchSummary.unmatched.length > 0 && (
+                  <p className="text-xs text-amber-900">
+                    Tidak dijumpai: {matchSummary.unmatched.map((row) => row.query).join(", ")}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                  <p className="text-xs text-graphite">{searchedSchools.length} sekolah sepadan. Tampal lebih daripada satu baris untuk tapis senarai.</p>
+                </div>
+                <div>
+                  <label className="label" htmlFor="tapis-sekolah-siaran">Tapis sekolah</label>
+                  <select
+                    id="tapis-sekolah-siaran"
+                    className="input"
+                    value={schoolCode}
+                    disabled={searchedSchools.length === 0}
+                    onChange={(event) => setSchoolCode(event.target.value)}
+                  >
+                    <option value="">Semua sekolah ({searchedSchools.length})</option>
+                    {searchedSchools.map((school) => (
+                      <option key={school.schoolCode} value={school.schoolCode}>
+                        {school.schoolCode} — {school.schoolName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
+          </div>
 
           <fieldset>
             <legend className="label">Jawatan penerima</legend>
@@ -250,7 +402,7 @@ export default function WhatsAppBroadcastPanel({ records }: { records: Broadcast
               <p className="mt-1 text-xs text-graphite">Sekolah ini tidak dimasukkan dalam senarai penghantaran.</p>
               <div className="mt-3 max-h-52 space-y-2 overflow-y-auto pr-1">
                 {invalidContacts.map((contact) => (
-                  <div key={`${contact.schoolCode}-${contact.role}`} className="rounded-lg border border-amber-200 bg-amber-50/60 p-3 text-xs">
+                  <div key={`${contact.schoolCode}-${contact.role}`} className="rounded-lg border border-amber-200 bg-amber-50/70 p-3 text-xs">
                     <p className="font-medium text-ink">{contact.schoolName}</p>
                     <p className="mt-0.5 text-graphite">{contact.schoolCode} · {ROLE_INFO[contact.role].short} · {contact.teacherName}</p>
                     <p className="mt-1 text-amber-900">{contact.reason}{contact.phone ? `: ${contact.phone}` : ""}</p>

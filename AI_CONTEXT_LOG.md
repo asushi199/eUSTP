@@ -1,5 +1,15 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-08-27 — Siaran WhatsApp: tampal senarai sekolah
+
+- Panel Siaran WhatsApp di `/admin/direktori` menerima tampalan senarai sekolah
+  (satu baris satu sekolah). Nama pendek/panjang, `SJK (C)`, kod sekolah dan
+  ejaan berbeza dipadankan secara kabur kepada jadual rasmi.
+- Padanan unik terus dipilih. Nama yang mengenai lebih daripada satu sekolah
+  (cth. `HWA LIAN` tanpa 1/2) dipaparkan untuk dipilih. Baris yang tidak
+  dijumpai ditanda supaya pentadbir boleh betulkan.
+- Penghantaran kekal `wa.me` seorang demi seorang.
+
 ## 2026-08-26 — Semak Tebus Buku: baucar buku, bukan buku digital
 
 - Tag kad **Semak Tebus Buku** di hub `/laporan` ditukar kepada **Baucar Buku**.
