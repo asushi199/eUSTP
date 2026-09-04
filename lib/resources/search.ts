@@ -304,7 +304,12 @@ export function filterResourceCards<T extends ResourcesExplorerCard>(
 }
 
 export function listResourceMonthOptions(
-  cards: Array<{ title: string; url: string; createdAt: string }>,
+  cards: Array<{
+    title: string;
+    url: string;
+    createdAt: string;
+    letterMonth?: string | null;
+  }>,
 ): Array<{ value: string; label: string }> {
   const keys = new Set<string>();
   for (const card of cards) {
@@ -313,4 +318,16 @@ export function listResourceMonthOptions(
   return [...keys]
     .sort((a, b) => b.localeCompare(a))
     .map((value) => ({ value, label: formatResourceMonthLabel(value) }));
+}
+
+/** Bulan terkini yang ada surat (YYYY-MM), atau "" jika tiada. */
+export function latestResourceMonth(
+  cards: Array<{
+    title: string;
+    url: string;
+    createdAt: string;
+    letterMonth?: string | null;
+  }>,
+): string {
+  return listResourceMonthOptions(cards)[0]?.value ?? "";
 }

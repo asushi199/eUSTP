@@ -19,17 +19,20 @@ export default function ResourcesExplorer({
   accent: string;
   variant: "hub" | "kategori";
 }) {
-  const [query, setQuery] = useState("");
-  const [month, setMonth] = useState("");
-
   const allCards = useMemo(() => groups.flatMap((group) => group.cards), [groups]);
   const months = useMemo(() => listResourceMonthOptions(allCards), [allCards]);
+  const latestMonth = months[0]?.value ?? "";
+  const defaultMonth = variant === "kategori" ? latestMonth : "";
+
+  const [query, setQuery] = useState("");
+  const [month, setMonth] = useState(defaultMonth);
+
   const filtered = useMemo(
     () => filterResourceCards(allCards, { query, month }),
     [allCards, query, month],
   );
 
-  const isFiltering = Boolean(query.trim() || month);
+  const isFiltering = Boolean(query.trim() || month !== defaultMonth);
   const showSearch = allCards.length > 0;
   const showKategoriCards = variant === "hub" && !isFiltering;
   const showLetters = variant === "kategori" || isFiltering;
@@ -58,7 +61,13 @@ export default function ResourcesExplorer({
                 id="carian-resources"
                 className="input pl-10"
                 value={query}
-                onChange={(event) => setQuery(event.target.value)}
+                onChange={(event) => {
+                  const next = event.target.value;
+                  setQuery(next);
+                  if (next.trim() && month === defaultMonth) {
+                    setMonth("");
+                  }
+                }}
                 placeholder="Tajuk, nama fail atau tahun"
                 autoComplete="off"
               />
@@ -94,6 +103,13 @@ export default function ResourcesExplorer({
         </p>
       ) : null}
 
+      {variant === "kategori" && showSearch && !isFiltering && months.length > 1 ? (
+        <p className="mt-2 text-sm text-graphite">
+          Paparan bulan terkini yang ada surat. Pilih bulan lain atau Semua
+          bulan untuk arkib.
+        </p>
+      ) : null}
+
       {isFiltering ? (
         <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-graphite">
           <span>
@@ -105,7 +121,7 @@ export default function ResourcesExplorer({
             className="font-medium text-ink underline-offset-2 hover:underline"
             onClick={() => {
               setQuery("");
-              setMonth("");
+              setMonth(defaultMonth);
             }}
           >
             Kosongkan carian

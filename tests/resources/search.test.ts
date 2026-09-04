@@ -6,8 +6,10 @@ import {
   filenameFromUrl,
   filterResourceCards,
   formatResourceMonthLabel,
+  latestResourceMonth,
   listLetterMonthChoices,
   listLetterMonthWindow,
+  listResourceMonthOptions,
   normalizeResourceQuery,
   resourceMonthKey,
   shiftLetterMonth,
@@ -117,4 +119,25 @@ test("windows NexaBot months seven before and after the centered month", () => {
   assert.equal(window[14]?.value, "2027-04");
   assert.equal(shiftLetterMonth("2026-09", -12), "2025-09");
   assert.equal(shiftLetterMonth("2026-01", -1), "2025-12");
+});
+
+test("picks the latest month that actually has letters", () => {
+  const cards = [
+    card({
+      id: 1,
+      title: "Surat Julai",
+      createdAt: "2026-07-02T04:00:00.000Z",
+      letterMonth: "2026-07",
+    }),
+    card({
+      id: 2,
+      title: "Surat Ogos",
+      createdAt: "2026-09-01T04:00:00.000Z",
+      letterMonth: "2026-08",
+    }),
+  ];
+  const months = listResourceMonthOptions(cards);
+  assert.equal(months[0]?.value, "2026-08");
+  assert.equal(latestResourceMonth(cards), "2026-08");
+  assert.equal(latestResourceMonth([]), "");
 });
