@@ -5,7 +5,7 @@ import { getDpdSummary } from "@/lib/stats/dpd";
 import { getPssSummary } from "@/lib/stats/pss";
 import { HomeAmbientScene } from "@/components/home/HomeAmbientScene";
 import HomeAnalisisBand from "@/components/home/HomeAnalisisBand";
-import { HeroVisual } from "@/components/home/HeroVisual";
+import { HomeWelcomeBanner } from "@/components/home/HomeWelcomeBanner";
 import { HomeModuleIcon } from "@/components/home/HomeModuleIcon";
 import { ModuleCard } from "@/components/home/ModuleCard";
 
@@ -80,67 +80,11 @@ export default async function HomePage() {
     <>
       <HomeAmbientScene />
 
-      <section className="portal-home mx-auto grid w-full max-w-6xl items-center gap-10 overflow-x-clip px-4 pb-8 pt-12 sm:px-8 sm:pt-16 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12 lg:pb-10">
-        <div className="min-w-0">
-          <p className="portal-home-hero-delay-1 mb-4 flex max-w-full items-center gap-3 text-[10px] font-semibold leading-snug tracking-[0.04em] text-primary sm:text-xs sm:tracking-[0.06em]">
-            <span className="h-0.5 w-7 shrink-0 rounded bg-primary" aria-hidden />
-            <span>Network for Educational eXcellence &amp; Access</span>
-          </p>
-          <h1 className="portal-home-hero-delay-2 max-w-2xl text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl lg:text-[3.25rem]">
-            <span className="block text-ink">NEXa</span>
-            <span className="mt-2 block text-2xl font-medium tracking-tight text-graphite sm:text-3xl lg:text-[1.75rem]">
-              by USTP Manjung
-            </span>
-          </h1>
-          <p className="portal-home-hero-delay-3 mt-5 max-w-xl text-lg leading-relaxed text-graphite">
-            &ldquo;Menghubungkan Teknologi. Memperkasa Pendidikan.&rdquo;
-          </p>
-          <a
-            href="#modul"
-            className="portal-home-hero-delay-3 btn-primary mt-8 inline-flex normal-case tracking-normal"
-          >
-            Terokai Modul
-            <span aria-hidden>↓</span>
-          </a>
-          <div
-            className="portal-home-hero-delay-3 mt-10 flex max-w-full flex-wrap gap-y-4"
-            aria-label="Ringkasan portal"
-          >
-            {[
-              {
-                value: String(HOME_MODULES.length).padStart(2, "0"),
-                label: "MODUL DIGITAL",
-              },
-              { value: "05", label: "PKG DAERAH" },
-              { value: "01", label: "PINTU MASUK" },
-            ].map((item, i) => (
-              <div
-                key={item.label}
-                className={`min-w-0 py-0 ${i === 0 ? "pr-4 sm:pr-6" : "border-l-2 border-primary/12 px-4 sm:px-6"}`}
-              >
-                <p className="text-2xl font-bold tabular-nums text-primary">{item.value}</p>
-                <p className="mt-1 text-[10px] font-semibold tracking-[0.16em] text-graphite">
-                  {item.label}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-        <HeroVisual />
-      </section>
-
-      <div className="portal-hero-wave" aria-hidden>
-        <svg viewBox="0 0 1440 48" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-          <path
-            fill="currentColor"
-            d="M0,24 C240,48 480,0 720,24 C960,48 1200,0 1440,24 L1440,48 L0,48 Z"
-          />
-        </svg>
-      </div>
+      <HomeWelcomeBanner />
 
       <section
         id="coe-analytics"
-        className="portal-stats-band scroll-mt-20 px-4 py-8 sm:px-8 sm:py-10"
+        className="portal-welcome-analytics scroll-mt-20 px-4 pb-8 sm:px-8 sm:pb-10"
       >
         <div className="mx-auto max-w-6xl">
           <div className="flex items-end justify-between gap-3">

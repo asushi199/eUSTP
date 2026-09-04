@@ -176,44 +176,55 @@
   }
 }
 
-.portal-topnav {
-  border-bottom: 1px solid rgba(232, 232, 232, 0.9);
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(12px);
+.portal-welcome-banner {
+  position: relative;
+  overflow: hidden;
+  background: #f7fbff;
+}
+
+.portal-welcome-photo {
+  position: relative;
+  height: 10rem;
+}
+
+.portal-welcome-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 40%, #f7fbff 100%);
 }
 
 @media (min-width: 768px) {
-  .portal-topnav {
-    background:
-      linear-gradient(90deg, rgba(255, 255, 255, 0.96) 0%, rgba(255, 255, 255, 0.88) 58%, rgba(255, 255, 255, 0.5) 100%),
-      url("/ppd-manjung-banner.jpg") right center / 46% auto no-repeat;
+  .portal-welcome-photo {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: auto;
+    width: 54%;
+    height: auto;
+  }
+
+  .portal-welcome-photo::after {
+    background: linear-gradient(
+      90deg,
+      #f7fbff 0%,
+      rgba(247, 251, 255, 0.72) 26%,
+      transparent 62%
+    );
   }
 }
 
-.portal-admin-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  border-radius: 999px;
-  padding: 0.25rem 0.7rem 0.25rem 0.25rem;
-  background: rgba(255, 255, 255, 0.86);
-  box-shadow: 0 1px 0 rgba(15, 61, 92, 0.06);
+.portal-welcome-analytics {
+  position: relative;
+  z-index: 1;
+  margin-top: -1.25rem;
 }
 
-.portal-admin-chip:hover {
-  background: #fff;
-}
-
-.portal-admin-chip-avatar {
-  display: grid;
-  height: 2.15rem;
-  width: 2.15rem;
-  place-items: center;
-  border-radius: 999px;
-  background: #024ad8;
-  color: #fff;
-  font-size: 0.75rem;
-  font-weight: 700;
+@media (min-width: 768px) {
+  .portal-welcome-analytics {
+    margin-top: -2.5rem;
+  }
 }
 
 .portal-page-enter {
