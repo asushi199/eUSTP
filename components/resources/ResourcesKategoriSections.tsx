@@ -31,6 +31,11 @@ export default function ResourcesKategoriSections({
         const open = openSlug === group.slug;
         const n = group.cards.length;
         const panelId = `resources-panel-${group.slug}`;
+        const gallery = group.cards.map((item) => ({
+          title: item.title,
+          url: item.url,
+          embed: item.embed,
+        }));
         return (
           <div
             key={group.slug}
@@ -97,7 +102,7 @@ export default function ResourcesKategoriSections({
                   </p>
                 ) : (
                   <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    {group.cards.map((c) => (
+                    {group.cards.map((c, i) => (
                       <div key={c.id} className="space-y-2">
                         <CardEmbed
                           title={c.title}
@@ -105,6 +110,8 @@ export default function ResourcesKategoriSections({
                           url={c.url}
                           typeLabel={c.typeLabel}
                           embed={c.embed}
+                          gallery={gallery}
+                          galleryIndex={i}
                         />
                         {admin ? (
                           <div className="flex flex-wrap items-center gap-3 px-1">

@@ -1,5 +1,37 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-04 — CoE Resources: Muat Turun + Lihat penuh
+
+- Pada kad yang sudah ada iframe: **Muat Turun** (pautan Drive export)
+  ganti Buka Penuh; **Lihat penuh** ganti Pratonton (membesarkan paparan).
+- "Lihat surat" kurang sesuai — surat sudah kelihatan dalam kad.
+  "Lihat penuh" ialah istilah biasa untuk paparan besar.
+
+## 2026-09-04 — CoE Resources: kad iframe terus + Pratonton besar
+
+- Senarai surat lalai **membuka iframe dalam kad** (bukan lightbox).
+  Butang **Tutup pratonton iframe** di atas meruntuhkan iframe jika
+  senarai terlalu panjang untuk carian telefon.
+- **Pratonton** membesarkan iframe penuh, dengan Sebelumnya / Seterusnya.
+  Fungsi Zum & geser (imej pan-zoom) dibuang.
+
+## 2026-09-04 — CoE Resources: pratonton iframe + surat sebelumnya
+
+- Pratonton dibuka sebagai kad iframe Drive (muka surat penuh), bukan
+  imej muka pertama. Zum & geser kekal sebagai pilihan.
+- Butang **Sebelumnya** / **Seterusnya** sepasang di bawah + anak panah
+  kiri/kanan pada kad, supaya surat sebelumnya sama mudah dengan yang
+  seterusnya (anak panah kecil di puncak mudah terlepas; leret kanan
+  pada telefon boleh disalah anggap sebagai kembali pelayar).
+
+## 2026-09-04 — CoE Resources: pratonton boleh digeer kiri-kanan
+
+- Butang Pratonton membuka lightbox penuh (bukan iframe kecil dalam kad).
+- Surat Drive dipaparkan sebagai imej resolusi tinggi: seret untuk geser,
+  cubit / butang + − / dwiketik untuk zum. Dalam senarai, seret kiri/kanan
+  (skala 1×) atau anak panah untuk surat seterusnya.
+- Jika imej Drive gagal, jatuh kepada iframe pratonton.
+
 ## 2026-09-04 — NexaBot: /cari surat CoE Resources
 
 - `/cari`, `/carian` atau `/search` diikuti kata kunci (kumpulan atau

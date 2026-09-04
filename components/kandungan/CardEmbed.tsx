@@ -2,11 +2,14 @@
 
 import { useState } from "react";
 import type { CardEmbedInfo } from "@/lib/kandungan/embed-urls";
+import { driveFileDownloadUrl } from "@/lib/kandungan/embed-urls";
+import PreviewLightbox, {
+  type PreviewLightboxItem,
+} from "./PreviewLightbox";
 
 /**
- * Kad kandungan dengan pratonton klik-untuk-muat — iframe TIDAK dimuat
- * sehingga pengguna tekan "Pratonton" (elak berpuluh iframe serentak).
- * YouTube: papar thumbnail dahulu; iframe hanya selepas klik main.
+ * Kad kandungan. YouTube: thumbnail dahulu. PDF/imej pada CoE Resources
+ * dipaparkan terus dalam kad; Lihat penuh membesarkan iframe.
  */
 export default function CardEmbed({
   title,
@@ -14,16 +17,31 @@ export default function CardEmbed({
   url,
   typeLabel,
   embed,
+  gallery,
+  galleryIndex = 0,
+  inlinePreview = false,
 }: {
   title: string;
   blurb: string;
   url: string;
   typeLabel: string;
   embed: CardEmbedInfo;
+  gallery?: PreviewLightboxItem[];
+  galleryIndex?: number;
+  inlinePreview?: boolean;
 }) {
   const [open, setOpen] = useState(false);
-  const [failed, setFailed] = useState(false);
+  const [preview, setPreview] = useState(false);
+  const [previewIndex, setPreviewIndex] = useState(galleryIndex);
   const canPreview = embed.mode !== "none";
+  const lightboxItems = gallery ?? [{ title, url, embed }];
+  const downloadHref = driveFileDownloadUrl(url);
+  const fileHref = inlinePreview && downloadHref ? downloadHref : url;
+  const fileLabel = inlinePreview
+    ? downloadHref
+      ? "Muat Turun"
+      : "Buka"
+    : "Buka Penuh";
 
   return (
     <div className="card flex flex-col p-4">
@@ -56,30 +74,28 @@ export default function CardEmbed({
         </button>
       ) : null}
 
-      {open && canPreview ? (
+      {open && embed.mode === "youtube" ? (
         <div className="mt-3 overflow-hidden rounded-lg border border-fog">
-          {failed ? (
-            <p className="p-4 text-sm text-graphite">
-              Pratonton tidak tersedia — fail mungkin belum dikongsi secara
-              terbuka. Sila guna pautan &ldquo;Buka Penuh&rdquo;.
-            </p>
-          ) : embed.mode === "image" ? (
+          <iframe
+            src={`https://www.youtube-nocookie.com/embed/${embed.videoId}?autoplay=1`}
+            title={title}
+            className="aspect-video w-full"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+      ) : null}
+
+      {inlinePreview && canPreview && embed.mode !== "youtube" ? (
+        <div className="mt-3 overflow-hidden rounded-lg border border-fog">
+          {embed.mode === "image" ? (
             <img
               src={embed.src}
               alt={title}
               loading="lazy"
-              className="max-h-96 w-full object-contain"
-              onError={() => setFailed(true)}
+              className="max-h-80 w-full object-contain"
             />
-          ) : embed.mode === "youtube" ? (
-            <iframe
-              src={`https://www.youtube-nocookie.com/embed/${embed.videoId}?autoplay=1`}
-              title={title}
-              className="aspect-video w-full"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          ) : (
+          ) : embed.mode === "iframe" ? (
             <iframe
               src={embed.src}
               title={title}
@@ -87,21 +103,24 @@ export default function CardEmbed({
               loading="lazy"
               allowFullScreen
             />
-          )}
+          ) : null}
         </div>
       ) : null}
 
       <div className="mt-auto flex items-center gap-3 pt-3">
-        <a href={url} target="_blank" rel="noopener noreferrer" className="link-blue text-sm">
-          Buka Penuh
+        <a href={fileHref} target="_blank" rel="noopener noreferrer" className="link-blue text-sm">
+          {fileLabel}
         </a>
         {canPreview && embed.mode !== "youtube" ? (
           <button
             type="button"
-            onClick={() => setOpen((v) => !v)}
+            onClick={() => {
+              setPreviewIndex(galleryIndex);
+              setPreview(true);
+            }}
             className="text-sm font-medium text-graphite underline-offset-2 hover:text-ink hover:underline"
           >
-            {open ? "Tutup Pratonton" : "Pratonton"}
+            {inlinePreview ? "Lihat penuh" : "Pratonton"}
           </button>
         ) : null}
         {embed.mode === "youtube" && open ? (
@@ -114,6 +133,15 @@ export default function CardEmbed({
           </button>
         ) : null}
       </div>
+
+      {preview ? (
+        <PreviewLightbox
+          items={lightboxItems}
+          index={previewIndex}
+          onIndex={setPreviewIndex}
+          onClose={() => setPreview(false)}
+        />
+      ) : null}
     </div>
   );
 }

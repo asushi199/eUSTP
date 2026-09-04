@@ -26,6 +26,7 @@ export default function ResourcesExplorer({
 
   const [query, setQuery] = useState("");
   const [month, setMonth] = useState(defaultMonth);
+  const [iframePreview, setIframePreview] = useState(true);
 
   const filtered = useMemo(
     () => filterResourceCards(allCards, { query, month }),
@@ -34,13 +35,29 @@ export default function ResourcesExplorer({
 
   const isFiltering = Boolean(query.trim() || month !== defaultMonth);
   const showSearch = allCards.length > 0;
+  const gallery = useMemo(
+    () =>
+      filtered.map((item) => ({
+        title: item.title,
+        url: item.url,
+        embed: item.embed,
+      })),
+    [filtered],
+  );
   const showKategoriCards = variant === "hub" && !isFiltering;
   const showLetters = variant === "kategori" || isFiltering;
 
   return (
     <>
       {showSearch ? (
-        <div className="mt-8 grid gap-3 sm:grid-cols-[minmax(0,1fr)_12.5rem] sm:items-end">
+        <div
+          className={
+            showLetters
+              ? "sticky top-16 z-30 -mx-4 mt-8 space-y-3 bg-[var(--portal-canvas,#f4f8fb)] px-4 py-3 sm:-mx-8 sm:px-8"
+              : "mt-8 space-y-3"
+          }
+        >
+        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_12.5rem] sm:items-end">
           <div>
             <label htmlFor="carian-resources" className="label">
               Cari surat
@@ -93,6 +110,17 @@ export default function ResourcesExplorer({
               </select>
             </div>
           ) : null}
+        </div>
+        {showLetters ? (
+          <button
+            type="button"
+            className="h-11 rounded-md border border-fog bg-white px-4 text-sm font-medium text-ink"
+            aria-pressed={iframePreview}
+            onClick={() => setIframePreview((v) => !v)}
+          >
+            {iframePreview ? "Tutup pratonton iframe" : "Buka pratonton iframe"}
+          </button>
+        ) : null}
         </div>
       ) : null}
 
@@ -179,7 +207,7 @@ export default function ResourcesExplorer({
           </p>
         ) : (
           <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((c) => (
+            {filtered.map((c, i) => (
               <CardEmbed
                 key={c.id}
                 title={c.title}
@@ -187,6 +215,9 @@ export default function ResourcesExplorer({
                 url={c.url}
                 typeLabel={c.typeLabel}
                 embed={c.embed}
+                gallery={gallery}
+                galleryIndex={i}
+                inlinePreview={iframePreview}
               />
             ))}
           </div>

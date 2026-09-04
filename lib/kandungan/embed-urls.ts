@@ -15,16 +15,35 @@ export function canvaViewEmbedUrl(viewUrl: string): string {
   return `${withEmbed}${hash}`;
 }
 
+/** ID fail Google Drive daripada URL paparan, pratonton, atau imej lh3. */
+export function driveFileId(url: string): string | null {
+  const s = String(url ?? "");
+  const fileD = s.match(/\/file\/d\/([^/?]+)/);
+  if (fileD?.[1]) return fileD[1];
+  if (/drive\.google\.com/i.test(s)) {
+    const openId = s.match(/[?&]id=([^&]+)/);
+    if (openId?.[1]) return openId[1];
+  }
+  const lh3 = s.match(/lh3\.googleusercontent\.com\/d\/([^/=?#]+)/);
+  return lh3?.[1] ?? null;
+}
+
 /** Google Drive fail — URL paparan → `/preview` untuk iframe. */
 export function driveFilePreviewUrl(viewUrl: string): string {
-  const s = String(viewUrl ?? "");
-  const fileD = s.match(/\/file\/d\/([^/?]+)/);
-  if (fileD) return `https://drive.google.com/file/d/${fileD[1]}/preview`;
-  if (s.includes("drive.google.com")) {
-    const openId = s.match(/[?&]id=([^&]+)/);
-    if (openId) return `https://drive.google.com/file/d/${openId[1]}/preview`;
-  }
-  return s;
+  const id = driveFileId(viewUrl);
+  return id ? `https://drive.google.com/file/d/${id}/preview` : String(viewUrl ?? "");
+}
+
+/** Imej pratonton resolusi tinggi (muka surat PDF Drive). */
+export function driveHiResImageUrl(url: string, width = 2048): string | null {
+  const id = driveFileId(url);
+  return id ? `https://lh3.googleusercontent.com/d/${id}=w${width}` : null;
+}
+
+/** Google Drive fail — pautan muat turun terus. */
+export function driveFileDownloadUrl(url: string): string | null {
+  const id = driveFileId(url);
+  return id ? `https://drive.google.com/uc?export=download&id=${id}` : null;
 }
 
 /** Google Docs — `/preview` untuk iframe. */
@@ -57,11 +76,8 @@ export function youtubeVideoId(url: string): string | null {
 /** Pautan Drive imej → URL imej terus (lh3) untuk <img>. */
 export function driveImageUrl(url: string): string {
   const s = String(url ?? "").trim();
-  if (!/drive\.google\.com/i.test(s)) return s;
-  const fileD = s.match(/\/file\/d\/([^/?]+)/);
-  if (fileD) return `https://lh3.googleusercontent.com/d/${fileD[1]}`;
-  const idParam = s.match(/[?&]id=([^&]+)/);
-  if (idParam) return `https://lh3.googleusercontent.com/d/${idParam[1]}`;
+  const id = driveFileId(s);
+  if (id) return `https://lh3.googleusercontent.com/d/${id}`;
   return s;
 }
 
