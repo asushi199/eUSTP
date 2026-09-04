@@ -86,12 +86,11 @@ export default async function HomePage() {
         id="coe-analytics"
         className="portal-welcome-analytics scroll-mt-20 px-4 pb-8 sm:px-8 sm:pb-10"
       >
-        <div className="mx-auto max-w-6xl">
-          <div className="flex items-end justify-between gap-3">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.7px] text-graphite">
-              CoE Analytics
-            </h2>
-          </div>
+        <div className="portal-analytics-panel mx-auto max-w-6xl">
+          <h2 className="flex items-center gap-3 text-lg font-semibold tracking-tight text-ink sm:text-xl">
+            <span className="h-0.5 w-7 shrink-0 rounded bg-primary" aria-hidden />
+            CoE Analytics
+          </h2>
           {analisis ? (
             <HomeAnalisisBand modules={analisis} />
           ) : (
