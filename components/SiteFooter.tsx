@@ -12,6 +12,14 @@ export default function SiteFooter() {
         <p className="mt-1 text-sm text-white/70">
           Unit Sumber Teknologi Pendidikan · Pejabat Pendidikan Daerah Manjung
         </p>
+        <p className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-sm text-white/70">
+          <a href="/privasi" className="hover:text-white">
+            Dasar Privasi
+          </a>
+          <a href="/terma" className="hover:text-white">
+            Terma Penggunaan
+          </a>
+        </p>
         <p className="mt-4 text-[10px] font-medium uppercase tracking-[0.16em] text-white/45">
           Manjung / Digital / 2026
         </p>
