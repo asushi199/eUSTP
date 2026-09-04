@@ -5,13 +5,7 @@ import { getAdminMobileNavigation } from "../../lib/admin/mobile-navigation";
 test("uses CoE entries instead of a duplicate Papan tab for content administrators", () => {
   assert.deepEqual(
     getAdminMobileNavigation(true).map((item) => item.href),
-    [
-      "/admin/booking",
-      "/admin/direktori",
-      "/admin/osc",
-      "/admin/pelaporan",
-      "/",
-    ],
+    ["/admin/booking", "/admin/direktori", "/admin/osc", "/admin", "/"],
   );
 });
 

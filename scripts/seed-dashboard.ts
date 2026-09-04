@@ -203,6 +203,36 @@ async function main() {
     console.log(`kandungan_cards ← ${topik}: ${cards.length} baris`);
   }
 
+  /* 1b. Kad CoE Resources */
+  await db.delete(schema.resourcesCards);
+  const resourcesMatrix = readCsv("resources-pekeliling.csv");
+  if (resourcesMatrix && resourcesMatrix.length > 1) {
+    const rh = resourcesMatrix[0];
+    const rIdx = {
+      kategori: colIndex(rh, "kategori"),
+      sort: colIndex(rh, "sort", "susunan", "no"),
+      title: colIndex(rh, "title", "tajuk", "nama"),
+      url: colIndex(rh, "url", "link", "pautan"),
+    };
+    const rcell = (r: string[], i: number) => (i >= 0 ? String(r[i] ?? "").trim() : "");
+    const resourceRows: (typeof schema.resourcesCards.$inferInsert)[] = [];
+    for (let ri = 1; ri < resourcesMatrix.length; ri++) {
+      const r = resourcesMatrix[ri];
+      const title = rcell(r, rIdx.title);
+      const url = rcell(r, rIdx.url);
+      const kategori = rcell(r, rIdx.kategori) || "pekeliling";
+      if (!title || !url) continue;
+      resourceRows.push({
+        kategori,
+        title,
+        url,
+        sort: num(rcell(r, rIdx.sort)) ?? 999,
+      });
+    }
+    if (resourceRows.length) await db.insert(schema.resourcesCards).values(resourceRows);
+    console.log(`resources_cards ← ${resourceRows.length} baris`);
+  }
+
   /* 2. Analisis */
   await db.delete(schema.analisisMetrics);
   await db.delete(schema.analisisMonthly);

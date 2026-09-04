@@ -61,11 +61,23 @@ export default async function AdminOverviewPage() {
     },
   ];
   if (urusKandungan) {
-    cards.push({
-      href: "/admin/direktori",
-      title: "CoE Direktori",
-      description: "Maklumat perhubungan sekolah, sejarah versi dan eksport CSV.",
-    });
+    cards.push(
+      {
+        href: "/admin/direktori",
+        title: "CoE Direktori",
+        description: "Maklumat perhubungan sekolah, sejarah versi dan eksport CSV.",
+      },
+      {
+        href: "/admin/pelaporan",
+        title: "CoE Reports",
+        description: "Semak laporan DPD, PSS dan Akhbar daerah Manjung.",
+      },
+      {
+        href: "/admin/resources",
+        title: "CoE Resources",
+        description: "Urus tajuk dan pautan surat, pekeliling dan sijil digital.",
+      },
+    );
   }
 
   return (

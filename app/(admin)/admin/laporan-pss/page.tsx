@@ -32,7 +32,10 @@ export default async function AdminLaporanPssPage() {
 
   return (
     <>
-      <h1 className="text-2xl font-semibold tracking-tight">Laporan PSS — Admin</h1>
+      <Link href="/admin/pelaporan" className="text-sm text-graphite hover:text-ink">
+        ← CoE Reports
+      </Link>
+      <h1 className="mt-2 text-2xl font-semibold tracking-tight">Laporan PSS — Admin</h1>
       <p className="mt-1 text-sm text-graphite">
         {rows.length} laporan · arkib mengikut bulan
       </p>

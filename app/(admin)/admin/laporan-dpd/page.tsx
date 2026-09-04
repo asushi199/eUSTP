@@ -12,7 +12,10 @@ export default async function AdminLaporanDpdPage() {
 
   return (
     <>
-      <h1 className="text-2xl font-semibold tracking-tight">Laporan DPD — Admin</h1>
+      <Link href="/admin/pelaporan" className="text-sm text-graphite hover:text-ink">
+        ← CoE Reports
+      </Link>
+      <h1 className="mt-2 text-2xl font-semibold tracking-tight">Laporan DPD — Admin</h1>
       <p className="mt-1 text-sm text-graphite">{rows.length} laporan</p>
 
       <div className="card mt-6 overflow-x-auto">

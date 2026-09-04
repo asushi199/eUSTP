@@ -1,5 +1,5 @@
 export type AdminMobileNavigationItem = {
-  id: "booking" | "direktori" | "osc" | "pelaporan" | "portal";
+  id: "booking" | "direktori" | "osc" | "papan" | "portal";
   href: string;
   label: string;
 };
@@ -14,7 +14,7 @@ export function getAdminMobileNavigation(
       ? [
           { id: "direktori" as const, href: "/admin/direktori", label: "CoE Direktori" },
           { id: "osc" as const, href: "/admin/osc", label: "OSC" },
-          { id: "pelaporan" as const, href: "/admin/pelaporan", label: "Lapor" },
+          { id: "papan" as const, href: "/admin", label: "Papan" },
         ]
       : []),
     { id: "portal", href: "/", label: "Portal" },

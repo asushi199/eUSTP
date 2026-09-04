@@ -45,14 +45,14 @@ export const TEMPAHAN_HUB = {
   iconKey: "tempahan" as const,
 } as const;
 
-/** Kad awam CoE Resources — kandungan surat akan dipindahkan kemudian. */
+/** Kad awam CoE Resources — pekeliling diambil daripada OSC Bahan Sokongan. */
 export const RESOURCES_HUB = {
   href: "/resources",
   internalHref: "/resources",
   external: false,
   title: "CoE Resources",
   description:
-    "Surat program, pekeliling, nota dan sijil digital USTP — kandungan akan ditambah secara berperingkat.",
+    "Surat program, pekeliling, nota dan sijil digital USTP — pekeliling rasmi sudah boleh dibuka.",
   accent: "#EA580C",
   iconKey: "sumber" as const,
 } as const;

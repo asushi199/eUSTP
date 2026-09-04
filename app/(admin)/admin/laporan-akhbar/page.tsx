@@ -223,7 +223,7 @@ export default async function AdminLaporanAkhbarPage({
 
       <p className="mt-4 text-sm">
         <Link href="/admin/pelaporan" className="text-graphite hover:text-ink">
-          ← Pelaporan
+          ← CoE Reports
         </Link>
       </p>
     </>

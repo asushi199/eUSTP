@@ -17,6 +17,7 @@ import {
   TEMPAHAN_SECTIONS,
 } from "./module-theme";
 import { ROLE_INFO } from "./direktori/config";
+import { RESOURCES_KATEGORI, resourcesHref } from "./resources/kategori";
 
 export type HomeModuleItem = {
   label: string;
@@ -36,14 +37,6 @@ export type HomeModuleCard = {
   moreLabel?: string;
   comingSoon?: boolean;
 };
-
-export const RESOURCES_PLANNED_ITEMS = [
-  "Surat Program untuk USTP",
-  "Surat Program untuk Sekolah / Guru / Murid",
-  "Pekeliling / Siaran STP",
-  "Nota / Modul / Panduan STP",
-  "Sijil Digital Program",
-] as const;
 
 export const MEDIA_CARD_ITEMS = [
   "Koleksi Video / Gambar Program",
@@ -101,8 +94,10 @@ export const HOME_MODULES: HomeModuleCard[] = [
     accent: RESOURCES_HUB.accent,
     iconKey: RESOURCES_HUB.iconKey,
     cta: "Lihat Resources",
-    comingSoon: true,
-    items: RESOURCES_PLANNED_ITEMS.map((label) => ({ label })),
+    items: RESOURCES_KATEGORI.map((k) => ({
+      label: k.title,
+      href: resourcesHref(k.slug),
+    })),
   },
   {
     href: direktori.href,

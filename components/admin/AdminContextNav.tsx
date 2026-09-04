@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ADMIN_OSC_PATHS, ADMIN_PELAPORAN_PATHS } from "@/lib/admin/desktop-navigation";
+import { ADMIN_OSC_PATHS, ADMIN_PAPAN_NESTED_PATHS } from "@/lib/admin/desktop-navigation";
 import { getAdminMobileNavigation } from "@/lib/admin/mobile-navigation";
 import { cn } from "@/lib/cn";
 
@@ -46,11 +46,12 @@ const OSC_ICON = (
   </svg>
 );
 
-const PELAPORAN_ICON = (
+const PAPAN_ICON = (
   <svg {...iconProps}>
-    <path d="M7 3h8l4 4v14H7z" />
-    <path d="M15 3v4h4" />
-    <path d="M10 12h6M10 16h6" />
+    <rect x="3" y="3" width="8" height="8" rx="1.5" />
+    <rect x="13" y="3" width="8" height="5" rx="1.5" />
+    <rect x="13" y="12" width="8" height="9" rx="1.5" />
+    <rect x="3" y="15" width="8" height="6" rx="1.5" />
   </svg>
 );
 
@@ -61,7 +62,7 @@ function matchPath(pathname: string, paths: readonly string[]): boolean {
 /**
  * Bar bawah tetap (mudah alih) — tab konteks admin.
  * `showContent` dihantar dari layout mengikut peranan
- * (PKG_Admin tiada OSC/Pelaporan).
+ * (PKG_Admin tiada OSC).
  */
 export function AdminMobileNav({ showContent }: { showContent: boolean }) {
   const pathname = usePathname();
@@ -69,7 +70,7 @@ export function AdminMobileNav({ showContent }: { showContent: boolean }) {
     booking: TEMPAHAN_ICON,
     direktori: DIREKTORI_ICON,
     osc: OSC_ICON,
-    pelaporan: PELAPORAN_ICON,
+    papan: PAPAN_ICON,
     portal: PORTAL_ICON,
   } as const;
   const tabs = getAdminMobileNavigation(showContent).map((tab) => ({
@@ -83,7 +84,8 @@ export function AdminMobileNav({ showContent }: { showContent: boolean }) {
           pathname.startsWith("/admin/khidmat-bantu"))) ||
       (tab.id === "direktori" && pathname.startsWith("/admin/direktori")) ||
       (tab.id === "osc" && matchPath(pathname, ADMIN_OSC_PATHS)) ||
-      (tab.id === "pelaporan" && matchPath(pathname, ADMIN_PELAPORAN_PATHS)),
+      (tab.id === "papan" &&
+        (pathname === "/admin" || matchPath(pathname, ADMIN_PAPAN_NESTED_PATHS))),
   }));
 
   return (

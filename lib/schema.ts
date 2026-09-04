@@ -344,6 +344,25 @@ export const kandunganCards = pgTable(
   }),
 );
 
+/* ==================== CoE Resources (surat / pekeliling awam) ==================== */
+
+export const resourcesCards = pgTable(
+  "resources_cards",
+  {
+    id: serial("id").primaryKey(),
+    kategori: text("kategori").notNull(),
+    title: text("title").notNull(),
+    url: text("url").notNull(),
+    sort: integer("sort").notNull().default(0),
+    aktif: boolean("aktif").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    kategoriIdx: index("resources_cards_kategori_idx").on(t.kategori, t.sort),
+  }),
+);
+
 /* ==================== Modul Analisis USTP ==================== */
 
 export const analisisModul = pgEnum("analisis_modul", [

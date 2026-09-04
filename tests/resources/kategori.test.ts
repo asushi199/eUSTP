@@ -1,0 +1,28 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { inferResourceCardType } from "../../lib/resources/card-display";
+import {
+  RESOURCES_KATEGORI,
+  resourcesHref,
+  resourcesKategoriBySlug,
+} from "../../lib/resources/kategori";
+
+test("keeps pekeliling as a CoE Resources category without OSC source", () => {
+  const pekeliling = resourcesKategoriBySlug("pekeliling");
+  assert.ok(pekeliling);
+  assert.equal(pekeliling?.title, "Pekeliling / Siaran STP");
+  assert.equal(resourcesHref("pekeliling"), "/resources/pekeliling");
+  assert.equal(RESOURCES_KATEGORI.some((k) => k.slug === "pekeliling"), true);
+});
+
+test("infers Drive PDF and Canva URLs for preview", () => {
+  assert.equal(
+    inferResourceCardType("https://drive.google.com/file/d/abc/view"),
+    "pdf",
+  );
+  assert.equal(
+    inferResourceCardType("https://www.canva.com/design/xyz/view"),
+    "canva",
+  );
+  assert.equal(inferResourceCardType("https://example.com/nota"), "link");
+});

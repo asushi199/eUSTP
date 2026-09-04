@@ -1,5 +1,15 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-04 — CoE Resources berasingan + CoE Reports di Papan Admin
+
+- Surat punca kuasa / SPI dipindah dari OSC Bahan Sokongan ke jadual
+  `resources_cards` (kategori pekeliling). OSC tidak lagi memaparkan kumpulan
+  itu. Pentadbir urus kad di `/admin/resources` — tajuk + pautan sahaja,
+  dengan pratonton surat.
+- Papan Admin menambah kad **CoE Resources** dan **CoE Reports**. Menu
+  Pelaporan di bar sisi/tab telefon dimansuhkan; laluan `/admin/pelaporan`
+  kekal sebagai hab laporan.
+
 ## 2026-09-04 — Direktori: log masuk MOE-DL
 
 - Nombor telefon / WhatsApp direktori tidak lagi dihantar ke pelayar tanpa

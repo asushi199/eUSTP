@@ -11,17 +11,18 @@ test("uses Papan Admin as the single desktop entry for booking and equipment man
   ]);
 });
 
-test("keeps only the non-overlapping desktop sections for content administrators", () => {
+test("keeps OSC beside Papan Admin for content administrators", () => {
   assert.deepEqual(getAdminDesktopNavigation(true), [
     { href: "/admin", label: "Papan Admin" },
     { href: "/admin/osc", label: "OSC" },
-    { href: "/admin/pelaporan", label: "Pelaporan" },
   ]);
 });
 
-test("highlights desktop sections from their nested admin routes", () => {
+test("highlights Papan Admin for CoE Reports and Resources nested routes", () => {
   assert.equal(isAdminDesktopNavActive("/admin", "/admin"), true);
   assert.equal(isAdminDesktopNavActive("/admin/booking", "/admin"), false);
+  assert.equal(isAdminDesktopNavActive("/admin/pelaporan", "/admin"), true);
+  assert.equal(isAdminDesktopNavActive("/admin/laporan-akhbar/ABA1007", "/admin"), true);
+  assert.equal(isAdminDesktopNavActive("/admin/resources/baharu", "/admin"), true);
   assert.equal(isAdminDesktopNavActive("/admin/kandungan/baharu", "/admin/osc"), true);
-  assert.equal(isAdminDesktopNavActive("/admin/laporan-akhbar/ABA1007", "/admin/pelaporan"), true);
 });

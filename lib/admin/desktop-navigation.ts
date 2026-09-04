@@ -1,6 +1,6 @@
 export type AdminDesktopNavigationItem = {
-  href: "/admin" | "/admin/osc" | "/admin/pelaporan";
-  label: "Papan Admin" | "OSC" | "Pelaporan";
+  href: "/admin" | "/admin/osc";
+  label: "Papan Admin" | "OSC";
 };
 
 /** Rangkaian laluan yang dikira sebagai "OSC" untuk sorotan menu. */
@@ -12,12 +12,13 @@ export const ADMIN_OSC_PATHS = [
   "/admin/tetapan",
 ] as const;
 
-/** Rangkaian laluan yang dikira sebagai "Pelaporan" untuk sorotan menu. */
-export const ADMIN_PELAPORAN_PATHS = [
+/** Laluan CoE Reports / Resources yang dimasuki dari kad Papan Admin. */
+export const ADMIN_PAPAN_NESTED_PATHS = [
   "/admin/pelaporan",
   "/admin/laporan-dpd",
   "/admin/laporan-pss",
   "/admin/laporan-akhbar",
+  "/admin/resources",
 ] as const;
 
 function matchPath(pathname: string, paths: readonly string[]): boolean {
@@ -28,23 +29,19 @@ export function isAdminDesktopNavActive(
   pathname: string,
   href: AdminDesktopNavigationItem["href"],
 ): boolean {
-  if (href === "/admin") return pathname === "/admin";
+  if (href === "/admin") {
+    return pathname === "/admin" || matchPath(pathname, ADMIN_PAPAN_NESTED_PATHS);
+  }
   if (href === "/admin/osc") return matchPath(pathname, ADMIN_OSC_PATHS);
-  if (href === "/admin/pelaporan") return matchPath(pathname, ADMIN_PELAPORAN_PATHS);
   return false;
 }
 
-/** Desktop mengekalkan satu pintu masuk Papan Admin untuk urusan CoE Booking. */
+/** Desktop: Papan Admin + OSC. Pelaporan dipindah ke kad CoE Reports. */
 export function getAdminDesktopNavigation(
   canManageKandungan: boolean,
 ): AdminDesktopNavigationItem[] {
   return [
     { href: "/admin", label: "Papan Admin" },
-    ...(canManageKandungan
-      ? [
-          { href: "/admin/osc" as const, label: "OSC" as const },
-          { href: "/admin/pelaporan" as const, label: "Pelaporan" as const },
-        ]
-      : []),
+    ...(canManageKandungan ? [{ href: "/admin/osc" as const, label: "OSC" as const }] : []),
   ];
 }

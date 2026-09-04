@@ -28,9 +28,12 @@ export default async function AdminPelaporanPage() {
 
   return (
     <>
-      <h1 className="text-2xl font-semibold tracking-tight">Pelaporan</h1>
+      <Link href="/admin" className="text-sm text-graphite hover:text-ink">
+        ← Papan Admin
+      </Link>
+      <h1 className="mt-2 text-2xl font-semibold tracking-tight">CoE Reports</h1>
       <p className="mt-1 text-sm text-graphite">
-        Urus laporan DPD, PSS dan Akhbar daerah Manjung.
+        Semak laporan DPD, PSS dan Akhbar daerah Manjung.
       </p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
