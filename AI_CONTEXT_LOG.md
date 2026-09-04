@@ -1,5 +1,15 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-04 — CoE Resources: carian tajuk + bulan
+
+- Carian diletakkan di hab `/resources` dan subhalaman kategori. Hab
+  kekal senarai kumpulan sehingga pengguna menaip atau pilih bulan;
+  keputusan merentas semua kategori. Subhalaman menapis surat dalam
+  kumpulan itu sahaja.
+- Padanan kabur pada tajuk, nama fail, kategori dan bulan (tarikh muat
+  naik MYT atau bulan yang tertulis pada tajuk). Tiada medan tarikh surat
+  berasingan.
+
 ## 2026-09-04 — CoE Resources: kad kategori lompat ke subhalaman
 
 - Halaman awam `/resources` tidak lagi membuka/menutup accordion. Ketik kad

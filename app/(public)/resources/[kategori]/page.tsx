@@ -3,11 +3,11 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import PageHeader from "@/components/PageHeader";
 import PublicPageShell from "@/components/PublicPageShell";
-import CardEmbed from "@/components/kandungan/CardEmbed";
+import ResourcesExplorer from "@/components/resources/ResourcesExplorer";
 import { getModuleAccent } from "@/lib/module-theme";
-import { resourceCardDisplay } from "@/lib/resources/card-display";
 import { resourcesKategoriBySlug } from "@/lib/resources/kategori";
 import { listResourcesCards } from "@/lib/resources/queries";
+import { toResourcesExplorerGroups } from "@/lib/resources/search";
 
 export const dynamic = "force-dynamic";
 
@@ -31,11 +31,14 @@ export default async function ResourcesKategoriPage({
   if (!meta) notFound();
 
   const accent = getModuleAccent("/resources");
-  const rows = await listResourcesCards(meta.slug);
-  const cards = rows.map((c) => ({
-    ...c,
-    ...resourceCardDisplay(c.url),
-  }));
+  const groups = toResourcesExplorerGroups([
+    {
+      slug: meta.slug,
+      title: meta.title,
+      blurb: meta.blurb,
+      cards: await listResourcesCards(meta.slug),
+    },
+  ]);
 
   return (
     <PublicPageShell>
@@ -49,25 +52,7 @@ export default async function ResourcesKategoriPage({
         description={meta.blurb}
         className="mt-2"
       />
-
-      {cards.length === 0 ? (
-        <p className="mt-8 py-8 text-center text-sm text-graphite">
-          Kandungan akan ditambah kemudian.
-        </p>
-      ) : (
-        <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {cards.map((c) => (
-            <CardEmbed
-              key={c.id}
-              title={c.title}
-              blurb=""
-              url={c.url}
-              typeLabel={c.typeLabel}
-              embed={c.embed}
-            />
-          ))}
-        </div>
-      )}
+      <ResourcesExplorer groups={groups} accent={accent} variant="kategori" />
     </PublicPageShell>
   );
 }
