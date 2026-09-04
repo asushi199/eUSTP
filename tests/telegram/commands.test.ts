@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   parseBotCommand,
+  parseBotCommandRemainder,
   parseResourceCallback,
+  RESOURCE_SEARCH_COMMANDS,
   resourceKategoriCallbackData,
   resourceMonthCallbackData,
   resourceYearCallbackData,
@@ -15,6 +17,16 @@ test("parses /surat in private chat and groups with a bot username", () => {
   assert.equal(parseBotCommand("/batal", "nexabot"), "batal");
   assert.equal(parseBotCommand("/surat@OtherBot", "nexabot"), null);
   assert.equal(parseBotCommand("hantar surat", "nexabot"), null);
+});
+
+test("treats /cari, /carian and /search as public resource search", () => {
+  assert.equal(parseBotCommand("/cari eduspark", "nexabot"), "cari");
+  assert.equal(parseBotCommand("/carian@NexaBot jun 2026", "nexabot"), "carian");
+  assert.equal(parseBotCommand("/search notebook", "nexabot"), "search");
+  assert.equal(parseBotCommandRemainder("/cari@NexaBot jun 2026"), "jun 2026");
+  assert.equal(RESOURCE_SEARCH_COMMANDS.has("cari"), true);
+  assert.equal(RESOURCE_SEARCH_COMMANDS.has("carian"), true);
+  assert.equal(RESOURCE_SEARCH_COMMANDS.has("search"), true);
 });
 
 test("parses resource wizard callback data", () => {

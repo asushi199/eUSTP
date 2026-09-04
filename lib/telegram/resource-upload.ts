@@ -13,9 +13,15 @@ import {
   type ResourcesBotKategoriSlug,
 } from "@/lib/resources/kategori";
 import { publishResourcesFile } from "@/lib/resources/publish";
-import { formatResourceMonthLabel } from "@/lib/resources/search";
+import { listResourcesCardsGrouped } from "@/lib/resources/queries";
+import {
+  filterResourceCards,
+  formatResourceMonthLabel,
+  toResourcesExplorerGroups,
+} from "@/lib/resources/search";
 import { canManageKandungan } from "@/lib/roles";
-import { parseBotCommand, parseResourceCallback } from "./commands";
+import { parseBotCommand, parseBotCommandRemainder, parseResourceCallback, RESOURCE_SEARCH_COMMANDS } from "./commands";
+import { formatResourceSearchReply } from "./resource-search-format";
 import { extractTelegramResourceFile } from "./resource-file";
 import {
   answerTelegramCallback,
@@ -394,7 +400,7 @@ async function handleAuthorizedMessage(opts: {
     if (isGroup) return false;
     await reply(
       opts.chatId,
-      "NexaBot sedia. Hantar fail surat atau taip /surat untuk muat naik ke CoE Resources. Taip /batal untuk batal.",
+      "NexaBot sedia. Hantar fail surat atau taip /surat untuk muat naik. Taip /cari diikuti kata kunci untuk mencari surat. Taip /batal untuk batal.",
       undefined,
       { messageThreadId: thread },
     );
@@ -443,12 +449,42 @@ async function handleAuthorizedMessage(opts: {
   return true;
 }
 
+async function handleSearchCommand(
+  message: TelegramResourceMessage,
+  chatId: string,
+): Promise<void> {
+  const query = parseBotCommandRemainder(message.text ?? message.caption);
+  if (!query) {
+    await reply(chatId, formatResourceSearchReply("", []), undefined, {
+      replyToMessageId: message.message_id,
+      messageThreadId: threadIdOf(message),
+    });
+    return;
+  }
+
+  const groups = toResourcesExplorerGroups(await listResourcesCardsGrouped());
+  const hits = filterResourceCards(
+    groups.flatMap((group) => group.cards),
+    { query },
+  );
+  await reply(chatId, formatResourceSearchReply(query, hits), undefined, {
+    replyToMessageId: message.message_id,
+    messageThreadId: threadIdOf(message),
+  });
+}
+
 async function handleMessage(message: TelegramResourceMessage): Promise<boolean> {
   const chatId = message.chat?.id;
   const fromId = message.from?.id;
   const chatType = message.chat?.type;
   if (!chatId || !fromId || !chatType) return false;
   if (chatType !== "private" && !isGroupChat(chatType)) return false;
+
+  const command = parseBotCommand(message.text ?? message.caption, getTelegramBotUsername());
+  if (command && RESOURCE_SEARCH_COMMANDS.has(command)) {
+    await handleSearchCommand(message, String(chatId));
+    return true;
+  }
 
   const telegramUserId = String(fromId);
   const staff = await findStaffByTelegramUserId(telegramUserId);

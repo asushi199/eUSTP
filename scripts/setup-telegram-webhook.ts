@@ -40,6 +40,24 @@ async function main() {
   }
 
   console.log("Webhook Telegram berjaya ditetapkan.");
+
+  const commands = await fetch(`https://api.telegram.org/bot${token}/setMyCommands`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      commands: [
+        { command: "cari", description: "Cari surat CoE Resources" },
+        { command: "surat", description: "Muat naik surat CoE Resources" },
+        { command: "batal", description: "Batal muat naik" },
+        { command: "start", description: "Bantuan NexaBot" },
+      ],
+    }),
+  });
+  const commandResult = (await commands.json()) as { ok?: boolean; description?: string };
+  if (!commands.ok || !commandResult.ok) {
+    throw new Error(commandResult.description ?? "Telegram setMyCommands gagal.");
+  }
+  console.log("Menu perintah Telegram berjaya dikemas kini.");
 }
 
 main().catch((error) => {

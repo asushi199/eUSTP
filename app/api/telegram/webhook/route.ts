@@ -111,7 +111,7 @@ async function handleBindToken(
         .where(and(eq(users.id, user.id), eq(users.telegramBindTokenHash, tokenHash)));
       await sendTelegramMessage(
         chatId,
-        "Telegram telah disambungkan dengan portal NEXa Manjung. Notifikasi akan dihantar mengikut peranan anda. Hantar /surat untuk muat naik surat program ke CoE Resources.",
+        "Telegram telah disambungkan dengan portal NEXa Manjung. Notifikasi akan dihantar mengikut peranan anda. Hantar /surat untuk muat naik, atau /cari diikuti kata kunci untuk mencari surat CoE Resources.",
       );
     } catch {
       await sendTelegramMessage(

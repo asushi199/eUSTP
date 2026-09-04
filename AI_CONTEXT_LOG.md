@@ -1,5 +1,12 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-04 — NexaBot: /cari surat CoE Resources
+
+- `/cari`, `/carian` atau `/search` diikuti kata kunci (kumpulan atau
+  peribadi) mencari kad awam CoE Resources, sama seperti portal
+  (tajuk, bulan, kumpulan). Sehingga 8 keputusan dengan pautan Drive.
+  Menu bot (`setMyCommands`) turut menyenaraikan `/cari`.
+
 ## 2026-09-04 — NexaBot: /surat pada balasan PDF
 
 - Balas mesej PDF dengan `/surat` kini mengambil fail daripada

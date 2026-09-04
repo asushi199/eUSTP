@@ -15,6 +15,12 @@ export function parseBotCommand(
   return match[1].toLowerCase();
 }
 
+export function parseBotCommandRemainder(text: string | undefined): string {
+  return (text ?? "").replace(/^\s*\/[a-zA-Z0-9_]+(?:@[A-Za-z0-9_]+)?\s*/i, "").trim();
+}
+
+export const RESOURCE_SEARCH_COMMANDS = new Set(["cari", "carian", "search"]);
+
 export type ResourceCallback =
   | { type: "kategori"; slug: "surat-ustp" | "surat-sekolah" }
   | { type: "bulan"; month: string }
