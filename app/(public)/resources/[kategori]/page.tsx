@@ -1,13 +1,12 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import CardEmbed from "@/components/kandungan/CardEmbed";
 import PageHeader from "@/components/PageHeader";
 import PublicPageShell from "@/components/PublicPageShell";
+import ResourcesKategoriSections from "@/components/resources/ResourcesKategoriSections";
 import { getModuleAccent } from "@/lib/module-theme";
-import { resourceCardDisplay } from "@/lib/resources/card-display";
+import { toResourcesSectionGroups } from "@/lib/resources/card-display";
 import { resourcesKategoriBySlug } from "@/lib/resources/kategori";
-import { listResourcesCards } from "@/lib/resources/queries";
+import { listResourcesCardsGrouped } from "@/lib/resources/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -31,46 +30,21 @@ export default async function ResourcesKategoriPage({
   if (!meta) notFound();
 
   const accent = getModuleAccent("/resources");
-  const cards = await listResourcesCards(meta.slug);
+  const groups = toResourcesSectionGroups(await listResourcesCardsGrouped());
 
   return (
     <PublicPageShell>
-      <nav className="text-sm text-graphite" aria-label="Jejak">
-        <Link href="/resources" className="hover:text-ink hover:underline">
-          CoE Resources
-        </Link>{" "}
-        / <span className="text-ink">{meta.title}</span>
-      </nav>
       <PageHeader
-        className="mt-3"
         eyebrow="CoE Resources"
-        title={meta.title}
+        title="Sumber Surat dan Pekeliling"
         accent={accent}
-        description={meta.blurb}
+        description="Surat program, pekeliling, nota dan sijil digital USTP. Ketik kad kategori untuk buka bahan di dalamnya."
       />
-      <div className="mt-8">
-        {cards.length === 0 ? (
-          <p className="py-8 text-center text-graphite">
-            Kandungan akan ditambah kemudian.
-          </p>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {cards.map((c) => {
-              const display = resourceCardDisplay(c.url);
-              return (
-                <CardEmbed
-                  key={c.id}
-                  title={c.title}
-                  blurb=""
-                  url={c.url}
-                  typeLabel={display.typeLabel}
-                  embed={display.embed}
-                />
-              );
-            })}
-          </div>
-        )}
-      </div>
+      <ResourcesKategoriSections
+        groups={groups}
+        defaultOpen={meta.slug}
+        accent={accent}
+      />
     </PublicPageShell>
   );
 }

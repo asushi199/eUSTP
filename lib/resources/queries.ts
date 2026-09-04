@@ -26,15 +26,38 @@ export async function getResourcesCard(id: number): Promise<ResourcesCard | unde
   });
 }
 
-/** Bilangan kad aktif setiap kategori (halaman hub /resources). */
-export async function countActiveResourcesByKategori(): Promise<Map<string, number>> {
-  const rows = await db
-    .select({ kategori: resourcesCards.kategori })
-    .from(resourcesCards)
-    .where(eq(resourcesCards.aktif, true));
-  const counts = new Map<string, number>(RESOURCES_KATEGORI.map((k) => [k.slug, 0]));
+export type ResourcesKategoriGroup = {
+  slug: string;
+  title: string;
+  blurb: string;
+  cards: ResourcesCard[];
+};
+
+/** Semua kategori dengan kad masing-masing (hub accordion /resources). */
+export async function listResourcesCardsGrouped(
+  opts: { includeHidden?: boolean } = {},
+): Promise<ResourcesKategoriGroup[]> {
+  const rows = opts.includeHidden
+    ? await db
+        .select()
+        .from(resourcesCards)
+        .orderBy(asc(resourcesCards.sort), asc(resourcesCards.id))
+    : await db
+        .select()
+        .from(resourcesCards)
+        .where(eq(resourcesCards.aktif, true))
+        .orderBy(asc(resourcesCards.sort), asc(resourcesCards.id));
+
+  const byKat = new Map<string, ResourcesCard[]>(
+    RESOURCES_KATEGORI.map((k) => [k.slug, [] as ResourcesCard[]]),
+  );
   for (const r of rows) {
-    counts.set(r.kategori, (counts.get(r.kategori) ?? 0) + 1);
+    byKat.get(r.kategori)?.push(r);
   }
-  return counts;
+  return RESOURCES_KATEGORI.map((k) => ({
+    slug: k.slug,
+    title: k.title,
+    blurb: k.blurb,
+    cards: byKat.get(k.slug) ?? [],
+  }));
 }

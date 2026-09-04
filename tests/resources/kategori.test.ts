@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { inferResourceCardType } from "../../lib/resources/card-display";
+import {
+  inferResourceCardType,
+  toResourcesSectionGroups,
+} from "../../lib/resources/card-display";
 import {
   RESOURCES_KATEGORI,
   resourcesHref,
@@ -13,6 +16,26 @@ test("keeps pekeliling as a CoE Resources category without OSC source", () => {
   assert.equal(pekeliling?.title, "Pekeliling / Siaran STP");
   assert.equal(resourcesHref("pekeliling"), "/resources/pekeliling");
   assert.equal(RESOURCES_KATEGORI.some((k) => k.slug === "pekeliling"), true);
+});
+
+test("maps kategori groups into section view for nested cards", () => {
+  const groups = toResourcesSectionGroups([
+    {
+      slug: "pekeliling",
+      title: "Pekeliling / Siaran STP",
+      blurb: "Surat pekeliling",
+      cards: [
+        {
+          id: 1,
+          title: "SPI 1",
+          url: "https://drive.google.com/file/d/abc/view",
+          aktif: true,
+        },
+      ],
+    },
+  ]);
+  assert.equal(groups[0]?.cards[0]?.typeLabel, "PDF");
+  assert.equal(groups[0]?.slug, "pekeliling");
 });
 
 test("infers Drive PDF and Canva URLs for preview", () => {

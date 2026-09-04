@@ -1,5 +1,14 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-04 — CoE Resources: kad kategori + kad anak di dalam
+
+- Bar tab mendatar kategori di `/admin/resources` (sukar pada telefon)
+  diganti kad kategori. Ketik kad untuk buka/tutup; kad surat anak
+  dipaparkan di dalam kad yang sama.
+- Halaman awam `/resources` ikut corak yang sama — tidak lagi hanya
+  pautan ke subhalaman. `/resources/[kategori]` membuka kad kategori
+  berkenaan.
+
 ## 2026-09-04 — CoE Resources berasingan + CoE Reports di Papan Admin
 
 - Surat punca kuasa / SPI dipindah dari OSC Bahan Sokongan ke jadual
