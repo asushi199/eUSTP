@@ -552,6 +552,26 @@
   border-color: color-mix(in srgb, var(--module-accent), transparent 65%);
 }
 
+/* Papan Admin — bingkai penuh warna modul, sama palet portal. */
+.admin-hub-card {
+  --module-accent: #024ad8;
+  border-width: 2px;
+  border-color: color-mix(in srgb, var(--module-accent), transparent 40%);
+}
+
+.admin-hub-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: var(--module-accent);
+  z-index: 1;
+}
+
+.admin-hub-card:hover {
+  border-color: color-mix(in srgb, var(--module-accent), transparent 30%);
+}
+
 .portal-module-card.is-visible:hover {
   transform: translateY(-4px);
 }

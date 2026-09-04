@@ -1,8 +1,15 @@
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import { getAdminBookingNotificationCount } from "@/lib/admin/booking-hub";
 import { requireUser } from "@/lib/rbac";
 import { canManageKandungan } from "@/lib/roles";
 import { countPendingKhidmatBantu } from "@/lib/khidmat-bantu/queries";
+import {
+  LAPORAN_HUB,
+  RESOURCES_HUB,
+  TEMPAHAN_HUB,
+  getModuleAccent,
+} from "@/lib/module-theme";
 import {
   countPendingEquipmentLoansByPkg,
   listEquipmentPkgs,
@@ -11,7 +18,13 @@ import { countPendingBookings, listPkgs } from "@/lib/tempahan/queries";
 
 export const dynamic = "force-dynamic";
 
-type AdminCard = { href: string; title: string; description: string; badge?: number };
+type AdminCard = {
+  href: string;
+  title: string;
+  description: string;
+  accent: string;
+  badge?: number;
+};
 
 export default async function AdminOverviewPage() {
   const user = await requireUser();
@@ -57,6 +70,7 @@ export default async function AdminOverviewPage() {
       description: urusKandungan
         ? "Khidmat Bantu, Tempahan Bilik dan Aset dalam satu tempat."
         : "Tempahan Bilik dan Aset dalam satu tempat.",
+      accent: TEMPAHAN_HUB.accent,
       badge: bookingPending,
     },
   ];
@@ -66,16 +80,19 @@ export default async function AdminOverviewPage() {
         href: "/admin/direktori",
         title: "CoE Direktori",
         description: "Maklumat perhubungan sekolah, sejarah versi dan eksport CSV.",
+        accent: getModuleAccent("/direktori"),
       },
       {
         href: "/admin/pelaporan",
         title: "CoE Reports",
         description: "Semak laporan DPD, PSS dan Akhbar daerah Manjung.",
+        accent: LAPORAN_HUB.accent,
       },
       {
         href: "/admin/resources",
         title: "CoE Resources",
         description: "Urus tajuk dan pautan surat, pekeliling dan sijil digital.",
+        accent: RESOURCES_HUB.accent,
       },
     );
   }
@@ -99,7 +116,8 @@ export default async function AdminOverviewPage() {
               <Link
                 key={c.href}
                 href={c.href}
-                className="card relative p-5 transition hover:-translate-y-0.5 hover:shadow-modal"
+                className="card admin-hub-card relative overflow-hidden p-5 transition hover:-translate-y-0.5 hover:shadow-modal"
+                style={{ "--module-accent": c.accent } as CSSProperties}
               >
                 {c.badge ? (
                   <span
