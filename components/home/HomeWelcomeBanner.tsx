@@ -18,7 +18,9 @@ export function HomeWelcomeBanner() {
           <span className="h-0.5 w-7 shrink-0 rounded bg-primary" aria-hidden />
           <span>Network for Educational eXcellence &amp; Access</span>
         </p>
-        <p className="text-sm font-medium text-graphite sm:text-base">Assalamualaikum,</p>
+        <p className="text-sm font-medium text-graphite sm:text-base">
+          Assalamualaikum dan salam sejahtera,
+        </p>
         <h1 className="mt-2 max-w-xl text-3xl font-semibold leading-tight tracking-tight text-ink sm:text-4xl lg:text-[2.6rem]">
           Selamat datang ke{" "}
           <span className="text-primary">NEXa</span>
