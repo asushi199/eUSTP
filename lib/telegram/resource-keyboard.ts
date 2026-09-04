@@ -92,7 +92,11 @@ export function titlePrompt(kategori: string, letterMonth: string): string {
 
 export function askFilePrompt(isGroup: boolean): string {
   if (isGroup) {
-    return "Sila hantar fail PDF atau imej surat sebagai balasan mesej ini. Kemudian pilih kumpulan, bulan dan nama.";
+    return [
+      "Sila BALAS (Reply) mesej ini dengan fail PDF atau imej surat.",
+      "",
+      "Jangan hantar fail sebagai mesej baharu — Telegram tidak akan hantar fail itu kepada NexaBot. Selepas fail diterima, pilih kumpulan, bulan dan nama.",
+    ].join("\n");
   }
   return "Sila hantar fail PDF atau imej surat. Kemudian pilih kumpulan, bulan dan nama.";
 }

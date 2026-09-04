@@ -7,7 +7,7 @@ import {
   resourceMonthCallbackData,
   resourceYearCallbackData,
 } from "../../lib/telegram/commands";
-import { kategoriKeyboard, monthKeyboard } from "../../lib/telegram/resource-keyboard";
+import { kategoriKeyboard, monthKeyboard, askFilePrompt } from "../../lib/telegram/resource-keyboard";
 
 test("parses /surat in private chat and groups with a bot username", () => {
   assert.equal(parseBotCommand("/surat", "nexabot"), "surat");

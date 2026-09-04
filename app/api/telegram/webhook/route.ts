@@ -17,6 +17,7 @@ export const maxDuration = 60;
 type TelegramUpdate = {
   message?: {
     message_id?: number;
+    message_thread_id?: number;
     text?: string;
     caption?: string;
     chat?: { id?: number; type?: string };
@@ -28,6 +29,15 @@ type TelegramUpdate = {
       file_size?: number;
     };
     photo?: Array<{ file_id?: string; file_size?: number }>;
+    reply_to_message?: {
+      document?: {
+        file_id?: string;
+        file_name?: string;
+        mime_type?: string;
+        file_size?: number;
+      };
+      photo?: Array<{ file_id?: string; file_size?: number }>;
+    };
   };
   callback_query?: {
     id?: string;
@@ -35,6 +45,7 @@ type TelegramUpdate = {
     from?: { id?: number; username?: string };
     message?: {
       message_id?: number;
+      message_thread_id?: number;
       chat?: { id?: number; type?: string };
       from?: { id?: number; username?: string };
     };

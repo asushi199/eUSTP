@@ -1,5 +1,20 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-04 — NexaBot: /surat pada balasan PDF
+
+- Balas mesej PDF dengan `/surat` kini mengambil fail daripada
+  `reply_to_message`. Nama fail tanpa sambungan + mime octet-stream
+  (lazim di Telegram) dianggap PDF, bukan ditolak.
+
+## 2026-09-04 — NexaBot kumpulan: /surat mesti dibalas + ikat akaun
+
+- Dalam kumpulan, fail PDF dengan kapsyen `/surat` kerap tidak sampai
+  bot (privacy mode). Aliran yang betul: hantar `/surat`, kemudian
+  **balas** mesej bot dengan fail.
+- Pengguna yang belum ikat Telegram peribadi kini dapat mesej ralat
+  dalam kumpulan (bukan senyap). Mesej bot ikut topik forum
+  (`message_thread_id`).
+
 ## 2026-09-04 — NexaBot: bulan 7+7 dengan butang tahun
 
 - Pemilih bulan surat: 15 bulan berpusat (7 sebelum, bulan semasa, 7

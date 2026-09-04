@@ -16,6 +16,7 @@ import { publishResourcesFile } from "@/lib/resources/publish";
 import { formatResourceMonthLabel } from "@/lib/resources/search";
 import { canManageKandungan } from "@/lib/roles";
 import { parseBotCommand, parseResourceCallback } from "./commands";
+import { extractTelegramResourceFile } from "./resource-file";
 import {
   answerTelegramCallback,
   deleteTelegramMessages,
@@ -50,12 +51,14 @@ type TelegramPhoto = { file_id?: string; file_size?: number };
 
 export type TelegramResourceMessage = {
   message_id?: number;
+  message_thread_id?: number;
   chat?: TelegramChat;
   from?: TelegramUser;
   text?: string;
   caption?: string;
   document?: TelegramDocument;
   photo?: TelegramPhoto[];
+  reply_to_message?: TelegramResourceMessage;
 };
 
 export type TelegramResourceCallback = {
@@ -81,33 +84,15 @@ function isGroupChat(type: string | undefined): boolean {
   return type === "group" || type === "supergroup";
 }
 
-function extractFile(message: TelegramResourceMessage): {
-  fileId: string;
-  fileName: string;
-  mimeType: string;
-  fileSize: number | null;
-} | null {
-  const doc = message.document;
-  if (doc?.file_id) {
-    return {
-      fileId: doc.file_id,
-      fileName: doc.file_name?.trim() || "surat.pdf",
-      mimeType: doc.mime_type || "",
-      fileSize: typeof doc.file_size === "number" ? doc.file_size : null,
-    };
-  }
-  const photos = message.photo;
-  if (photos?.length) {
-    const largest = photos[photos.length - 1];
-    if (!largest?.file_id) return null;
-    return {
-      fileId: largest.file_id,
-      fileName: "surat.jpg",
-      mimeType: "image/jpeg",
-      fileSize: typeof largest.file_size === "number" ? largest.file_size : null,
-    };
-  }
-  return null;
+function threadIdOf(message?: TelegramResourceMessage): number | undefined {
+  return typeof message?.message_thread_id === "number" ? message.message_thread_id : undefined;
+}
+
+function extractFile(
+  message: TelegramResourceMessage,
+  includeReply = false,
+) {
+  return extractTelegramResourceFile(message, { includeReply });
 }
 
 async function findStaffByTelegramUserId(telegramUserId: string): Promise<StaffRow | null> {
@@ -176,11 +161,12 @@ async function reply(
   chatId: string,
   text: string,
   keyboard?: ReturnType<typeof kategoriKeyboard>,
-  replyToMessageId?: number,
+  extra?: { replyToMessageId?: number; messageThreadId?: number },
 ): Promise<number | undefined> {
   const sent = await sendTelegramChatMessage(chatId, text, {
     replyMarkup: keyboard ? { inline_keyboard: keyboard } : undefined,
-    replyToMessageId,
+    replyToMessageId: extra?.replyToMessageId,
+    messageThreadId: extra?.messageThreadId,
   });
   return sent.messageId;
 }
@@ -201,10 +187,11 @@ async function startFromFile(opts: {
   userId: number;
   file: NonNullable<ReturnType<typeof extractFile>>;
   replyToMessageId?: number;
+  messageThreadId?: number;
 }): Promise<void> {
   const err = fileError(opts.file);
   if (err) {
-    await reply(opts.chatId, err);
+    await reply(opts.chatId, err, undefined, { messageThreadId: opts.messageThreadId });
     return;
   }
   const previous = await findDraft(opts.chatId, opts.telegramUserId);
@@ -215,7 +202,7 @@ async function startFromFile(opts: {
     opts.chatId,
     kategoriPrompt(opts.file.fileName),
     kategoriKeyboard(),
-    opts.replyToMessageId,
+    { replyToMessageId: opts.replyToMessageId, messageThreadId: opts.messageThreadId },
   );
   await upsertDraft({
     chatId: opts.chatId,
@@ -238,10 +225,12 @@ async function publishDraft(opts: {
   draft: DraftRow;
   title: string;
   titleMessageId?: number;
+  messageThreadId?: number;
 }): Promise<void> {
+  const thread = opts.messageThreadId;
   const title = opts.title.trim().slice(0, 300);
   if (!title) {
-    await reply(opts.chatId, "Sila taip nama surat.", cancelKeyboard());
+    await reply(opts.chatId, "Sila taip nama surat.", cancelKeyboard(), { messageThreadId: thread });
     return;
   }
   if (
@@ -253,24 +242,32 @@ async function publishDraft(opts: {
     !isLetterMonthKey(opts.draft.letterMonth)
   ) {
     await clearDraft(opts.chatId, opts.telegramUserId);
-    await reply(opts.chatId, "Draf tidak lengkap. Hantar /surat semula.");
+    await reply(opts.chatId, "Draf tidak lengkap. Hantar /surat semula.", undefined, {
+      messageThreadId: thread,
+    });
     return;
   }
   if (!isGasStorageConfigured()) {
     await reply(
       opts.chatId,
       "Google Drive belum dikonfigurasi. Sila muat naik melalui pentadbir sistem.",
+      undefined,
+      { messageThreadId: thread },
     );
     return;
   }
 
-  const uploading = await sendTelegramChatMessage(opts.chatId, "Sedang memuat naik ke Google Drive…");
+  const uploading = await sendTelegramChatMessage(opts.chatId, "Sedang memuat naik ke Google Drive…", {
+    messageThreadId: thread,
+  });
   const filePath = await getTelegramFilePath(opts.draft.fileId);
   const buffer = filePath ? await downloadTelegramFile(filePath) : null;
   if (!buffer) {
     await reply(
       opts.chatId,
       "Gagal memuat turun fail daripada Telegram. Hantar fail itu sekali lagi.",
+      undefined,
+      { messageThreadId: thread },
     );
     return;
   }
@@ -314,7 +311,10 @@ async function publishDraft(opts: {
       );
     }
     if (!successOnUploading) {
-      await sendTelegramChatMessage(opts.chatId, successText, { replyMarkup: successMarkup });
+      await sendTelegramChatMessage(opts.chatId, successText, {
+        replyMarkup: successMarkup,
+        messageThreadId: thread,
+      });
     }
 
     await deleteTelegramMessages(opts.chatId, [
@@ -328,6 +328,8 @@ async function publishDraft(opts: {
       error instanceof Error
         ? `Gagal memuat naik: ${error.message}`
         : "Gagal memuat naik surat. Sila cuba lagi.",
+      undefined,
+      { messageThreadId: thread },
     );
   }
 }
@@ -343,8 +345,9 @@ async function handleAuthorizedMessage(opts: {
     opts.message.text ?? opts.message.caption,
     getTelegramBotUsername(),
   );
-  const file = extractFile(opts.message);
+  const file = extractFile(opts.message, command === "surat");
   const isGroup = isGroupChat(opts.chatType);
+  const thread = threadIdOf(opts.message);
 
   if (command === "batal") {
     const draft = await findDraft(opts.chatId, opts.telegramUserId);
@@ -361,6 +364,7 @@ async function handleAuthorizedMessage(opts: {
         userId: opts.staff.id,
         file,
         replyToMessageId: opts.message.message_id,
+        messageThreadId: thread,
       });
       return true;
     }
@@ -368,7 +372,7 @@ async function handleAuthorizedMessage(opts: {
       opts.chatId,
       askFilePrompt(isGroup),
       cancelKeyboard(),
-      opts.message.message_id,
+      { replyToMessageId: opts.message.message_id, messageThreadId: thread },
     );
     await upsertDraft({
       chatId: opts.chatId,
@@ -391,6 +395,8 @@ async function handleAuthorizedMessage(opts: {
     await reply(
       opts.chatId,
       "NexaBot sedia. Hantar fail surat atau taip /surat untuk muat naik ke CoE Resources. Taip /batal untuk batal.",
+      undefined,
+      { messageThreadId: thread },
     );
     return true;
   }
@@ -404,6 +410,7 @@ async function handleAuthorizedMessage(opts: {
         userId: opts.staff.id,
         file,
         replyToMessageId: opts.message.message_id,
+        messageThreadId: thread,
       });
       return true;
     }
@@ -422,14 +429,17 @@ async function handleAuthorizedMessage(opts: {
       draft,
       title: text,
       titleMessageId: opts.message.message_id,
+      messageThreadId: thread,
     });
     return true;
   }
   if (draft.step === "await_file") {
-    await reply(opts.chatId, askFilePrompt(isGroup), cancelKeyboard());
+    await reply(opts.chatId, askFilePrompt(isGroup), cancelKeyboard(), { messageThreadId: thread });
     return true;
   }
-  await reply(opts.chatId, "Sila guna butang di atas, atau taip /batal.", cancelKeyboard());
+  await reply(opts.chatId, "Sila guna butang di atas, atau taip /batal.", cancelKeyboard(), {
+    messageThreadId: thread,
+  });
   return true;
 }
 
@@ -444,11 +454,13 @@ async function handleMessage(message: TelegramResourceMessage): Promise<boolean>
   const staff = await findStaffByTelegramUserId(telegramUserId);
   if (!staff) {
     const command = parseBotCommand(message.text ?? message.caption, getTelegramBotUsername());
-    const file = extractFile(message);
-    if (chatType === "private" && (command === "surat" || file)) {
+    const file = extractFile(message, command === "surat");
+    if (command === "surat" || (chatType === "private" && file)) {
       await reply(
         String(chatId),
-        "Akaun Telegram ini belum disambungkan sebagai pentadbir CoE Resources. Ikat di /admin/telegram dahulu.",
+        "Akaun Telegram ini belum disambungkan sebagai pentadbir CoE Resources. Ikat akaun peribadi anda di /admin/telegram dahulu, kemudian cuba /surat semula.",
+        undefined,
+        { messageThreadId: threadIdOf(message) },
       );
       return true;
     }
@@ -520,7 +532,9 @@ async function handleCallback(query: TelegramResourceCallback): Promise<boolean>
         inline_keyboard: monthKeyboard(),
       });
     } else {
-      await reply(String(chatId), monthPrompt(slug), monthKeyboard());
+      await reply(String(chatId), monthPrompt(slug), monthKeyboard(), {
+        messageThreadId: threadIdOf(query.message),
+      });
     }
     return true;
   }
@@ -549,7 +563,9 @@ async function handleCallback(query: TelegramResourceCallback): Promise<boolean>
         inline_keyboard: monthKeyboard(parsed.center),
       });
     } else {
-      await reply(String(chatId), monthPrompt(draft.kategori), monthKeyboard(parsed.center));
+      await reply(String(chatId), monthPrompt(draft.kategori), monthKeyboard(parsed.center), {
+        messageThreadId: threadIdOf(query.message),
+      });
     }
     return true;
   }
@@ -583,7 +599,9 @@ async function handleCallback(query: TelegramResourceCallback): Promise<boolean>
       { inline_keyboard: cancelKeyboard() },
     );
   } else {
-    await reply(String(chatId), titlePrompt(draft.kategori, parsed.month), cancelKeyboard());
+    await reply(String(chatId), titlePrompt(draft.kategori, parsed.month), cancelKeyboard(), {
+      messageThreadId: threadIdOf(query.message),
+    });
   }
   return true;
 }

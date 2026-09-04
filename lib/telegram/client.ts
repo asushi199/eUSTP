@@ -67,6 +67,7 @@ export async function sendTelegramChatMessage(
   opts?: {
     replyMarkup?: { inline_keyboard: TelegramInlineKeyboard };
     replyToMessageId?: number;
+    messageThreadId?: number;
   },
 ): Promise<{ ok: boolean; messageId?: number }> {
   if (!chatId || !text) return { ok: false };
@@ -75,7 +76,13 @@ export async function sendTelegramChatMessage(
     text,
     link_preview_options: { is_disabled: true },
     ...(opts?.replyMarkup ? { reply_markup: opts.replyMarkup } : {}),
-    ...(opts?.replyToMessageId ? { reply_to_message_id: opts.replyToMessageId } : {}),
+    ...(opts?.replyToMessageId
+      ? {
+          reply_to_message_id: opts.replyToMessageId,
+          allow_sending_without_reply: true,
+        }
+      : {}),
+    ...(opts?.messageThreadId ? { message_thread_id: opts.messageThreadId } : {}),
   });
   if (!result?.ok) return { ok: false };
   return { ok: true, messageId: result.result?.message_id };
