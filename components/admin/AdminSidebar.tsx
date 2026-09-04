@@ -65,15 +65,6 @@ export default function AdminSidebar({ showContent }: { showContent: boolean }) 
 
   return (
     <aside className="portal-sidebar no-print">
-      <div className="portal-sidebar-wash" aria-hidden>
-        <Image
-          src="/ppd-manjung-banner.jpg"
-          alt=""
-          fill
-          sizes="16rem"
-          className="object-cover object-[78%_42%]"
-        />
-      </div>
       <div className="relative z-10 flex h-[4.25rem] items-center gap-2.5 px-5">
         <Link href="/admin" className="flex min-w-0 items-center gap-2.5" aria-label="NEXa — papan admin">
           <span className="relative h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-white shadow-lift">
@@ -126,12 +117,24 @@ export default function AdminSidebar({ showContent }: { showContent: boolean }) 
       </nav>
 
       <div className="portal-sidebar-brand">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white">
-          Panel Admin
-        </p>
-        <p className="mt-0.5 text-[11px] leading-snug text-white/80">
-          CoE Manjung
-        </p>
+        <div className="portal-sidebar-wash" aria-hidden>
+          <Image
+            src="/ppd-manjung-cutout.png"
+            alt=""
+            fill
+            unoptimized
+            sizes="16rem"
+            className="object-cover object-[80%_100%]"
+          />
+        </div>
+        <div className="relative z-10">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white">
+            Panel Admin
+          </p>
+          <p className="mt-0.5 text-[11px] leading-snug text-white/80">
+            CoE Manjung
+          </p>
+        </div>
       </div>
     </aside>
   );
