@@ -5,7 +5,7 @@ import {
   getAdminBookingSections,
 } from "../../lib/admin/booking-hub";
 
-test("shows the three CoE Booking management services with their pending notifications", () => {
+test("shows the three CoE Services management services with their pending notifications", () => {
   assert.deepEqual(
     getAdminBookingSections({
       canManageKandungan: true,

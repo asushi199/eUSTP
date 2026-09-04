@@ -3,8 +3,10 @@ import test from "node:test";
 import { getAdminMobileNavigation } from "../../lib/admin/mobile-navigation";
 
 test("uses CoE entries instead of a duplicate Papan tab for content administrators", () => {
+  const tabs = getAdminMobileNavigation(true);
+  assert.equal(tabs[0]?.label, "CoE Services");
   assert.deepEqual(
-    getAdminMobileNavigation(true).map((item) => item.href),
+    tabs.map((item) => item.href),
     ["/admin/booking", "/admin/direktori", "/admin/osc", "/admin", "/"],
   );
 });

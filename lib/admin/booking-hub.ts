@@ -11,7 +11,7 @@ export type AdminBookingSection = {
   badge?: number;
 };
 
-/** Bilangan notifikasi untuk lencana hub CoE Booking. */
+/** Bilangan notifikasi untuk lencana hub CoE Services. */
 export function getAdminBookingNotificationCount(
   canManageKandungan: boolean,
   pending: AdminBookingPending,
@@ -19,7 +19,7 @@ export function getAdminBookingNotificationCount(
   return pending.tempahanBilik + pending.peralatan + (canManageKandungan ? pending.khidmatBantu : 0);
 }
 
-/** Pilihan urusan di bawah hub CoE Booking, mengikut capaian peranan. */
+/** Pilihan urusan di bawah hub CoE Services, mengikut capaian peranan. */
 export function getAdminBookingSections({
   canManageKandungan,
   pending,

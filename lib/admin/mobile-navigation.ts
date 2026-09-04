@@ -1,3 +1,5 @@
+import { TEMPAHAN_HUB } from "@/lib/module-theme";
+
 export type AdminMobileNavigationItem = {
   id: "booking" | "direktori" | "osc" | "papan" | "portal";
   href: string;
@@ -9,7 +11,7 @@ export function getAdminMobileNavigation(
   canManageKandungan: boolean,
 ): AdminMobileNavigationItem[] {
   return [
-    { id: "booking", href: "/admin/booking", label: "CoE Booking" },
+    { id: "booking", href: "/admin/booking", label: TEMPAHAN_HUB.title },
     ...(canManageKandungan
       ? [
           { id: "direktori" as const, href: "/admin/direktori", label: "CoE Direktori" },

@@ -66,7 +66,7 @@ export default async function AdminOverviewPage() {
   const cards: AdminCard[] = [
     {
       href: "/admin/booking",
-      title: "CoE Booking",
+      title: TEMPAHAN_HUB.title,
       description: urusKandungan
         ? "Khidmat Bantu, Tempahan Bilik dan Aset dalam satu tempat."
         : "Tempahan Bilik dan Aset dalam satu tempat.",

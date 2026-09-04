@@ -2,6 +2,7 @@ import Link from "next/link";
 import { HomeModuleIcon } from "@/components/home/HomeModuleIcon";
 import { getAdminBookingSections } from "@/lib/admin/booking-hub";
 import { countPendingKhidmatBantu } from "@/lib/khidmat-bantu/queries";
+import { TEMPAHAN_HUB } from "@/lib/module-theme";
 import {
   countPendingEquipmentLoansByPkg,
   listEquipmentPkgs,
@@ -49,7 +50,7 @@ export default async function AdminBookingHubPage() {
 
   return (
     <>
-      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">CoE Booking</p>
+      <p className="text-xs font-semibold tracking-[0.08em] text-primary">{TEMPAHAN_HUB.title}</p>
       <h1 className="mt-2 text-2xl font-semibold tracking-tight text-ink">Pilih Urusan</h1>
       <p className="mt-1 text-sm text-graphite">
         Pilih Khidmat Bantu, Tempahan Bilik atau Aset untuk diuruskan.
