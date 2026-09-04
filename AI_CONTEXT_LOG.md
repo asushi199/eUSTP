@@ -1,5 +1,12 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-04 — Menu sisi desktop admin
+
+- Header desktop admin diganti bar sisi kiri, sama corak portal pengguna
+  (`portal-sidebar`): logo + Pentadbiran, Portal Pengguna / Papan Admin / OSC /
+  Pelaporan, gambar jenama di bawah.
+- Bar atas desktop hanya menu pengguna. Telefon kekal header + tab bawah.
+
 ## 2026-09-04 — Kad CoE halaman utama + menu sisi
 
 - Halaman utama ikut taksonomi CoE baharu (tanpa QR Centre). **CoE Analytics**

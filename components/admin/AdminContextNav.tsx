@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { getAdminDesktopNavigation } from "@/lib/admin/desktop-navigation";
+import { ADMIN_OSC_PATHS, ADMIN_PELAPORAN_PATHS } from "@/lib/admin/desktop-navigation";
 import { getAdminMobileNavigation } from "@/lib/admin/mobile-navigation";
 import { cn } from "@/lib/cn";
 
@@ -54,67 +54,8 @@ const PELAPORAN_ICON = (
   </svg>
 );
 
-/** Rangkaian laluan yang dikira sebagai "OSC" untuk sorotan tab. */
-const OSC_PATHS = [
-  "/admin/osc",
-  "/admin/kandungan",
-  "/admin/analisis",
-  "/admin/pegawai",
-  "/admin/tetapan",
-];
-
-/** Rangkaian laluan yang dikira sebagai "Pelaporan" untuk sorotan tab. */
-const PELAPORAN_PATHS = [
-  "/admin/pelaporan",
-  "/admin/laporan-dpd",
-  "/admin/laporan-pss",
-  "/admin/laporan-akhbar",
-];
-
-function matchPath(pathname: string, paths: string[]): boolean {
+function matchPath(pathname: string, paths: readonly string[]): boolean {
   return paths.some((p) => pathname === p || pathname.startsWith(`${p}/`));
-}
-
-/** Pautan konteks admin dalam header (desktop). `showContent` ikut peranan. */
-export function AdminDesktopNav({ showContent }: { showContent: boolean }) {
-  const pathname = usePathname();
-
-  const linkCls = (active: boolean) =>
-    cn(
-      "rounded-md px-3 py-2 text-sm",
-      active
-        ? "bg-cloud font-medium text-ink"
-        : "text-graphite hover:bg-cloud hover:text-ink",
-    );
-
-  const items = getAdminDesktopNavigation(showContent).map((item) => ({
-    ...item,
-    active:
-      (item.href === "/admin" && pathname === "/admin") ||
-      (item.href === "/admin/osc" && matchPath(pathname, OSC_PATHS)) ||
-      (item.href === "/admin/pelaporan" && matchPath(pathname, PELAPORAN_PATHS)),
-  }));
-
-  return (
-    <nav aria-label="Navigasi admin" className="hidden items-center gap-1 md:flex">
-      <Link
-        href="/"
-        className="rounded-md px-3 py-2 text-sm text-graphite hover:bg-cloud hover:text-ink"
-      >
-        Portal Pengguna
-      </Link>
-      {items.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          aria-current={item.active ? "page" : undefined}
-          className={linkCls(item.active)}
-        >
-          {item.label}
-        </Link>
-      ))}
-    </nav>
-  );
 }
 
 /**
@@ -141,8 +82,8 @@ export function AdminMobileNav({ showContent }: { showContent: boolean }) {
           pathname.startsWith("/admin/peralatan") ||
           pathname.startsWith("/admin/khidmat-bantu"))) ||
       (tab.id === "direktori" && pathname.startsWith("/admin/direktori")) ||
-      (tab.id === "osc" && matchPath(pathname, OSC_PATHS)) ||
-      (tab.id === "pelaporan" && matchPath(pathname, PELAPORAN_PATHS)),
+      (tab.id === "osc" && matchPath(pathname, ADMIN_OSC_PATHS)) ||
+      (tab.id === "pelaporan" && matchPath(pathname, ADMIN_PELAPORAN_PATHS)),
   }));
 
   return (
