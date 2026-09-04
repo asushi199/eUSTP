@@ -149,6 +149,18 @@
     box-shadow: 1px 0 0 rgba(15, 61, 92, 0.06);
   }
 
+  /* Halaman awam: sidebar dalam aliran dokumen supaya footer boleh merentangi lebar penuh. */
+  .portal-public-shell .portal-sidebar {
+    position: sticky;
+    inset: auto;
+    top: 0;
+    align-self: flex-start;
+    flex-shrink: 0;
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100%;
+  }
+
   .portal-sidebar::before {
     content: "";
     position: absolute;
@@ -533,15 +545,6 @@
   transition-delay: calc(0.06s * var(--module-index));
 }
 
-.portal-module-card::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 3px;
-  background: var(--module-accent);
-  z-index: 1;
-}
-
 .portal-module-card.is-visible {
   opacity: 1;
   transform: translateY(0);
@@ -580,16 +583,14 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.9rem 1.15rem;
-  /* Kepala putih; warna modul hanya pada ikon, jalur atas, bulet & CTA. */
-  background: #fff;
-  color: var(--ink, #1a1a1a);
+  padding: 0.85rem 1.1rem;
+  background: var(--module-accent);
+  color: #fff;
   text-decoration: none;
-  border-bottom: 1px solid rgba(232, 232, 232, 0.9);
 }
 
-.portal-module-card-head:hover .portal-module-card-title {
-  color: var(--module-accent);
+.portal-module-card-head:hover {
+  filter: brightness(1.05);
 }
 
 .portal-module-card-title {
@@ -597,8 +598,6 @@
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--ink, #1a1a1a);
-  transition: color 0.15s ease;
 }
 
 .portal-module-card-body {
@@ -610,8 +609,7 @@
 
 .portal-module-card-list {
   margin: 0;
-  padding-left: 0;
-  list-style: none;
+  padding-left: 1.15rem;
   color: var(--ink, #1a1a1a);
   font-size: 0.875rem;
   line-height: 1.55;
@@ -619,28 +617,6 @@
 
 .portal-module-card-list li + li {
   margin-top: 0.35rem;
-}
-
-/* Bulet kecil berwarna modul — penanda wayfinding kawasan kecil. */
-.portal-module-card-list li {
-  position: relative;
-  padding-left: 1.15rem;
-}
-
-.portal-module-card-list li::before {
-  content: "";
-  position: absolute;
-  left: 0.1rem;
-  top: 0.62em;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--module-accent);
-}
-
-/* "+ Lagi" tiada bulet. */
-.portal-module-card-more::before {
-  display: none;
 }
 
 .portal-module-card-list a {
@@ -683,9 +659,8 @@
   height: 2.25rem;
   flex-shrink: 0;
   border-radius: 10px;
-  color: var(--module-accent);
-  background: color-mix(in srgb, var(--module-accent) 12%, #fff);
-  border: 1px solid color-mix(in srgb, var(--module-accent) 22%, #fff);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.18);
 }
 
 .portal-module-icon svg,
