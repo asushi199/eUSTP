@@ -21,7 +21,14 @@ import {
 } from "@/lib/resources/search";
 import { canManageKandungan } from "@/lib/roles";
 import { parseBotCommand, parseBotCommandRemainder, parseResourceCallback, RESOURCE_SEARCH_COMMANDS } from "./commands";
-import { formatResourceSearchReply } from "./resource-search-format";
+import {
+  formatResourceSearchReply,
+  parseResourceSearchCallback,
+  parseResourceSearchIntent,
+  RESOURCE_SEARCH_LIMIT,
+  resourceSearchPageKeyboard,
+  sortResourceSearchHits,
+} from "./resource-search-format";
 import { extractTelegramResourceFile } from "./resource-file";
 import {
   answerTelegramCallback,
@@ -166,7 +173,7 @@ async function upsertDraft(
 async function reply(
   chatId: string,
   text: string,
-  keyboard?: ReturnType<typeof kategoriKeyboard>,
+  keyboard?: Array<Array<{ text: string; callback_data: string }>>,
   extra?: { replyToMessageId?: number; messageThreadId?: number },
 ): Promise<number | undefined> {
   const sent = await sendTelegramChatMessage(chatId, text, {
@@ -400,7 +407,7 @@ async function handleAuthorizedMessage(opts: {
     if (isGroup) return false;
     await reply(
       opts.chatId,
-      "NexaBot sedia. Hantar fail surat atau taip /surat untuk muat naik. Taip /cari diikuti kata kunci untuk mencari surat. Taip /batal untuk batal.",
+      "NexaBot sedia. Cari surat dengan /cari, /ustp, /sekolah, /spi atau /nota. Hantar fail atau taip /surat untuk muat naik. Taip /batal untuk batal.",
       undefined,
       { messageThreadId: thread },
     );
@@ -449,28 +456,78 @@ async function handleAuthorizedMessage(opts: {
   return true;
 }
 
+async function executeResourceSearch(
+  intent: { kategori: string | null; query: string },
+  page: number,
+): Promise<{
+  text: string;
+  keyboard: ReturnType<typeof resourceSearchPageKeyboard>;
+  page: number;
+  totalPages: number;
+}> {
+  const groups = toResourcesExplorerGroups(await listResourcesCardsGrouped());
+  let cards = groups.flatMap((group) => group.cards);
+  if (intent.kategori) {
+    cards = cards.filter((card) => card.kategoriSlug === intent.kategori);
+  }
+  const hits = sortResourceSearchHits(filterResourceCards(cards, { query: intent.query }));
+  const totalPages = Math.max(1, Math.ceil(hits.length / RESOURCE_SEARCH_LIMIT) || 1);
+  const safePage = Math.min(Math.max(1, page), hits.length === 0 ? 1 : totalPages);
+  return {
+    text: formatResourceSearchReply(intent.query, hits, {
+      page: safePage,
+      kategori: intent.kategori,
+    }),
+    keyboard: resourceSearchPageKeyboard(safePage, totalPages, intent.kategori, intent.query),
+    page: safePage,
+    totalPages,
+  };
+}
+
 async function handleSearchCommand(
   message: TelegramResourceMessage,
   chatId: string,
+  command: string,
 ): Promise<void> {
-  const query = parseBotCommandRemainder(message.text ?? message.caption);
-  if (!query) {
-    await reply(chatId, formatResourceSearchReply("", []), undefined, {
+  const intent = parseResourceSearchIntent(
+    command,
+    parseBotCommandRemainder(message.text ?? message.caption),
+  );
+  if (intent.help) {
+    await reply(chatId, formatResourceSearchReply("", [], { help: true }), undefined, {
       replyToMessageId: message.message_id,
       messageThreadId: threadIdOf(message),
     });
     return;
   }
 
-  const groups = toResourcesExplorerGroups(await listResourcesCardsGrouped());
-  const hits = filterResourceCards(
-    groups.flatMap((group) => group.cards),
-    { query },
-  );
-  await reply(chatId, formatResourceSearchReply(query, hits), undefined, {
+  const result = await executeResourceSearch(intent, 1);
+  await reply(chatId, result.text, result.keyboard.length > 0 ? result.keyboard : undefined, {
     replyToMessageId: message.message_id,
     messageThreadId: threadIdOf(message),
   });
+}
+
+async function handleSearchPageCallback(query: TelegramResourceCallback): Promise<boolean> {
+  const callbackId = query.id;
+  const chatId = query.message?.chat?.id;
+  const parsed = parseResourceSearchCallback(query.data);
+  if (!callbackId || !chatId || !parsed) return false;
+
+  const result = await executeResourceSearch(
+    { kategori: parsed.kategori, query: parsed.query },
+    parsed.page,
+  );
+  if (query.message?.message_id) {
+    await editTelegramMessage(String(chatId), query.message.message_id, result.text, {
+      inline_keyboard: result.keyboard,
+    });
+  }
+  await answerTelegramCallback(
+    callbackId,
+    result.totalPages > 1 ? `Muka ${result.page}/${result.totalPages}` : undefined,
+  );
+  return true;
 }
 
 async function handleMessage(message: TelegramResourceMessage): Promise<boolean> {
@@ -482,7 +539,7 @@ async function handleMessage(message: TelegramResourceMessage): Promise<boolean>
 
   const command = parseBotCommand(message.text ?? message.caption, getTelegramBotUsername());
   if (command && RESOURCE_SEARCH_COMMANDS.has(command)) {
-    await handleSearchCommand(message, String(chatId));
+    await handleSearchCommand(message, String(chatId), command);
     return true;
   }
 
@@ -517,6 +574,10 @@ async function handleCallback(query: TelegramResourceCallback): Promise<boolean>
   const chatId = query.message?.chat?.id;
   const fromId = query.from?.id;
   if (!callbackId || !chatId || !fromId) return false;
+
+  if (parseResourceSearchCallback(query.data)) {
+    return handleSearchPageCallback(query);
+  }
 
   const parsed = parseResourceCallback(query.data);
   if (!parsed) {

@@ -46,7 +46,11 @@ async function main() {
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
       commands: [
-        { command: "cari", description: "Cari surat CoE Resources" },
+        { command: "cari", description: "Cari semua surat CoE Resources" },
+        { command: "ustp", description: "Surat program USTP" },
+        { command: "sekolah", description: "Surat sekolah / guru / murid" },
+        { command: "spi", description: "Pekeliling / SPI" },
+        { command: "nota", description: "Nota / modul / panduan" },
         { command: "surat", description: "Muat naik surat CoE Resources" },
         { command: "batal", description: "Batal muat naik" },
         { command: "start", description: "Bantuan NexaBot" },

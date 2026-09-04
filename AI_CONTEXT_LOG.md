@@ -4,8 +4,12 @@
 
 - `/cari`, `/carian` atau `/search` diikuti kata kunci (kumpulan atau
   peribadi) mencari kad awam CoE Resources, sama seperti portal
-  (tajuk, bulan, kumpulan). Sehingga 8 keputusan dengan pautan Drive.
-  Menu bot (`setMyCommands`) turut menyenaraikan `/cari`.
+  (tajuk, bulan, kumpulan). Keputusan **terkini dahulu**, 8 sehalaman,
+  butang « » untuk muka seterusnya (callback `rc:` — ahli kumpulan
+  tidak perlu ikat akaun).
+- Arahan kumpulan: `/ustp`, `/sekolah`, `/spi` (`/pekeliling`), `/nota`.
+  `/cari sekolah eduspark` juga ditapis ke kumpulan itu. Menu bot
+  menyenaraikan `/cari` `/ustp` `/sekolah` `/spi` `/nota`.
 
 ## 2026-09-04 — NexaBot: /surat pada balasan PDF
 
