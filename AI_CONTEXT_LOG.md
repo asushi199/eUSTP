@@ -10,6 +10,10 @@
 - Arahan kumpulan: `/ustp`, `/sekolah`, `/spi` (`/pekeliling`), `/nota`.
   `/cari sekolah eduspark` juga ditapis ke kumpulan itu. Menu bot
   menyenaraikan `/cari` `/ustp` `/sekolah` `/spi` `/nota`.
+- Elak konflik dengan bot lain: NexaBot guna `/mula` `/kemaskini` `/padam`
+  (bukan `/start` `/edit` `/delete`). Ikat akaun kekal `/start bind_…`
+  dalam sembang peribadi. Butang Ubah tajuk / Ubah bulan / Padam selepas
+  muat naik.
 
 ## 2026-09-04 — NexaBot: /surat pada balasan PDF
 

@@ -7,12 +7,15 @@ import {
 
 export const RESOURCE_SEARCH_LIMIT = 8;
 export const RESOURCE_SEARCH_MAX_PAGE = 99;
+export const RESOURCE_MANAGE_LIMIT = 5;
 
 const GENERIC_SEARCH_COMMANDS = new Set(["cari", "carian", "search"]);
 
 const KATEGORI_BY_COMMAND: Record<string, string> = {
   ustp: "surat-ustp",
+  surat_ustp: "surat-ustp",
   sekolah: "surat-sekolah",
+  surat_sekolah: "surat-sekolah",
   spi: "pekeliling",
   pekeliling: "pekeliling",
   nota: "nota",
@@ -103,13 +106,27 @@ export function resourceSearchHelpText(): string {
     "/cari jun 2026",
     "",
     "Ikut kumpulan:",
-    "/ustp — surat program USTP",
-    "/sekolah — surat sekolah / guru / murid",
+    "/ustp atau /surat_ustp — surat program USTP",
+    "/sekolah atau /surat_sekolah — surat sekolah / guru / murid",
     "/spi — pekeliling / SPI",
     "/nota — nota / modul",
     "",
     "Contoh: /sekolah eduspark atau /cari spi 2026",
     "Jika banyak keputusan, tekan « » untuk muka seterusnya.",
+  ].join("\n");
+}
+
+export function nexaBotHelpText(): string {
+  return [
+    "NexaBot — CoE Resources",
+    "",
+    "Carian: /cari eduspark",
+    "Kumpulan: /ustp  /sekolah  /spi  /nota",
+    "",
+    "Muat naik: /surat",
+    "Ubah tajuk atau bulan: /kemaskini",
+    "Padam: /padam",
+    "Batal: /batal",
   ].join("\n");
 }
 
@@ -256,5 +273,32 @@ export function formatResourceSearchReply(
     lines.push("");
   });
 
+  return lines.join("\n").trim();
+}
+
+export function formatResourceManageList(
+  cards: Array<ResourceSearchHit & { id: number }>,
+  opts: { query?: string; kategori?: string | null; padamOnly?: boolean } = {},
+): string {
+  const trimmed = opts.query?.trim() ?? "";
+  const kategoriLabel = resourceSearchKategoriLabel(opts.kategori ?? null);
+  if (cards.length === 0) {
+    if (trimmed) return `Tiada surat sepadan untuk "${trimmed}".`;
+    return "Tiada surat untuk dikemas kini.";
+  }
+  const lines: string[] = [
+    opts.padamOnly ? "Pilih surat untuk dipadam:" : "Pilih surat untuk dikemas kini:",
+  ];
+  if (trimmed) lines.push(`Carian: ${trimmed}`);
+  if (kategoriLabel) lines.push(`Kumpulan: ${kategoriLabel}`);
+  lines.push("");
+  cards.forEach((card, index) => {
+    const month = resourceSearchMonthLabel(card);
+    const meta = [kategoriLabel ? null : card.kategoriTitle, month].filter(Boolean).join(" · ");
+    lines.push(`${index + 1}. ${card.title.trim().slice(0, 140)}`);
+    if (meta) lines.push(`   ${meta}`);
+    lines.push("");
+  });
+  lines.push("Guna butang di bawah. Fail di Drive tidak dipindah atau dipadam.");
   return lines.join("\n").trim();
 }

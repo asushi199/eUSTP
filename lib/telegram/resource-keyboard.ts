@@ -11,6 +11,10 @@ import {
 } from "@/lib/resources/search";
 import {
   RESOURCE_CANCEL_CALLBACK,
+  resourceDeleteCallbackData,
+  resourceDeleteConfirmCallbackData,
+  resourceEditMonthCallbackData,
+  resourceEditTitleCallbackData,
   resourceKategoriCallbackData,
   resourceMonthCallbackData,
   resourceYearCallbackData,
@@ -18,7 +22,8 @@ import {
 
 export type TelegramInlineButton = {
   text: string;
-  callback_data: string;
+  callback_data?: string;
+  url?: string;
 };
 
 export type TelegramInlineKeyboard = TelegramInlineButton[][];
@@ -61,6 +66,46 @@ export function monthKeyboard(centerMonth?: string, now = new Date()): TelegramI
 
 export function cancelKeyboard(): TelegramInlineKeyboard {
   return [[BATAL]];
+}
+
+export function resourceManageKeyboard(cardId: number): TelegramInlineKeyboard {
+  return [
+    [
+      { text: "Ubah tajuk", callback_data: resourceEditTitleCallbackData(cardId) },
+      { text: "Ubah bulan", callback_data: resourceEditMonthCallbackData(cardId) },
+    ],
+    [{ text: "Padam", callback_data: resourceDeleteCallbackData(cardId) }],
+  ];
+}
+
+export function resourceDeleteConfirmKeyboard(cardId: number): TelegramInlineKeyboard {
+  return [
+    [{ text: "Ya, padam", callback_data: resourceDeleteConfirmCallbackData(cardId) }],
+    [BATAL],
+  ];
+}
+
+export function resourceSavedKeyboard(opts: {
+  cardId: number;
+  driveUrl: string;
+  portalUrl?: string | null;
+}): TelegramInlineKeyboard {
+  return [
+    [{ text: "Buka di Drive", url: opts.driveUrl }],
+    ...(opts.portalUrl ? [[{ text: "Lihat di portal", url: opts.portalUrl }]] : []),
+    ...resourceManageKeyboard(opts.cardId),
+  ];
+}
+
+export function resourceManageRow(cardId: number, padamOnly = false): TelegramInlineButton[] {
+  if (padamOnly) {
+    return [{ text: "Padam", callback_data: resourceDeleteCallbackData(cardId) }];
+  }
+  return [
+    { text: "Tajuk", callback_data: resourceEditTitleCallbackData(cardId) },
+    { text: "Bulan", callback_data: resourceEditMonthCallbackData(cardId) },
+    { text: "Padam", callback_data: resourceDeleteCallbackData(cardId) },
+  ];
 }
 
 export function kategoriPrompt(fileName: string): string {

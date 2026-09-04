@@ -24,17 +24,31 @@ export const RESOURCE_SEARCH_COMMANDS = new Set([
   "carian",
   "search",
   "ustp",
+  "surat_ustp",
   "sekolah",
+  "surat_sekolah",
   "spi",
   "pekeliling",
   "nota",
 ]);
 
+export const RESOURCE_MANAGE_COMMANDS = new Set(["kemaskini", "padam"]);
+export const RESOURCE_HELP_COMMANDS = new Set(["mula"]);
+
 export type ResourceCallback =
   | { type: "kategori"; slug: "surat-ustp" | "surat-sekolah" }
   | { type: "bulan"; month: string }
   | { type: "tahun"; center: string }
+  | { type: "ubah_tajuk"; cardId: number }
+  | { type: "ubah_bulan"; cardId: number }
+  | { type: "padam"; cardId: number }
+  | { type: "padam_ya"; cardId: number }
   | { type: "batal" };
+
+function parseCardId(raw: string | undefined): number | null {
+  const id = Number(raw);
+  return Number.isInteger(id) && id > 0 ? id : null;
+}
 
 export function parseResourceCallback(data: string | undefined): ResourceCallback | null {
   if (!data) return null;
@@ -47,6 +61,26 @@ export function parseResourceCallback(data: string | undefined): ResourceCallbac
   if (month) return { type: "bulan", month: month[1] };
   const year = /^rs:y:(\d{4}-\d{2})$/.exec(data);
   if (year) return { type: "tahun", center: year[1] };
+  const padamYa = /^rs:dy:(\d+)$/.exec(data);
+  if (padamYa) {
+    const cardId = parseCardId(padamYa[1]);
+    return cardId ? { type: "padam_ya", cardId } : null;
+  }
+  const padam = /^rs:d:(\d+)$/.exec(data);
+  if (padam) {
+    const cardId = parseCardId(padam[1]);
+    return cardId ? { type: "padam", cardId } : null;
+  }
+  const ubahTajuk = /^rs:et:(\d+)$/.exec(data);
+  if (ubahTajuk) {
+    const cardId = parseCardId(ubahTajuk[1]);
+    return cardId ? { type: "ubah_tajuk", cardId } : null;
+  }
+  const ubahBulan = /^rs:eb:(\d+)$/.exec(data);
+  if (ubahBulan) {
+    const cardId = parseCardId(ubahBulan[1]);
+    return cardId ? { type: "ubah_bulan", cardId } : null;
+  }
   return null;
 }
 
@@ -63,3 +97,30 @@ export function resourceYearCallbackData(center: string): string {
 }
 
 export const RESOURCE_CANCEL_CALLBACK = "rs:x";
+
+export function resourceEditTitleCallbackData(cardId: number): string {
+  return `rs:et:${cardId}`;
+}
+
+export function resourceEditMonthCallbackData(cardId: number): string {
+  return `rs:eb:${cardId}`;
+}
+
+export function resourceDeleteCallbackData(cardId: number): string {
+  return `rs:d:${cardId}`;
+}
+
+export function resourceDeleteConfirmCallbackData(cardId: number): string {
+  return `rs:dy:${cardId}`;
+}
+
+export function draftCardIdFromFileId(fileId: string | null | undefined): number | null {
+  const match = /^card:(\d+)$/.exec(fileId ?? "");
+  if (!match) return null;
+  const id = Number(match[1]);
+  return Number.isInteger(id) && id > 0 ? id : null;
+}
+
+export function draftFileIdForCard(cardId: number): string {
+  return `card:${cardId}`;
+}

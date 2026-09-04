@@ -1,6 +1,7 @@
 import "server-only";
 
 import { revalidatePath } from "next/cache";
+import { eq } from "drizzle-orm";
 import { driveViewUrl, uploadFileViaGas } from "@/lib/gas-upload";
 import { resolveSuratMime } from "@/lib/khidmat-bantu/surat-mime";
 import { db } from "@/lib/db";
@@ -60,8 +61,40 @@ export async function publishResourcesFile(opts: {
     })
     .returning({ id: resourcesCards.id });
 
+  revalidateResources(opts.kategori);
+  return { id: row.id, url };
+}
+
+function revalidateResources(kategori: string) {
   revalidatePath("/admin/resources");
   revalidatePath("/resources");
-  revalidatePath(resourcesHref(opts.kategori));
-  return { id: row.id, url };
+  revalidatePath(resourcesHref(kategori));
+}
+
+export async function updateResourcesCardMeta(
+  id: number,
+  patch: { title?: string; letterMonth?: string },
+): Promise<{ ok: true; kategori: string } | { ok: false }> {
+  const row = await db.query.resourcesCards.findFirst({
+    columns: { id: true, kategori: true },
+    where: eq(resourcesCards.id, id),
+  });
+  if (!row) return { ok: false };
+  await db
+    .update(resourcesCards)
+    .set({ ...patch, updatedAt: new Date() })
+    .where(eq(resourcesCards.id, id));
+  revalidateResources(row.kategori);
+  return { ok: true, kategori: row.kategori };
+}
+
+export async function removeResourcesCard(id: number): Promise<boolean> {
+  const row = await db.query.resourcesCards.findFirst({
+    columns: { id: true, kategori: true },
+    where: eq(resourcesCards.id, id),
+  });
+  if (!row) return false;
+  await db.delete(resourcesCards).where(eq(resourcesCards.id, id));
+  revalidateResources(row.kategori);
+  return true;
 }

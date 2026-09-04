@@ -3,6 +3,7 @@ import test from "node:test";
 import { parseBotCommand, parseBotCommandRemainder, RESOURCE_SEARCH_COMMANDS } from "../../lib/telegram/commands";
 import {
   formatResourceSearchReply,
+  nexaBotHelpText,
   parseResourceSearchCallback,
   parseResourceSearchIntent,
   resourceSearchCallbackData,
@@ -30,6 +31,11 @@ test("maps category commands and /cari prefixes to a kumpulan", () => {
     query: "eduspark",
   });
   assert.deepEqual(parseResourceSearchIntent("ustp", ""), {
+    help: false,
+    kategori: "surat-ustp",
+    query: "",
+  });
+  assert.deepEqual(parseResourceSearchIntent("surat_ustp", ""), {
     help: false,
     kategori: "surat-ustp",
     query: "",
@@ -89,7 +95,9 @@ test("sorts hits by letter month then upload time, newest first", () => {
 });
 
 test("formats search hits, help, and paginated numbering", () => {
-  assert.match(formatResourceSearchReply("", [], { help: true }), /\/sekolah/);
+  assert.match(formatResourceSearchReply("", [], { help: true }), /\/surat_ustp/);
+  assert.match(nexaBotHelpText(), /\/kemaskini/);
+  assert.match(nexaBotHelpText(), /\/padam/);
   assert.match(formatResourceSearchReply("xyz", []), /Tiada surat sepadan/);
   assert.match(
     formatResourceSearchReply("", [], { kategori: "surat-ustp" }),
