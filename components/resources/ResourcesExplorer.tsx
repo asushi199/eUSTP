@@ -26,7 +26,7 @@ export default function ResourcesExplorer({
 
   const [query, setQuery] = useState("");
   const [month, setMonth] = useState(defaultMonth);
-  const [iframePreview, setIframePreview] = useState(true);
+  const [iframePreview, setIframePreview] = useState(false);
 
   const filtered = useMemo(
     () => filterResourceCards(allCards, { query, month }),

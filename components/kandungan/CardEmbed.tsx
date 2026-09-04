@@ -9,7 +9,8 @@ import PreviewLightbox, {
 
 /**
  * Kad kandungan. YouTube: thumbnail dahulu. PDF/imej pada CoE Resources
- * dipaparkan terus dalam kad; Lihat penuh membesarkan iframe.
+ * hanya dimuat dalam kad apabila `inlinePreview` benar; Lihat penuh
+ * membesarkan iframe.
  */
 export default function CardEmbed({
   title,

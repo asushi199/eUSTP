@@ -1,5 +1,12 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-04 — CoE Resources: iframe lalai tertutup
+
+- Senarai surat tidak lagi memuatkan iframe dalam kad semasa buka halaman.
+  Butang **Buka pratonton iframe** di atas membuka pratonton apabila perlu;
+  **Tutup pratonton iframe** meruntuhkannya semula.
+- **Muat Turun** dan **Lihat penuh** kekal pada setiap kad tanpa iframe.
+
 ## 2026-09-04 — Pin search_path fungsi trigger
 
 - Amaran SECURITY Supabase `Function Search Path Mutable` pada
