@@ -33,7 +33,7 @@ export type ResourcesKategoriGroup = {
   cards: ResourcesCard[];
 };
 
-/** Semua kategori dengan kad masing-masing (hub accordion /resources). */
+/** Semua kategori dengan kad masing-masing (hub /resources). */
 export async function listResourcesCardsGrouped(
   opts: { includeHidden?: boolean } = {},
 ): Promise<ResourcesKategoriGroup[]> {

@@ -1,5 +1,12 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-04 — CoE Resources: kad kategori lompat ke subhalaman
+
+- Halaman awam `/resources` tidak lagi membuka/menutup accordion. Ketik kad
+  kategori (cth. Pekeliling / Siaran STP) membawa ke `/resources/[kategori]`.
+- Subhalaman hanya memaparkan bahan kategori itu; senarai hub kekal ringkas.
+- Pentadbir di `/admin/resources` kekal accordion untuk urus kad di tempat.
+
 ## 2026-09-04 — Admin: CoE Booking → CoE Services
 
 - Kad Papan Admin, tab mudah alih dan hab `/admin/booking` menggunakan

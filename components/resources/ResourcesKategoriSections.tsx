@@ -11,6 +11,7 @@ import {
 } from "@/lib/actions/resources";
 import type { ResourcesSectionGroup } from "@/lib/resources/card-display";
 
+/** Senarai accordion untuk pentadbir sahaja — halaman awam guna pautan ke subhalaman. */
 export default function ResourcesKategoriSections({
   groups,
   defaultOpen,

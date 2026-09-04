@@ -1,12 +1,13 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import PageHeader from "@/components/PageHeader";
 import PublicPageShell from "@/components/PublicPageShell";
-import ResourcesKategoriSections from "@/components/resources/ResourcesKategoriSections";
+import CardEmbed from "@/components/kandungan/CardEmbed";
 import { getModuleAccent } from "@/lib/module-theme";
-import { toResourcesSectionGroups } from "@/lib/resources/card-display";
+import { resourceCardDisplay } from "@/lib/resources/card-display";
 import { resourcesKategoriBySlug } from "@/lib/resources/kategori";
-import { listResourcesCardsGrouped } from "@/lib/resources/queries";
+import { listResourcesCards } from "@/lib/resources/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -30,21 +31,43 @@ export default async function ResourcesKategoriPage({
   if (!meta) notFound();
 
   const accent = getModuleAccent("/resources");
-  const groups = toResourcesSectionGroups(await listResourcesCardsGrouped());
+  const rows = await listResourcesCards(meta.slug);
+  const cards = rows.map((c) => ({
+    ...c,
+    ...resourceCardDisplay(c.url),
+  }));
 
   return (
     <PublicPageShell>
+      <Link href="/resources" className="text-sm text-graphite hover:text-ink">
+        ← CoE Resources
+      </Link>
       <PageHeader
         eyebrow="CoE Resources"
-        title="Sumber Surat dan Pekeliling"
+        title={meta.title}
         accent={accent}
-        description="Surat program, pekeliling, nota dan sijil digital USTP. Ketik kad kategori untuk buka bahan di dalamnya."
+        description={meta.blurb}
+        className="mt-2"
       />
-      <ResourcesKategoriSections
-        groups={groups}
-        defaultOpen={meta.slug}
-        accent={accent}
-      />
+
+      {cards.length === 0 ? (
+        <p className="mt-8 py-8 text-center text-sm text-graphite">
+          Kandungan akan ditambah kemudian.
+        </p>
+      ) : (
+        <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {cards.map((c) => (
+            <CardEmbed
+              key={c.id}
+              title={c.title}
+              blurb=""
+              url={c.url}
+              typeLabel={c.typeLabel}
+              embed={c.embed}
+            />
+          ))}
+        </div>
+      )}
     </PublicPageShell>
   );
 }
