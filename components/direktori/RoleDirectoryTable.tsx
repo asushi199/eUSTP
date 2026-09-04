@@ -4,7 +4,14 @@ import { useMemo, useState } from "react";
 import { normalizeMalaysianMobile } from "@/lib/direktori/config";
 import type { PublicDirectoryRow } from "@/lib/direktori/queries";
 
-function ContactActions({ phone, phoneNormalized }: Pick<PublicDirectoryRow, "phone" | "phoneNormalized">) {
+function ContactActions({
+  phone,
+  phoneNormalized,
+  contactsVisible,
+}: Pick<PublicDirectoryRow, "phone" | "phoneNormalized"> & { contactsVisible: boolean }) {
+  if (!contactsVisible) {
+    return <span className="text-sm text-graphite">Log masuk untuk melihat nombor</span>;
+  }
   const mobile = phoneNormalized || normalizeMalaysianMobile(phone);
   if (!mobile) return <span className="text-sm text-graphite">Tiada nombor mudah alih</span>;
 
@@ -23,7 +30,13 @@ function ContactActions({ phone, phoneNormalized }: Pick<PublicDirectoryRow, "ph
   );
 }
 
-export default function RoleDirectoryTable({ rows }: { rows: PublicDirectoryRow[] }) {
+export default function RoleDirectoryTable({
+  rows,
+  contactsVisible,
+}: {
+  rows: PublicDirectoryRow[];
+  contactsVisible: boolean;
+}) {
   const [query, setQuery] = useState("");
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -56,7 +69,11 @@ export default function RoleDirectoryTable({ rows }: { rows: PublicDirectoryRow[
             </p>
             <div className="mt-3 border-t border-fog pt-3">
               <p className="mb-3 text-sm leading-snug">{r.teacherName || <span className="text-graphite">Tiada nama direkodkan</span>}</p>
-              <ContactActions phone={r.phone} phoneNormalized={r.phoneNormalized} />
+              <ContactActions
+                phone={r.phone}
+                phoneNormalized={r.phoneNormalized}
+                contactsVisible={contactsVisible}
+              />
             </div>
           </li>
         ))}
@@ -85,7 +102,13 @@ export default function RoleDirectoryTable({ rows }: { rows: PublicDirectoryRow[
                 </td>
                 <td className="px-4 py-3 text-graphite">{r.zone || "-"}</td>
                 <td className="px-4 py-3">{r.teacherName || "-"}</td>
-                <td className="px-4 py-3"><ContactActions phone={r.phone} phoneNormalized={r.phoneNormalized} /></td>
+                <td className="px-4 py-3">
+                  <ContactActions
+                    phone={r.phone}
+                    phoneNormalized={r.phoneNormalized}
+                    contactsVisible={contactsVisible}
+                  />
+                </td>
               </tr>
             ))}
           </tbody>

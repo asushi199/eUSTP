@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { adminActions, contactRoles, contactVersions, schools } from "@/lib/schema";
+import { getDirectoryContactAccess } from "@/lib/direktori/access";
 import { requireKandunganAccess } from "@/lib/rbac";
 import {
   TEACHER_ROLES,
@@ -38,10 +39,15 @@ const submissionSchema = z.object({
 
 export type SubmissionInput = z.infer<typeof submissionSchema>;
 
-/** Hantaran awam: cipta versi baharu dan jadikan versi semasa (tiada log masuk). */
+/** Hantaran: cipta versi baharu dan jadikan versi semasa. Perlu akaun MOE-DL atau staf. */
 export async function createDirektoriSubmission(
   input: unknown,
 ): Promise<{ ok: boolean; error?: string }> {
+  const access = await getDirectoryContactAccess();
+  if (!access.ok) {
+    return { ok: false, error: "Sila log masuk dengan akaun MOE-DL terlebih dahulu." };
+  }
+
   const parsed = submissionSchema.safeParse(input);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Input tidak sah" };

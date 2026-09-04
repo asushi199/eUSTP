@@ -21,27 +21,27 @@ function needsAuth(pathname: string): boolean {
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
-  const isLoggedIn = !!req.auth;
+  const isStaff = !!req.auth && req.auth.user?.authKind !== "moe-dl";
 
-  if (needsAuth(pathname) && !isLoggedIn) {
+  if (needsAuth(pathname) && !isStaff) {
     const url = new URL("/login", req.nextUrl.origin);
     url.searchParams.set("from", pathname);
     return NextResponse.redirect(url);
   }
 
-  if (pathname.startsWith("/login") && isLoggedIn) {
+  if (pathname.startsWith("/login") && isStaff) {
     return NextResponse.redirect(new URL("/admin/tempahan", req.nextUrl.origin));
   }
 
   if (
-    isLoggedIn &&
+    isStaff &&
     req.auth?.user?.mustChangePassword &&
     !pathname.startsWith("/tukar-kata-laluan")
   ) {
     return NextResponse.redirect(new URL("/tukar-kata-laluan", req.nextUrl.origin));
   }
 
-  if (pathname.startsWith("/tukar-kata-laluan") && !isLoggedIn) {
+  if (pathname.startsWith("/tukar-kata-laluan") && !isStaff) {
     return NextResponse.redirect(new URL("/login", req.nextUrl.origin));
   }
 

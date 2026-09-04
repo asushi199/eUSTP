@@ -1,14 +1,18 @@
 import type { Session } from "next-auth";
 import { redirect } from "next/navigation";
 import { auth } from "./auth";
-import { canManageKandungan, canManageTempahan } from "./roles";
+import { canManageKandungan, canManageTempahan, isKnownPeranan } from "./roles";
+import type { UserPeranan } from "./roles";
 
 export type SessionUser = Session["user"];
+export type StaffUser = SessionUser & { authKind: "staff"; peranan: UserPeranan };
 
-export async function requireUser(): Promise<SessionUser> {
+export async function requireUser(): Promise<StaffUser> {
   const session = (await auth()) as Session | null;
   if (!session?.user) redirect("/login");
-  return session.user;
+  if (session.user.authKind === "moe-dl") redirect("/direktori");
+  if (!isKnownPeranan(session.user.peranan ?? "")) redirect("/login");
+  return session.user as StaffUser;
 }
 
 /** Laporan DPD/PSS + Direktori (admin) — Admin dan Pegawai sahaja. */

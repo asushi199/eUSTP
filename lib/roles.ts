@@ -12,13 +12,13 @@ export function isKnownPeranan(value: string): value is UserPeranan {
 }
 
 /** Laporan DPD/PSS + Direktori (admin) — Admin dan Pegawai. */
-export function canManageKandungan(peranan: UserPeranan): boolean {
+export function canManageKandungan(peranan: UserPeranan | null | undefined): boolean {
   return peranan === "Admin" || peranan === "Pegawai";
 }
 
 /** Tempahan (admin) — semua peranan; PKG_Admin terhad kepada pkgId sendiri. */
-export function canManageTempahan(peranan: UserPeranan): boolean {
-  return isKnownPeranan(peranan);
+export function canManageTempahan(peranan: UserPeranan | null | undefined): boolean {
+  return typeof peranan === "string" && isKnownPeranan(peranan);
 }
 
 export const PERANAN_LABEL: Record<UserPeranan, string> = {

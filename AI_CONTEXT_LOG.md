@@ -1,5 +1,14 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-04 — Direktori: log masuk MOE-DL
+
+- Nombor telefon / WhatsApp direktori tidak lagi dihantar ke pelayar tanpa
+  sesi. Senarai sekolah dan nama jawatan kekal boleh dilihat.
+- Guru log masuk Google dengan domain `@moe-dl.edu.my` (`prompt=select_account`
+  + `hd`). Staf USTP terus guna `/login`; sesi MOE-DL tidak membuka `/admin`.
+- Telegram/WhatsApp in-app browser dihalakan buka Chrome/Safari sebelum OAuth.
+- Borang kemas kini direktori juga memerlukan log masuk yang sama.
+
 ## 2026-09-04 — Menu sisi desktop admin
 
 - Header desktop admin diganti bar sisi kiri, sama corak portal pengguna
@@ -17,8 +26,7 @@
   kandungan akan diisi kemudian. OSC `/sumber` kekal dalaman.
 - Desktop: menu dari header ke bar sisi kiri. Telefon: Utama / Laporan /
   Services / Direktori + **Lagi** (Analytics, Resources, Media).
-- Direktori masih awam. Log masuk (cadangan: MOE-DL OAuth, bukan kata laluan
-  guru berasingan) belum dilaksanakan.
+- Direktori senarai sekolah kekal awam; nombor telefon dilindungi MOE-DL.
 - Notifikasi dan kalendar GPT tidak dibuat dalam fasa ini.
 
 ## 2026-08-27 — Senarai admin Laporan Akhbar: baki 2024–2025

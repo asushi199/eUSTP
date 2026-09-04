@@ -1,10 +1,12 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import Google from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { authConfig } from "./auth.config";
 import { db } from "./db";
+import { isGoogleAuthConfigured } from "./moe-dl";
 import { users } from "./schema";
 
 const credentialsSchema = z.object({
@@ -65,6 +67,18 @@ function isLoginBlocked(key: string): boolean {
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   providers: [
+    ...(isGoogleAuthConfigured()
+      ? [
+          Google({
+            authorization: {
+              params: {
+                prompt: "select_account",
+                hd: "moe-dl.edu.my",
+              },
+            },
+          }),
+        ]
+      : []),
     Credentials({
       name: "ID & Kata Laluan",
       credentials: {

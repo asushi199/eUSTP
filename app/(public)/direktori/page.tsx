@@ -18,7 +18,7 @@ export default function DirektoriPage() {
         eyebrow="CoE Direktori"
         title="Direktori Perhubungan Sekolah"
         accent={accent}
-        description="Rujukan perhubungan pengurusan dan penyelaras sekolah daerah Manjung. Pilih jawatan untuk melihat senarai."
+        description="Rujukan perhubungan pengurusan dan penyelaras sekolah daerah Manjung. Senarai sekolah terbuka; nombor telefon memerlukan akaun MOE-DL."
       />
 
       <div id="direktori-kemaskini">
@@ -29,7 +29,8 @@ export default function DirektoriPage() {
           <div>
             <p className="font-semibold">Maklumat sekolah anda berubah?</p>
             <p className="mt-1 text-sm text-graphite">
-              Kemas kini nama dan nombor telefon mudah alih pengurusan atau penyelaras sekolah melalui borang awam.
+              Kemas kini nama dan nombor telefon mudah alih pengurusan atau penyelaras sekolah.
+              Log masuk akaun MOE-DL diperlukan.
             </p>
           </div>
           <Link href="/direktori/kemaskini" className="btn-primary shrink-0">Kemas Kini</Link>

@@ -52,8 +52,15 @@ function sortRoles(roles: RoleContact[]): RoleContact[] {
   return [...roles].sort((a, b) => ROLE_ORDER.indexOf(a.role) - ROLE_ORDER.indexOf(b.role));
 }
 
+function redactContacts(rows: PublicDirectoryRow[]): PublicDirectoryRow[] {
+  return rows.map((row) => ({ ...row, phone: "", phoneNormalized: "" }));
+}
+
 /** Direktori awam: peranan daripada versi semasa setiap sekolah. */
-export async function listPublicDirectory(role?: DirectoryRole): Promise<PublicDirectoryRow[]> {
+export async function listPublicDirectory(
+  role?: DirectoryRole,
+  options?: { includeContacts?: boolean },
+): Promise<PublicDirectoryRow[]> {
   const rows = await db
     .select({
       schoolCode: schools.code,
@@ -70,8 +77,8 @@ export async function listPublicDirectory(role?: DirectoryRole): Promise<PublicD
     .innerJoin(contactRoles, eq(contactRoles.versionId, contactVersions.id))
     .orderBy(schools.code);
 
-  const filtered = role ? rows.filter((r) => r.role === role) : rows;
-  return filtered as PublicDirectoryRow[];
+  const filtered = (role ? rows.filter((r) => r.role === role) : rows) as PublicDirectoryRow[];
+  return options?.includeContacts === true ? filtered : redactContacts(filtered);
 }
 
 export async function listSchoolOptions(): Promise<SchoolOption[]> {

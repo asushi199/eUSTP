@@ -18,8 +18,8 @@ export default async function LoginPage({
         </p>
       </header>
       <p className="mb-6 text-sm text-graphite">
-        Log masuk untuk pentadbir dan pegawai sahaja. Halaman awam tidak
-        memerlukan akaun.
+        Log masuk untuk pentadbir dan pegawai USTP sahaja. Direktori sekolah
+        menggunakan akaun MOE-DL, bukan ID ini.
       </p>
       <LoginForm callbackUrl={sp.from ?? "/admin/tempahan"} initialError={sp.error} />
       <p className="mt-6 text-xs text-graphite">

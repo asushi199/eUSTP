@@ -21,7 +21,7 @@ function parseRoles(value: string | null): TeacherRole[] {
 
 export async function GET(request: Request) {
   const session = await auth();
-  if (!session?.user || !canManageKandungan(session.user.peranan)) {
+  if (!session?.user || session.user.authKind === "moe-dl" || !canManageKandungan(session.user.peranan)) {
     return NextResponse.json({ ok: false }, { status: 403 });
   }
 

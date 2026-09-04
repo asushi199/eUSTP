@@ -1,15 +1,23 @@
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import KemaskiniForm from "@/components/direktori/KemaskiniForm";
+import { getDirectoryContactAccess } from "@/lib/direktori/access";
 import { listPublicDirectory, listSchoolOptions } from "@/lib/direktori/queries";
+import { direktoriLoginHref } from "@/lib/moe-dl";
 
 export const dynamic = "force-dynamic";
 
 export const metadata = { title: "Kemas Kini Direktori — NEXa Manjung" };
 
 export default async function KemaskiniPage() {
+  const access = await getDirectoryContactAccess();
+  if (!access.ok) {
+    redirect(direktoriLoginHref("/direktori/kemaskini"));
+  }
+
   const [schools, currentRows] = await Promise.all([
     listSchoolOptions(),
-    listPublicDirectory(),
+    listPublicDirectory(undefined, { includeContacts: true }),
   ]);
 
   return (
