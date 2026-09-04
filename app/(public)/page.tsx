@@ -138,11 +138,14 @@ export default async function HomePage() {
         </svg>
       </div>
 
-      <section className="portal-stats-band px-4 py-8 sm:px-8 sm:py-10">
+      <section
+        id="coe-analytics"
+        className="portal-stats-band scroll-mt-20 px-4 py-8 sm:px-8 sm:py-10"
+      >
         <div className="mx-auto max-w-6xl">
           <div className="flex items-end justify-between gap-3">
             <h2 className="text-sm font-semibold uppercase tracking-[0.7px] text-graphite">
-              Analisis Semasa
+              CoE Analytics
             </h2>
           </div>
           {analisis ? (
@@ -188,16 +191,17 @@ export default async function HomePage() {
             Pilih modul yang diperlukan untuk meneruskan urusan anda.
           </p>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {HOME_MODULES.map((mod, index) => (
             <ModuleCard
               key={mod.internalHref}
               href={mod.href}
               title={mod.title}
-              description={mod.description}
               accent={mod.accent}
               index={index}
-              external={mod.external}
+              cta={mod.cta}
+              items={mod.items}
+              moreLabel={mod.moreLabel}
               icon={<HomeModuleIcon iconKey={mod.iconKey} />}
             />
           ))}

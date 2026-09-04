@@ -10,7 +10,7 @@ import type { EquipmentCatalogItem } from "@/lib/peralatan/types";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Inventori Peralatan — CoE Booking — NEXa Manjung",
+  title: "Inventori Peralatan — CoE Services — NEXa Manjung",
   description:
     "Semak ketersediaan dan mohon pinjaman peralatan Maker Lab di lima PKG daerah Manjung.",
 };
@@ -27,7 +27,7 @@ export default async function PeminjamanPeralatanPage() {
   return (
     <PublicPageShell>
       <Link href="/tempahan" className="text-sm text-graphite hover:text-ink">
-        ← CoE Booking
+        ← CoE Services
       </Link>
       <PageHeader
         eyebrow="Peminjaman Peralatan"

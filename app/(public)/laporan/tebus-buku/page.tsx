@@ -11,7 +11,7 @@ import { getModuleAccent } from "@/lib/module-theme";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Semak Tebus Buku — CoE Laporan — NEXa Manjung",
+  title: "Semak Tebus Buku — CoE Reports — NEXa Manjung",
   description:
     "Semak status tebus dan guna baucar buku pelajar sekolah menengah daerah Manjung.",
 };
@@ -35,10 +35,10 @@ export default async function TebusBukuIndexPage() {
   return (
     <PublicPageShell narrow>
       <Link href="/laporan" className="text-sm text-graphite hover:text-ink">
-        ← CoE Laporan
+        ← CoE Reports
       </Link>
       <PageHeader
-        eyebrow="CoE Laporan"
+        eyebrow="CoE Reports"
         title="Semak Tebus Buku"
         accent={accent}
         description={

@@ -16,7 +16,7 @@ export default async function TempahanBilikPage() {
   return (
     <PublicPageShell>
       <Link href="/tempahan" className="text-sm text-graphite hover:text-ink">
-        ← CoE Booking
+        ← CoE Services
       </Link>
       <PageHeader
         eyebrow="Tempahan PKG"

@@ -1,5 +1,19 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-04 — Kad CoE halaman utama + menu sisi
+
+- Halaman utama ikut taksonomi CoE baharu (tanpa QR Centre). **CoE Analytics**
+  ialah nama baharu jalur analisis sedia ada — tiada kad tambahan.
+- Kad berwarna (kepala warna + senarai sub-pilihan): CoE Reports, CoE
+  Resources, CoE Direktori, CoE Services (naman lama CoE Booking), CoE Media.
+- Resources dan Media ialah halaman placeholder (`/resources`, `/media`);
+  kandungan akan diisi kemudian. OSC `/sumber` kekal dalaman.
+- Desktop: menu dari header ke bar sisi kiri. Telefon: Utama / Laporan /
+  Services / Direktori + **Lagi** (Analytics, Resources, Media).
+- Direktori masih awam. Log masuk (cadangan: MOE-DL OAuth, bukan kata laluan
+  guru berasingan) belum dilaksanakan.
+- Notifikasi dan kalendar GPT tidak dibuat dalam fasa ini.
+
 ## 2026-08-27 — Senarai admin Laporan Akhbar: baki 2024–2025
 
 - `/admin/laporan-akhbar` kini memaparkan **Baki 2024–2025 (RM)** di samping

@@ -21,32 +21,58 @@ const OSC_MODULE = {
   iconKey: "osc" as const,
 } as const;
 
-/** Hub CoE Laporan — menggabungkan DPD, PSS & Akhbar. */
-const LAPORAN_HUB = {
+/** Hub CoE Reports — menggabungkan DPD, PSS, Akhbar & Tebus Buku. */
+export const LAPORAN_HUB = {
   href: "/laporan",
   internalHref: "/laporan",
   external: false,
-  title: "CoE Laporan",
+  title: "CoE Reports",
   description:
     "Laporan DPD, Laporan PSS, tinjauan Langganan Akhbar dan semakan tebus baucar buku.",
-  accent: "#DB2777",
+  accent: "#16A34A",
   iconKey: "laporan" as const,
 } as const;
 
-/** Hub CoE Booking — menggabungkan perkhidmatan tempahan USTP. */
-const TEMPAHAN_HUB = {
+/** Hub CoE Services — perkhidmatan tempahan, pinjaman dan khidmat bantu. */
+export const TEMPAHAN_HUB = {
   href: "/tempahan",
   internalHref: "/tempahan",
   external: false,
-  title: "CoE Booking",
+  title: "CoE Services",
   description:
-    "Tempahan bilik PKG, permohonan khidmat bantu dan peminjaman peralatan USTP.",
-  accent: "#D97706",
+    "Tempahan premis PKG, permohonan khidmat bantu dan peminjaman peralatan USTP.",
+  accent: "#0D9488",
   iconKey: "tempahan" as const,
+} as const;
+
+/** Kad awam CoE Resources — kandungan surat akan dipindahkan kemudian. */
+export const RESOURCES_HUB = {
+  href: "/resources",
+  internalHref: "/resources",
+  external: false,
+  title: "CoE Resources",
+  description:
+    "Surat program, pekeliling, nota dan sijil digital USTP — kandungan akan ditambah secara berperingkat.",
+  accent: "#EA580C",
+  iconKey: "sumber" as const,
+} as const;
+
+/** Kad awam CoE Media — koleksi video/gambar dan pautan media. */
+export const MEDIA_HUB = {
+  href: "/media",
+  internalHref: "/media",
+  external: false,
+  title: "CoE Media",
+  description:
+    "Koleksi video, gambar program dan pautan media sosial USTP — akan dibuka kemudian.",
+  accent: "#DB2777",
+  iconKey: "media" as const,
 } as const;
 
 export const MODULES = [
   LAPORAN_HUB,
+  RESOURCES_HUB,
+  MEDIA_HUB,
   {
     href: dpdEntry.href,
     internalHref: "/laporan-dpd",
@@ -94,7 +120,7 @@ export const MODULES = [
     title: "CoE Direktori",
     description:
       "Direktori pentadbir dan penyelaras sekolah — cari dan kemas kini.",
-    accent: "#0D9488",
+    accent: "#7C3AED",
     iconKey: "direktori" as const,
   },
   TEMPAHAN_HUB,
@@ -143,7 +169,7 @@ export const MODULES = [
     href: "/analisis",
     internalHref: "/analisis",
     external: false,
-    title: "Analisis USTP",
+    title: "CoE Analytics",
     description:
       "Analisis DELIMa, DCS, Program Ains, Pensijilan Digital dan AI Tools daerah Manjung.",
     accent: "#024AD8",
@@ -166,31 +192,16 @@ export const OSC_SECTIONS = MODULES.filter((m) =>
   ["/sumber", "/analisis", "/maklumat-asas"].includes(m.internalHref),
 );
 
-/** Sub-modul di bawah hub /laporan — dipapar dalam halaman CoE Laporan. */
+/** Sub-modul di bawah hub /laporan — dipapar dalam halaman CoE Reports. */
 export const LAPORAN_SECTIONS = MODULES.filter((m) =>
   ["/laporan-dpd", "/laporan-pss", "/laporan-akhbar", "/laporan/tebus-buku"].includes(
     m.internalHref,
   ),
 );
 
-/** Sub-modul di bawah hub /tempahan — dipapar dalam halaman tempahan. */
+/** Sub-modul di bawah hub /tempahan — dipapar dalam halaman CoE Services. */
 export const TEMPAHAN_SECTIONS = MODULES.filter((m) =>
   ["/tempahan/bilik", "/khidmat-bantu", "/tempahan/peralatan"].includes(m.internalHref),
-);
-
-/**
- * Kad halaman utama — sub-modul OSC, Laporan & Tempahan digabung di hub masing-masing.
- * OSC (/osc) kini dalaman sahaja (perlu log masuk) — jadi tidak dipapar
- * sebagai kad awam; diuruskan melalui /admin/osc. OSC_MODULE dikekalkan dalam
- * MODULES supaya carian tema (getModuleAccent/getModuleThemeForPath) berfungsi.
- * Bilangan kad = HOME_MODULES.length.
- */
-export const HOME_MODULES = MODULES.filter(
-  (m) =>
-    m.internalHref !== "/osc" &&
-    !OSC_SECTIONS.some((s) => s.internalHref === m.internalHref) &&
-    !LAPORAN_SECTIONS.some((s) => s.internalHref === m.internalHref) &&
-    !TEMPAHAN_SECTIONS.some((s) => s.internalHref === m.internalHref),
 );
 
 export function getModuleThemeForPath(path: string): ModuleTheme {

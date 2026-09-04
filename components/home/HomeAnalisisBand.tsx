@@ -108,7 +108,7 @@ export default function HomeAnalisisBand({ modules }: { modules: AnalisisHomeMod
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-graphite">
-                  Analisis USTP
+                  CoE Analytics
                 </p>
                 <h3 id="analisis-modal-title" className="mt-1 text-xl font-semibold tracking-tight">
                   {active.label}

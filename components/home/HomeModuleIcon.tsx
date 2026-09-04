@@ -183,5 +183,20 @@ export function HomeModuleIcon({ iconKey }: { iconKey: IconKey }) {
           <path d="M12 8h.01M11 12h1v4h1" />
         </svg>
       );
+    case "media":
+      return (
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.6}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={iconClass}
+        >
+          <rect x="3" y="5" width="18" height="14" rx="2" />
+          <path d="m10 9 6 3.5L10 16z" fill="currentColor" stroke="none" />
+        </svg>
+      );
   }
 }

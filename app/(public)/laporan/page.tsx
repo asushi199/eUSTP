@@ -7,7 +7,7 @@ import { LAPORAN_ENTRY_OVERRIDE } from "@/lib/laporan-entry";
 import { LAPORAN_SECTIONS, getModuleAccent } from "@/lib/module-theme";
 
 export const metadata: Metadata = {
-  title: "CoE Laporan — NEXa Manjung",
+  title: "CoE Reports — NEXa Manjung",
   description:
     "Pilih Laporan DPD, Laporan PSS, Laporan Akhbar atau Semak Tebus Buku.",
 };
@@ -26,7 +26,7 @@ export default function LaporanHubPage() {
   return (
     <PublicPageShell>
       <PageHeader
-        eyebrow="CoE Laporan"
+        eyebrow="CoE Reports"
         title="Pilih Jenis Laporan"
         accent={accent}
         description={

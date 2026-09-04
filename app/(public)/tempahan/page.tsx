@@ -6,7 +6,7 @@ import { HomeModuleIcon } from "@/components/home/HomeModuleIcon";
 import { TEMPAHAN_SECTIONS, getModuleAccent } from "@/lib/module-theme";
 
 export const metadata: Metadata = {
-  title: "CoE Booking — NEXa Manjung",
+  title: "CoE Services — NEXa Manjung",
   description:
     "Tempahan bilik PKG, permohonan khidmat bantu dan peminjaman peralatan USTP.",
 };
@@ -23,10 +23,10 @@ export default function TempahanHubPage() {
   return (
     <PublicPageShell>
       <PageHeader
-        eyebrow="CoE Booking"
+        eyebrow="CoE Services"
         title="Pilih Perkhidmatan"
         accent={accent}
-        description="Pilih tempahan bilik PKG, permohonan khidmat bantu atau peminjaman peralatan USTP."
+        description="Pilih tempahan premis PKG, permohonan khidmat bantu atau peminjaman peralatan USTP."
       />
 
       <div className="mt-8 grid gap-4">

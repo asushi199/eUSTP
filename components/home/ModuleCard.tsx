@@ -3,35 +3,35 @@
 import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 import { useScrollReveal } from "@/lib/scroll-reveal";
+import type { HomeModuleItem } from "@/lib/home-modules";
 
 type ModuleCardProps = {
   href: string;
   title: string;
-  description: string;
   icon: ReactNode;
   accent: string;
   index: number;
-  external?: boolean;
+  cta: string;
+  items: HomeModuleItem[];
+  moreLabel?: string;
 };
 
 export function ModuleCard({
   href,
   title,
-  description,
   icon,
   accent,
   index,
-  external = false,
+  cta,
+  items,
+  moreLabel,
 }: ModuleCardProps) {
-  const { ref, visible } = useScrollReveal<HTMLAnchorElement>();
+  const { ref, visible } = useScrollReveal<HTMLElement>();
 
   return (
-    <Link
+    <article
       ref={ref}
-      href={href}
-      target={external ? "_blank" : undefined}
-      rel={external ? "noopener noreferrer" : undefined}
-      className={`portal-module-card group${visible ? " is-visible" : ""}`}
+      className={`portal-module-card${visible ? " is-visible" : ""}`}
       style={
         {
           "--module-accent": accent,
@@ -39,27 +39,40 @@ export function ModuleCard({
         } as CSSProperties
       }
     >
-      <span className="portal-module-icon">{icon}</span>
-      <span className="flex-1">
-        <span className="flex items-center justify-between gap-2">
-          <span className="text-lg font-semibold text-ink">{title}</span>
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-5 w-5 text-steel transition group-hover:translate-x-0.5"
-            style={{ stroke: "var(--module-accent)" }}
-          >
-            <path d="M5 12h14M13 6l6 6-6 6" />
-          </svg>
+      <Link href={href} className="portal-module-card-head">
+        <span className="portal-module-icon [&_svg]:!h-5 [&_svg]:!w-5 [&_img]:!h-5 [&_img]:!w-5">
+          {icon}
         </span>
-        <span className="mt-1 block text-sm leading-relaxed text-graphite">
-          {description}
-        </span>
-      </span>
-    </Link>
+        <span className="portal-module-card-title">{title}</span>
+      </Link>
+      <div className="portal-module-card-body">
+        <ul className="portal-module-card-list">
+          {items.map((item) => (
+            <li key={item.label}>
+              {item.href ? (
+                <Link
+                  href={item.href}
+                  target={item.external ? "_blank" : undefined}
+                  rel={item.external ? "noopener noreferrer" : undefined}
+                >
+                  {item.label}
+                </Link>
+              ) : (
+                <span>{item.label}</span>
+              )}
+            </li>
+          ))}
+          {moreLabel ? (
+            <li className="portal-module-card-more">
+              <Link href={href}>{moreLabel}</Link>
+            </li>
+          ) : null}
+        </ul>
+        <Link href={href} className="portal-module-card-cta">
+          {cta}
+          <span aria-hidden> →</span>
+        </Link>
+      </div>
+    </article>
   );
 }

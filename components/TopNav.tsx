@@ -2,27 +2,12 @@ import Link from "next/link";
 import BrandWordmark from "./BrandWordmark";
 import PwaInstallButton from "./PwaInstallButton";
 
-const NAV_LINKS = [
-  { href: "/laporan", label: "CoE Laporan" },
-  { href: "/direktori", label: "CoE Direktori" },
-  { href: "/tempahan", label: "CoE Booking" },
-] as const;
-
-const navLinkClass = "rounded-md px-4 py-2 text-[15px] text-ink hover:bg-cloud";
-
-/** nav-bar-top hp: putih 64px, garis rambut bawah. */
+/** nav-bar-top hp: putih 64px. Desktop: logo dalam bar sisi, di sini hanya tindakan. */
 export default function TopNav() {
   return (
     <header className="sticky top-0 z-40 h-16 border-b hairline bg-white/88 backdrop-blur-md">
-      <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-4 sm:px-8">
-        <BrandWordmark />
-        <nav className="hidden items-center gap-1 md:flex">
-          {NAV_LINKS.map((l) => (
-            <Link key={l.href} href={l.href} className={navLinkClass}>
-              {l.label}
-            </Link>
-          ))}
-        </nav>
+      <div className="flex h-full items-center justify-between px-4 sm:px-8 md:justify-end">
+        <BrandWordmark className="md:hidden" />
         <div className="flex items-center gap-2">
           <PwaInstallButton variant="nav-link" className="pwa-topnav" />
           <Link
