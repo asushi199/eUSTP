@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "CoE Resources — NEXa Manjung",
   description:
-    "Surat program, pekeliling, nota dan sijil digital Unit Sumber Teknologi Pendidikan PPD Manjung.",
+    "Surat program, pekeliling dan nota Unit Sumber Teknologi Pendidikan PPD Manjung.",
 };
 
 export default async function ResourcesPage() {

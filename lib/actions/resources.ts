@@ -16,7 +16,6 @@ const kategoriSchema = z.enum([
   "surat-sekolah",
   "pekeliling",
   "nota",
-  "sijil",
 ]);
 
 const cardSchema = z.object({

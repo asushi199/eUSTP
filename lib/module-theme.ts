@@ -52,7 +52,7 @@ export const RESOURCES_HUB = {
   external: false,
   title: "CoE Resources",
   description:
-    "Surat program, pekeliling, nota dan sijil digital USTP — pekeliling rasmi sudah boleh dibuka.",
+    "Surat program, pekeliling dan nota USTP — pekeliling rasmi sudah boleh dibuka.",
   accent: "#EA580C",
   iconKey: "sumber" as const,
 } as const;

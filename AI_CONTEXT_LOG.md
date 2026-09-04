@@ -1,5 +1,10 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-04 — CoE Resources: buang kategori Sijil Digital Program
+
+- Kategori `sijil` dikeluarkan daripada senarai CoE Resources (awam, hab
+  utama dan borang admin). Sijil program diurus di Autosijil, bukan di sini.
+
 ## 2026-09-04 — CoE Resources: carian tajuk + bulan
 
 - Carian diletakkan di hab `/resources` dan subhalaman kategori. Hab

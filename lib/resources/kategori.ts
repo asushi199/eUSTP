@@ -26,11 +26,6 @@ export const RESOURCES_KATEGORI: ResourcesKategori[] = [
     title: "Nota / Modul / Panduan STP",
     blurb: "Nota, modul dan garis panduan rasmi Teknologi Pendidikan.",
   },
-  {
-    slug: "sijil",
-    title: "Sijil Digital Program",
-    blurb: "Sijil digital program dan aktiviti USTP.",
-  },
 ];
 
 export function resourcesKategoriBySlug(slug: string): ResourcesKategori | undefined {

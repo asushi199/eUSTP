@@ -16,6 +16,8 @@ test("keeps pekeliling as a CoE Resources category without OSC source", () => {
   assert.equal(pekeliling?.title, "Pekeliling / Siaran STP");
   assert.equal(resourcesHref("pekeliling"), "/resources/pekeliling");
   assert.equal(RESOURCES_KATEGORI.some((k) => k.slug === "pekeliling"), true);
+  assert.equal(RESOURCES_KATEGORI.some((k) => k.slug === "sijil"), false);
+  assert.equal(resourcesKategoriBySlug("sijil"), undefined);
 });
 
 test("maps kategori groups into section view for nested cards", () => {
