@@ -353,6 +353,8 @@ export const resourcesCards = pgTable(
     kategori: text("kategori").notNull(),
     title: text("title").notNull(),
     url: text("url").notNull(),
+    /** Bulan surat (YYYY-MM), berasingan daripada tarikh muat naik. */
+    letterMonth: text("letter_month"),
     sort: integer("sort").notNull().default(0),
     aktif: boolean("aktif").notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -507,6 +509,34 @@ export const telegramDestinations = pgTable(
   (t) => ({
     bindTokenIdx: uniqueIndex("telegram_destinations_bind_token_hash_idx").on(
       t.bindTokenHash,
+    ),
+  }),
+);
+
+/** Draf muat naik CoE Resources melalui NexaBot (peribadi atau kumpulan). */
+export const telegramResourceDrafts = pgTable(
+  "telegram_resource_drafts",
+  {
+    id: serial("id").primaryKey(),
+    chatId: text("chat_id").notNull(),
+    telegramUserId: text("telegram_user_id").notNull(),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    fileId: text("file_id"),
+    fileName: text("file_name"),
+    mimeType: text("mime_type"),
+    fileSize: integer("file_size"),
+    step: text("step").notNull(),
+    kategori: text("kategori"),
+    letterMonth: text("letter_month"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  },
+  (t) => ({
+    chatUserIdx: uniqueIndex("telegram_resource_drafts_chat_user_idx").on(
+      t.chatId,
+      t.telegramUserId,
     ),
   }),
 );

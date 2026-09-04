@@ -4,6 +4,7 @@ import { requireKandunganAccess } from "@/lib/rbac";
 import { resourcesAdminHref, resourcesKategoriBySlug } from "@/lib/resources/kategori";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 export default async function TambahResourcesKadPage({
   searchParams,
@@ -20,13 +21,16 @@ export default async function TambahResourcesKadPage({
         ← CoE Resources
       </Link>
       <h1 className="mt-2 text-2xl font-semibold tracking-tight">Tambah Kad</h1>
-      <p className="mt-1 text-sm text-graphite">Isi tajuk dan pautan surat untuk dipaparkan.</p>
+      <p className="mt-1 text-sm text-graphite">
+        Isi tajuk, bulan surat, dan muat naik fail atau tampal pautan.
+      </p>
       <div className="mt-5">
         <ResourcesCardForm
           values={{
             kategori,
             title: "",
             url: "",
+            letterMonth: null,
             sort: 0,
             aktif: true,
           }}

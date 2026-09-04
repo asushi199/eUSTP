@@ -6,10 +6,12 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { resourcesCards } from "@/lib/schema";
 import { requireKandunganAccess } from "@/lib/rbac";
+import { isLetterMonthKey } from "@/lib/resources/drive-path";
 import {
   resourcesAdminHref,
   resourcesHref,
 } from "@/lib/resources/kategori";
+import { uploadResourcesFileToDrive } from "@/lib/resources/publish";
 
 const kategoriSchema = z.enum([
   "surat-ustp",
@@ -21,7 +23,8 @@ const kategoriSchema = z.enum([
 const cardSchema = z.object({
   kategori: kategoriSchema,
   title: z.string().trim().min(1, "Sila isi tajuk").max(300),
-  url: z.string().trim().min(1, "Sila isi pautan").max(2000),
+  url: z.string().trim().max(2000),
+  letterMonth: z.string().trim(),
   sort: z.coerce.number().int().default(0),
   aktif: z.coerce.boolean().default(true),
 });
@@ -33,6 +36,12 @@ function revalidateResources(kategori: string) {
   revalidatePath(resourcesAdminHref(kategori));
 }
 
+function parseLetterMonth(raw: string): string | null | { error: string } {
+  if (!raw) return null;
+  if (!isLetterMonthKey(raw)) return { error: "Bulan surat tidak sah" };
+  return raw;
+}
+
 export async function saveResourcesCard(
   formData: FormData,
 ): Promise<{ ok: boolean; error?: string; id?: number }> {
@@ -41,13 +50,57 @@ export async function saveResourcesCard(
     kategori: formData.get("kategori"),
     title: formData.get("title") ?? "",
     url: formData.get("url") ?? "",
+    letterMonth: formData.get("letterMonth") ?? "",
     sort: formData.get("sort") || 0,
     aktif: formData.get("aktif") === "on" || formData.get("aktif") === "true",
   });
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Input tidak sah" };
   }
-  const data = parsed.data;
+
+  const letterMonth = parseLetterMonth(parsed.data.letterMonth);
+  if (letterMonth && typeof letterMonth === "object") {
+    return { ok: false, error: letterMonth.error };
+  }
+
+  const file = formData.get("fail");
+  let url = parsed.data.url;
+  if (file instanceof File && file.size > 0) {
+    if (!letterMonth) {
+      return { ok: false, error: "Sila pilih bulan surat sebelum memuat naik fail." };
+    }
+    try {
+      const uploaded = await uploadResourcesFileToDrive({
+        kategori: parsed.data.kategori,
+        title: parsed.data.title,
+        letterMonth,
+        file: {
+          name: file.name,
+          type: file.type,
+          buffer: Buffer.from(await file.arrayBuffer()),
+        },
+      });
+      url = uploaded.url;
+    } catch (error) {
+      return {
+        ok: false,
+        error: error instanceof Error ? error.message : "Gagal memuat naik fail.",
+      };
+    }
+  }
+
+  if (!url) {
+    return { ok: false, error: "Sila isi pautan atau muat naik fail surat." };
+  }
+
+  const data = {
+    kategori: parsed.data.kategori,
+    title: parsed.data.title,
+    url,
+    letterMonth,
+    sort: parsed.data.sort,
+    aktif: parsed.data.aktif,
+  };
   const idRaw = String(formData.get("id") ?? "").trim();
 
   if (idRaw) {

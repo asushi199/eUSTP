@@ -62,6 +62,7 @@ export type ResourcesExplorerCard = {
   kategoriSlug: string;
   kategoriTitle: string;
   createdAt: string;
+  letterMonth: string | null;
   typeLabel: string;
   embed: CardEmbedInfo;
 };
@@ -78,7 +79,13 @@ export function toResourcesExplorerGroups(
     slug: string;
     title: string;
     blurb: string;
-    cards: Array<{ id: number; title: string; url: string; createdAt: Date | string }>;
+    cards: Array<{
+      id: number;
+      title: string;
+      url: string;
+      createdAt: Date | string;
+      letterMonth?: string | null;
+    }>;
   }>,
 ): ResourcesExplorerGroup[] {
   return groups.map((g) => ({
@@ -95,6 +102,7 @@ export function toResourcesExplorerGroups(
         kategoriTitle: g.title,
         createdAt:
           typeof c.createdAt === "string" ? c.createdAt : c.createdAt.toISOString(),
+        letterMonth: c.letterMonth ?? null,
         typeLabel: display.typeLabel,
         embed: display.embed,
       };
@@ -138,19 +146,54 @@ export function formatResourceMonthLabel(monthKey: string): string {
   return nama ? `${nama} ${match[1]}` : monthKey;
 }
 
+/** 12 bulan lalu hingga 2 bulan akan datang (MYT) — muat naik lambat atau awal. */
+export function listLetterMonthChoices(now = new Date()): Array<{ value: string; label: string }> {
+  const parts = new Intl.DateTimeFormat("en", {
+    timeZone: MYT,
+    year: "numeric",
+    month: "numeric",
+  }).formatToParts(now);
+  let year = Number(parts.find((part) => part.type === "year")?.value);
+  let month = Number(parts.find((part) => part.type === "month")?.value);
+  if (!year || !month) return [];
+
+  month += 2;
+  if (month > 12) {
+    year += 1;
+    month -= 12;
+  }
+
+  const items: Array<{ value: string; label: string }> = [];
+  for (let i = 0; i < 15; i += 1) {
+    const value = `${year}-${padMonth(month)}`;
+    items.push({ value, label: formatResourceMonthLabel(value) });
+    month -= 1;
+    if (month < 1) {
+      month = 12;
+      year -= 1;
+    }
+  }
+  return items;
+}
+
 function padMonth(n: number): string {
   return String(n).padStart(2, "0");
 }
 
-/** Kunci bulan daripada tarikh muat naik + sebarang tarikh yang tertulis pada tajuk/nama fail. */
+/** Kunci bulan: bulan surat jika ada, else tarikh muat naik, plus bulan pada tajuk. */
 export function cardMonthKeys(card: {
   title: string;
   url: string;
   createdAt: string;
+  letterMonth?: string | null;
 }): string[] {
   const keys = new Set<string>();
-  const uploaded = resourceMonthKey(card.createdAt);
-  if (uploaded) keys.add(uploaded);
+  if (card.letterMonth) {
+    keys.add(card.letterMonth);
+  } else {
+    const uploaded = resourceMonthKey(card.createdAt);
+    if (uploaded) keys.add(uploaded);
+  }
 
   const text = `${card.title} ${filenameFromUrl(card.url)}`;
   const lower = text.toLowerCase();

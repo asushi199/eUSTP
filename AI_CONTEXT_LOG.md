@@ -1,5 +1,19 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-04 — CoE Resources: NexaBot muat naik surat program
+
+- Surat Program USTP dan Surat Program Sekolah/Guru/Murid boleh dihantar
+  melalui NexaBot (`/surat`) dalam sembang peribadi atau kumpulan. Bot
+  menanya kumpulan, bulan surat (boleh berbeza daripada bulan muat naik)
+  dan nama, kemudian menyimpan fail ke Google Drive
+  `CoE-Resources/<kumpulan>/<tahun>/<YYYY-MM>/` dan menerbitkan kad awam.
+- Hanya staf Admin/Pegawai yang sudah ikat Telegram di `/admin/telegram`
+  boleh memuat naik. Dalam kumpulan, hantar `/surat` dulu kemudian balas
+  dengan fail (privacy mode Telegram).
+- Borang admin juga menerima fail + bulan surat; pautan manual kekal.
+- Webhook perlu `callback_query`: jalankan `npm run telegram:set-webhook`
+  selepas deploy.
+
 ## 2026-09-04 — CoE Resources: buang kategori Sijil Digital Program
 
 - Kategori `sijil` dikeluarkan daripada senarai CoE Resources (awam, hab

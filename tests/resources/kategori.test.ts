@@ -5,6 +5,9 @@ import {
   toResourcesSectionGroups,
 } from "../../lib/resources/card-display";
 import {
+  isResourcesBotKategori,
+  RESOURCES_BOT_KATEGORI_SLUGS,
+  RESOURCES_DRIVE_FOLDER,
   RESOURCES_KATEGORI,
   resourcesHref,
   resourcesKategoriBySlug,
@@ -50,4 +53,11 @@ test("infers Drive PDF and Canva URLs for preview", () => {
     "canva",
   );
   assert.equal(inferResourceCardType("https://example.com/nota"), "link");
+});
+
+test("limits NexaBot uploads to the two program-letter groups", () => {
+  assert.deepEqual([...RESOURCES_BOT_KATEGORI_SLUGS], ["surat-ustp", "surat-sekolah"]);
+  assert.equal(isResourcesBotKategori("surat-ustp"), true);
+  assert.equal(isResourcesBotKategori("pekeliling"), false);
+  assert.equal(RESOURCES_DRIVE_FOLDER["surat-sekolah"], "Surat-Sekolah");
 });

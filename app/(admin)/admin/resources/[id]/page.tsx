@@ -8,6 +8,7 @@ import { resourcesAdminHref } from "@/lib/resources/kategori";
 import { getResourcesCard } from "@/lib/resources/queries";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 export default async function EditResourcesKadPage({
   params,
@@ -39,6 +40,7 @@ export default async function EditResourcesKadPage({
             kategori: card.kategori,
             title: card.title,
             url: card.url,
+            letterMonth: card.letterMonth,
             sort: card.sort,
             aktif: card.aktif,
           }}

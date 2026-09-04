@@ -253,6 +253,13 @@
       "when": 1788507547309,
       "tag": "0035_wealthy_shadowcat",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1788523047826,
+      "tag": "0036_high_puppet_master",
+      "breakpoints": true
     }
   ]
 }

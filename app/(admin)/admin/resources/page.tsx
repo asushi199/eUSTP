@@ -1,6 +1,7 @@
 import Link from "next/link";
 import ResourcesKategoriSections from "@/components/resources/ResourcesKategoriSections";
 import { getModuleAccent } from "@/lib/module-theme";
+import { getTelegramBotUsername } from "@/lib/telegram/client";
 import { requireKandunganAccess } from "@/lib/rbac";
 import { toResourcesSectionGroups } from "@/lib/resources/card-display";
 import { RESOURCES_KATEGORI } from "@/lib/resources/kategori";
@@ -23,6 +24,7 @@ export default async function AdminResourcesPage({
     await listResourcesCardsGrouped({ includeHidden: true }),
   );
   const accent = getModuleAccent("/resources");
+  const bot = getTelegramBotUsername();
 
   return (
     <>
@@ -32,8 +34,9 @@ export default async function AdminResourcesPage({
         </Link>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">CoE Resources</h1>
         <p className="mt-1 text-sm text-graphite">
-          Ketik kad kategori untuk urus surat di dalamnya. Tambah tajuk dan pautan;
-          pratonton dipaparkan pada kad.
+          Ketik kad kategori untuk urus surat di dalamnya. Muat naik fail ke Google Drive,
+          atau hantar PDF kepada NexaBot
+          {bot ? ` (@${bot})` : ""} dengan /surat — dalam sembang peribadi atau kumpulan.
         </p>
       </div>
 

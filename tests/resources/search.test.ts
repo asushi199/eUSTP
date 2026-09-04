@@ -6,6 +6,7 @@ import {
   filenameFromUrl,
   filterResourceCards,
   formatResourceMonthLabel,
+  listLetterMonthChoices,
   normalizeResourceQuery,
   resourceMonthKey,
 } from "../../lib/resources/search";
@@ -20,6 +21,7 @@ function card(
     kategoriSlug: "pekeliling",
     kategoriTitle: "Pekeliling / Siaran STP",
     createdAt: "2026-08-26T04:00:00.000Z",
+    letterMonth: null,
     typeLabel: "PDF",
     embed: { mode: "none" },
     ...partial,
@@ -83,4 +85,24 @@ test("filters by month and query together", () => {
   const tugas = filterResourceCards(cards, { query: "tugas", month: "2026-07" });
   assert.equal(tugas.length, 1);
   assert.equal(filterResourceCards(cards, { query: "tugas", month: "2026-08" }).length, 0);
+});
+
+test("uses the chosen letter month instead of the upload month", () => {
+  const late = card({
+    title: "Jemputan Program DELIMa",
+    createdAt: "2026-09-04T04:00:00.000Z",
+    letterMonth: "2026-07",
+  });
+  assert.equal(cardMonthKeys(late).includes("2026-07"), true);
+  assert.equal(cardMonthKeys(late).includes("2026-09"), false);
+  assert.equal(filterResourceCards([late], { month: "2026-07" }).length, 1);
+  assert.equal(filterResourceCards([late], { month: "2026-09" }).length, 0);
+});
+
+test("lists letter-month choices around the current Malaysia month", () => {
+  const choices = listLetterMonthChoices(new Date("2026-09-04T12:00:00+08:00"));
+  assert.equal(choices[0]?.value, "2026-11");
+  assert.equal(choices.some((c) => c.value === "2026-09" && c.label === "September 2026"), true);
+  assert.equal(choices.at(-1)?.value, "2025-09");
+  assert.equal(choices.length, 15);
 });

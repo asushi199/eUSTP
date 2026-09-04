@@ -28,7 +28,7 @@ async function main() {
       body: JSON.stringify({
         url: `${baseUrl}/api/telegram/webhook`,
         secret_token: secret,
-        allowed_updates: ["message"],
+        allowed_updates: ["message", "callback_query"],
       }),
     });
   } catch {

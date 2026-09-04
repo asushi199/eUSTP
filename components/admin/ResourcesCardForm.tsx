@@ -4,12 +4,14 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { saveResourcesCard } from "@/lib/actions/resources";
 import { RESOURCES_KATEGORI } from "@/lib/resources/kategori";
+import { listLetterMonthChoices } from "@/lib/resources/search";
 
 export type ResourcesCardFormValues = {
   id?: number;
   kategori: string;
   title: string;
   url: string;
+  letterMonth: string | null;
   sort: number;
   aktif: boolean;
 };
@@ -18,6 +20,7 @@ export default function ResourcesCardForm({ values }: { values: ResourcesCardFor
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const months = listLetterMonthChoices();
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -59,6 +62,42 @@ export default function ResourcesCardForm({ values }: { values: ResourcesCardFor
       </div>
 
       <div>
+        <label className="label" htmlFor="letterMonth">
+          Bulan surat
+        </label>
+        <select
+          id="letterMonth"
+          name="letterMonth"
+          defaultValue={values.letterMonth ?? ""}
+          className="input"
+        >
+          <option value="">Tidak dinyatakan</option>
+          {values.letterMonth && !months.some((m) => m.value === values.letterMonth) ? (
+            <option value={values.letterMonth}>{values.letterMonth}</option>
+          ) : null}
+          {months.map((m) => (
+            <option key={m.value} value={m.value}>
+              {m.label}
+            </option>
+          ))}
+        </select>
+        <p className="mt-1 text-xs text-graphite">
+          Guna bulan pada surat, bukan bulan muat naik. Wajib jika memuat naik fail.
+        </p>
+      </div>
+
+      <div>
+        <label className="label" htmlFor="fail">
+          Fail surat
+        </label>
+        <input id="fail" name="fail" type="file" accept="application/pdf,image/*" className="input" />
+        <p className="mt-1 text-xs text-graphite">
+          PDF atau imej (JPG/PNG/WebP), maksimum 8 MB. Fail disimpan ke Google Drive mengikut
+          kumpulan dan bulan surat.
+        </p>
+      </div>
+
+      <div>
         <label className="label" htmlFor="url">
           Pautan surat
         </label>
@@ -68,10 +107,10 @@ export default function ResourcesCardForm({ values }: { values: ResourcesCardFor
           defaultValue={values.url}
           className="input"
           placeholder="https://"
-          required
         />
         <p className="mt-1 text-xs text-graphite">
-          Pautan Google Drive, Canva atau PDF. Halaman awam akan papar dan pratonton surat ini.
+          Isi pautan sedia ada, atau biarkan kosong jika memuat naik fail di atas. Halaman awam
+          akan papar dan pratonton surat ini.
         </p>
       </div>
 

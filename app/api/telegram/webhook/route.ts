@@ -9,14 +9,35 @@ import {
   telegramDestinationLabel,
 } from "@/lib/telegram/binding";
 import { sendTelegramMessage } from "@/lib/telegram/client";
+import { handleTelegramResourceUpdate } from "@/lib/telegram/resource-upload";
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 type TelegramUpdate = {
   message?: {
+    message_id?: number;
     text?: string;
+    caption?: string;
     chat?: { id?: number; type?: string };
     from?: { id?: number; username?: string };
+    document?: {
+      file_id?: string;
+      file_name?: string;
+      mime_type?: string;
+      file_size?: number;
+    };
+    photo?: Array<{ file_id?: string; file_size?: number }>;
+  };
+  callback_query?: {
+    id?: string;
+    data?: string;
+    from?: { id?: number; username?: string };
+    message?: {
+      message_id?: number;
+      chat?: { id?: number; type?: string };
+      from?: { id?: number; username?: string };
+    };
   };
 };
 
@@ -40,10 +61,20 @@ export async function POST(request: Request) {
   const message = update.message;
   const chatId = message?.chat?.id;
   const token = parseTelegramStartBindToken(message?.text);
-  if (message?.chat?.type !== "private" || !chatId || !token) {
+  if (message?.chat?.type === "private" && chatId && token) {
+    await handleBindToken(String(chatId), token, message.from?.username);
     return NextResponse.json({ ok: true });
   }
 
+  await handleTelegramResourceUpdate(update);
+  return NextResponse.json({ ok: true });
+}
+
+async function handleBindToken(
+  chatId: string,
+  token: string,
+  username: string | undefined,
+): Promise<void> {
   const tokenHash = hashTelegramBindToken(token);
   const user = await db.query.users.findFirst({
     columns: { id: true },
@@ -59,8 +90,8 @@ export async function POST(request: Request) {
       await db
         .update(users)
         .set({
-          telegramChatId: String(chatId),
-          telegramUsername: message?.from?.username ?? null,
+          telegramChatId: chatId,
+          telegramUsername: username ?? null,
           telegramBoundAt: new Date(),
           telegramBindTokenHash: null,
           telegramBindTokenExpiresAt: null,
@@ -68,16 +99,16 @@ export async function POST(request: Request) {
         })
         .where(and(eq(users.id, user.id), eq(users.telegramBindTokenHash, tokenHash)));
       await sendTelegramMessage(
-        String(chatId),
-        "Telegram telah disambungkan dengan portal NEXa Manjung. Notifikasi akan dihantar mengikut peranan anda.",
+        chatId,
+        "Telegram telah disambungkan dengan portal NEXa Manjung. Notifikasi akan dihantar mengikut peranan anda. Hantar /surat untuk muat naik surat program ke CoE Resources.",
       );
     } catch {
       await sendTelegramMessage(
-        String(chatId),
+        chatId,
         "Akaun Telegram ini tidak dapat disambungkan. Sila hubungi pentadbir sistem.",
       );
     }
-    return NextResponse.json({ ok: true });
+    return;
   }
 
   const destination = await db.query.telegramDestinations.findFirst({
@@ -90,18 +121,18 @@ export async function POST(request: Request) {
 
   if (!destination) {
     await sendTelegramMessage(
-      String(chatId),
+      chatId,
       "Pautan sambungan tidak sah atau telah tamat. Jana pautan baharu dalam portal pentadbir.",
     );
-    return NextResponse.json({ ok: true });
+    return;
   }
 
   try {
     await db
       .update(telegramDestinations)
       .set({
-        chatId: String(chatId),
-        username: message?.from?.username ?? null,
+        chatId,
+        username: username ?? null,
         boundAt: new Date(),
         bindTokenHash: null,
         bindTokenExpiresAt: null,
@@ -120,15 +151,13 @@ export async function POST(request: Request) {
         })
       : null;
     await sendTelegramMessage(
-      String(chatId),
+      chatId,
       `Telegram telah disambungkan dengan ${telegramDestinationLabel(destination.id, pkg?.name)}. Notifikasi permohonan akan dihantar ke sini.`,
     );
   } catch {
     await sendTelegramMessage(
-      String(chatId),
+      chatId,
       "Akaun Telegram ini tidak dapat disambungkan. Sila hubungi pentadbir sistem.",
     );
   }
-
-  return NextResponse.json({ ok: true });
 }

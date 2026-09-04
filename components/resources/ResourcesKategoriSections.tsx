@@ -92,7 +92,7 @@ export default function ResourcesKategoriSections({
                 {n === 0 ? (
                   <p className="py-4 text-center text-sm text-graphite">
                     {admin
-                      ? "Tiada kad untuk kategori ini. Tambah tajuk dan pautan surat."
+                      ? "Tiada kad untuk kategori ini. Tambah surat (fail atau pautan)."
                       : "Kandungan akan ditambah kemudian."}
                   </p>
                 ) : (

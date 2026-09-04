@@ -4,6 +4,17 @@ export type ResourcesKategori = {
   blurb: string;
 };
 
+/** Kategori yang NexaBot boleh muat naik terus ke Drive. */
+export const RESOURCES_BOT_KATEGORI_SLUGS = ["surat-ustp", "surat-sekolah"] as const;
+export type ResourcesBotKategoriSlug = (typeof RESOURCES_BOT_KATEGORI_SLUGS)[number];
+
+export const RESOURCES_DRIVE_FOLDER: Record<string, string> = {
+  "surat-ustp": "Surat-USTP",
+  "surat-sekolah": "Surat-Sekolah",
+  pekeliling: "Pekeliling",
+  nota: "Nota",
+};
+
 /** Kategori awam CoE Resources — kad disimpan dalam `resources_cards`. */
 export const RESOURCES_KATEGORI: ResourcesKategori[] = [
   {
@@ -30,6 +41,10 @@ export const RESOURCES_KATEGORI: ResourcesKategori[] = [
 
 export function resourcesKategoriBySlug(slug: string): ResourcesKategori | undefined {
   return RESOURCES_KATEGORI.find((k) => k.slug === slug);
+}
+
+export function isResourcesBotKategori(slug: string): slug is ResourcesBotKategoriSlug {
+  return (RESOURCES_BOT_KATEGORI_SLUGS as readonly string[]).includes(slug);
 }
 
 export function resourcesHref(slug: string): string {
