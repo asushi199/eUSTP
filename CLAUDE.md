@@ -23,6 +23,12 @@ GPICT/DELIMa/GPM, Tempahan PKG, Portal Sumber/Analisis/Maklumat Asas). Sumber as
 ## Reka bentuk (hp DESIGN.md)
 
 - Kanvas putih; **biru `#024ad8` hanya untuk CTA/aksen — maksimum 2 unsur biru setiap skrin**.
+- **Pengecualian sah (arahan pengurusan):** kad hub `HOME_MODULES` di halaman utama
+  guna warna per-modul (accent dalam `lib/module-theme.ts`) pada kepala kad — JANGAN
+  tukar balik kepada satu warna. Untuk elak warna terlalu menyilau, kepala kad
+  (`.portal-module-card-head` dalam `app/globals.css`) menyahtepu accent dengan
+  campuran kelabu neutral: `color-mix(in srgb, var(--module-accent) 70%, #64748b)`.
+  Laraskan nisbah 70% jika perlu lebih/kurang tenang; kekalkan teks putih.
 - Dakwat `#1a1a1a`, kelabu `graphite/steel/fog/cloud`; kad radius 8–16px, butang 4px, 44px tinggi.
 - Fon: Manrope (`--font-sans`). Butang: uppercase, tracking 0.7px.
 - Kelas sedia ada dalam `app/globals.css`: `.btn-primary/.btn-ink/.btn-outline/.btn-outline-ink`,

@@ -230,7 +230,8 @@
 
 .portal-welcome-analytics {
   position: relative;
-  z-index: 1;
+  /* Di atas teks banner (z-10) supaya jalur CoE Analytics tidak dilangkau. */
+  z-index: 20;
   margin-top: -0.75rem;
 }
 
@@ -551,13 +552,15 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.85rem 1.1rem;
-  background: var(--module-accent);
+  /* Warna modul dikekalkan untuk penanda wayfinding, tetapi ditenangkan:
+     campur kelabu neutral untuk buang ketajaman tepu (kurang menyilau). */
+  background: color-mix(in srgb, var(--module-accent) 70%, #64748b);
   color: #fff;
   text-decoration: none;
 }
 
 .portal-module-card-head:hover {
-  filter: brightness(1.05);
+  filter: saturate(1.08);
 }
 
 .portal-module-card-title {

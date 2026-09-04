@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import AnalisisKpiTiles from "@/components/analisis/AnalisisKpiTiles";
 import KpiGroups from "@/components/analisis/KpiGroups";
 import type { AnalisisHomeModule } from "@/lib/analisis/summary";
@@ -38,8 +39,13 @@ function moduleHasDetail(mod: AnalisisHomeModule): boolean {
  */
 export default function HomeAnalisisBand({ modules }: { modules: AnalisisHomeModule[] }) {
   const [openId, setOpenId] = useState<AnalisisHomeModule["id"] | null>(null);
+  const [mounted, setMounted] = useState(false);
   const closeRef = useRef<HTMLButtonElement>(null);
   const active = modules.find((m) => m.id === openId) ?? null;
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!active) return;
@@ -92,89 +98,92 @@ export default function HomeAnalisisBand({ modules }: { modules: AnalisisHomeMod
         ))}
       </div>
 
-      {active ? (
-        <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 p-0 sm:items-center sm:p-6"
-          onClick={() => setOpenId(null)}
-          role="presentation"
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="analisis-modal-title"
-            className="max-h-[88vh] w-full max-w-2xl overflow-y-auto rounded-t-2xl bg-white p-5 shadow-modal sm:rounded-2xl sm:p-6"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-graphite">
-                  CoE Analytics
-                </p>
-                <h3 id="analisis-modal-title" className="mt-1 text-xl font-semibold tracking-tight">
-                  {active.label}
-                </h3>
-              </div>
-              <button
-                ref={closeRef}
-                type="button"
-                onClick={() => setOpenId(null)}
-                aria-label="Tutup"
-                className="rounded-md p-2 text-graphite hover:bg-cloud hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+      {mounted && active
+        ? createPortal(
+            <div
+              className="fixed inset-0 z-[70] flex items-end justify-center bg-ink/40 p-0 sm:items-center sm:p-6"
+              onClick={() => setOpenId(null)}
+              role="presentation"
+            >
+              <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="analisis-modal-title"
+                className="relative z-[71] max-h-[88vh] w-full max-w-2xl overflow-y-auto rounded-t-2xl bg-white p-5 shadow-modal sm:rounded-2xl sm:p-6"
+                onClick={(e) => e.stopPropagation()}
               >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  className="h-5 w-5"
-                  aria-hidden
-                >
-                  <path d="M6 6l12 12M18 6L6 18" />
-                </svg>
-              </button>
-            </div>
+                <div className="relative z-10 flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-graphite">
+                      CoE Analytics
+                    </p>
+                    <h3 id="analisis-modal-title" className="mt-1 text-xl font-semibold tracking-tight">
+                      {active.label}
+                    </h3>
+                  </div>
+                  <button
+                    ref={closeRef}
+                    type="button"
+                    onClick={() => setOpenId(null)}
+                    aria-label="Tutup"
+                    className="relative z-10 -mr-1 -mt-1 rounded-md p-2 text-graphite hover:bg-cloud hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      strokeLinecap="round"
+                      className="h-5 w-5"
+                      aria-hidden
+                    >
+                      <path d="M6 6l12 12M18 6L6 18" />
+                    </svg>
+                  </button>
+                </div>
 
-            {moduleHasDetail(active) ? (
-              <div className="mt-4 space-y-4">
-                {active.note ? (
-                  <p className="text-sm leading-relaxed text-graphite">{active.note}</p>
-                ) : null}
-                {active.tileGroups ? (
-                  <KpiGroups groups={active.tileGroups} />
+                {moduleHasDetail(active) ? (
+                  <div className="mt-4 space-y-4">
+                    {active.note ? (
+                      <p className="text-sm leading-relaxed text-graphite">{active.note}</p>
+                    ) : null}
+                    {active.tileGroups ? (
+                      <KpiGroups groups={active.tileGroups} />
+                    ) : (
+                      <AnalisisKpiTiles tiles={active.tiles} />
+                    )}
+                    {active.delimaTrend && active.delimaTrend.points.length > 0 ? (
+                      <DelimaTrendChart
+                        data={active.delimaTrend.points}
+                        kpiGuru={active.delimaTrend.kpiGuru}
+                      />
+                    ) : null}
+                    {active.bars.map((bar) => (
+                      <BreakdownBarChart
+                        key={bar.title}
+                        title={bar.title}
+                        data={bar.data}
+                        seriesName={bar.seriesName}
+                      />
+                    ))}
+                    {active.line ? (
+                      <MonthlyLineChart
+                        title={active.line.title}
+                        data={active.line.data}
+                        seriesName={active.line.seriesName}
+                      />
+                    ) : null}
+                  </div>
                 ) : (
-                  <AnalisisKpiTiles tiles={active.tiles} />
+                  <p className="mt-4 text-sm text-graphite">
+                    Data modul ini belum tersedia. Sila semak semula kemudian.
+                  </p>
                 )}
-                {active.delimaTrend && active.delimaTrend.points.length > 0 ? (
-                  <DelimaTrendChart
-                    data={active.delimaTrend.points}
-                    kpiGuru={active.delimaTrend.kpiGuru}
-                  />
-                ) : null}
-                {active.bars.map((bar) => (
-                  <BreakdownBarChart
-                    key={bar.title}
-                    title={bar.title}
-                    data={bar.data}
-                    seriesName={bar.seriesName}
-                  />
-                ))}
-                {active.line ? (
-                  <MonthlyLineChart
-                    title={active.line.title}
-                    data={active.line.data}
-                    seriesName={active.line.seriesName}
-                  />
-                ) : null}
               </div>
-            ) : (
-              <p className="mt-4 text-sm text-graphite">
-                Data modul ini belum tersedia. Sila semak semula kemudian.
-              </p>
-            )}
-          </div>
-        </div>
-      ) : null}
+            </div>,
+            document.body,
+          )
+        : null}
     </>
   );
 }
