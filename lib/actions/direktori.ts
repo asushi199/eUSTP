@@ -23,8 +23,6 @@ const roleSchema = z.object({
 
 const submissionSchema = z.object({
   schoolCode: z.string().min(1, "Sila pilih sekolah"),
-  submitterName: z.string().trim().max(200).default(""),
-  submitterPhone: z.string().trim().max(30).default(""),
   roles: z.object({
     PGB: roleSchema,
     PK_PENTADBIRAN: roleSchema,
@@ -65,6 +63,10 @@ export async function createDirektoriSubmission(
     return { ok: false, error: "Sila isi sekurang-kurangnya satu peranan." };
   }
 
+  const submitterName = (access.nama || access.email).slice(0, 200) || null;
+  const submitterEmail = access.email.slice(0, 200) || null;
+  const source = access.authKind === "staff" ? "ustp_staff" : "moe-dl";
+
   await db.transaction(async (tx) => {
     const [version] = await tx
       .insert(contactVersions)
@@ -72,9 +74,9 @@ export async function createDirektoriSubmission(
         schoolCode: school.code,
         schoolName: school.name,
         zone: school.zone,
-        submitterName: data.submitterName || null,
-        submitterPhone: data.submitterPhone || null,
-        source: "public_form",
+        submitterName,
+        submitterPhone: submitterEmail,
+        source,
       })
       .returning({ id: contactVersions.id });
 

@@ -33,17 +33,19 @@ function buildRoleStateForSchool(rows: PublicDirectoryRow[], schoolCode: string)
 export default function KemaskiniForm({
   schools,
   currentRows,
+  actorNama,
+  actorEmail,
 }: {
   schools: SchoolOption[];
   currentRows: PublicDirectoryRow[];
+  actorNama: string;
+  actorEmail: string;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [schoolCode, setSchoolCode] = useState("");
-  const [submitterName, setSubmitterName] = useState("");
-  const [submitterPhone, setSubmitterPhone] = useState("");
   const [roleState, setRoleState] = useState<RoleState>(emptyRoleState);
 
   const filteredSchools = useMemo(() => {
@@ -71,8 +73,6 @@ export default function KemaskiniForm({
     startTransition(async () => {
       const res = await createDirektoriSubmission({
         schoolCode,
-        submitterName,
-        submitterPhone,
         roles: roleState,
       });
       if (!res.ok) {
@@ -175,19 +175,11 @@ export default function KemaskiniForm({
         )}
       </section>
 
-      <section className="card p-6">
-        <h2 className="text-lg font-semibold">3. Maklumat Penghantar (pilihan)</h2>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <div>
-            <label className="label" htmlFor="penghantar-nama">Nama Anda</label>
-            <input id="penghantar-nama" className="input" value={submitterName} onChange={(e) => setSubmitterName(e.target.value)} />
-          </div>
-          <div>
-            <label className="label" htmlFor="penghantar-tel">No. Telefon Anda</label>
-            <PhoneInput id="penghantar-tel" value={submitterPhone} onChange={(e) => setSubmitterPhone(e.target.value)} />
-          </div>
-        </div>
-      </section>
+      <p className="text-sm text-graphite">
+        Hantaran ini akan direkod atas nama{" "}
+        <span className="font-medium text-ink">{actorNama || actorEmail}</span>
+        {actorEmail ? ` (${actorEmail})` : ""}.
+      </p>
 
       {error && <div className="rounded-md border border-bloom-rose bg-bloom-rose/30 px-3 py-2 text-sm text-bloom-deep">{error}</div>}
 

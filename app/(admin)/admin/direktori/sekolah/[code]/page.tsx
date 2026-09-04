@@ -41,7 +41,13 @@ export default async function SekolahHistoryPage({ params }: { params: Promise<{
                 <p className="mt-0.5 text-xs text-graphite">
                   {v.submitterName ? `Oleh ${v.submitterName}` : "Tanpa nama"}
                   {v.submitterPhone ? ` · ${v.submitterPhone}` : ""}
-                  {v.source ? ` · ${v.source}` : ""}
+                  {v.source === "moe-dl"
+                    ? " · MOE-DL"
+                    : v.source === "ustp_staff"
+                      ? " · Staf USTP"
+                      : v.source
+                        ? ` · ${v.source}`
+                        : ""}
                 </p>
               </div>
               {!v.isCurrent && <RestoreButton versionId={v.id} />}

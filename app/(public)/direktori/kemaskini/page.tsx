@@ -29,8 +29,9 @@ export default async function KemaskiniPage() {
         Kemas Kini Maklumat Perhubungan Sekolah
       </h1>
       <p className="mt-2 text-graphite">
-        Kemaskini akan terus dipaparkan dalam direktori. Rekod lama disimpan
-        sebagai sejarah versi.
+        Kemaskini akan terus dipaparkan dalam direktori. Nama dan e-mel akaun
+        MOE-DL anda direkod sebagai penghantar. Rekod lama disimpan sebagai
+        sejarah versi.
       </p>
 
       <div className="mt-8">
@@ -39,7 +40,12 @@ export default async function KemaskiniPage() {
             Senarai sekolah belum tersedia. Sila hubungi pentadbir USTP.
           </div>
         ) : (
-          <KemaskiniForm schools={schools} currentRows={currentRows} />
+          <KemaskiniForm
+            schools={schools}
+            currentRows={currentRows}
+            actorNama={access.nama}
+            actorEmail={access.email}
+          />
         )}
       </div>
     </div>
