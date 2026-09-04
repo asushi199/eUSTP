@@ -260,6 +260,13 @@
       "when": 1788523047826,
       "tag": "0036_high_puppet_master",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1788525486032,
+      "tag": "0037_famous_calypso",
+      "breakpoints": true
     }
   ]
 }

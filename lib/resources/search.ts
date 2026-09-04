@@ -146,7 +146,53 @@ export function formatResourceMonthLabel(monthKey: string): string {
   return nama ? `${nama} ${match[1]}` : monthKey;
 }
 
-/** 12 bulan lalu hingga 2 bulan akan datang (MYT) — muat naik lambat atau awal. */
+function padMonth(n: number): string {
+  return String(n).padStart(2, "0");
+}
+
+export function currentLetterMonthKey(now = new Date()): string {
+  return resourceMonthKey(now.toISOString());
+}
+
+/** Geser YYYY-MM sebanyak `delta` bulan. */
+export function shiftLetterMonth(monthKey: string, delta: number): string {
+  const match = /^(\d{4})-(\d{2})$/.exec(monthKey);
+  if (!match) return monthKey;
+  const index = Number(match[1]) * 12 + Number(match[2]) - 1 + delta;
+  const year = Math.floor(index / 12);
+  const month = ((index % 12) + 12) % 12;
+  return `${year}-${padMonth(month + 1)}`;
+}
+
+const LETTER_MONTH_MIN_YEAR = 2020;
+
+export function clampLetterMonthCenter(centerMonth: string, now = new Date()): string {
+  const currentYear = Number(currentLetterMonthKey(now).slice(0, 4));
+  const maxYear = Number.isFinite(currentYear) ? currentYear + 5 : 2035;
+  const year = Number(centerMonth.slice(0, 4));
+  if (!/^\d{4}-\d{2}$/.test(centerMonth)) return currentLetterMonthKey(now);
+  if (year < LETTER_MONTH_MIN_YEAR) {
+    return `${LETTER_MONTH_MIN_YEAR}${centerMonth.slice(4)}`;
+  }
+  if (year > maxYear) {
+    return `${maxYear}${centerMonth.slice(4)}`;
+  }
+  return centerMonth;
+}
+
+/** 7 bulan sebelum + bulan tengah + 7 bulan selepas (tertua dahulu, tengah di grid). */
+export function listLetterMonthWindow(
+  centerMonth: string,
+): Array<{ value: string; label: string }> {
+  const items: Array<{ value: string; label: string }> = [];
+  for (let delta = -7; delta <= 7; delta += 1) {
+    const value = shiftLetterMonth(centerMonth, delta);
+    items.push({ value, label: formatResourceMonthLabel(value) });
+  }
+  return items;
+}
+
+/** 12 bulan lalu hingga 2 bulan akan datang (MYT) — borang admin. */
 export function listLetterMonthChoices(now = new Date()): Array<{ value: string; label: string }> {
   const parts = new Intl.DateTimeFormat("en", {
     timeZone: MYT,
@@ -174,10 +220,6 @@ export function listLetterMonthChoices(now = new Date()): Array<{ value: string;
     }
   }
   return items;
-}
-
-function padMonth(n: number): string {
-  return String(n).padStart(2, "0");
 }
 
 /** Kunci bulan: bulan surat jika ada, else tarikh muat naik, plus bulan pada tajuk. */

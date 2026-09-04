@@ -1,0 +1,1 @@
+ALTER TABLE "telegram_resource_drafts" ADD COLUMN "prompt_message_id" integer;

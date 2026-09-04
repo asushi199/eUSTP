@@ -5,6 +5,7 @@ import {
   parseResourceCallback,
   resourceKategoriCallbackData,
   resourceMonthCallbackData,
+  resourceYearCallbackData,
 } from "../../lib/telegram/commands";
 import { kategoriKeyboard, monthKeyboard } from "../../lib/telegram/resource-keyboard";
 
@@ -25,16 +26,23 @@ test("parses resource wizard callback data", () => {
     type: "bulan",
     month: "2026-07",
   });
+  assert.deepEqual(parseResourceCallback(resourceYearCallbackData("2025-09")), {
+    type: "tahun",
+    center: "2025-09",
+  });
   assert.deepEqual(parseResourceCallback("rs:x"), { type: "batal" });
   assert.equal(parseResourceCallback("rs:k:pekeliling"), null);
 });
 
 test("keeps kategori and month callback data within Telegram's 64-byte limit", () => {
   const kategori = kategoriKeyboard().flat();
-  const months = monthKeyboard(new Date("2026-09-04T12:00:00+08:00")).flat();
+  const months = monthKeyboard("2026-09", new Date("2026-09-04T12:00:00+08:00")).flat();
   for (const button of [...kategori, ...months]) {
     assert.ok(button.callback_data.length <= 64, button.callback_data);
   }
   assert.equal(kategori.some((b) => b.text === "USTP"), true);
   assert.equal(kategori.some((b) => b.text === "Sekolah / Guru / Murid"), true);
+  assert.equal(months.some((b) => b.text === "September 2026"), true);
+  assert.equal(months.some((b) => b.text === "« 2025"), true);
+  assert.equal(months.some((b) => b.text === "2027 »"), true);
 });

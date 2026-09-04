@@ -18,6 +18,7 @@ export function parseBotCommand(
 export type ResourceCallback =
   | { type: "kategori"; slug: "surat-ustp" | "surat-sekolah" }
   | { type: "bulan"; month: string }
+  | { type: "tahun"; center: string }
   | { type: "batal" };
 
 export function parseResourceCallback(data: string | undefined): ResourceCallback | null {
@@ -29,6 +30,8 @@ export function parseResourceCallback(data: string | undefined): ResourceCallbac
   }
   const month = /^rs:m:(\d{4}-\d{2})$/.exec(data);
   if (month) return { type: "bulan", month: month[1] };
+  const year = /^rs:y:(\d{4}-\d{2})$/.exec(data);
+  if (year) return { type: "tahun", center: year[1] };
   return null;
 }
 
@@ -38,6 +41,10 @@ export function resourceKategoriCallbackData(slug: "surat-ustp" | "surat-sekolah
 
 export function resourceMonthCallbackData(month: string): string {
   return `rs:m:${month}`;
+}
+
+export function resourceYearCallbackData(center: string): string {
+  return `rs:y:${center}`;
 }
 
 export const RESOURCE_CANCEL_CALLBACK = "rs:x";

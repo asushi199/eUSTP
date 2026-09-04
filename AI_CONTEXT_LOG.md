@@ -1,5 +1,18 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-04 — NexaBot: bulan 7+7 dengan butang tahun
+
+- Pemilih bulan surat: 15 bulan berpusat (7 sebelum, bulan semasa, 7
+  selepas), tertua dahulu supaya bulan tengah di tengah grid. Butang
+  `« tahun` / `tahun »` menukar muka surat setahun.
+
+## 2026-09-04 — NexaBot: padam mesej wizard selepas simpan
+
+- Selepas surat berjaya, bot memadam arahan kumpulan/bulan/nama dan
+  status muat naik. Yang kekal: fail asal + mesej "Surat telah disimpan"
+  (pautan Drive/portal). Dalam kumpulan, bot perlu kebenaran padam mesej
+  untuk buang tajuk yang ditaip pengguna.
+
 ## 2026-09-04 — Khidmat Bantu: folder Drive modul dahulu
 
 - Surat permohonan GAS kini ke `Khidmat-Bantu/<tahun>/<YYYY-MM>/`,

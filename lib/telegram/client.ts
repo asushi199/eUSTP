@@ -126,3 +126,25 @@ export async function downloadTelegramFile(filePath: string): Promise<Buffer | n
     return null;
   }
 }
+
+export async function deleteTelegramMessage(
+  chatId: string,
+  messageId: number,
+): Promise<boolean> {
+  if (!chatId || !messageId) return false;
+  const result = await telegramApi("deleteMessage", {
+    chat_id: chatId,
+    message_id: messageId,
+  });
+  return result?.ok === true;
+}
+
+export async function deleteTelegramMessages(
+  chatId: string,
+  messageIds: Array<number | null | undefined>,
+): Promise<void> {
+  const unique = [
+    ...new Set(messageIds.filter((id): id is number => typeof id === "number" && id > 0)),
+  ];
+  await Promise.all(unique.map((id) => deleteTelegramMessage(chatId, id)));
+}

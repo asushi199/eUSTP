@@ -18,6 +18,7 @@ import { canManageKandungan } from "@/lib/roles";
 import { parseBotCommand, parseResourceCallback } from "./commands";
 import {
   answerTelegramCallback,
+  deleteTelegramMessages,
   downloadTelegramFile,
   editTelegramMessage,
   getTelegramBotUsername,
@@ -176,11 +177,12 @@ async function reply(
   text: string,
   keyboard?: ReturnType<typeof kategoriKeyboard>,
   replyToMessageId?: number,
-): Promise<void> {
-  await sendTelegramChatMessage(chatId, text, {
+): Promise<number | undefined> {
+  const sent = await sendTelegramChatMessage(chatId, text, {
     replyMarkup: keyboard ? { inline_keyboard: keyboard } : undefined,
     replyToMessageId,
   });
+  return sent.messageId;
 }
 
 function fileError(file: NonNullable<ReturnType<typeof extractFile>>): string | null {
@@ -205,6 +207,16 @@ async function startFromFile(opts: {
     await reply(opts.chatId, err);
     return;
   }
+  const previous = await findDraft(opts.chatId, opts.telegramUserId);
+  if (previous?.promptMessageId) {
+    await deleteTelegramMessages(opts.chatId, [previous.promptMessageId]);
+  }
+  const promptMessageId = await reply(
+    opts.chatId,
+    kategoriPrompt(opts.file.fileName),
+    kategoriKeyboard(),
+    opts.replyToMessageId,
+  );
   await upsertDraft({
     chatId: opts.chatId,
     telegramUserId: opts.telegramUserId,
@@ -216,8 +228,8 @@ async function startFromFile(opts: {
     step: "kategori",
     kategori: null,
     letterMonth: null,
+    promptMessageId: promptMessageId ?? null,
   });
-  await reply(opts.chatId, kategoriPrompt(opts.file.fileName), kategoriKeyboard(), opts.replyToMessageId);
 }
 
 async function publishDraft(opts: {
@@ -225,6 +237,7 @@ async function publishDraft(opts: {
   telegramUserId: string;
   draft: DraftRow;
   title: string;
+  titleMessageId?: number;
 }): Promise<void> {
   const title = opts.title.trim().slice(0, 300);
   if (!title) {
@@ -251,7 +264,7 @@ async function publishDraft(opts: {
     return;
   }
 
-  await reply(opts.chatId, "Sedang memuat naik ke Google Drive…");
+  const uploading = await sendTelegramChatMessage(opts.chatId, "Sedang memuat naik ke Google Drive…");
   const filePath = await getTelegramFilePath(opts.draft.fileId);
   const buffer = filePath ? await downloadTelegramFile(filePath) : null;
   if (!buffer) {
@@ -277,24 +290,38 @@ async function publishDraft(opts: {
     const kategori = resourcesKategoriBySlug(opts.draft.kategori);
     const portal = portalBaseUrl();
     const publicUrl = portal ? `${portal}${resourcesHref(opts.draft.kategori)}` : null;
-    await sendTelegramChatMessage(
-      opts.chatId,
-      [
-        "Surat telah disimpan.",
-        "",
-        `Tajuk: ${title}`,
-        `Kumpulan: ${kategori?.title ?? opts.draft.kategori}`,
-        `Bulan: ${formatResourceMonthLabel(opts.draft.letterMonth)}`,
-      ].join("\n"),
-      {
-        replyMarkup: {
-          inline_keyboard: [
-            [{ text: "Buka di Drive", url: published.url }],
-            ...(publicUrl ? [[{ text: "Lihat di portal", url: publicUrl }]] : []),
-          ],
-        },
-      },
-    );
+    const successText = [
+      "Surat telah disimpan.",
+      "",
+      `Tajuk: ${title}`,
+      `Kumpulan: ${kategori?.title ?? opts.draft.kategori}`,
+      `Bulan: ${formatResourceMonthLabel(opts.draft.letterMonth)}`,
+    ].join("\n");
+    const successMarkup = {
+      inline_keyboard: [
+        [{ text: "Buka di Drive", url: published.url }],
+        ...(publicUrl ? [[{ text: "Lihat di portal", url: publicUrl }]] : []),
+      ],
+    };
+
+    let successOnUploading = false;
+    if (uploading.messageId) {
+      successOnUploading = await editTelegramMessage(
+        opts.chatId,
+        uploading.messageId,
+        successText,
+        successMarkup,
+      );
+    }
+    if (!successOnUploading) {
+      await sendTelegramChatMessage(opts.chatId, successText, { replyMarkup: successMarkup });
+    }
+
+    await deleteTelegramMessages(opts.chatId, [
+      opts.draft.promptMessageId,
+      opts.titleMessageId,
+      successOnUploading ? null : uploading.messageId,
+    ]);
   } catch (error) {
     await reply(
       opts.chatId,
@@ -320,8 +347,9 @@ async function handleAuthorizedMessage(opts: {
   const isGroup = isGroupChat(opts.chatType);
 
   if (command === "batal") {
+    const draft = await findDraft(opts.chatId, opts.telegramUserId);
     await clearDraft(opts.chatId, opts.telegramUserId);
-    await reply(opts.chatId, "Muat naik surat dibatalkan.");
+    await deleteTelegramMessages(opts.chatId, [draft?.promptMessageId, opts.message.message_id]);
     return true;
   }
 
@@ -336,6 +364,12 @@ async function handleAuthorizedMessage(opts: {
       });
       return true;
     }
+    const promptMessageId = await reply(
+      opts.chatId,
+      askFilePrompt(isGroup),
+      cancelKeyboard(),
+      opts.message.message_id,
+    );
     await upsertDraft({
       chatId: opts.chatId,
       telegramUserId: opts.telegramUserId,
@@ -347,8 +381,8 @@ async function handleAuthorizedMessage(opts: {
       step: "await_file",
       kategori: null,
       letterMonth: null,
+      promptMessageId: promptMessageId ?? null,
     });
-    await reply(opts.chatId, askFilePrompt(isGroup), cancelKeyboard(), opts.message.message_id);
     return true;
   }
 
@@ -387,6 +421,7 @@ async function handleAuthorizedMessage(opts: {
       telegramUserId: opts.telegramUserId,
       draft,
       title: text,
+      titleMessageId: opts.message.message_id,
     });
     return true;
   }
@@ -450,13 +485,12 @@ async function handleCallback(query: TelegramResourceCallback): Promise<boolean>
 
   const draft = await findDraft(String(chatId), telegramUserId);
   if (parsed.type === "batal") {
-    await clearDraft(String(chatId), telegramUserId);
     await answerTelegramCallback(callbackId, "Dibatalkan");
-    if (query.message?.message_id) {
-      await editTelegramMessage(String(chatId), query.message.message_id, "Muat naik surat dibatalkan.");
-    } else {
-      await reply(String(chatId), "Muat naik surat dibatalkan.");
-    }
+    await deleteTelegramMessages(String(chatId), [
+      query.message?.message_id,
+      draft?.promptMessageId,
+    ]);
+    await clearDraft(String(chatId), telegramUserId);
     return true;
   }
 
@@ -478,6 +512,7 @@ async function handleCallback(query: TelegramResourceCallback): Promise<boolean>
       step: "bulan",
       kategori: slug,
       letterMonth: null,
+      promptMessageId: query.message?.message_id ?? draft.promptMessageId ?? null,
     });
     await answerTelegramCallback(callbackId);
     if (query.message?.message_id) {
@@ -486,6 +521,35 @@ async function handleCallback(query: TelegramResourceCallback): Promise<boolean>
       });
     } else {
       await reply(String(chatId), monthPrompt(slug), monthKeyboard());
+    }
+    return true;
+  }
+
+  if (parsed.type === "tahun") {
+    if (!draft.kategori || !isResourcesBotKategori(draft.kategori) || !isLetterMonthKey(parsed.center)) {
+      await answerTelegramCallback(callbackId, "Pilihan tidak sah.");
+      return true;
+    }
+    await upsertDraft({
+      chatId: draft.chatId,
+      telegramUserId: draft.telegramUserId,
+      userId: draft.userId,
+      fileId: draft.fileId,
+      fileName: draft.fileName,
+      mimeType: draft.mimeType,
+      fileSize: draft.fileSize,
+      step: "bulan",
+      kategori: draft.kategori,
+      letterMonth: null,
+      promptMessageId: query.message?.message_id ?? draft.promptMessageId ?? null,
+    });
+    await answerTelegramCallback(callbackId);
+    if (query.message?.message_id) {
+      await editTelegramMessage(String(chatId), query.message.message_id, monthPrompt(draft.kategori), {
+        inline_keyboard: monthKeyboard(parsed.center),
+      });
+    } else {
+      await reply(String(chatId), monthPrompt(draft.kategori), monthKeyboard(parsed.center));
     }
     return true;
   }
@@ -508,6 +572,7 @@ async function handleCallback(query: TelegramResourceCallback): Promise<boolean>
     step: "nama",
     kategori: draft.kategori,
     letterMonth: parsed.month,
+    promptMessageId: query.message?.message_id ?? draft.promptMessageId ?? null,
   });
   await answerTelegramCallback(callbackId);
   if (query.message?.message_id) {

@@ -7,8 +7,10 @@ import {
   filterResourceCards,
   formatResourceMonthLabel,
   listLetterMonthChoices,
+  listLetterMonthWindow,
   normalizeResourceQuery,
   resourceMonthKey,
+  shiftLetterMonth,
 } from "../../lib/resources/search";
 import type { ResourcesExplorerCard } from "../../lib/resources/search";
 
@@ -105,4 +107,14 @@ test("lists letter-month choices around the current Malaysia month", () => {
   assert.equal(choices.some((c) => c.value === "2026-09" && c.label === "September 2026"), true);
   assert.equal(choices.at(-1)?.value, "2025-09");
   assert.equal(choices.length, 15);
+});
+
+test("windows NexaBot months seven before and after the centered month", () => {
+  const window = listLetterMonthWindow("2026-09");
+  assert.equal(window.length, 15);
+  assert.equal(window[0]?.value, "2026-02");
+  assert.equal(window[7]?.value, "2026-09");
+  assert.equal(window[14]?.value, "2027-04");
+  assert.equal(shiftLetterMonth("2026-09", -12), "2025-09");
+  assert.equal(shiftLetterMonth("2026-01", -1), "2025-12");
 });

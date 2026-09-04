@@ -530,6 +530,7 @@ export const telegramResourceDrafts = pgTable(
     step: text("step").notNull(),
     kategori: text("kategori"),
     letterMonth: text("letter_month"),
+    promptMessageId: integer("prompt_message_id"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   },

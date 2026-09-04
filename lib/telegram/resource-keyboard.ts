@@ -2,11 +2,18 @@ import {
   RESOURCES_BOT_KATEGORI_SLUGS,
   resourcesKategoriBySlug,
 } from "@/lib/resources/kategori";
-import { formatResourceMonthLabel, listLetterMonthChoices } from "@/lib/resources/search";
+import {
+  clampLetterMonthCenter,
+  currentLetterMonthKey,
+  formatResourceMonthLabel,
+  listLetterMonthWindow,
+  shiftLetterMonth,
+} from "@/lib/resources/search";
 import {
   RESOURCE_CANCEL_CALLBACK,
   resourceKategoriCallbackData,
   resourceMonthCallbackData,
+  resourceYearCallbackData,
 } from "./commands";
 
 export type TelegramInlineButton = {
@@ -26,8 +33,9 @@ export function kategoriKeyboard(): TelegramInlineKeyboard {
   return [row, [BATAL]];
 }
 
-export function monthKeyboard(now = new Date()): TelegramInlineKeyboard {
-  const choices = listLetterMonthChoices(now);
+export function monthKeyboard(centerMonth?: string, now = new Date()): TelegramInlineKeyboard {
+  const center = clampLetterMonthCenter(centerMonth || currentLetterMonthKey(now), now);
+  const choices = listLetterMonthWindow(center);
   const rows: TelegramInlineKeyboard = [];
   for (let i = 0; i < choices.length; i += 3) {
     rows.push(
@@ -37,6 +45,16 @@ export function monthKeyboard(now = new Date()): TelegramInlineKeyboard {
       })),
     );
   }
+  const prev = clampLetterMonthCenter(shiftLetterMonth(center, -12), now);
+  const next = clampLetterMonthCenter(shiftLetterMonth(center, 12), now);
+  const yearRow: TelegramInlineButton[] = [];
+  if (prev !== center) {
+    yearRow.push({ text: `« ${prev.slice(0, 4)}`, callback_data: resourceYearCallbackData(prev) });
+  }
+  if (next !== center) {
+    yearRow.push({ text: `${next.slice(0, 4)} »`, callback_data: resourceYearCallbackData(next) });
+  }
+  if (yearRow.length > 0) rows.push(yearRow);
   rows.push([BATAL]);
   return rows;
 }
@@ -58,7 +76,7 @@ export function monthPrompt(kategori: string): string {
   return [
     `Kumpulan: ${title}`,
     "",
-    "Pilih bulan surat (boleh berbeza daripada bulan muat naik):",
+    "Pilih bulan surat (boleh berbeza daripada bulan muat naik). Guna « tahun untuk muka surat lain.",
   ].join("\n");
 }
 
