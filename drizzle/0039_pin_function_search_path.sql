@@ -1,7 +1,8 @@
--- Pencegahan konflik slot (per PKG + bilik + tarikh), diporting verbatim dari
--- tempahan-pkg-manjung/supabase/schema.sql. Advisory lock menserikan insert/update
--- serentak supaya semakan kewujudan tidak terlepas tempahan yang belum commit (TOCTOU).
-CREATE OR REPLACE FUNCTION prevent_booking_conflict()
+-- Kunci search_path fungsi trigger supaya tidak mewarisi laluan sesi
+-- (amaran Supabase "Function Search Path Mutable"). Rujukan objek mestilah
+-- berkelayakan penuh kerana search_path = ''.
+
+CREATE OR REPLACE FUNCTION public.prevent_booking_conflict()
 RETURNS trigger
 LANGUAGE plpgsql
 SET search_path = ''
@@ -35,9 +36,24 @@ begin
   return new;
 end;
 $$;
---> statement-breakpoint
-DROP TRIGGER IF EXISTS bookings_prevent_conflict ON bookings;
---> statement-breakpoint
-CREATE TRIGGER bookings_prevent_conflict
-BEFORE INSERT OR UPDATE ON bookings
-FOR EACH ROW EXECUTE FUNCTION prevent_booking_conflict();
+
+CREATE OR REPLACE FUNCTION public.enforce_equipment_loan_school_name()
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path = ''
+AS $$
+BEGIN
+  IF NEW."applicant_type" = 'sekolah' THEN
+    SELECT "name"
+    INTO NEW."org_name"
+    FROM public."schools"
+    WHERE "code" = NEW."school_code";
+
+    IF NOT FOUND THEN
+      RAISE EXCEPTION 'Kod sekolah tidak dijumpai dalam senarai sekolah';
+    END IF;
+  END IF;
+
+  RETURN NEW;
+END;
+$$;

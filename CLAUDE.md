@@ -21,7 +21,11 @@ GPICT/DELIMa/GPM, Tempahan PKG, Portal Sumber/Analisis/Maklumat Asas). Sumber as
 - **Edge-safe:** jangan import `db`/`bcrypt` dalam `lib/auth.config.ts` atau middleware.
 - **Drizzle:** semua jadual dalam `lib/schema.ts`. Trigger (cth. advisory-lock tempahan)
   perlu migrasi custom (`drizzle-kit generate --custom`) — drizzle-kit tidak menjananya.
-- **Tiada RLS** — semua akses DB di sisi pelayan melalui Drizzle.
+- **RLS sebagai kunci PostgREST, bukan autorisasi aplikasi.** Semua akses DB
+  di sisi pelayan melalui Drizzle (peranan `postgres` memintas RLS). Jadual
+  `public` mesti `ENABLE ROW LEVEL SECURITY` tanpa polisi, supaya Data API
+  (anon/authenticated) tidak dapat baca/tulis. Jadual baharu sertakan ini
+  dalam migrasi (lihat `0038_enable_rls_lock_postgrest`).
 
 ## Reka bentuk (hp DESIGN.md)
 

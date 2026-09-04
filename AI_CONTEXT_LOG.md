@@ -1,10 +1,32 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-04 — Pin search_path fungsi trigger
+
+- Amaran SECURITY Supabase `Function Search Path Mutable` pada
+  `prevent_booking_conflict` dan `enforce_equipment_loan_school_name`.
+- Fungsi tanpa `search_path` mewarisi laluan sesi; skema berniat jahat
+  boleh merampas nama objek tidak berkelayakan.
+- Migrasi `0039_pin_function_search_path`: `SET search_path = ''` + rujukan
+  `public.` / `pg_catalog.`. Logik trigger tidak berubah.
+
+## 2026-09-04 — Kunci RLS PostgREST (bukan autorisasi aplikasi)
+
+- Amaran CRITICAL Supabase `RLS Disabled in Public` pada
+  `public.equipment_loan_events` (dan jadual `public` lain): skema terdedah
+  kepada Data API tanpa RLS.
+- Aplikasi tidak guna PostgREST; akses hanya Drizzle via `DATABASE_URL`.
+- Migrasi `0038_enable_rls_lock_postgrest`: `ENABLE ROW LEVEL SECURITY` +
+  `REVOKE` daripada `anon`/`authenticated` pada semua jadual aplikasi.
+  Tiada polisi — baris kosong untuk Data API. Peranan `postgres` memintas RLS.
+- Amaran INFO `RLS Enabled No Policy` selepas ini adalah disengajakan.
+
 ## 2026-09-04 — CoE Resources: Muat Turun + Lihat penuh
 
-- Pada kad yang sudah ada iframe: **Muat Turun** (pautan Drive export)
-  ganti Buka Penuh; **Lihat penuh** ganti Pratonton (membesarkan paparan).
-- "Lihat surat" kurang sesuai — surat sudah kelihatan dalam kad.
+- **Muat Turun** (pautan Drive export) dan **Lihat penuh** (lightbox iframe)
+  kekal sama sama ada pratonton iframe dalam kad dibuka atau ditutup.
+  Tutup iframe hanya menyembunyikan pratonton dalam kad, bukan menukar
+  fungsi pautan.
+- "Lihat surat" kurang sesuai — surat sudah kelihatan apabila iframe dibuka.
   "Lihat penuh" ialah istilah biasa untuk paparan besar.
 
 ## 2026-09-04 — CoE Resources: kad iframe terus + Pratonton besar

@@ -7,6 +7,7 @@ Panduan ringkas untuk agen AI. Baca `CLAUDE.md` untuk peraturan penuh.
 - Next 15: `await params/searchParams/cookies()/headers()`.
 - ESLint: untuk konfigurasi Next.js baharu atau yang diubah, gunakan `eslint.config.mjs` native dan konfigurasi flat daripada plugin. Jangan gunakan `FlatCompat`, `.eslintrc` atau `eslint-config-next` sebagai asas konfigurasi. Selepas mengubah konfigurasi lint, jalankan `eslint .`, `npm run typecheck` dan `npm run build`.
 - Skema: `lib/schema.ts` (Drizzle). Migrasi: `npm run db:generate` + `npm run db:migrate`.
+  Jadual `public` hidupkan RLS tanpa polisi (kunci PostgREST; akses kekal Drizzle).
 - Verifikasi minimum sebelum tuntut siap: `npm run build` + `npm run typecheck`.
 - Catat keputusan besar dalam `AI_CONTEXT_LOG.md`.
 - **CodeGraph:** indeks `.codegraph/` dikongsi dalam git. Selepas perubahan

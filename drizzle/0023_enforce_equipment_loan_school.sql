@@ -32,12 +32,13 @@ ALTER TABLE "equipment_loan_requests"
 CREATE OR REPLACE FUNCTION "enforce_equipment_loan_school_name"()
 RETURNS trigger
 LANGUAGE plpgsql
+SET search_path = ''
 AS $$
 BEGIN
   IF NEW."applicant_type" = 'sekolah' THEN
     SELECT "name"
     INTO NEW."org_name"
-    FROM "schools"
+    FROM public."schools"
     WHERE "code" = NEW."school_code";
 
     IF NOT FOUND THEN

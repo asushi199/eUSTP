@@ -267,6 +267,20 @@
       "when": 1788525486032,
       "tag": "0037_famous_calypso",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1788532235064,
+      "tag": "0038_enable_rls_lock_postgrest",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1788532626517,
+      "tag": "0039_pin_function_search_path",
+      "breakpoints": true
     }
   ]
 }
