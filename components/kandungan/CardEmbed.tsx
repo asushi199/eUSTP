@@ -36,8 +36,9 @@ export default function CardEmbed({
   const canPreview = embed.mode !== "none";
   const lightboxItems = gallery ?? [{ title, url, embed }];
   const downloadHref = driveFileDownloadUrl(url);
-  const fileHref = inlinePreview && downloadHref ? downloadHref : url;
-  const fileLabel = inlinePreview
+  const useLetterActions = Boolean(gallery);
+  const fileHref = useLetterActions && downloadHref ? downloadHref : url;
+  const fileLabel = useLetterActions
     ? downloadHref
       ? "Muat Turun"
       : "Buka"
@@ -120,7 +121,7 @@ export default function CardEmbed({
             }}
             className="text-sm font-medium text-graphite underline-offset-2 hover:text-ink hover:underline"
           >
-            {inlinePreview ? "Lihat penuh" : "Pratonton"}
+            {useLetterActions ? "Lihat penuh" : "Pratonton"}
           </button>
         ) : null}
         {embed.mode === "youtube" && open ? (

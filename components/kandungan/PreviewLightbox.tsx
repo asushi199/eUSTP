@@ -19,6 +19,33 @@ function Chevron({ dir }: { dir: "prev" | "next" }) {
   );
 }
 
+function SideNav({
+  dir,
+  disabled,
+  onClick,
+  className,
+}: {
+  dir: "prev" | "next";
+  disabled: boolean;
+  onClick: () => void;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      className={
+        className ??
+        "inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25 disabled:opacity-25"
+      }
+      aria-label={dir === "prev" ? "Surat sebelumnya" : "Surat seterusnya"}
+      disabled={disabled}
+      onClick={onClick}
+    >
+      <Chevron dir={dir} />
+    </button>
+  );
+}
+
 export default function PreviewLightbox({
   items,
   index,
@@ -123,48 +150,60 @@ export default function PreviewLightbox({
         </button>
       </div>
 
-      {iframeSrc ? (
-        <div className="relative min-h-0 flex-1 px-3">
-          <div className="relative h-full overflow-hidden rounded-xl bg-white shadow-lift">
-            <iframe
-              key={item.url}
-              src={iframeSrc}
-              title={item.title}
-              className="h-full w-full"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
+      {iframeSrc || imageSrc ? (
+        <div className="flex min-h-0 flex-1 items-stretch justify-center gap-2 px-3 sm:gap-3">
+          {many ? (
+            <SideNav
+              dir="prev"
+              disabled={!canPrev}
+              onClick={() => go("prev")}
+              className="my-auto hidden h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25 disabled:opacity-25 md:inline-flex"
             />
+          ) : null}
+          <div className="relative h-full w-full max-w-4xl overflow-hidden rounded-xl bg-white shadow-lift">
+            {iframeSrc ? (
+              <iframe
+                key={item.url}
+                src={iframeSrc}
+                title={item.title}
+                className="h-full w-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center overflow-auto bg-ink/40">
+                <img
+                  src={imageSrc ?? undefined}
+                  alt={item.title}
+                  className="max-h-full max-w-full object-contain"
+                />
+              </div>
+            )}
             {many ? (
               <>
-                <button
-                  type="button"
-                  className="absolute left-2 top-1/2 z-10 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-ink/75 text-white disabled:opacity-25"
-                  aria-label="Surat sebelumnya"
+                <SideNav
+                  dir="prev"
                   disabled={!canPrev}
                   onClick={() => go("prev")}
-                >
-                  <Chevron dir="prev" />
-                </button>
-                <button
-                  type="button"
-                  className="absolute right-2 top-1/2 z-10 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-ink/75 text-white disabled:opacity-25"
-                  aria-label="Surat seterusnya"
+                  className="absolute left-2 top-1/2 z-10 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-ink/75 text-white md:hidden disabled:opacity-25"
+                />
+                <SideNav
+                  dir="next"
                   disabled={!canNext}
                   onClick={() => go("next")}
-                >
-                  <Chevron dir="next" />
-                </button>
+                  className="absolute right-2 top-1/2 z-10 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-ink/75 text-white md:hidden disabled:opacity-25"
+                />
               </>
             ) : null}
           </div>
-        </div>
-      ) : imageSrc ? (
-        <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto px-3">
-          <img
-            src={imageSrc}
-            alt={item.title}
-            className="max-h-full max-w-full object-contain"
-          />
+          {many ? (
+            <SideNav
+              dir="next"
+              disabled={!canNext}
+              onClick={() => go("next")}
+              className="my-auto hidden h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25 disabled:opacity-25 md:inline-flex"
+            />
+          ) : null}
         </div>
       ) : (
         <div className="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center text-white">
@@ -184,22 +223,22 @@ export default function PreviewLightbox({
 
       <div className="flex shrink-0 flex-col gap-2 px-3 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] text-white">
         {many ? (
-          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+          <div className="flex items-center justify-center gap-3">
             <button
               type="button"
-              className="inline-flex h-11 items-center justify-self-start gap-1 rounded-md bg-white/10 px-3 text-sm font-medium disabled:opacity-30"
+              className="inline-flex h-11 items-center gap-1 rounded-md bg-white/10 px-3 text-sm font-medium disabled:opacity-30"
               disabled={!canPrev}
               onClick={() => go("prev")}
             >
               <Chevron dir="prev" />
               Sebelumnya
             </button>
-            <span className="text-center text-xs tabular-nums text-white/70">
+            <span className="min-w-12 text-center text-xs tabular-nums text-white/70">
               {index + 1} / {items.length}
             </span>
             <button
               type="button"
-              className="inline-flex h-11 items-center justify-self-end gap-1 rounded-md bg-white/10 px-3 text-sm font-medium disabled:opacity-30"
+              className="inline-flex h-11 items-center gap-1 rounded-md bg-white/10 px-3 text-sm font-medium disabled:opacity-30"
               disabled={!canNext}
               onClick={() => go("next")}
             >
