@@ -68,7 +68,7 @@ export default function PublicSidebar() {
           />
         </div>
         <div className="relative z-10">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white">
+          <p className="text-[11px] font-semibold tracking-[0.08em] text-white">
             CoE Manjung
           </p>
           <p className="mt-0.5 text-[11px] leading-snug text-white/80">

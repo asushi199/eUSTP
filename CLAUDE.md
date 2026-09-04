@@ -10,6 +10,9 @@ GPICT/DELIMa/GPM, Tempahan PKG, Portal Sumber/Analisis/Maklumat Asas). Sumber as
 ## Peraturan penting
 
 - **UI 100% Bahasa Melayu.** Komen kod boleh BM atau Inggeris.
+- **Ejaan CoE:** Centre of Excellence dipaparkan sebagai **`CoE`**, bukan
+  `COE`/`coe`. Jangan `text-transform: uppercase` pada teks yang mengandungi
+  `CoE` (akan jadi `COE`). Id/slug/fail kekal huruf kecil.
 - **Public-first:** halaman awam TIDAK melalui auth. Middleware hanya memadankan
   `/admin/:path*`, `/login`, `/tukar-kata-laluan`. Semakan peranan dalam
   `app/(admin)/layout.tsx` + `lib/rbac.ts`.

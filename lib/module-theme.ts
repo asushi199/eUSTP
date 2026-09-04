@@ -181,7 +181,7 @@ export const MODULES = [
     external: false,
     title: "Maklumat Asas",
     description:
-      "Carta organisasi, maklumat PKG/COE, takwim dan pegawai USTP PPD Manjung.",
+      "Carta organisasi, maklumat PKG/CoE, takwim dan pegawai USTP PPD Manjung.",
     accent: "#1565A8",
     iconKey: "maklumat" as const,
   },

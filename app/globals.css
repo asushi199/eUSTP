@@ -596,8 +596,7 @@
 .portal-module-card-title {
   font-size: 0.92rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 .portal-module-card-body {

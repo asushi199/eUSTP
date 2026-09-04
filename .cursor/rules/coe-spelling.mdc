@@ -1,0 +1,15 @@
+---
+description: Ejaan paparan Centre of Excellence mestilah CoE, bukan COE atau coe
+alwaysApply: true
+---
+
+# Ejaan CoE
+
+Nama paparan **Centre of Excellence** sentiasa **`CoE`** (C besar, o kecil, E besar).
+
+- Betul: `CoE Analytics`, `CoE Reports`, `CoE Resources`, `CoE Direktori`, `CoE Services`, `CoE Media`, `CoE Booking`, `CoE Manjung`, `PKG/CoE`
+- Salah: `COE`, `Coe`, `coe` pada teks UI, metadata, tajuk kad, eyebrow, menu
+
+Jangan guna `uppercase` / `text-transform: uppercase` pada rentetan yang mengandungi `CoE` — CSS akan menukarnya kepada `COE`.
+
+Pengecualian: id/slug/fail/laluan kekal huruf kecil (`#coe-analytics`, `0008_coe_direktori`, nama fail).

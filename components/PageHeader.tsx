@@ -22,7 +22,7 @@ export default function PageHeader({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1">
           <p
-            className="flex min-w-0 items-center gap-3 text-xs font-semibold uppercase tracking-[0.12em] sm:tracking-[0.14em]"
+            className="flex min-w-0 items-center gap-3 text-xs font-semibold tracking-[0.08em]"
             style={{ color: accent }}
           >
             <span

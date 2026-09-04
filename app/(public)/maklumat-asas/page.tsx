@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Maklumat Asas — NEXa Manjung",
   description:
-    "Carta organisasi, maklumat PKG/COE, takwim dan pegawai Unit Sumber Teknologi Pendidikan PPD Manjung.",
+    "Carta organisasi, maklumat PKG/CoE, takwim dan pegawai Unit Sumber Teknologi Pendidikan PPD Manjung.",
 };
 
 /** Imej tetapan: laluan tempatan (public/) → <img>; pautan Drive → iframe preview. */

@@ -1,5 +1,17 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-04 — Admin: CoE Booking → CoE Services
+
+- Kad Papan Admin, tab mudah alih dan hab `/admin/booking` menggunakan
+  nama **CoE Services**, sama seperti portal awam. Laluan `/admin/booking`
+  tidak berubah.
+
+## 2026-09-04 — Ejaan CoE (bukan COE)
+
+- Nama paparan Centre of Excellence dikunci sebagai **CoE**. CSS `uppercase`
+  pada tajuk kad, eyebrow `PageHeader`, label sisi dan seumpamanya ditanggalkan
+  supaya tidak terpapar `COE`. Id/slug kekal huruf kecil.
+
 ## 2026-09-04 — CoE Resources: kad kategori + kad anak di dalam
 
 - Bar tab mendatar kategori di `/admin/resources` (sukar pada telefon)

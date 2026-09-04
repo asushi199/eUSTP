@@ -21,7 +21,7 @@ export const TOPIK_META: TopikMeta[] = [
     slug: "hebahan",
     topik: "hebahan",
     title: "Hebahan Pendidikan Digital",
-    blurb: "Hebahan pendidikan digital melalui peralatan COE kepada komuniti sekolah.",
+    blurb: "Hebahan pendidikan digital melalui peralatan CoE kepada komuniti sekolah.",
   },
   {
     slug: "itm",

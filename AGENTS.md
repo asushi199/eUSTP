@@ -18,6 +18,9 @@ Panduan ringkas untuk agen AI. Baca `CLAUDE.md` untuk peraturan penuh.
 - Data sekolah: `ABA1031` mesti dipaparkan sebagai **SK PANGKALAN TLDM II**
   (angka Rom `II`, bukan angka `11`). Kekalkan ejaan ini dalam jadual `schools`,
   semua versi direktori dan mana-mana import akan datang.
+- Ejaan **CoE** (Centre of Excellence): paparan sentiasa `CoE`, bukan `COE`
+  atau `coe`. Jangan `uppercase` teks yang ada `CoE`. Id/slug/fail kekal
+  huruf kecil (`#coe-analytics`).
 
 ## Peminjaman Peralatan
 
