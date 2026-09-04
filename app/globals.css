@@ -131,6 +131,91 @@
   overflow-x: clip;
 }
 
+.portal-sidebar {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .portal-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 40;
+    display: flex;
+    width: 16rem;
+    flex-direction: column;
+    background:
+      radial-gradient(circle at 12% 8%, rgba(255, 255, 255, 0.95), transparent 36%),
+      linear-gradient(180deg, #f3f7fb 0%, #e8f1f8 52%, #dceaf6 100%);
+    box-shadow: 1px 0 0 rgba(15, 61, 92, 0.06);
+  }
+
+  .portal-sidebar::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(circle, rgba(2, 74, 216, 0.14) 0.9px, transparent 1.1px);
+    background-size: 14px 14px;
+    opacity: 0.35;
+    mask-image: linear-gradient(180deg, #000 0%, transparent 42%);
+  }
+
+  .portal-sidebar::after {
+    content: "";
+    position: absolute;
+    left: -40%;
+    bottom: 18%;
+    width: 140%;
+    height: 42%;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse at 20% 80%, rgba(2, 116, 216, 0.22), transparent 58%),
+      radial-gradient(ellipse at 70% 100%, rgba(94, 196, 232, 0.28), transparent 52%);
+    border-radius: 80% 60% 0 0;
+  }
+}
+
+.portal-topnav {
+  border-bottom: 1px solid rgba(232, 232, 232, 0.9);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+}
+
+@media (min-width: 768px) {
+  .portal-topnav {
+    background:
+      linear-gradient(90deg, rgba(255, 255, 255, 0.96) 0%, rgba(255, 255, 255, 0.88) 58%, rgba(255, 255, 255, 0.5) 100%),
+      url("/ppd-manjung-banner.jpg") right center / 46% auto no-repeat;
+  }
+}
+
+.portal-admin-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  border-radius: 999px;
+  padding: 0.25rem 0.7rem 0.25rem 0.25rem;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 1px 0 rgba(15, 61, 92, 0.06);
+}
+
+.portal-admin-chip:hover {
+  background: #fff;
+}
+
+.portal-admin-chip-avatar {
+  display: grid;
+  height: 2.15rem;
+  width: 2.15rem;
+  place-items: center;
+  border-radius: 999px;
+  background: #024ad8;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
 .portal-page-enter {
   animation: portal-page-fade 0.35s ease both;
 }

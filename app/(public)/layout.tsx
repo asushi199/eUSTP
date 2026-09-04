@@ -9,7 +9,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
     <div className="portal-public-shell flex min-h-screen flex-col overflow-x-clip">
       <AmbientScene />
       <PublicSidebar />
-      <div className="flex min-h-screen flex-1 flex-col md:pl-60 print:pl-0">
+      <div className="flex min-h-screen flex-1 flex-col md:pl-64 print:pl-0">
         <TopNav />
         <main className="flex-1 overflow-x-clip pb-20 md:pb-0">{children}</main>
         <SiteFooter />
