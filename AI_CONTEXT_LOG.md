@@ -1,5 +1,11 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-04 — Khidmat Bantu: folder Drive modul dahulu
+
+- Surat permohonan GAS kini ke `Khidmat-Bantu/<tahun>/<YYYY-MM>/`,
+  bukan `tahun/bulan/Khidmat-Bantu`, supaya tidak bercampur dengan
+  Pinjaman Peralatan, CoE Resources dan folder tahun laporan.
+
 ## 2026-09-04 — CoE Resources: NexaBot muat naik surat program
 
 - Surat Program USTP dan Surat Program Sekolah/Guru/Murid boleh dihantar

@@ -39,5 +39,5 @@ export function buildSuratPermohonanNaming(
   const ext = extensionFrom(originalName, mime);
   const unique = Date.now().toString(36);
   const fileName = `${dateStr}_${org}_${service}_${unique}.${ext}`;
-  return { fileName, subPath: [year, month, "Khidmat-Bantu"] };
+  return { fileName, subPath: ["Khidmat-Bantu", year, month] };
 }

@@ -84,7 +84,7 @@ function resolveFolderPath_(rootId, segments) {
 /**
  * Diagnostik: laporkan folder akar sebenar + folder sasaran subPath (nama, URL,
  * bilangan fail). Guna untuk sahkan DI MANA fail sebenarnya disimpan.
- * Panggil: { secret, action:"info", subPath:["2026","2026-07","Khidmat-Bantu"] }
+ * Panggil: { secret, action:"info", subPath:["Khidmat-Bantu","2026","2026-07"] }
  */
 function handleInfo_(config, payload) {
   var root = DriveApp.getFolderById(config.folderId);
