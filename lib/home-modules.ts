@@ -105,7 +105,7 @@ export const HOME_MODULES: HomeModuleCard[] = [
     title: direktori.title,
     accent: direktori.accent,
     iconKey: direktori.iconKey,
-    cta: "Lihat Direktori",
+    cta: "Lihat Directory",
     items: [
       { label: ROLE_INFO.PGB.label, href: `/direktori/${ROLE_INFO.PGB.slug}` },
       { label: "Penolong Kanan Sekolah", href: "/direktori#direktori-pengurusan" },

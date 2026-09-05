@@ -14,7 +14,7 @@ export function getAdminMobileNavigation(
     { id: "booking", href: "/admin/booking", label: TEMPAHAN_HUB.title },
     ...(canManageKandungan
       ? [
-          { id: "direktori" as const, href: "/admin/direktori", label: "CoE Direktori" },
+          { id: "direktori" as const, href: "/admin/direktori", label: "CoE Directory" },
           { id: "osc" as const, href: "/admin/osc", label: "OSC" },
           { id: "papan" as const, href: "/admin", label: "Papan" },
         ]

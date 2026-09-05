@@ -7,7 +7,7 @@ import { direktoriLoginHref } from "@/lib/moe-dl";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Kemas Kini Direktori — NEXa Manjung" };
+export const metadata = { title: "Kemas Kini Directory — NEXa Manjung" };
 
 export default async function KemaskiniPage() {
   const access = await getDirectoryContactAccess();
@@ -23,7 +23,7 @@ export default async function KemaskiniPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-8">
       <Link href="/direktori" className="text-sm text-graphite hover:text-ink">
-        ← Direktori
+        ← Directory
       </Link>
       <h1 className="mt-2 text-3xl font-medium tracking-tight">
         Kemas Kini Maklumat Perhubungan Sekolah

@@ -6,7 +6,7 @@ import PublicPageShell from "@/components/PublicPageShell";
 import { ROLE_GROUPS, ROLE_INFO } from "@/lib/direktori/config";
 import { getModuleAccent } from "@/lib/module-theme";
 
-export const metadata = { title: "CoE Direktori — NEXa Manjung" };
+export const metadata = { title: "CoE Directory — NEXa Manjung" };
 
 export default function DirektoriPage() {
   const accent = getModuleAccent("/direktori");
@@ -15,7 +15,7 @@ export default function DirektoriPage() {
     <>
       <PublicPageShell className="pb-16 sm:pb-12">
       <PageHeader
-        eyebrow="CoE Direktori"
+        eyebrow="CoE Directory"
         title="Direktori Perhubungan Sekolah"
         accent={accent}
         description="Rujukan perhubungan pengurusan dan penyelaras sekolah daerah Manjung. Senarai sekolah terbuka; nombor telefon memerlukan akaun MOE-DL."

@@ -16,7 +16,7 @@ export default async function AdminDirektoriPage() {
     <>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Direktori — Admin</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Directory — Admin</h1>
           <p className="mt-1 text-sm text-graphite">
             {records.length} sekolah · versi semasa dipaparkan
           </p>

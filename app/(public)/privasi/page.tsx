@@ -10,7 +10,7 @@ export default function PrivasiPage() {
       <PageHeader
         eyebrow="NEXa Manjung"
         title="Dasar Privasi"
-        description="Dasar ini menerangkan data yang dikumpul, tujuan penggunaan, simpanan, perkongsian dan hak pengguna. Ia merangkumi log masuk Google untuk CoE Direktori."
+        description="Dasar ini menerangkan data yang dikumpul, tujuan penggunaan, simpanan, perkongsian dan hak pengguna. Ia merangkumi log masuk Google untuk CoE Directory."
       />
 
       <div className="mt-8 space-y-8 text-sm leading-relaxed text-graphite">
@@ -68,7 +68,7 @@ export default function PrivasiPage() {
           <p className="mt-2">
             Nama dan e-mel dari Google digunakan hanya untuk: (a) mengesahkan anda
             guru / pegawai dengan akaun MOE-DL yang sah; (b) membenarkan paparan
-            nombor telefon rakan guru dalam CoE Direktori; (c) membenarkan borang
+            nombor telefon rakan guru dalam CoE Directory; (c) membenarkan borang
             kemas kini direktori; (d) memaparkan status log masuk dan membenarkan
             log keluar.
           </p>

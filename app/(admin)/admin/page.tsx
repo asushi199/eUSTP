@@ -78,7 +78,7 @@ export default async function AdminOverviewPage() {
     cards.push(
       {
         href: "/admin/direktori",
-        title: "CoE Direktori",
+        title: "CoE Directory",
         description: "Maklumat perhubungan sekolah, sejarah versi dan eksport CSV.",
         accent: getModuleAccent("/direktori"),
       },

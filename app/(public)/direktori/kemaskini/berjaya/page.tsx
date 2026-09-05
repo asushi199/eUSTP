@@ -13,7 +13,7 @@ export default function KemaskiniBerjayaPage() {
       </p>
       <div className="mt-8 flex justify-center gap-3">
         <Link href="/direktori" className="btn-primary">
-          Kembali ke Direktori
+          Kembali ke Directory
         </Link>
         <Link href="/" className="btn-outline-ink">
           Laman Utama

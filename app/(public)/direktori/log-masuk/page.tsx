@@ -9,7 +9,7 @@ import { isGoogleAuthConfigured, safeDirektoriCallbackUrl } from "@/lib/moe-dl";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Log Masuk Direktori — NEXa Manjung" };
+export const metadata = { title: "Log Masuk Directory — NEXa Manjung" };
 
 function googleErrorMessage(error: string | undefined): string | null {
   if (!error) return null;
@@ -37,11 +37,11 @@ export default async function DirektoriLogMasukPage({
   return (
     <PublicPageShell narrow className="pb-16 sm:pb-12">
       <Link href="/direktori" className="text-sm text-graphite hover:text-ink">
-        ← Direktori
+        ← Directory
       </Link>
       <PageHeader
         className="mt-2"
-        eyebrow="CoE Direktori"
+        eyebrow="CoE Directory"
         title="Log masuk MOE-DL"
         accent={accent}
         description="Akaun Google KPM (@moe-dl.edu.my) diperlukan untuk melihat nombor telefon rakan guru."

@@ -117,7 +117,7 @@ export const MODULES = [
     href: "/direktori",
     internalHref: "/direktori",
     external: false,
-    title: "CoE Direktori",
+    title: "CoE Directory",
     description:
       "Direktori pentadbir dan penyelaras sekolah — cari dan kemas kini.",
     accent: "#7C3AED",

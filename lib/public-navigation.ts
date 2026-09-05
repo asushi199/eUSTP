@@ -39,7 +39,7 @@ export const PUBLIC_NAV: PublicNavItem[] = [
     id: "reports",
     href: "/laporan",
     label: "CoE Reports",
-    shortLabel: "Laporan",
+    shortLabel: "Reports",
     mobile: "tab",
   },
   {
@@ -52,8 +52,8 @@ export const PUBLIC_NAV: PublicNavItem[] = [
   {
     id: "direktori",
     href: "/direktori",
-    label: "CoE Direktori",
-    shortLabel: "Direktori",
+    label: "CoE Directory",
+    shortLabel: "Directory",
     mobile: "tab",
   },
   {
