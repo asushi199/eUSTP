@@ -19,6 +19,12 @@ type GenerateOptions = {
   /** Had token output; default sederhana untuk perenggan pendek. */
   maxOutputTokens?: number;
   temperature?: number;
+  /**
+   * Belanjawan token "thinking" Gemini 2.5. Default 0 = matikan — kerana token
+   * thinking dikira dalam maxOutputTokens dan boleh menyebabkan output benar
+   * dipotong separuh jalan. -1 = dinamik.
+   */
+  thinkingBudget?: number;
   /** Had masa sisi-klien supaya UI tidak tergantung. */
   timeoutMs?: number;
 };
@@ -50,7 +56,8 @@ export async function generateGeminiText(
             : {}),
           generationConfig: {
             temperature: opts.temperature ?? 0.7,
-            maxOutputTokens: opts.maxOutputTokens ?? 800,
+            maxOutputTokens: opts.maxOutputTokens ?? 1024,
+            thinkingConfig: { thinkingBudget: opts.thinkingBudget ?? 0 },
           },
         }),
         signal: controller.signal,
