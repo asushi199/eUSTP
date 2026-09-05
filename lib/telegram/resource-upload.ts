@@ -21,7 +21,7 @@ import {
 } from "@/lib/resources/search";
 import { getMediaCard } from "@/lib/media/queries";
 import { publishMediaLink, removeMediaCard, updateMediaCardMeta } from "@/lib/media/publish";
-import { extractGooglePhotosUrl } from "@/lib/media/google-photos";
+import { extractGooglePhotosUrl, fetchGooglePhotosAlbumTitle } from "@/lib/media/google-photos";
 import { extractFotoUrl } from "./foto-url";
 import { mediaHref } from "@/lib/media/kategori";
 import { canManageKandungan } from "@/lib/roles";
@@ -69,6 +69,7 @@ import {
   askFotoUrlPrompt,
   cancelKeyboard,
   fotoMonthPrompt,
+  fotoTitleKeyboard,
   fotoTitlePrompt,
   kategoriKeyboard,
   kategoriPrompt,
@@ -131,6 +132,11 @@ function portalBaseUrl(): string {
 function portalUrlFor(kategori: string): string | null {
   const portal = portalBaseUrl();
   return portal ? `${portal}${resourcesHref(kategori)}` : null;
+}
+
+function suggestedFotoTitle(draft: DraftRow): string | null {
+  const title = draft.mimeType?.trim();
+  return title ? title.slice(0, 300) : null;
 }
 
 function mediaPortalUrl(kategori = MEDIA_FOTO_KATEGORI): string | null {
@@ -319,9 +325,10 @@ async function startFromFotoUrl(opts: {
   if (previous?.promptMessageId) {
     await deleteTelegramMessages(opts.chatId, [previous.promptMessageId]);
   }
+  const albumTitle = await fetchGooglePhotosAlbumTitle(opts.url);
   const promptMessageId = await reply(
     opts.chatId,
-    fotoMonthPrompt(),
+    fotoMonthPrompt(albumTitle),
     monthKeyboard(),
     { replyToMessageId: opts.replyToMessageId, messageThreadId: opts.messageThreadId },
   );
@@ -331,7 +338,7 @@ async function startFromFotoUrl(opts: {
     userId: opts.userId,
     fileId: null,
     fileName: opts.url,
-    mimeType: null,
+    mimeType: albumTitle,
     fileSize: null,
     step: "foto_bulan",
     kategori: MEDIA_FOTO_KATEGORI,
@@ -857,7 +864,7 @@ async function handleMediaManageCallback(opts: {
   chatId: string;
   telegramUserId: string;
   staff: StaffRow;
-  parsed: MediaFotoCallback;
+  parsed: Exclude<MediaFotoCallback, { type: "guna_tajuk" }>;
 }): Promise<boolean> {
   const callbackId = opts.query.id;
   if (!callbackId) return false;
@@ -1304,6 +1311,23 @@ async function handleCallback(query: TelegramResourceCallback): Promise<boolean>
       await answerTelegramCallback(callbackId, "Tiada kebenaran.");
       return true;
     }
+    if (mediaParsed.type === "guna_tajuk") {
+      const draft = await findDraft(String(chatId), telegramUserId);
+      const title = draft ? suggestedFotoTitle(draft) : null;
+      if (!draft || draft.step !== "foto_nama" || !title) {
+        await answerTelegramCallback(callbackId, "Sila taip nama aktiviti.");
+        return true;
+      }
+      await answerTelegramCallback(callbackId);
+      await publishFotoDraft({
+        chatId: String(chatId),
+        telegramUserId,
+        draft,
+        title,
+        messageThreadId: threadIdOf(query.message),
+      });
+      return true;
+    }
     return handleMediaManageCallback({
       query,
       chatId: String(chatId),
@@ -1419,7 +1443,9 @@ async function handleCallback(query: TelegramResourceCallback): Promise<boolean>
       promptMessageId: query.message?.message_id ?? draft.promptMessageId ?? null,
     });
     await answerTelegramCallback(callbackId);
-    const yearPrompt = fotoWizard ? fotoMonthPrompt() : monthPrompt(draft.kategori ?? "");
+    const yearPrompt = fotoWizard
+      ? fotoMonthPrompt(suggestedFotoTitle(draft))
+      : monthPrompt(draft.kategori ?? "");
     if (query.message?.message_id) {
       await editTelegramMessage(String(chatId), query.message.message_id, yearPrompt, {
         inline_keyboard: monthKeyboard(parsed.center),
@@ -1482,15 +1508,16 @@ async function handleCallback(query: TelegramResourceCallback): Promise<boolean>
       promptMessageId: query.message?.message_id ?? draft.promptMessageId ?? null,
     });
     await answerTelegramCallback(callbackId);
+    const albumTitle = suggestedFotoTitle(draft);
     if (query.message?.message_id) {
       await editTelegramMessage(
         String(chatId),
         query.message.message_id,
-        fotoTitlePrompt(parsed.month),
-        { inline_keyboard: cancelKeyboard() },
+        fotoTitlePrompt(parsed.month, albumTitle),
+        { inline_keyboard: fotoTitleKeyboard(albumTitle) },
       );
     } else {
-      await reply(String(chatId), fotoTitlePrompt(parsed.month), cancelKeyboard(), {
+      await reply(String(chatId), fotoTitlePrompt(parsed.month, albumTitle), fotoTitleKeyboard(albumTitle), {
         messageThreadId: threadIdOf(query.message),
       });
     }

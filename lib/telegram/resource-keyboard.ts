@@ -10,6 +10,7 @@ import {
   shiftLetterMonth,
 } from "@/lib/resources/search";
 import {
+  MEDIA_USE_TITLE_CALLBACK,
   RESOURCE_CANCEL_CALLBACK,
   mediaDeleteCallbackData,
   mediaDeleteConfirmCallbackData,
@@ -179,20 +180,36 @@ export function mediaSavedKeyboard(opts: {
   ];
 }
 
-export function fotoMonthPrompt(): string {
+export function fotoMonthPrompt(albumTitle?: string | null): string {
   return [
     "Pautan Google Photos diterima.",
+    albumTitle ? `Tajuk album: ${albumTitle}` : null,
     "",
     "Pilih bulan foto ini (bulan aktiviti, bukan bulan pautan dihantar). Guna « tahun untuk muka surat lain.",
-  ].join("\n");
+  ]
+    .filter((line): line is string => line !== null)
+    .join("\n");
 }
 
-export function fotoTitlePrompt(letterMonth: string): string {
+export function fotoTitlePrompt(letterMonth: string, albumTitle?: string | null): string {
+  if (albumTitle) {
+    return [
+      `Bulan: ${formatResourceMonthLabel(letterMonth)}`,
+      `Nama aktiviti: ${albumTitle}`,
+      "",
+      "Tekan Guna tajuk ini jika betul, atau taip nama baharu.",
+    ].join("\n");
+  }
   return [
     `Bulan: ${formatResourceMonthLabel(letterMonth)}`,
     "",
-    "Taip nama aktiviti. Contoh: Program DELIMa SK ABC",
+    "Tajuk album tidak dapat dibaca. Taip nama aktiviti. Contoh: Program DELIMa SK ABC",
   ].join("\n");
+}
+
+export function fotoTitleKeyboard(albumTitle?: string | null): TelegramInlineKeyboard {
+  if (!albumTitle) return cancelKeyboard();
+  return [[{ text: "Guna tajuk ini", callback_data: MEDIA_USE_TITLE_CALLBACK }], [BATAL]];
 }
 
 export function askFotoUrlPrompt(isGroup: boolean): string {

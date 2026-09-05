@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  cleanGooglePhotosAlbumTitle,
   extractGooglePhotosUrl,
   isGooglePhotosUrl,
+  parseGooglePhotosAlbumTitle,
 } from "../../lib/media/google-photos";
 
 test("accepts shared Google Photos album hosts", () => {
@@ -34,4 +36,19 @@ test("extracts a Google Photos URL from mixed Telegram text", () => {
     "https://photos.google.com/share/AF1QipX",
   );
   assert.equal(extractGooglePhotosUrl("tiada pautan album"), null);
+});
+
+test("reads album titles from Google Photos HTML and drops generic suffixes", () => {
+  assert.equal(
+    parseGooglePhotosAlbumTitle(
+      "<title>PROGRAM EDUSPARK COE: BENGKEL Al TOOLS DELIMA GURU DAERAH MANJUNG @PKG_Sitiawan - Google Photos</title>",
+    ),
+    "PROGRAM EDUSPARK COE: BENGKEL Al TOOLS DELIMA GURU DAERAH MANJUNG @PKG_Sitiawan",
+  );
+  assert.equal(
+    parseGooglePhotosAlbumTitle('<meta property="og:title" content="Bengkel DELIMa &amp; AI">'),
+    "Bengkel DELIMa & AI",
+  );
+  assert.equal(cleanGooglePhotosAlbumTitle("Google Photos"), null);
+  assert.equal(parseGooglePhotosAlbumTitle("<title>Google Photos</title>"), null);
 });

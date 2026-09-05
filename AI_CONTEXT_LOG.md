@@ -11,6 +11,8 @@
   kapsyen, atau entiti `text_link`).
 - Selepas simpan: butang Buka album, Lihat di CoE Media, ubah tajuk /
   bulan, padam (callback `mf:` supaya tidak bercanggah dengan surat).
+- Tajuk album dibaca daripada halaman kongsi (`<title>` / `og:title`).
+  Jika berjaya, staf tekan **Guna tajuk ini** atau taip nama baharu.
 - Menu bot menambah `/foto`. Jalankan `npm run telegram:set-webhook`
   selepas deploy.
 

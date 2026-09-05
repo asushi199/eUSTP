@@ -7,6 +7,7 @@ import {
   draftMediaCardIdFromFileId,
   isFotoDraftStep,
   MEDIA_FOTO_COMMANDS,
+  MEDIA_USE_TITLE_CALLBACK,
   parseBotCommand,
   parseBotCommandRemainder,
   parseMediaFotoCallback,
@@ -27,6 +28,7 @@ import {
   resourceYearCallbackData,
 } from "../../lib/telegram/commands";
 import {
+  fotoTitleKeyboard,
   kategoriKeyboard,
   mediaManageKeyboard,
   monthKeyboard,
@@ -125,6 +127,7 @@ test("parses resource wizard callback data", () => {
     cardId: 9,
   });
   assert.equal(parseMediaFotoCallback("rs:et:9"), null);
+  assert.deepEqual(parseMediaFotoCallback(MEDIA_USE_TITLE_CALLBACK), { type: "guna_tajuk" });
   assert.equal(draftMediaCardIdFromFileId(draftFileIdForMediaCard(9)), 9);
   assert.equal(draftMediaCardIdFromFileId(draftFileIdForCard(9)), null);
   assert.equal(isFotoDraftStep("foto_bulan"), true);
@@ -136,7 +139,8 @@ test("keeps kategori and month callback data within Telegram's 64-byte limit", (
   const months = monthKeyboard("2026-09", new Date("2026-09-04T12:00:00+08:00")).flat();
   const manage = resourceManageKeyboard(42).flat();
   const media = mediaManageKeyboard(9).flat();
-  for (const button of [...kategori, ...months, ...manage, ...media]) {
+  const fotoTitle = fotoTitleKeyboard("PROGRAM EDUSPARK").flat();
+  for (const button of [...kategori, ...months, ...manage, ...media, ...fotoTitle]) {
     assert.ok(button.callback_data && button.callback_data.length <= 64, button.callback_data);
   }
   assert.equal(kategori.some((b) => b.text === "USTP"), true);
@@ -144,4 +148,5 @@ test("keeps kategori and month callback data within Telegram's 64-byte limit", (
   assert.equal(months.some((b) => b.text === "September 2026"), true);
   assert.equal(months.some((b) => b.text === "« 2025"), true);
   assert.equal(months.some((b) => b.text === "2027 »"), true);
+  assert.equal(fotoTitle.some((b) => b.text === "Guna tajuk ini"), true);
 });

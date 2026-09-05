@@ -38,6 +38,7 @@ export const MEDIA_FOTO_COMMANDS = new Set(["foto", "gambar"]);
 export const MEDIA_FOTO_KATEGORI = "koleksi";
 
 export type MediaFotoCallback =
+  | { type: "guna_tajuk" }
   | { type: "ubah_tajuk"; cardId: number }
   | { type: "ubah_bulan"; cardId: number }
   | { type: "padam"; cardId: number }
@@ -133,8 +134,11 @@ export function draftFileIdForCard(cardId: number): string {
   return `card:${cardId}`;
 }
 
+export const MEDIA_USE_TITLE_CALLBACK = "mf:use";
+
 export function parseMediaFotoCallback(data: string | undefined): MediaFotoCallback | null {
   if (!data) return null;
+  if (data === MEDIA_USE_TITLE_CALLBACK) return { type: "guna_tajuk" };
   const padamYa = /^mf:dy:(\d+)$/.exec(data);
   if (padamYa) {
     const cardId = parseCardId(padamYa[1]);
