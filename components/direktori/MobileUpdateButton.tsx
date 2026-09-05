@@ -26,7 +26,7 @@ export default function MobileUpdateButton() {
   return (
     <Link
       href="/direktori/kemaskini"
-      className="fixed bottom-24 right-4 z-40 flex h-12 items-center gap-1.5 rounded-full bg-primary px-4 text-xs font-bold text-white shadow-modal transition hover:bg-primary-bright active:scale-95 md:hidden"
+      className="fixed bottom-24 right-4 z-40 flex h-12 items-center gap-1.5 rounded-full bg-primary px-4 text-xs font-bold text-white shadow-modal transition hover:bg-primary-bright active:scale-95 md:bottom-8"
     >
       <svg
         aria-hidden
