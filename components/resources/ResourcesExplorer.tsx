@@ -166,9 +166,16 @@ export default function ResourcesExplorer({
                 key={group.slug}
                 href={resourcesHref(group.slug)}
                 accent={accent}
-                className="flex items-start justify-between gap-4 p-5"
+                className="flex items-start gap-4 p-5"
               >
-                <span className="min-w-0">
+                <span
+                  className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"
+                  style={{ backgroundColor: `${accent}14`, color: accent }}
+                  aria-hidden
+                >
+                  <ResourcesKategoriIcon slug={group.slug} />
+                </span>
+                <span className="min-w-0 flex-1">
                   <span className="block text-lg font-semibold text-ink">
                     {group.title}
                   </span>
@@ -225,4 +232,54 @@ export default function ResourcesExplorer({
       ) : null}
     </>
   );
+}
+
+function ResourcesKategoriIcon({ slug }: { slug: string }) {
+  const common = {
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.6,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    className: "h-7 w-7",
+  };
+  switch (slug) {
+    case "surat-ustp":
+      return (
+        <svg {...common}>
+          <rect x="3" y="5" width="18" height="14" rx="2" />
+          <path d="m3.5 7 8.5 6 8.5-6" />
+        </svg>
+      );
+    case "surat-sekolah":
+      return (
+        <svg {...common}>
+          <path d="M3 21h18" />
+          <path d="M5 21V9l7-4 7 4v12" />
+          <path d="M10 21v-5h4v5" />
+        </svg>
+      );
+    case "pekeliling":
+      return (
+        <svg {...common}>
+          <path d="M4 10v4a1 1 0 0 0 1 1h2l7 4V5L7 9H5a1 1 0 0 0-1 1z" />
+          <path d="M17 8.5a4 4 0 0 1 0 7" />
+        </svg>
+      );
+    case "nota":
+      return (
+        <svg {...common}>
+          <path d="M5 4a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z" />
+          <path d="M9 3v18M12 8h3M12 12h3" />
+        </svg>
+      );
+    default:
+      return (
+        <svg {...common}>
+          <path d="M7 3h8l4 4v14H7z" />
+          <path d="M15 3v4h4M10 12h6M10 16h6" />
+        </svg>
+      );
+  }
 }

@@ -177,9 +177,27 @@ export default function MediaExplorer({
                 key={group.slug}
                 href={mediaHref(group.slug)}
                 accent={accent}
-                className="flex items-start justify-between gap-4 p-5"
+                className="flex items-start gap-4 p-5"
               >
-                <span className="min-w-0">
+                <span
+                  className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"
+                  style={{ backgroundColor: `${accent}14`, color: accent }}
+                  aria-hidden
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={1.6}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-7 w-7"
+                  >
+                    <rect x="3" y="5" width="18" height="14" rx="2" />
+                    <path d="m10 9 6 3.5L10 16z" fill="currentColor" stroke="none" />
+                  </svg>
+                </span>
+                <span className="min-w-0 flex-1">
                   <span className="block text-lg font-semibold text-ink">
                     {group.title}
                   </span>
@@ -200,9 +218,28 @@ export default function MediaExplorer({
               href={item.href}
               accent={accent}
               external
-              className="flex items-start justify-between gap-4 p-5"
+              className="flex items-start gap-4 p-5"
             >
-              <span className="min-w-0">
+              <span
+                className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"
+                style={{ backgroundColor: `${accent}14`, color: accent }}
+                aria-hidden
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.6}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-7 w-7"
+                >
+                  <path d="M10 14 21 3" />
+                  <path d="M15 3h6v6" />
+                  <path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5" />
+                </svg>
+              </span>
+              <span className="min-w-0 flex-1">
                 <span className="block text-lg font-semibold text-ink">{item.label}</span>
                 <span className="mt-1 block text-sm leading-relaxed text-graphite">
                   Buka saluran rasmi dalam tetingkap baharu.
@@ -213,8 +250,25 @@ export default function MediaExplorer({
             </AccentCard>
           ))}
           {plannedItems.map((item) => (
-            <div key={item} className="card flex items-center justify-between gap-3 p-5">
-              <span className="text-lg font-semibold text-ink">{item}</span>
+            <div key={item} className="card flex items-center gap-4 p-5">
+              <span
+                className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-fog text-graphite"
+                aria-hidden
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.6}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-7 w-7"
+                >
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 8v4l3 2" />
+                </svg>
+              </span>
+              <span className="min-w-0 flex-1 text-lg font-semibold text-ink">{item}</span>
               <span className="status-badge shrink-0">Akan datang</span>
             </div>
           ))}

@@ -43,6 +43,25 @@ export default async function LaporanHubPage() {
       <div className="mt-8 grid gap-4">
         {showUstp && (
           <AccentCard href="/admin/laporan-ustp" accent={accent} className="flex items-start gap-4 p-6">
+            <span
+              className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"
+              style={{ backgroundColor: `${accent}14`, color: accent }}
+              aria-hidden
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={1.6}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-7 w-7"
+              >
+                <rect x="6" y="4" width="12" height="17" rx="2" />
+                <path d="M9 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1" />
+                <path d="M9 11h6M9 15h4" />
+              </svg>
+            </span>
             <span className="min-w-0 flex-1">
               <span className="block font-semibold text-ink">Laporan Program USTP</span>
               <span className="mt-1.5 block text-sm leading-relaxed text-graphite">
