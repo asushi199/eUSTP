@@ -38,6 +38,12 @@ test("targets the verified form and maps codes, dates, counts and multiple selec
   });
 });
 
+test("maps PICO VR GOGGLES to AppSheet's non-breaking-space spelling", () => {
+  const nbsp = String.fromCharCode(160);
+  const values = defaults(buildUstpAppSheetUrl({ ...report, equipment: ["PICO VR GOGGLES", "DRON"] }));
+  assert.equal(values["PERALATAN COE YANG DIGUNAKAN"], `PICO${nbsp}VR${nbsp}GOGGLES , DRON`);
+});
+
 test("preserves original sen and identifies fractional amounts for manual review without rounding", () => {
   const fractional = { ...report, os29000Sen: 10050, os42000Sen: 1, os21000Sen: 0 };
   const values = defaults(buildUstpAppSheetUrl(fractional));

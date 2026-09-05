@@ -13,6 +13,24 @@ const ALLOCATIONS = [
   ["os21000Sen", "OS21000 (RM)"],
 ] as const;
 
+/** Ruang tak-putus (U+00A0). Sesetengah pilihan EnumList borang AppSheet. */
+const NBSP = String.fromCharCode(160); // U+00A0 non-breaking space
+
+/**
+ * Sesetengah pilihan EnumList borang AppSheet didaftarkan dengan ruang
+ * tak-putus (NBSP) di antara perkataan, jadi nilai kita (ruang biasa) ditolak
+ * sebagai "This entry is invalid". Petakan nilai dalaman -> ejaan tepat AppSheet
+ * HANYA semasa membina URL; data kita (DB/borang/PDF) kekal ruang biasa.
+ * Disahkan melalui ujian: hanya "PICO VR GOGGLES" menggunakan NBSP.
+ */
+const APPSHEET_EQUIPMENT_MAP: Record<string, string> = {
+  "PICO VR GOGGLES": ["PICO", "VR", "GOGGLES"].join(NBSP),
+};
+
+function appSheetEquipment(value: string): string {
+  return APPSHEET_EQUIPMENT_MAP[value] ?? value;
+}
+
 export function ustpAppSheetManualAllocations(report: AppSheetReport) {
   return ALLOCATIONS.filter(([key]) => report[key] % 100 !== 0)
     .map(([key, label]) => `${label}: ${(report[key] / 100).toFixed(2)}`);
@@ -40,7 +58,9 @@ export function buildUstpAppSheetUrl(report: AppSheetReport) {
     // pilihan yang sah, jika tidak ia menjadi "This entry is invalid".
     "TERAS DALAM DPD": report.teras.map((teras) => teras.replace("TERAS ", "TERAS")).join(" , "),
     "PENGGUNAAN PERALATAN COE": report.equipmentUsed === "Ya" ? "YA" : "TIDAK",
-    "PERALATAN COE YANG DIGUNAKAN": report.equipmentUsed === "Ya" ? report.equipment.join(" , ") : "",
+    "PERALATAN COE YANG DIGUNAKAN": report.equipmentUsed === "Ya"
+      ? report.equipment.map(appSheetEquipment).join(" , ")
+      : "",
   };
   for (const [key, label] of ALLOCATIONS) {
     // The target form rejects decimal notation. Never round actual expenditure.
