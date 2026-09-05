@@ -98,6 +98,8 @@ test("formats search hits, help, and paginated numbering", () => {
   assert.match(formatResourceSearchReply("", [], { help: true }), /\/surat_ustp/);
   assert.match(nexaBotHelpText(), /\/kemaskini/);
   assert.match(nexaBotHelpText(), /\/padam/);
+  assert.match(nexaBotHelpText(), /\/foto/);
+  assert.match(nexaBotHelpText(), /CoE Media/);
   assert.match(formatResourceSearchReply("xyz", []), /Tiada surat sepadan/);
   assert.match(
     formatResourceSearchReply("", [], { kategori: "surat-ustp" }),

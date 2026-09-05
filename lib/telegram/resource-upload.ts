@@ -19,16 +19,28 @@ import {
   formatResourceMonthLabel,
   toResourcesExplorerGroups,
 } from "@/lib/resources/search";
+import { getMediaCard } from "@/lib/media/queries";
+import { publishMediaLink, removeMediaCard, updateMediaCardMeta } from "@/lib/media/publish";
+import { extractGooglePhotosUrl } from "@/lib/media/google-photos";
+import { extractFotoUrl } from "./foto-url";
+import { mediaHref } from "@/lib/media/kategori";
 import { canManageKandungan } from "@/lib/roles";
 import {
   draftCardIdFromFileId,
   draftFileIdForCard,
+  draftFileIdForMediaCard,
+  draftMediaCardIdFromFileId,
+  isFotoDraftStep,
+  MEDIA_FOTO_COMMANDS,
+  MEDIA_FOTO_KATEGORI,
   parseBotCommand,
   parseBotCommandRemainder,
+  parseMediaFotoCallback,
   parseResourceCallback,
   RESOURCE_HELP_COMMANDS,
   RESOURCE_MANAGE_COMMANDS,
   RESOURCE_SEARCH_COMMANDS,
+  type MediaFotoCallback,
   type ResourceCallback,
 } from "./commands";
 import {
@@ -54,9 +66,14 @@ import {
 } from "./client";
 import {
   askFilePrompt,
+  askFotoUrlPrompt,
   cancelKeyboard,
+  fotoMonthPrompt,
+  fotoTitlePrompt,
   kategoriKeyboard,
   kategoriPrompt,
+  mediaDeleteConfirmKeyboard,
+  mediaSavedKeyboard,
   monthKeyboard,
   monthPrompt,
   resourceDeleteConfirmKeyboard,
@@ -85,6 +102,8 @@ export type TelegramResourceMessage = {
   from?: TelegramUser;
   text?: string;
   caption?: string;
+  entities?: Array<{ type?: string; offset?: number; length?: number; url?: string }>;
+  caption_entities?: Array<{ type?: string; offset?: number; length?: number; url?: string }>;
   document?: TelegramDocument;
   photo?: TelegramPhoto[];
   reply_to_message?: TelegramResourceMessage;
@@ -112,6 +131,11 @@ function portalBaseUrl(): string {
 function portalUrlFor(kategori: string): string | null {
   const portal = portalBaseUrl();
   return portal ? `${portal}${resourcesHref(kategori)}` : null;
+}
+
+function mediaPortalUrl(kategori = MEDIA_FOTO_KATEGORI): string | null {
+  const portal = portalBaseUrl();
+  return portal ? `${portal}${mediaHref(kategori)}` : null;
 }
 
 function cardStatusText(
@@ -143,6 +167,20 @@ function extractFile(
   includeReply = false,
 ) {
   return extractTelegramResourceFile(message, { includeReply });
+}
+
+function mediaCardStatusText(
+  prefix: string,
+  card: { title: string; letterMonth?: string | null },
+): string {
+  return [
+    prefix,
+    "",
+    `Nama aktiviti: ${card.title}`,
+    card.letterMonth ? `Bulan: ${formatResourceMonthLabel(card.letterMonth)}` : null,
+  ]
+    .filter((line): line is string => line !== null)
+    .join("\n");
 }
 
 async function findStaffByTelegramUserId(telegramUserId: string): Promise<StaffRow | null> {
@@ -269,6 +307,39 @@ async function startFromFile(opts: {
   });
 }
 
+async function startFromFotoUrl(opts: {
+  chatId: string;
+  telegramUserId: string;
+  userId: number;
+  url: string;
+  replyToMessageId?: number;
+  messageThreadId?: number;
+}): Promise<void> {
+  const previous = await findDraft(opts.chatId, opts.telegramUserId);
+  if (previous?.promptMessageId) {
+    await deleteTelegramMessages(opts.chatId, [previous.promptMessageId]);
+  }
+  const promptMessageId = await reply(
+    opts.chatId,
+    fotoMonthPrompt(),
+    monthKeyboard(),
+    { replyToMessageId: opts.replyToMessageId, messageThreadId: opts.messageThreadId },
+  );
+  await upsertDraft({
+    chatId: opts.chatId,
+    telegramUserId: opts.telegramUserId,
+    userId: opts.userId,
+    fileId: null,
+    fileName: opts.url,
+    mimeType: null,
+    fileSize: null,
+    step: "foto_bulan",
+    kategori: MEDIA_FOTO_KATEGORI,
+    letterMonth: null,
+    promptMessageId: promptMessageId ?? null,
+  });
+}
+
 async function publishDraft(opts: {
   chatId: string;
   telegramUserId: string;
@@ -380,6 +451,67 @@ async function publishDraft(opts: {
   }
 }
 
+async function publishFotoDraft(opts: {
+  chatId: string;
+  telegramUserId: string;
+  draft: DraftRow;
+  title: string;
+  titleMessageId?: number;
+  messageThreadId?: number;
+}): Promise<void> {
+  const thread = opts.messageThreadId;
+  const title = opts.title.trim().slice(0, 300);
+  if (!title) {
+    await reply(opts.chatId, "Sila taip nama aktiviti.", cancelKeyboard(), {
+      messageThreadId: thread,
+    });
+    return;
+  }
+  if (
+    !opts.draft.fileName ||
+    !opts.draft.letterMonth ||
+    !extractGooglePhotosUrl(opts.draft.fileName) ||
+    !isLetterMonthKey(opts.draft.letterMonth)
+  ) {
+    await clearDraft(opts.chatId, opts.telegramUserId);
+    await reply(opts.chatId, "Draf tidak lengkap. Hantar /foto semula.", undefined, {
+      messageThreadId: thread,
+    });
+    return;
+  }
+
+  try {
+    const published = await publishMediaLink({
+      kategori: MEDIA_FOTO_KATEGORI,
+      title,
+      url: opts.draft.fileName,
+      letterMonth: opts.draft.letterMonth,
+    });
+    await clearDraft(opts.chatId, opts.telegramUserId);
+    await showMediaCardSaved({
+      chatId: opts.chatId,
+      prefix: "Album gambar telah disimpan.",
+      card: {
+        id: published.id,
+        title,
+        url: published.url,
+        letterMonth: opts.draft.letterMonth,
+      },
+      messageThreadId: thread,
+    });
+    await deleteTelegramMessages(opts.chatId, [opts.draft.promptMessageId, opts.titleMessageId]);
+  } catch (error) {
+    await reply(
+      opts.chatId,
+      error instanceof Error
+        ? `Gagal menyimpan album: ${error.message}`
+        : "Gagal menyimpan album. Sila cuba lagi.",
+      undefined,
+      { messageThreadId: thread },
+    );
+  }
+}
+
 async function loadSearchHits(intent: { kategori: string | null; query: string }) {
   const groups = toResourcesExplorerGroups(await listResourcesCardsGrouped());
   let cards = groups.flatMap((group) => group.cards);
@@ -402,6 +534,31 @@ async function showCardSaved(opts: {
       cardId: opts.card.id,
       driveUrl: opts.card.url,
       portalUrl: portalUrlFor(opts.card.kategori),
+    }),
+  };
+  if (opts.messageId) {
+    const edited = await editTelegramMessage(opts.chatId, opts.messageId, text, markup);
+    if (edited) return;
+  }
+  await sendTelegramChatMessage(opts.chatId, text, {
+    replyMarkup: markup,
+    messageThreadId: opts.messageThreadId,
+  });
+}
+
+async function showMediaCardSaved(opts: {
+  chatId: string;
+  messageId?: number;
+  prefix: string;
+  card: { id: number; title: string; letterMonth?: string | null; url: string };
+  messageThreadId?: number;
+}): Promise<void> {
+  const text = mediaCardStatusText(opts.prefix, opts.card);
+  const markup = {
+    inline_keyboard: mediaSavedKeyboard({
+      cardId: opts.card.id,
+      albumUrl: opts.card.url,
+      portalUrl: mediaPortalUrl(),
     }),
   };
   if (opts.messageId) {
@@ -621,6 +778,180 @@ async function handleManageCallback(opts: {
   return true;
 }
 
+async function beginMediaCardDraft(opts: {
+  chatId: string;
+  telegramUserId: string;
+  userId: number;
+  cardId: number;
+  step: "foto_ubah_tajuk" | "foto_ubah_bulan";
+  promptMessageId?: number | null;
+}): Promise<
+  { ok: true; title: string; url: string; letterMonth: string | null } | { ok: false }
+> {
+  const card = await getMediaCard(opts.cardId);
+  if (!card || !card.aktif) return { ok: false };
+  await upsertDraft({
+    chatId: opts.chatId,
+    telegramUserId: opts.telegramUserId,
+    userId: opts.userId,
+    fileId: draftFileIdForMediaCard(card.id),
+    fileName: card.url,
+    mimeType: null,
+    fileSize: null,
+    step: opts.step,
+    kategori: card.kategori,
+    letterMonth: card.letterMonth,
+    promptMessageId: opts.promptMessageId ?? null,
+  });
+  return {
+    ok: true,
+    title: card.title,
+    url: card.url,
+    letterMonth: card.letterMonth,
+  };
+}
+
+async function saveEditedMediaTitle(opts: {
+  chatId: string;
+  telegramUserId: string;
+  draft: DraftRow;
+  title: string;
+  titleMessageId?: number;
+  messageThreadId?: number;
+}): Promise<void> {
+  const cardId = draftMediaCardIdFromFileId(opts.draft.fileId);
+  const title = opts.title.trim().slice(0, 300);
+  if (!cardId) {
+    await clearDraft(opts.chatId, opts.telegramUserId);
+    await reply(opts.chatId, "Draf telah tamat. Hantar /foto semula.", undefined, {
+      messageThreadId: opts.messageThreadId,
+    });
+    return;
+  }
+  if (!title) {
+    await reply(opts.chatId, "Sila taip nama aktiviti baharu.", cancelKeyboard(), {
+      messageThreadId: opts.messageThreadId,
+    });
+    return;
+  }
+  const updated = await updateMediaCardMeta(cardId, { title });
+  const card = await getMediaCard(cardId);
+  await clearDraft(opts.chatId, opts.telegramUserId);
+  if (!updated.ok || !card) {
+    await reply(opts.chatId, "Album ini sudah tidak wujud.", undefined, {
+      messageThreadId: opts.messageThreadId,
+    });
+    return;
+  }
+  await deleteTelegramMessages(opts.chatId, [opts.draft.promptMessageId, opts.titleMessageId]);
+  await showMediaCardSaved({
+    chatId: opts.chatId,
+    prefix: "Nama aktiviti telah dikemas kini.",
+    card,
+    messageThreadId: opts.messageThreadId,
+  });
+}
+
+async function handleMediaManageCallback(opts: {
+  query: TelegramResourceCallback;
+  chatId: string;
+  telegramUserId: string;
+  staff: StaffRow;
+  parsed: MediaFotoCallback;
+}): Promise<boolean> {
+  const callbackId = opts.query.id;
+  if (!callbackId) return false;
+  const thread = threadIdOf(opts.query.message);
+  const messageId = opts.query.message?.message_id;
+
+  if (opts.parsed.type === "ubah_tajuk") {
+    const started = await beginMediaCardDraft({
+      chatId: opts.chatId,
+      telegramUserId: opts.telegramUserId,
+      userId: opts.staff.id,
+      cardId: opts.parsed.cardId,
+      step: "foto_ubah_tajuk",
+      promptMessageId: messageId,
+    });
+    if (!started.ok) {
+      await answerTelegramCallback(callbackId, "Album tidak wujud.");
+      return true;
+    }
+    await answerTelegramCallback(callbackId);
+    const text = [
+      mediaCardStatusText("Ubah nama aktiviti ini.", started),
+      "",
+      "Taip nama aktiviti baharu.",
+    ].join("\n");
+    if (messageId) {
+      await editTelegramMessage(opts.chatId, messageId, text, { inline_keyboard: cancelKeyboard() });
+    } else {
+      await reply(opts.chatId, text, cancelKeyboard(), { messageThreadId: thread });
+    }
+    return true;
+  }
+
+  if (opts.parsed.type === "ubah_bulan") {
+    const started = await beginMediaCardDraft({
+      chatId: opts.chatId,
+      telegramUserId: opts.telegramUserId,
+      userId: opts.staff.id,
+      cardId: opts.parsed.cardId,
+      step: "foto_ubah_bulan",
+      promptMessageId: messageId,
+    });
+    if (!started.ok) {
+      await answerTelegramCallback(callbackId, "Album tidak wujud.");
+      return true;
+    }
+    await answerTelegramCallback(callbackId);
+    const text = fotoMonthPrompt();
+    const keyboard = monthKeyboard(started.letterMonth ?? undefined);
+    if (messageId) {
+      await editTelegramMessage(opts.chatId, messageId, text, { inline_keyboard: keyboard });
+    } else {
+      await reply(opts.chatId, text, keyboard, { messageThreadId: thread });
+    }
+    return true;
+  }
+
+  const card = await getMediaCard(opts.parsed.cardId);
+  if (!card || !card.aktif) {
+    await answerTelegramCallback(callbackId, "Album tidak wujud.");
+    return true;
+  }
+
+  if (opts.parsed.type === "padam") {
+    await answerTelegramCallback(callbackId);
+    const text = [
+      mediaCardStatusText("Padam album ini dari CoE Media?", card),
+      "",
+      "Pautan Google Photos tidak dipadam.",
+    ].join("\n");
+    if (messageId) {
+      await editTelegramMessage(opts.chatId, messageId, text, {
+        inline_keyboard: mediaDeleteConfirmKeyboard(card.id),
+      });
+    } else {
+      await reply(opts.chatId, text, mediaDeleteConfirmKeyboard(card.id), {
+        messageThreadId: thread,
+      });
+    }
+    return true;
+  }
+
+  await removeMediaCard(card.id);
+  await clearDraft(opts.chatId, opts.telegramUserId);
+  await answerTelegramCallback(callbackId, "Dipadam");
+  const text = "Album telah dipadam dari CoE Media. Pautan Google Photos masih ada.";
+  if (messageId) {
+    await editTelegramMessage(opts.chatId, messageId, text, { inline_keyboard: [] });
+  } else {
+    await reply(opts.chatId, text, undefined, { messageThreadId: thread });
+  }
+  return true;
+}
+
 async function handleAuthorizedMessage(opts: {
   message: TelegramResourceMessage;
   chatId: string;
@@ -633,6 +964,10 @@ async function handleAuthorizedMessage(opts: {
     getTelegramBotUsername(),
   );
   const file = extractFile(opts.message, command === "surat");
+  const fotoUrl = extractFotoUrl(
+    opts.message,
+    command !== null && MEDIA_FOTO_COMMANDS.has(command),
+  );
   const isGroup = isGroupChat(opts.chatType);
   const thread = threadIdOf(opts.message);
 
@@ -690,8 +1025,48 @@ async function handleAuthorizedMessage(opts: {
     return true;
   }
 
+  if (command && MEDIA_FOTO_COMMANDS.has(command)) {
+    if (fotoUrl) {
+      await startFromFotoUrl({
+        chatId: opts.chatId,
+        telegramUserId: opts.telegramUserId,
+        userId: opts.staff.id,
+        url: fotoUrl,
+        replyToMessageId: opts.message.message_id,
+        messageThreadId: thread,
+      });
+      return true;
+    }
+    const promptMessageId = await reply(
+      opts.chatId,
+      askFotoUrlPrompt(isGroup),
+      cancelKeyboard(),
+      { replyToMessageId: opts.message.message_id, messageThreadId: thread },
+    );
+    await upsertDraft({
+      chatId: opts.chatId,
+      telegramUserId: opts.telegramUserId,
+      userId: opts.staff.id,
+      fileId: null,
+      fileName: null,
+      mimeType: null,
+      fileSize: null,
+      step: "foto_await_url",
+      kategori: MEDIA_FOTO_KATEGORI,
+      letterMonth: null,
+      promptMessageId: promptMessageId ?? null,
+    });
+    return true;
+  }
+
   if (file) {
     const draft = await findDraft(opts.chatId, opts.telegramUserId);
+    if (draft && isFotoDraftStep(draft.step)) {
+      await reply(opts.chatId, askFotoUrlPrompt(isGroup), cancelKeyboard(), {
+        messageThreadId: thread,
+      });
+      return true;
+    }
     if (draft || !isGroup) {
       await startFromFile({
         chatId: opts.chatId,
@@ -706,6 +1081,21 @@ async function handleAuthorizedMessage(opts: {
     return false;
   }
 
+  if (fotoUrl) {
+    const draft = await findDraft(opts.chatId, opts.telegramUserId);
+    if (!draft || draft.step === "foto_await_url") {
+      await startFromFotoUrl({
+        chatId: opts.chatId,
+        telegramUserId: opts.telegramUserId,
+        userId: opts.staff.id,
+        url: fotoUrl,
+        replyToMessageId: opts.message.message_id,
+        messageThreadId: thread,
+      });
+      return true;
+    }
+  }
+
   const text = opts.message.text?.trim() ?? "";
   if (!text || command) return false;
 
@@ -713,6 +1103,17 @@ async function handleAuthorizedMessage(opts: {
   if (!draft) return false;
   if (draft.step === "ubah_tajuk") {
     await saveEditedTitle({
+      chatId: opts.chatId,
+      telegramUserId: opts.telegramUserId,
+      draft,
+      title: text,
+      titleMessageId: opts.message.message_id,
+      messageThreadId: thread,
+    });
+    return true;
+  }
+  if (draft.step === "foto_ubah_tajuk") {
+    await saveEditedMediaTitle({
       chatId: opts.chatId,
       telegramUserId: opts.telegramUserId,
       draft,
@@ -733,8 +1134,25 @@ async function handleAuthorizedMessage(opts: {
     });
     return true;
   }
+  if (draft.step === "foto_nama") {
+    await publishFotoDraft({
+      chatId: opts.chatId,
+      telegramUserId: opts.telegramUserId,
+      draft,
+      title: text,
+      titleMessageId: opts.message.message_id,
+      messageThreadId: thread,
+    });
+    return true;
+  }
   if (draft.step === "await_file") {
     await reply(opts.chatId, askFilePrompt(isGroup), cancelKeyboard(), { messageThreadId: thread });
+    return true;
+  }
+  if (draft.step === "foto_await_url") {
+    await reply(opts.chatId, askFotoUrlPrompt(isGroup), cancelKeyboard(), {
+      messageThreadId: thread,
+    });
     return true;
   }
   await reply(opts.chatId, "Sila guna butang di atas, atau taip /batal.", cancelKeyboard(), {
@@ -837,14 +1255,20 @@ async function handleMessage(message: TelegramResourceMessage): Promise<boolean>
   if (!staff) {
     const command = parseBotCommand(message.text ?? message.caption, getTelegramBotUsername());
     const file = extractFile(message, command === "surat");
+    const fotoUrl = extractFotoUrl(
+      message,
+      command !== null && MEDIA_FOTO_COMMANDS.has(command),
+    );
     if (
       command === "surat" ||
+      (command && MEDIA_FOTO_COMMANDS.has(command)) ||
       (command && RESOURCE_MANAGE_COMMANDS.has(command)) ||
-      (chatType === "private" && file)
+      (chatType === "private" && file) ||
+      (chatType === "private" && fotoUrl)
     ) {
       await reply(
         String(chatId),
-        "Akaun Telegram ini belum disambungkan sebagai pentadbir CoE Resources. Ikat akaun peribadi anda di /admin/telegram dahulu, kemudian cuba /surat semula.",
+        "Akaun Telegram ini belum disambungkan sebagai pentadbir. Ikat akaun peribadi anda di /admin/telegram dahulu, kemudian cuba semula.",
         undefined,
         { messageThreadId: threadIdOf(message) },
       );
@@ -870,6 +1294,23 @@ async function handleCallback(query: TelegramResourceCallback): Promise<boolean>
 
   if (parseResourceSearchCallback(query.data)) {
     return handleSearchPageCallback(query);
+  }
+
+  const mediaParsed = parseMediaFotoCallback(query.data);
+  if (mediaParsed) {
+    const telegramUserId = String(fromId);
+    const staff = await findStaffByTelegramUserId(telegramUserId);
+    if (!staff) {
+      await answerTelegramCallback(callbackId, "Tiada kebenaran.");
+      return true;
+    }
+    return handleMediaManageCallback({
+      query,
+      chatId: String(chatId),
+      telegramUserId,
+      staff,
+      parsed: mediaParsed,
+    });
   }
 
   const parsed = parseResourceCallback(query.data);
@@ -912,11 +1353,15 @@ async function handleCallback(query: TelegramResourceCallback): Promise<boolean>
   }
 
   if (!draft) {
-    await answerTelegramCallback(callbackId, "Draf telah tamat. Hantar /surat semula.");
+    await answerTelegramCallback(callbackId, "Draf telah tamat. Hantar /surat atau /foto semula.");
     return true;
   }
 
   if (parsed.type === "kategori") {
+    if (isFotoDraftStep(draft.step)) {
+      await answerTelegramCallback(callbackId, "Pilihan tidak sah.");
+      return true;
+    }
     const slug: ResourcesBotKategoriSlug = parsed.slug;
     await upsertDraft({
       chatId: draft.chatId,
@@ -945,12 +1390,17 @@ async function handleCallback(query: TelegramResourceCallback): Promise<boolean>
   }
 
   if (parsed.type === "tahun") {
-    const editing = draft.step === "ubah_bulan" && Boolean(draftCardIdFromFileId(draft.fileId));
+    const fotoWizard = isFotoDraftStep(draft.step);
+    const editing = fotoWizard
+      ? draft.step === "foto_ubah_bulan" && Boolean(draftMediaCardIdFromFileId(draft.fileId))
+      : draft.step === "ubah_bulan" && Boolean(draftCardIdFromFileId(draft.fileId));
     if (
-      !draft.kategori ||
       !isLetterMonthKey(parsed.center) ||
-      (!editing && !isResourcesBotKategori(draft.kategori)) ||
-      (editing && !resourcesKategoriBySlug(draft.kategori))
+      (fotoWizard
+        ? draft.kategori !== MEDIA_FOTO_KATEGORI
+        : !draft.kategori ||
+          (!editing && !isResourcesBotKategori(draft.kategori)) ||
+          (editing && !resourcesKategoriBySlug(draft.kategori)))
     ) {
       await answerTelegramCallback(callbackId, "Pilihan tidak sah.");
       return true;
@@ -963,18 +1413,19 @@ async function handleCallback(query: TelegramResourceCallback): Promise<boolean>
       fileName: draft.fileName,
       mimeType: draft.mimeType,
       fileSize: draft.fileSize,
-      step: editing ? "ubah_bulan" : "bulan",
+      step: fotoWizard ? (editing ? "foto_ubah_bulan" : "foto_bulan") : editing ? "ubah_bulan" : "bulan",
       kategori: draft.kategori,
       letterMonth: null,
       promptMessageId: query.message?.message_id ?? draft.promptMessageId ?? null,
     });
     await answerTelegramCallback(callbackId);
+    const yearPrompt = fotoWizard ? fotoMonthPrompt() : monthPrompt(draft.kategori ?? "");
     if (query.message?.message_id) {
-      await editTelegramMessage(String(chatId), query.message.message_id, monthPrompt(draft.kategori), {
+      await editTelegramMessage(String(chatId), query.message.message_id, yearPrompt, {
         inline_keyboard: monthKeyboard(parsed.center),
       });
     } else {
-      await reply(String(chatId), monthPrompt(draft.kategori), monthKeyboard(parsed.center), {
+      await reply(String(chatId), yearPrompt, monthKeyboard(parsed.center), {
         messageThreadId: threadIdOf(query.message),
       });
     }
@@ -982,6 +1433,69 @@ async function handleCallback(query: TelegramResourceCallback): Promise<boolean>
   }
 
   if (parsed.type !== "bulan") return true;
+
+  const fotoEditCardId =
+    draft.step === "foto_ubah_bulan" ? draftMediaCardIdFromFileId(draft.fileId) : null;
+  if (fotoEditCardId) {
+    if (!isLetterMonthKey(parsed.month)) {
+      await answerTelegramCallback(callbackId, "Pilihan tidak sah.");
+      return true;
+    }
+    const updated = await updateMediaCardMeta(fotoEditCardId, { letterMonth: parsed.month });
+    const card = await getMediaCard(fotoEditCardId);
+    await clearDraft(String(chatId), telegramUserId);
+    if (!updated.ok || !card) {
+      await answerTelegramCallback(callbackId, "Album tidak wujud.");
+      return true;
+    }
+    await answerTelegramCallback(callbackId, "Bulan dikemas kini");
+    await showMediaCardSaved({
+      chatId: String(chatId),
+      messageId: query.message?.message_id,
+      prefix: "Bulan album telah dikemas kini.",
+      card,
+      messageThreadId: threadIdOf(query.message),
+    });
+    return true;
+  }
+
+  if (draft.step === "foto_bulan") {
+    if (
+      !draft.fileName ||
+      !extractGooglePhotosUrl(draft.fileName) ||
+      !isLetterMonthKey(parsed.month)
+    ) {
+      await answerTelegramCallback(callbackId, "Pilihan tidak sah.");
+      return true;
+    }
+    await upsertDraft({
+      chatId: draft.chatId,
+      telegramUserId: draft.telegramUserId,
+      userId: draft.userId,
+      fileId: draft.fileId,
+      fileName: draft.fileName,
+      mimeType: draft.mimeType,
+      fileSize: draft.fileSize,
+      step: "foto_nama",
+      kategori: MEDIA_FOTO_KATEGORI,
+      letterMonth: parsed.month,
+      promptMessageId: query.message?.message_id ?? draft.promptMessageId ?? null,
+    });
+    await answerTelegramCallback(callbackId);
+    if (query.message?.message_id) {
+      await editTelegramMessage(
+        String(chatId),
+        query.message.message_id,
+        fotoTitlePrompt(parsed.month),
+        { inline_keyboard: cancelKeyboard() },
+      );
+    } else {
+      await reply(String(chatId), fotoTitlePrompt(parsed.month), cancelKeyboard(), {
+        messageThreadId: threadIdOf(query.message),
+      });
+    }
+    return true;
+  }
 
   const editCardId = draft.step === "ubah_bulan" ? draftCardIdFromFileId(draft.fileId) : null;
   if (editCardId) {

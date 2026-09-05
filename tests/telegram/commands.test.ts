@@ -3,12 +3,21 @@ import test from "node:test";
 import {
   draftCardIdFromFileId,
   draftFileIdForCard,
+  draftFileIdForMediaCard,
+  draftMediaCardIdFromFileId,
+  isFotoDraftStep,
+  MEDIA_FOTO_COMMANDS,
   parseBotCommand,
   parseBotCommandRemainder,
+  parseMediaFotoCallback,
   parseResourceCallback,
   RESOURCE_HELP_COMMANDS,
   RESOURCE_MANAGE_COMMANDS,
   RESOURCE_SEARCH_COMMANDS,
+  mediaDeleteCallbackData,
+  mediaDeleteConfirmCallbackData,
+  mediaEditMonthCallbackData,
+  mediaEditTitleCallbackData,
   resourceDeleteCallbackData,
   resourceDeleteConfirmCallbackData,
   resourceEditMonthCallbackData,
@@ -17,12 +26,22 @@ import {
   resourceMonthCallbackData,
   resourceYearCallbackData,
 } from "../../lib/telegram/commands";
-import { kategoriKeyboard, monthKeyboard, resourceManageKeyboard } from "../../lib/telegram/resource-keyboard";
+import {
+  kategoriKeyboard,
+  mediaManageKeyboard,
+  monthKeyboard,
+  resourceManageKeyboard,
+} from "../../lib/telegram/resource-keyboard";
 
 test("parses /surat in private chat and groups with a bot username", () => {
   assert.equal(parseBotCommand("/surat", "nexabot"), "surat");
   assert.equal(parseBotCommand("/surat@NexaBot sila", "nexabot"), "surat");
   assert.equal(parseBotCommand("/batal", "nexabot"), "batal");
+  assert.equal(parseBotCommand("/foto", "nexabot"), "foto");
+  assert.equal(parseBotCommand("/foto@NexaBot", "nexabot"), "foto");
+  assert.equal(parseBotCommand("/gambar", "nexabot"), "gambar");
+  assert.equal(MEDIA_FOTO_COMMANDS.has("foto"), true);
+  assert.equal(MEDIA_FOTO_COMMANDS.has("gambar"), true);
   assert.equal(parseBotCommand("/surat@OtherBot", "nexabot"), null);
   assert.equal(parseBotCommand("hantar surat", "nexabot"), null);
 });
@@ -89,13 +108,35 @@ test("parses resource wizard callback data", () => {
   });
   assert.equal(draftCardIdFromFileId(draftFileIdForCard(42)), 42);
   assert.equal(draftCardIdFromFileId("AgADBAAD"), null);
+  assert.deepEqual(parseMediaFotoCallback(mediaEditTitleCallbackData(9)), {
+    type: "ubah_tajuk",
+    cardId: 9,
+  });
+  assert.deepEqual(parseMediaFotoCallback(mediaEditMonthCallbackData(9)), {
+    type: "ubah_bulan",
+    cardId: 9,
+  });
+  assert.deepEqual(parseMediaFotoCallback(mediaDeleteCallbackData(9)), {
+    type: "padam",
+    cardId: 9,
+  });
+  assert.deepEqual(parseMediaFotoCallback(mediaDeleteConfirmCallbackData(9)), {
+    type: "padam_ya",
+    cardId: 9,
+  });
+  assert.equal(parseMediaFotoCallback("rs:et:9"), null);
+  assert.equal(draftMediaCardIdFromFileId(draftFileIdForMediaCard(9)), 9);
+  assert.equal(draftMediaCardIdFromFileId(draftFileIdForCard(9)), null);
+  assert.equal(isFotoDraftStep("foto_bulan"), true);
+  assert.equal(isFotoDraftStep("nama"), false);
 });
 
 test("keeps kategori and month callback data within Telegram's 64-byte limit", () => {
   const kategori = kategoriKeyboard().flat();
   const months = monthKeyboard("2026-09", new Date("2026-09-04T12:00:00+08:00")).flat();
   const manage = resourceManageKeyboard(42).flat();
-  for (const button of [...kategori, ...months, ...manage]) {
+  const media = mediaManageKeyboard(9).flat();
+  for (const button of [...kategori, ...months, ...manage, ...media]) {
     assert.ok(button.callback_data && button.callback_data.length <= 64, button.callback_data);
   }
   assert.equal(kategori.some((b) => b.text === "USTP"), true);

@@ -1,5 +1,19 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-05 — NexaBot: /foto album Google Photos ke CoE Media
+
+- `/foto` (atau `/gambar`) dalam sembang peribadi atau kumpulan menanya
+  bulan aktiviti dan nama aktiviti, kemudian menyimpan pautan album ke
+  `media_cards` (kategori `koleksi`) — kad awam di `/media/koleksi`.
+- Pautan `photos.google.com` / `photos.app.goo.gl` dikesan secara
+  automatik (staf yang sudah ikat akaun). Dalam kumpulan, privacy mode:
+  hantar `/foto` dulu atau **balas** mesej album dengan `/foto` (teks,
+  kapsyen, atau entiti `text_link`).
+- Selepas simpan: butang Buka album, Lihat di CoE Media, ubah tajuk /
+  bulan, padam (callback `mf:` supaya tidak bercanggah dengan surat).
+- Menu bot menambah `/foto`. Jalankan `npm run telegram:set-webhook`
+  selepas deploy.
+
 ## 2026-09-05 — CoE Media: YouTube ikut suis iframe
 
 - Senarai CoE Media / Resources (`gallery`): kad YouTube lalai tertutup

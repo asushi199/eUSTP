@@ -570,7 +570,7 @@ export const telegramDestinations = pgTable(
   }),
 );
 
-/** Draf muat naik CoE Resources melalui NexaBot (peribadi atau kumpulan). */
+/** Draf muat naik CoE Resources / album CoE Media melalui NexaBot. */
 export const telegramResourceDrafts = pgTable(
   "telegram_resource_drafts",
   {

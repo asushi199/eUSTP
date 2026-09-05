@@ -11,6 +11,10 @@ import {
 } from "@/lib/resources/search";
 import {
   RESOURCE_CANCEL_CALLBACK,
+  mediaDeleteCallbackData,
+  mediaDeleteConfirmCallbackData,
+  mediaEditMonthCallbackData,
+  mediaEditTitleCallbackData,
   resourceDeleteCallbackData,
   resourceDeleteConfirmCallbackData,
   resourceEditMonthCallbackData,
@@ -144,4 +148,60 @@ export function askFilePrompt(isGroup: boolean): string {
     ].join("\n");
   }
   return "Sila hantar fail PDF atau imej surat. Kemudian pilih kumpulan, bulan dan nama.";
+}
+
+export function mediaManageKeyboard(cardId: number): TelegramInlineKeyboard {
+  return [
+    [
+      { text: "Ubah tajuk", callback_data: mediaEditTitleCallbackData(cardId) },
+      { text: "Ubah bulan", callback_data: mediaEditMonthCallbackData(cardId) },
+    ],
+    [{ text: "Padam", callback_data: mediaDeleteCallbackData(cardId) }],
+  ];
+}
+
+export function mediaDeleteConfirmKeyboard(cardId: number): TelegramInlineKeyboard {
+  return [
+    [{ text: "Ya, padam", callback_data: mediaDeleteConfirmCallbackData(cardId) }],
+    [BATAL],
+  ];
+}
+
+export function mediaSavedKeyboard(opts: {
+  cardId: number;
+  albumUrl: string;
+  portalUrl?: string | null;
+}): TelegramInlineKeyboard {
+  return [
+    [{ text: "Buka album", url: opts.albumUrl }],
+    ...(opts.portalUrl ? [[{ text: "Lihat di CoE Media", url: opts.portalUrl }]] : []),
+    ...mediaManageKeyboard(opts.cardId),
+  ];
+}
+
+export function fotoMonthPrompt(): string {
+  return [
+    "Pautan Google Photos diterima.",
+    "",
+    "Pilih bulan foto ini (bulan aktiviti, bukan bulan pautan dihantar). Guna « tahun untuk muka surat lain.",
+  ].join("\n");
+}
+
+export function fotoTitlePrompt(letterMonth: string): string {
+  return [
+    `Bulan: ${formatResourceMonthLabel(letterMonth)}`,
+    "",
+    "Taip nama aktiviti. Contoh: Program DELIMa SK ABC",
+  ].join("\n");
+}
+
+export function askFotoUrlPrompt(isGroup: boolean): string {
+  if (isGroup) {
+    return [
+      "Sila BALAS (Reply) mesej ini dengan pautan Google Photos (photos.google.com atau photos.app.goo.gl).",
+      "",
+      "Anda juga boleh membalas mesej album sedia ada dengan /foto. Kemudian pilih bulan dan nama aktiviti.",
+    ].join("\n");
+  }
+  return "Sila hantar pautan Google Photos (photos.google.com atau photos.app.goo.gl). Kemudian pilih bulan dan nama aktiviti.";
 }

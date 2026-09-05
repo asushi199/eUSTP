@@ -1,9 +1,13 @@
+import { isGooglePhotosUrl } from "@/lib/media/google-photos";
 import { resourceCardDisplay, type ResourcesSectionCard } from "@/lib/resources/card-display";
 import { toResourcesExplorerGroups } from "@/lib/resources/search";
 
 /** Drive boleh jadi video, PDF atau imej — lencana tunjuk punca, bukan tekaan format. */
 export function mediaCardDisplay(url: string) {
   const display = resourceCardDisplay(url);
+  if (isGooglePhotosUrl(url)) {
+    return { ...display, typeLabel: "Google Photos" };
+  }
   if (/drive\.google\.com/i.test(url.trim())) {
     return { ...display, typeLabel: "Drive" };
   }

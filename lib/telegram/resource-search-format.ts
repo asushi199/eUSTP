@@ -118,12 +118,13 @@ export function resourceSearchHelpText(): string {
 
 export function nexaBotHelpText(): string {
   return [
-    "NexaBot — CoE Resources",
+    "NexaBot — CoE Resources & CoE Media",
     "",
-    "Carian: /cari eduspark",
+    "Carian surat: /cari eduspark",
     "Kumpulan: /ustp  /sekolah  /spi  /nota",
     "",
-    "Muat naik: /surat",
+    "Surat: /surat",
+    "Album gambar: /foto",
     "Ubah tajuk atau bulan: /kemaskini",
     "Padam: /padam",
     "Batal: /batal",

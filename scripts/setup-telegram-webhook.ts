@@ -53,6 +53,7 @@ async function main() {
         { command: "spi", description: "Pekeliling / SPI" },
         { command: "nota", description: "Nota / modul / panduan" },
         { command: "surat", description: "Muat naik surat CoE Resources" },
+        { command: "foto", description: "Simpan album Google Photos ke CoE Media" },
         { command: "kemaskini", description: "Ubah tajuk atau bulan surat" },
         { command: "padam", description: "Padam surat dari portal" },
         { command: "batal", description: "Batal muat naik" },

@@ -47,4 +47,8 @@ test("labels Drive files as Drive instead of guessing PDF", () => {
     mediaCardDisplay("https://www.youtube.com/live/XmP3d3XwdC4").typeLabel,
     "YouTube",
   );
+  assert.equal(
+    mediaCardDisplay("https://photos.app.goo.gl/AbCdEf123").typeLabel,
+    "Google Photos",
+  );
 });

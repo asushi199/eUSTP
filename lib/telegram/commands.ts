@@ -34,6 +34,14 @@ export const RESOURCE_SEARCH_COMMANDS = new Set([
 
 export const RESOURCE_MANAGE_COMMANDS = new Set(["kemaskini", "padam"]);
 export const RESOURCE_HELP_COMMANDS = new Set(["mula"]);
+export const MEDIA_FOTO_COMMANDS = new Set(["foto", "gambar"]);
+export const MEDIA_FOTO_KATEGORI = "koleksi";
+
+export type MediaFotoCallback =
+  | { type: "ubah_tajuk"; cardId: number }
+  | { type: "ubah_bulan"; cardId: number }
+  | { type: "padam"; cardId: number }
+  | { type: "padam_ya"; cardId: number };
 
 export type ResourceCallback =
   | { type: "kategori"; slug: "surat-ustp" | "surat-sekolah" }
@@ -123,4 +131,60 @@ export function draftCardIdFromFileId(fileId: string | null | undefined): number
 
 export function draftFileIdForCard(cardId: number): string {
   return `card:${cardId}`;
+}
+
+export function parseMediaFotoCallback(data: string | undefined): MediaFotoCallback | null {
+  if (!data) return null;
+  const padamYa = /^mf:dy:(\d+)$/.exec(data);
+  if (padamYa) {
+    const cardId = parseCardId(padamYa[1]);
+    return cardId ? { type: "padam_ya", cardId } : null;
+  }
+  const padam = /^mf:d:(\d+)$/.exec(data);
+  if (padam) {
+    const cardId = parseCardId(padam[1]);
+    return cardId ? { type: "padam", cardId } : null;
+  }
+  const ubahTajuk = /^mf:et:(\d+)$/.exec(data);
+  if (ubahTajuk) {
+    const cardId = parseCardId(ubahTajuk[1]);
+    return cardId ? { type: "ubah_tajuk", cardId } : null;
+  }
+  const ubahBulan = /^mf:eb:(\d+)$/.exec(data);
+  if (ubahBulan) {
+    const cardId = parseCardId(ubahBulan[1]);
+    return cardId ? { type: "ubah_bulan", cardId } : null;
+  }
+  return null;
+}
+
+export function mediaEditTitleCallbackData(cardId: number): string {
+  return `mf:et:${cardId}`;
+}
+
+export function mediaEditMonthCallbackData(cardId: number): string {
+  return `mf:eb:${cardId}`;
+}
+
+export function mediaDeleteCallbackData(cardId: number): string {
+  return `mf:d:${cardId}`;
+}
+
+export function mediaDeleteConfirmCallbackData(cardId: number): string {
+  return `mf:dy:${cardId}`;
+}
+
+export function draftMediaCardIdFromFileId(fileId: string | null | undefined): number | null {
+  const match = /^mcard:(\d+)$/.exec(fileId ?? "");
+  if (!match) return null;
+  const id = Number(match[1]);
+  return Number.isInteger(id) && id > 0 ? id : null;
+}
+
+export function draftFileIdForMediaCard(cardId: number): string {
+  return `mcard:${cardId}`;
+}
+
+export function isFotoDraftStep(step: string): boolean {
+  return step.startsWith("foto_");
 }

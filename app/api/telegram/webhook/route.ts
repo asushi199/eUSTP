@@ -20,6 +20,8 @@ type TelegramUpdate = {
     message_thread_id?: number;
     text?: string;
     caption?: string;
+    entities?: Array<{ type?: string; offset?: number; length?: number; url?: string }>;
+    caption_entities?: Array<{ type?: string; offset?: number; length?: number; url?: string }>;
     chat?: { id?: number; type?: string };
     from?: { id?: number; username?: string };
     document?: {
@@ -30,6 +32,10 @@ type TelegramUpdate = {
     };
     photo?: Array<{ file_id?: string; file_size?: number }>;
     reply_to_message?: {
+      text?: string;
+      caption?: string;
+      entities?: Array<{ type?: string; offset?: number; length?: number; url?: string }>;
+      caption_entities?: Array<{ type?: string; offset?: number; length?: number; url?: string }>;
       document?: {
         file_id?: string;
         file_name?: string;
@@ -111,7 +117,7 @@ async function handleBindToken(
         .where(and(eq(users.id, user.id), eq(users.telegramBindTokenHash, tokenHash)));
       await sendTelegramMessage(
         chatId,
-        "Telegram telah disambungkan dengan portal NEXa Manjung. Notifikasi akan dihantar mengikut peranan anda. Taip /mula untuk bantuan. Cari surat dengan /cari. Hantar /surat untuk muat naik, /kemaskini untuk ubah, /padam untuk padam.",
+        "Telegram telah disambungkan dengan portal NEXa Manjung. Notifikasi akan dihantar mengikut peranan anda. Taip /mula untuk bantuan. Cari surat dengan /cari. Hantar /surat untuk muat naik surat, /foto untuk album Google Photos, /kemaskini untuk ubah, /padam untuk padam.",
       );
     } catch {
       await sendTelegramMessage(
