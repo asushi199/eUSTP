@@ -62,10 +62,12 @@ export async function janaTeksLaporan(raw: unknown): Promise<JanaResult> {
     prompt = `Berdasarkan maklumat program di bawah, hasilkan 3 hingga 5 objektif aktiviti yang jelas dan boleh diukur, selaras dengan teras DPD yang dipilih.\n\nFormat jawapan (WAJIB):\n- Bentuk point form: setiap objektif pada baris berasingan dan bermula dengan tanda "• ".\n- Setiap objektif bermula dengan kata kerja.\n- JANGAN tulis sebarang tajuk atau perkataan "Objektif"; terus senaraikan objektif sahaja.\n\n${ctx}`;
   } else {
     maxOutputTokens = 1200;
+    const noTajuk =
+      'JANGAN tulis sebarang tajuk atau perkataan "Refleksi"; terus tulis perenggan refleksi sahaja.';
     if (inp.dapatan) {
-      prompt = `Berdasarkan maklumat program dan dapatan/pendapat penyedia laporan di bawah, hasilkan bahagian REFLEKSI selepas program: 1 hingga 2 perenggan meliputi pencapaian/impak, cabaran ringkas dan cadangan penambahbaikan. Kekalkan fakta yang diberikan dan jangan reka data.\n\n${ctx}\n\nDapatan/pendapat penyedia:\n${inp.dapatan}`;
+      prompt = `Berdasarkan maklumat program dan dapatan/pendapat penyedia laporan di bawah, hasilkan refleksi selepas program: 1 hingga 2 perenggan meliputi pencapaian/impak, cabaran ringkas dan cadangan penambahbaikan. Kekalkan fakta yang diberikan dan jangan reka data. ${noTajuk}\n\n${ctx}\n\nDapatan/pendapat penyedia:\n${inp.dapatan}`;
     } else {
-      prompt = `Berdasarkan maklumat program di bawah, hasilkan bahagian REFLEKSI selepas program yang munasabah dan umum (tiada dapatan khusus diberikan): 1 hingga 2 perenggan meliputi pencapaian/impak yang dijangka, cabaran biasa dan cadangan penambahbaikan. Elakkan angka atau nama khusus yang tidak diberikan.\n\n${ctx}`;
+      prompt = `Berdasarkan maklumat program di bawah, hasilkan refleksi selepas program yang munasabah dan umum (tiada dapatan khusus diberikan): 1 hingga 2 perenggan meliputi pencapaian/impak yang dijangka, cabaran biasa dan cadangan penambahbaikan. Elakkan angka atau nama khusus yang tidak diberikan. ${noTajuk}\n\n${ctx}`;
     }
   }
 

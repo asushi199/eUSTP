@@ -30,6 +30,10 @@ export default function UstpReportForm({ id, responsibleByPkgCode, report }: { i
   const [refleksiBebas, setRefleksiBebas] = useState(false);
   const [aiField, setAiField] = useState<null | "objektif" | "refleksi">(null);
   const [aiError, setAiError] = useState<{ field: "objektif" | "refleksi"; msg: string } | null>(null);
+  /** Teks terakhir dijana AI — butang dikunci sehingga pengguna mengubahnya. */
+  const [lastAi, setLastAi] = useState<{ objektif: string; refleksi: string }>({ objektif: "", refleksi: "" });
+  const objektifLocked = lastAi.objektif !== "" && objectives === lastAi.objektif;
+  const refleksiLocked = lastAi.refleksi !== "" && reflection === lastAi.refleksi;
   const [equipmentUsed, setEquipmentUsed] = useState(report?.equipmentUsed ?? "Tidak");
   const [equipment, setEquipment] = useState<string[]>(report?.equipment ?? []);
   const [startDate, setStartDate] = useState(report?.startDate ?? "");
@@ -92,6 +96,7 @@ export default function UstpReportForm({ id, responsibleByPkgCode, report }: { i
       }
       if (field === "objektif") setObjectives(res.text);
       else setReflection(res.text);
+      setLastAi((prev) => ({ ...prev, [field]: res.text }));
     } catch {
       setAiError({ field, msg: "Penjanaan gagal. Cuba lagi." });
     } finally {
@@ -165,7 +170,7 @@ export default function UstpReportForm({ id, responsibleByPkgCode, report }: { i
         <div className="block">
           <div className="flex items-center justify-between gap-3">
             <label htmlFor="objectives" className="label">Objektif aktiviti *</label>
-            <button type="button" className="btn-outline-ink !h-9 !min-h-0 shrink-0 px-3 py-0 text-xs" disabled={aiField !== null} onClick={(event) => janaTeks("objektif", event.currentTarget.form)}>{aiField === "objektif" ? "Menjana…" : "✨ Jana dengan AI"}</button>
+            <button type="button" className="btn-outline-ink !h-9 !min-h-0 shrink-0 px-3 py-0 text-xs disabled:cursor-not-allowed disabled:opacity-50" disabled={aiField !== null || objektifLocked} title={objektifLocked ? "Ubah teks dijana untuk jana semula" : undefined} onClick={(event) => janaTeks("objektif", event.currentTarget.form)}>{aiField === "objektif" ? "Menjana…" : "✨ Jana dengan AI"}</button>
           </div>
           <textarea id="objectives" name="objectives" className="textarea mt-1" rows={5} required maxLength={20000} value={objectives} onChange={(event) => setObjectives(event.target.value)} />
           {aiError?.field === "objektif" && <p role="alert" className="mt-1 text-sm text-red-700">{aiError.msg}</p>}
@@ -192,7 +197,7 @@ export default function UstpReportForm({ id, responsibleByPkgCode, report }: { i
         <div className="block">
           <div className="flex items-center justify-between gap-3">
             <label htmlFor="reflection" className="label">Refleksi *</label>
-            <button type="button" className="btn-outline-ink !h-9 !min-h-0 shrink-0 px-3 py-0 text-xs" disabled={aiField !== null} onClick={(event) => janaTeks("refleksi", event.currentTarget.form)}>{aiField === "refleksi" ? "Menjana…" : "✨ Jana dengan AI"}</button>
+            <button type="button" className="btn-outline-ink !h-9 !min-h-0 shrink-0 px-3 py-0 text-xs disabled:cursor-not-allowed disabled:opacity-50" disabled={aiField !== null || refleksiLocked} title={refleksiLocked ? "Ubah teks dijana untuk jana semula" : undefined} onClick={(event) => janaTeks("refleksi", event.currentTarget.form)}>{aiField === "refleksi" ? "Menjana…" : "✨ Jana dengan AI"}</button>
           </div>
           <div className="mt-1 rounded-lg border hairline bg-cloud p-3">
             <label htmlFor="dapatan" className="label">Dapatan / pendapat untuk rujukan AI</label>
