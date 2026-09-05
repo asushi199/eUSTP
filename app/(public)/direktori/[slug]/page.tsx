@@ -1,11 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import AccentCard from "@/components/AccentCard";
 import DirectoryViewerBar from "@/components/direktori/DirectoryViewerBar";
+import MobileUpdateButton from "@/components/direktori/MobileUpdateButton";
 import RoleDirectoryTable from "@/components/direktori/RoleDirectoryTable";
 import { getDirectoryContactAccess } from "@/lib/direktori/access";
 import { ROLE_INFO, roleFromSlug } from "@/lib/direktori/config";
 import { listPublicDirectory } from "@/lib/direktori/queries";
 import { direktoriLoginHref } from "@/lib/moe-dl";
+import { getModuleAccent } from "@/lib/module-theme";
 
 export const dynamic = "force-dynamic";
 
@@ -22,8 +25,10 @@ export default async function RoleDirectoryPage({
   const info = ROLE_INFO[role];
   const rows = await listPublicDirectory(role, { includeContacts: access.ok });
   const loginHref = direktoriLoginHref(`/direktori/${slug}`);
+  const accent = getModuleAccent("/direktori");
 
   return (
+    <>
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-8">
       <Link href="/direktori/sekolah" className="text-sm text-graphite hover:text-ink">
         ← Direktori Sekolah
@@ -45,9 +50,29 @@ export default async function RoleDirectoryPage({
         </div>
       ) : null}
 
+      <div id="direktori-kemaskini">
+        <AccentCard
+          accent={accent}
+          className="mt-6 flex flex-col items-start justify-between gap-4 p-5 sm:flex-row sm:items-center"
+        >
+          <div>
+            <p className="font-semibold">Maklumat tidak tepat?</p>
+            <p className="mt-1 text-sm text-graphite">
+              Kemas kini nama atau nombor telefon sekolah anda. Akaun MOE-DL
+              diperlukan.
+            </p>
+          </div>
+          <Link href="/direktori/kemaskini" className="btn-primary shrink-0">
+            Kemas Kini
+          </Link>
+        </AccentCard>
+      </div>
+
       <div className="mt-6">
         <RoleDirectoryTable rows={rows} contactsVisible={access.ok} />
       </div>
     </div>
+    <MobileUpdateButton />
+    </>
   );
 }

@@ -12,13 +12,13 @@ export {
 } from "./module-theme";
 
 import {
-  DIREKTORI_SECTIONS,
   LAPORAN_SECTIONS,
   MEDIA_HUB,
   MODULES,
   RESOURCES_HUB,
   TEMPAHAN_SECTIONS,
 } from "./module-theme";
+import { ROLE_INFO } from "./direktori/config";
 import {
   MEDIA_KATEGORI,
   MEDIA_SOCIAL_LINKS,
@@ -102,10 +102,13 @@ export const HOME_MODULES: HomeModuleCard[] = [
     accent: direktori.accent,
     iconKey: direktori.iconKey,
     cta: "Lihat Directory",
-    items: DIREKTORI_SECTIONS.map((s) => ({
-      label: s.title,
-      href: s.href,
-    })),
+    items: [
+      { label: ROLE_INFO.PGB.label, href: `/direktori/${ROLE_INFO.PGB.slug}` },
+      { label: "Penolong Kanan Sekolah", href: "/direktori/sekolah#direktori-pengurusan" },
+      { label: ROLE_INFO.GPICT.label, href: `/direktori/${ROLE_INFO.GPICT.slug}` },
+      { label: ROLE_INFO.DELIMA.label, href: `/direktori/${ROLE_INFO.DELIMA.slug}` },
+      { label: ROLE_INFO.GPM.label, href: `/direktori/${ROLE_INFO.GPM.slug}` },
+    ],
   },
   {
     href: services.href,
