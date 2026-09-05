@@ -17,6 +17,11 @@ import {
   TEMPAHAN_SECTIONS,
 } from "./module-theme";
 import { ROLE_INFO } from "./direktori/config";
+import {
+  MEDIA_KATEGORI,
+  MEDIA_SOCIAL_LINKS,
+  mediaHref,
+} from "./media/kategori";
 import { RESOURCES_KATEGORI, resourcesHref } from "./resources/kategori";
 
 export type HomeModuleItem = {
@@ -35,26 +40,15 @@ export type HomeModuleCard = {
   items: HomeModuleItem[];
   /** Pautan "+ Lagi" pada kad — ke halaman penuh modul. */
   moreLabel?: string;
-  comingSoon?: boolean;
 };
 
 export const MEDIA_CARD_ITEMS = [
-  "Koleksi Video / Gambar Program",
-  "TikTok USTP",
-  "Facebook USTP",
-  "YouTube USTP",
-] as const;
-
-export const MEDIA_MORE_ITEMS = [
-  "Telegram Info USDIA",
-  "Telegram Info USTP / SSTP",
-  "Senarai TVPSS Sekolah",
-  "Senarai Laman Sesawang / Dashboard Sekolah",
-] as const;
-
-export const MEDIA_PLANNED_ITEMS = [
-  ...MEDIA_CARD_ITEMS,
-  ...MEDIA_MORE_ITEMS,
+  { label: MEDIA_KATEGORI[0]!.title, href: mediaHref(MEDIA_KATEGORI[0]!.slug) },
+  ...MEDIA_SOCIAL_LINKS.map((item) => ({
+    label: item.label,
+    href: item.href,
+    external: true,
+  })),
 ] as const;
 
 function moduleByHref(href: string) {
@@ -133,8 +127,11 @@ export const HOME_MODULES: HomeModuleCard[] = [
     accent: MEDIA_HUB.accent,
     iconKey: MEDIA_HUB.iconKey,
     cta: "Lihat Media",
-    comingSoon: true,
     moreLabel: "+ Lagi",
-    items: MEDIA_CARD_ITEMS.map((label) => ({ label })),
+    items: MEDIA_CARD_ITEMS.map((item) => ({
+      label: item.label,
+      href: item.href,
+      external: "external" in item ? item.external : false,
+    })),
   },
 ];

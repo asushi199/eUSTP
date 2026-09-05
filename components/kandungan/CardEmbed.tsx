@@ -8,9 +8,9 @@ import PreviewLightbox, {
 } from "./PreviewLightbox";
 
 /**
- * Kad kandungan. YouTube: thumbnail dahulu. PDF/imej pada CoE Resources
- * hanya dimuat dalam kad apabila `inlinePreview` benar; Lihat penuh
- * membesarkan iframe.
+ * Kad kandungan. Senarai (ada `gallery`): iframe / YouTube hanya dimuat
+ * apabila `inlinePreview` benar. Tanpa gallery (OSC / pratonton tunggal):
+ * YouTube kekal thumbnail + main. Lihat penuh membesarkan pratonton.
  */
 export default function CardEmbed({
   title,
@@ -38,6 +38,10 @@ export default function CardEmbed({
   const lightboxItems = gallery ?? [{ title, url, embed }];
   const downloadHref = driveFileDownloadUrl(url);
   const useLetterActions = Boolean(gallery);
+  const batchYoutube = useLetterActions && embed.mode === "youtube";
+  const showYoutubeThumb = embed.mode === "youtube" && !batchYoutube && !open;
+  const showYoutubeIframe =
+    embed.mode === "youtube" && (batchYoutube ? inlinePreview : open);
   const fileHref = useLetterActions && downloadHref ? downloadHref : url;
   const fileLabel = useLetterActions
     ? downloadHref
@@ -53,7 +57,7 @@ export default function CardEmbed({
       </div>
       {blurb ? <p className="mt-1 text-sm leading-relaxed text-graphite">{blurb}</p> : null}
 
-      {embed.mode === "youtube" && !open ? (
+      {showYoutubeThumb ? (
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -76,10 +80,10 @@ export default function CardEmbed({
         </button>
       ) : null}
 
-      {open && embed.mode === "youtube" ? (
+      {showYoutubeIframe && embed.mode === "youtube" ? (
         <div className="mt-3 overflow-hidden rounded-lg border border-fog">
           <iframe
-            src={`https://www.youtube-nocookie.com/embed/${embed.videoId}?autoplay=1`}
+            src={`https://www.youtube-nocookie.com/embed/${embed.videoId}${batchYoutube ? "" : "?autoplay=1"}`}
             title={title}
             className="aspect-video w-full"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -113,7 +117,7 @@ export default function CardEmbed({
         <a href={fileHref} target="_blank" rel="noopener noreferrer" className="link-blue text-sm">
           {fileLabel}
         </a>
-        {canPreview && embed.mode !== "youtube" ? (
+        {canPreview && (embed.mode !== "youtube" || batchYoutube) ? (
           <button
             type="button"
             onClick={() => {
@@ -125,7 +129,7 @@ export default function CardEmbed({
             {useLetterActions ? "Lihat penuh" : "Pratonton"}
           </button>
         ) : null}
-        {embed.mode === "youtube" && open ? (
+        {embed.mode === "youtube" && open && !batchYoutube ? (
           <button
             type="button"
             onClick={() => setOpen(false)}

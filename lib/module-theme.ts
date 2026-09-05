@@ -64,7 +64,7 @@ export const MEDIA_HUB = {
   external: false,
   title: "CoE Media",
   description:
-    "Koleksi video, gambar program dan pautan media sosial USTP — akan dibuka kemudian.",
+    "Koleksi video, gambar program dan pautan media sosial USTP Manjung.",
   accent: "#DB2777",
   iconKey: "media" as const,
 } as const;

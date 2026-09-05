@@ -1,4 +1,4 @@
-import withPWAInit from "@ducanh2912/next-pwa";
+import withPWAInit, { runtimeCaching } from "@ducanh2912/next-pwa";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -12,7 +12,7 @@ const nextConfig = {
    */
   serverExternalPackages: ["postgres"],
   outputFileTracingIncludes: {
-    "/**": ["./public/templates/kew-pa-9-am24.pdf"],
+    "/**": ["./public/templates/kew-pa-9-am24.pdf", "./public/templates/laporan-ustp-header.jpg"],
   },
   experimental: {
     serverActions: {
@@ -29,6 +29,14 @@ const withPWA = withPWAInit({
   disable: process.env.NODE_ENV === "development",
   workboxOptions: {
     disableDevLogs: true,
+    runtimeCaching: [
+      {
+        // Hub berbeza mengikut sesi; laporan dalaman tidak boleh dibaca daripada cache selepas log keluar.
+        urlPattern: ({ url }) => url.pathname === "/laporan" || url.pathname === "/admin/laporan-ustp" || url.pathname.startsWith("/admin/laporan-ustp/"),
+        handler: "NetworkOnly",
+      },
+      ...runtimeCaching,
+    ],
   },
 });
 

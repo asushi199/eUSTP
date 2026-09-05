@@ -18,7 +18,9 @@ export const ADMIN_PAPAN_NESTED_PATHS = [
   "/admin/laporan-dpd",
   "/admin/laporan-pss",
   "/admin/laporan-akhbar",
+  "/admin/laporan-ustp",
   "/admin/resources",
+  "/admin/media",
 ] as const;
 
 function matchPath(pathname: string, paths: readonly string[]): boolean {

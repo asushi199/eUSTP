@@ -21,7 +21,7 @@ function formatBytes(n: number): string {
 /**
  * Mampatkan gambar besar di pelayar sebelum muat naik (JPEG, tepi panjang ≤ 1920px).
  */
-export async function compressImageForLaporan(file: File): Promise<CompressImageResult> {
+export async function compressImageForLaporan(file: File, options: { forceJpeg?: boolean } = {}): Promise<CompressImageResult> {
   if (!file.type.startsWith("image/")) {
     throw new Error("Hanya fail gambar dibenarkan.");
   }
@@ -30,7 +30,7 @@ export async function compressImageForLaporan(file: File): Promise<CompressImage
   try {
     const isAlreadySmall =
       file.size <= LAPORAN_IMAGE_SKIP_COMPRESS_BELOW_BYTES &&
-      (file.type === "image/jpeg" || file.type === "image/webp");
+      (file.type === "image/jpeg" || (!options.forceJpeg && file.type === "image/webp"));
 
     if (isAlreadySmall) {
       return { file, compressed: false };

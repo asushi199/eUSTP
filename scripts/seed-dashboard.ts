@@ -233,6 +233,38 @@ async function main() {
     console.log(`resources_cards ← ${resourceRows.length} baris`);
   }
 
+  /* 1c. Kad CoE Media */
+  await db.delete(schema.mediaCards);
+  const mediaMatrix = readCsv("media-koleksi.csv");
+  if (mediaMatrix && mediaMatrix.length > 1) {
+    const mh = mediaMatrix[0];
+    const mIdx = {
+      kategori: colIndex(mh, "kategori"),
+      sort: colIndex(mh, "sort", "susunan", "no"),
+      title: colIndex(mh, "title", "tajuk", "nama"),
+      url: colIndex(mh, "url", "link", "pautan"),
+      letterMonth: colIndex(mh, "letter_month", "bulan"),
+    };
+    const mcell = (r: string[], i: number) => (i >= 0 ? String(r[i] ?? "").trim() : "");
+    const mediaRows: (typeof schema.mediaCards.$inferInsert)[] = [];
+    for (let ri = 1; ri < mediaMatrix.length; ri++) {
+      const r = mediaMatrix[ri];
+      const title = mcell(r, mIdx.title);
+      const url = mcell(r, mIdx.url);
+      const kategori = mcell(r, mIdx.kategori) || "koleksi";
+      if (!title || !url) continue;
+      mediaRows.push({
+        kategori,
+        title,
+        url,
+        letterMonth: mcell(r, mIdx.letterMonth) || null,
+        sort: num(mcell(r, mIdx.sort)) ?? 999,
+      });
+    }
+    if (mediaRows.length) await db.insert(schema.mediaCards).values(mediaRows);
+    console.log(`media_cards ← ${mediaRows.length} baris`);
+  }
+
   /* 2. Analisis */
   await db.delete(schema.analisisMetrics);
   await db.delete(schema.analisisMonthly);

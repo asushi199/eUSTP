@@ -138,6 +138,42 @@ export const contactRoles = pgTable(
 
 /* ==================== Modul Laporan (DPD + PSS) ==================== */
 
+export type UstpReportPhoto = { storagePath: string; publicUrl: string };
+
+/** Laporan dalaman USTP — semua pengguna backend berkongsi akses. */
+export const laporanUstp = pgTable("laporan_ustp", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  pkgCode: text("pkg_code").notNull(),
+  cluster: text("cluster").notNull(),
+  programName: text("program_name").notNull(),
+  startDate: date("start_date").notNull(),
+  endDate: date("end_date").notNull(),
+  location: text("location").notNull(),
+  organiser: text("organiser").notNull(),
+  schoolCount: integer("school_count").notNull().default(0),
+  teacherCount: integer("teacher_count").notNull().default(0),
+  studentCount: integer("student_count").notNull().default(0),
+  communityCount: integer("community_count").notNull().default(0),
+  teras: jsonb("teras").$type<string[]>().notNull(),
+  objectives: text("objectives").notNull(),
+  equipmentUsed: text("equipment_used").notNull(),
+  equipment: jsonb("equipment").$type<string[]>().notNull(),
+  os29000Sen: integer("os29000_sen").notNull().default(0),
+  os42000Sen: integer("os42000_sen").notNull().default(0),
+  os21000Sen: integer("os21000_sen").notNull().default(0),
+  otherAllocation: text("other_allocation").notNull().default(""),
+  otherSen: integer("other_sen").notNull().default(0),
+  reflection: text("reflection").notNull(),
+  preparedBy: text("prepared_by").notNull(),
+  photos: jsonb("photos").$type<UstpReportPhoto[]>().notNull(),
+  createdBy: integer("created_by").references(() => users.id, { onDelete: "set null" }),
+  version: integer("version").notNull().default(1),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (t) => ({ startDateIdx: index("laporan_ustp_start_date_idx").on(t.startDate) }));
+
+export type UstpReport = typeof laporanUstp.$inferSelect;
+
 export const laporanStatus = pgEnum("laporan_status", ["BARU", "DISEMAK", "SELESAI"]);
 export const laporanModul = pgEnum("laporan_modul", ["dpd", "pss"]);
 
@@ -362,6 +398,27 @@ export const resourcesCards = pgTable(
   },
   (t) => ({
     kategoriIdx: index("resources_cards_kategori_idx").on(t.kategori, t.sort),
+  }),
+);
+
+/* ==================== CoE Media (video / gambar awam) ==================== */
+
+export const mediaCards = pgTable(
+  "media_cards",
+  {
+    id: serial("id").primaryKey(),
+    kategori: text("kategori").notNull(),
+    title: text("title").notNull(),
+    url: text("url").notNull(),
+    /** Bulan bahan (YYYY-MM), berasingan daripada tarikh muat naik. */
+    letterMonth: text("letter_month"),
+    sort: integer("sort").notNull().default(0),
+    aktif: boolean("aktif").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    kategoriIdx: index("media_cards_kategori_idx").on(t.kategori, t.sort),
   }),
 );
 

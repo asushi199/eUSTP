@@ -6,6 +6,7 @@ import { canManageKandungan } from "@/lib/roles";
 import { countPendingKhidmatBantu } from "@/lib/khidmat-bantu/queries";
 import {
   LAPORAN_HUB,
+  MEDIA_HUB,
   RESOURCES_HUB,
   TEMPAHAN_HUB,
   getModuleAccent,
@@ -93,6 +94,12 @@ export default async function AdminOverviewPage() {
         title: "CoE Resources",
         description: "Urus tajuk dan pautan surat, pekeliling dan nota.",
         accent: RESOURCES_HUB.accent,
+      },
+      {
+        href: "/admin/media",
+        title: "CoE Media",
+        description: "Urus video dan gambar program mengikut bulan.",
+        accent: MEDIA_HUB.accent,
       },
     );
   }

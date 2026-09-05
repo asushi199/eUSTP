@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { requireKandunganAccess } from "@/lib/rbac";
+import { requireUser } from "@/lib/rbac";
+import { canManageKandungan } from "@/lib/roles";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,11 @@ const CARDS: AdminCard[] = [
 ];
 
 export default async function AdminPelaporanPage() {
-  await requireKandunganAccess();
+  const user = await requireUser();
+  const cards: AdminCard[] = [
+    { href: "/admin/laporan-ustp", title: "Laporan Program USTP", description: "Rekod program mengikut bulan, gambar dan muat turun PDF." },
+    ...(canManageKandungan(user.peranan) ? CARDS : []),
+  ];
 
   return (
     <>
@@ -33,11 +38,11 @@ export default async function AdminPelaporanPage() {
       </Link>
       <h1 className="mt-2 text-2xl font-semibold tracking-tight">CoE Reports</h1>
       <p className="mt-1 text-sm text-graphite">
-        Semak laporan DPD, PSS dan Akhbar daerah Manjung.
+        Pilih laporan untuk disediakan atau disemak.
       </p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {CARDS.map((c) => (
+        {cards.map((c) => (
           <Link
             key={c.href}
             href={c.href}

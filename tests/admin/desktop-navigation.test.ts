@@ -23,6 +23,9 @@ test("highlights Papan Admin for CoE Reports and Resources nested routes", () =>
   assert.equal(isAdminDesktopNavActive("/admin/booking", "/admin"), false);
   assert.equal(isAdminDesktopNavActive("/admin/pelaporan", "/admin"), true);
   assert.equal(isAdminDesktopNavActive("/admin/laporan-akhbar/ABA1007", "/admin"), true);
+  assert.equal(isAdminDesktopNavActive("/admin/laporan-ustp/example/edit", "/admin"), true);
   assert.equal(isAdminDesktopNavActive("/admin/resources/baharu", "/admin"), true);
+  assert.equal(isAdminDesktopNavActive("/admin/media", "/admin"), true);
+  assert.equal(isAdminDesktopNavActive("/admin/media/baharu", "/admin"), true);
   assert.equal(isAdminDesktopNavActive("/admin/kandungan/baharu", "/admin/osc"), true);
 });

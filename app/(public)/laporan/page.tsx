@@ -5,6 +5,8 @@ import PublicPageShell from "@/components/PublicPageShell";
 import { HomeModuleIcon } from "@/components/home/HomeModuleIcon";
 import { LAPORAN_ENTRY_OVERRIDE } from "@/lib/laporan-entry";
 import { LAPORAN_SECTIONS, getModuleAccent } from "@/lib/module-theme";
+import { getSessionUser } from "@/lib/rbac";
+import { isKnownPeranan } from "@/lib/roles";
 
 export const metadata: Metadata = {
   title: "CoE Reports — NEXa Manjung",
@@ -19,7 +21,9 @@ const SECTION_TAG: Record<string, string> = {
   "/laporan/tebus-buku": "Baucar Buku",
 };
 
-export default function LaporanHubPage() {
+export default async function LaporanHubPage() {
+  const user = await getSessionUser();
+  const showUstp = user?.authKind === "staff" && isKnownPeranan(user.peranan ?? "");
   const accent = getModuleAccent("/laporan");
   const looker = LAPORAN_ENTRY_OVERRIDE.enabled;
 
@@ -37,6 +41,17 @@ export default function LaporanHubPage() {
       />
 
       <div className="mt-8 grid gap-4">
+        {showUstp && (
+          <AccentCard href="/admin/laporan-ustp" accent={accent} className="flex items-start gap-4 p-6">
+            <span className="min-w-0 flex-1">
+              <span className="block font-semibold text-ink">Laporan Program USTP</span>
+              <span className="mt-1.5 block text-sm leading-relaxed text-graphite">
+                Rekod program USTP mengikut bulan, urus gambar dan muat turun laporan PDF.
+              </span>
+            </span>
+            <span aria-hidden className="text-xl text-graphite">→</span>
+          </AccentCard>
+        )}
         {LAPORAN_SECTIONS.map((s) => (
           <AccentCard
             key={s.internalHref}

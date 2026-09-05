@@ -1,5 +1,28 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-05 — CoE Media: YouTube ikut suis iframe
+
+- Senarai CoE Media / Resources (`gallery`): kad YouTube lalai tertutup
+  seperti surat — tiada thumbnail/iframe. **Buka pratonton iframe** memuat
+  semua iframe YouTube sekali gus (tanpa autoplay). **Tutup** meruntuhkan
+  semula. **Lihat penuh** kekal untuk satu video.
+- OSC / pratonton tunggal (tiada gallery) kekal thumbnail + Main video.
+
+## 2026-09-05 — CoE Media: koleksi bulanan + pautan sosial
+
+- Video OSC (`youtube` / tajuk "Video") dipindah ke `media_cards`
+  (kategori `koleksi`), termasuk Bicara Buku YouTube dan Video Inovasi.
+  Kad TikTok / YouTube dalam OSC Bahan Sokongan dipadam; Ruang Ilmu kekal.
+- Halaman awam `/media` ikut corak CoE Resources: carian + tapisan bulan,
+  kad koleksi, pautan TikTok / Facebook / YouTube, dan dua item akan datang
+  (TVPSS, laman sesawang). Tiada lagi Telegram Info.
+- Papan Admin ada kad CoE Media (`/admin/media`) — tambah/sunting/padam
+  mengikut bulan, dengan tapisan carian + bulan.
+- Pautan: TikTok `https://www.tiktok.com/@ustpmanjung`, Facebook
+  `https://www.facebook.com/p/Ustp-Ppd-Manjung-61557576780622/`,
+  YouTube saluran OSC sedia ada.
+- Migrasi `0041_tiny_angel`: jadual `media_cards` + RLS + pindahan data.
+
 ## 2026-09-04 — CoE Resources: iframe lalai tertutup
 
 - Senarai surat tidak lagi memuatkan iframe dalam kad semasa buka halaman.
