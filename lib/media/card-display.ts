@@ -1,7 +1,14 @@
 import { resourceCardDisplay, type ResourcesSectionCard } from "@/lib/resources/card-display";
 import { toResourcesExplorerGroups } from "@/lib/resources/search";
 
-export { resourceCardDisplay as mediaCardDisplay };
+/** Drive boleh jadi video, PDF atau imej — lencana tunjuk punca, bukan tekaan format. */
+export function mediaCardDisplay(url: string) {
+  const display = resourceCardDisplay(url);
+  if (/drive\.google\.com/i.test(url.trim())) {
+    return { ...display, typeLabel: "Drive" };
+  }
+  return display;
+}
 
 export type MediaSectionCard = ResourcesSectionCard & {
   letterMonth: string | null;
@@ -35,7 +42,7 @@ export function toMediaSectionGroups(
     title: g.title,
     blurb: g.blurb,
     cards: g.cards.map((c) => {
-      const display = resourceCardDisplay(c.url);
+      const display = mediaCardDisplay(c.url);
       return {
         id: c.id,
         title: c.title,
@@ -51,4 +58,14 @@ export function toMediaSectionGroups(
   }));
 }
 
-export const toMediaExplorerGroups = toResourcesExplorerGroups;
+export function toMediaExplorerGroups(
+  groups: Parameters<typeof toResourcesExplorerGroups>[0],
+) {
+  return toResourcesExplorerGroups(groups).map((g) => ({
+    ...g,
+    cards: g.cards.map((c) => ({
+      ...c,
+      typeLabel: mediaCardDisplay(c.url).typeLabel,
+    })),
+  }));
+}

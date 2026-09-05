@@ -7,6 +7,7 @@ import {
   mediaHref,
   mediaKategoriBySlug,
 } from "../../lib/media/kategori";
+import { mediaCardDisplay } from "../../lib/media/card-display";
 import { MEDIA_CARD_ITEMS } from "../../lib/home-modules";
 
 test("keeps a single month-classified collection for CoE Media", () => {
@@ -34,5 +35,16 @@ test("links official USTP social channels and drops Telegram", () => {
   assert.equal(
     MEDIA_CARD_ITEMS.some((item) => item.label.toLowerCase().includes("telegram")),
     false,
+  );
+});
+
+test("labels Drive files as Drive instead of guessing PDF", () => {
+  assert.equal(
+    mediaCardDisplay("https://drive.google.com/file/d/abc/view").typeLabel,
+    "Drive",
+  );
+  assert.equal(
+    mediaCardDisplay("https://www.youtube.com/live/XmP3d3XwdC4").typeLabel,
+    "YouTube",
   );
 });
