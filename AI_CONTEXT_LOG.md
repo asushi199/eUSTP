@@ -1,5 +1,9 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-05 — TikTok USTP akaun rasmi
+
+- Pautan CoE Media: `https://www.tiktok.com/@ustpmanjung1`.
+
 ## 2026-09-05 — Maklumat Asas ke CoE Directory
 
 - Hab awam `/direktori` ada dua kad: **Direktori Sekolah**
@@ -65,7 +69,7 @@
   (TVPSS, laman sesawang). Tiada lagi Telegram Info.
 - Papan Admin ada kad CoE Media (`/admin/media`) — tambah/sunting/padam
   mengikut bulan, dengan tapisan carian + bulan.
-- Pautan: TikTok `https://www.tiktok.com/@ustpmanjung`, Facebook
+- Pautan: TikTok `https://www.tiktok.com/@ustpmanjung1`, Facebook
   `https://www.facebook.com/p/Ustp-Ppd-Manjung-61557576780622/`,
   YouTube saluran OSC sedia ada.
 - Migrasi `0041_tiny_angel`: jadual `media_cards` + RLS + pindahan data.

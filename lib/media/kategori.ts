@@ -20,7 +20,7 @@ export const MEDIA_KATEGORI: MediaKategori[] = [
 export const MEDIA_SOCIAL_LINKS = [
   {
     label: "TikTok USTP",
-    href: "https://www.tiktok.com/@ustpmanjung",
+    href: "https://www.tiktok.com/@ustpmanjung1",
   },
   {
     label: "Facebook USTP",

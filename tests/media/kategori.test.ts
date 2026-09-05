@@ -23,7 +23,7 @@ test("links official USTP social channels and drops Telegram", () => {
     MEDIA_SOCIAL_LINKS.map((item) => item.label),
     ["TikTok USTP", "Facebook USTP", "YouTube USTP"],
   );
-  assert.equal(MEDIA_SOCIAL_LINKS[0]?.href, "https://www.tiktok.com/@ustpmanjung");
+  assert.equal(MEDIA_SOCIAL_LINKS[0]?.href, "https://www.tiktok.com/@ustpmanjung1");
   assert.equal(
     MEDIA_SOCIAL_LINKS[1]?.href,
     "https://www.facebook.com/p/Ustp-Ppd-Manjung-61557576780622/",
