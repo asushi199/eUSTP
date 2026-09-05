@@ -30,4 +30,6 @@ test("highlights Papan Admin for CoE Reports, Resources and Analytics nested rou
   assert.equal(isAdminDesktopNavActive("/admin/analisis", "/admin"), true);
   assert.equal(isAdminDesktopNavActive("/admin/analisis", "/admin/osc"), false);
   assert.equal(isAdminDesktopNavActive("/admin/kandungan/baharu", "/admin/osc"), true);
+  assert.equal(isAdminDesktopNavActive("/admin/direktori/pegawai", "/admin/osc"), false);
+  assert.equal(isAdminDesktopNavActive("/admin/tetapan", "/admin/osc"), false);
 });

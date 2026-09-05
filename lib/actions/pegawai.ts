@@ -18,7 +18,9 @@ const pegawaiSchema = z.object({
 });
 
 function revalidatePegawai() {
+  revalidatePath("/admin/direktori/pegawai");
   revalidatePath("/admin/pegawai");
+  revalidatePath("/direktori/ustp");
   revalidatePath("/maklumat-asas");
 }
 

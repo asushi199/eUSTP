@@ -9,16 +9,28 @@ export type ModuleTheme = {
 const dpdEntry = resolveLaporanModuleHref("dpd", "/laporan-dpd");
 const pssEntry = resolveLaporanModuleHref("pss", "/laporan-pss");
 
-/** Hub OSC (One Stop Center) — Sumber & Maklumat Asas. */
+/** Hub OSC (One Stop Center) — Sumber USTP. */
 const OSC_MODULE = {
   href: "/osc",
   internalHref: "/osc",
   external: false,
   title: "OSC USTP",
   description:
-    "One Stop Center USTP — sumber dan maklumat asas dalam satu pusat.",
+    "One Stop Center USTP — bahan rasmi dan hebahan dalam satu pusat.",
   accent: "#0EA5C9",
   iconKey: "osc" as const,
+} as const;
+
+/** Hub CoE Directory — Direktori Sekolah dan Direktori USTP. */
+export const DIREKTORI_HUB = {
+  href: "/direktori",
+  internalHref: "/direktori",
+  external: false,
+  title: "CoE Directory",
+  description:
+    "Direktori perhubungan sekolah dan maklumat Unit Sumber Teknologi Pendidikan.",
+  accent: "#7C3AED",
+  iconKey: "direktori" as const,
 } as const;
 
 /** Hub CoE Reports — menggabungkan DPD, PSS, Akhbar & Tebus Buku. */
@@ -113,16 +125,7 @@ export const MODULES = [
     accent: "#6D28D9",
     iconKey: "tebus" as const,
   },
-  {
-    href: "/direktori",
-    internalHref: "/direktori",
-    external: false,
-    title: "CoE Directory",
-    description:
-      "Direktori pentadbir dan penyelaras sekolah — cari dan kemas kini.",
-    accent: "#7C3AED",
-    iconKey: "direktori" as const,
-  },
+  DIREKTORI_HUB,
   TEMPAHAN_HUB,
   {
     href: "/tempahan/bilik",
@@ -176,10 +179,20 @@ export const MODULES = [
     iconKey: "analisis" as const,
   },
   {
-    href: "/maklumat-asas",
-    internalHref: "/maklumat-asas",
+    href: "/direktori/sekolah",
+    internalHref: "/direktori/sekolah",
     external: false,
-    title: "Maklumat Asas",
+    title: "Direktori Sekolah",
+    description:
+      "Direktori pentadbir dan penyelaras sekolah — cari dan kemas kini.",
+    accent: "#7C3AED",
+    iconKey: "direktori" as const,
+  },
+  {
+    href: "/direktori/ustp",
+    internalHref: "/direktori/ustp",
+    external: false,
+    title: "Direktori USTP",
     description:
       "Carta organisasi, maklumat PKG/CoE, takwim dan pegawai USTP PPD Manjung.",
     accent: "#1565A8",
@@ -189,7 +202,12 @@ export const MODULES = [
 
 /** Sub-modul yang dinaungi OSC — dipapar dalam hub /osc. */
 export const OSC_SECTIONS = MODULES.filter((m) =>
-  ["/sumber", "/maklumat-asas"].includes(m.internalHref),
+  ["/sumber"].includes(m.internalHref),
+);
+
+/** Sub-modul di bawah hub /direktori. */
+export const DIREKTORI_SECTIONS = MODULES.filter((m) =>
+  ["/direktori/sekolah", "/direktori/ustp"].includes(m.internalHref),
 );
 
 /** Sub-modul di bawah hub /laporan — dipapar dalam halaman CoE Reports. */
@@ -225,6 +243,13 @@ export function getModuleThemeForPath(path: string): ModuleTheme {
       accent: TEMPAHAN_HUB.accent,
       eyebrow: TEMPAHAN_HUB.title,
       title: TEMPAHAN_HUB.title,
+    };
+  }
+  if (path.startsWith("/maklumat-asas")) {
+    return {
+      accent: "#1565A8",
+      eyebrow: "Direktori USTP",
+      title: "Direktori USTP",
     };
   }
   if (path.startsWith("/statistik")) {

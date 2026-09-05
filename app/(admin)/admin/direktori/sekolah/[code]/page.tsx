@@ -17,7 +17,7 @@ export default async function SekolahHistoryPage({ params }: { params: Promise<{
 
   return (
     <>
-      <Link href="/admin/direktori" className="text-sm text-graphite hover:text-ink">← CoE Directory Admin</Link>
+      <Link href="/admin/direktori/sekolah" className="text-sm text-graphite hover:text-ink">← Direktori Sekolah</Link>
       <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">{school.name}</h1>

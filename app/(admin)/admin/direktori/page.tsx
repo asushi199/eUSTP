@@ -1,48 +1,51 @@
 import Link from "next/link";
-import AdminSchoolsTable from "@/components/direktori/AdminSchoolsTable";
-import ExportGuruMenu from "@/components/direktori/ExportGuruMenu";
-import TambahSekolahForm from "@/components/direktori/TambahSekolahForm";
-import WhatsAppBroadcastPanel from "@/components/direktori/WhatsAppBroadcastPanel";
 import { requireKandunganAccess } from "@/lib/rbac";
-import { listAdminSchools } from "@/lib/direktori/queries";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminDirektoriPage() {
+type AdminCard = { href: string; title: string; description: string };
+
+export default async function AdminDirektoriHubPage() {
   await requireKandunganAccess();
-  const records = await listAdminSchools();
+  const cards: AdminCard[] = [
+    {
+      href: "/admin/direktori/sekolah",
+      title: "Direktori Sekolah",
+      description: "Maklumat perhubungan sekolah, sejarah versi dan eksport CSV.",
+    },
+    {
+      href: "/admin/direktori/pegawai",
+      title: "Pegawai USTP",
+      description: "Senarai pegawai untuk Direktori USTP.",
+    },
+    {
+      href: "/admin/direktori/tetapan",
+      title: "Tetapan USTP",
+      description: "Carta organisasi, imej PKG dan takwim Direktori USTP.",
+    },
+  ];
 
   return (
     <>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Directory — Admin</h1>
-          <p className="mt-1 text-sm text-graphite">
-            {records.length} sekolah · versi semasa dipaparkan
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <ExportGuruMenu />
+      <Link href="/admin" className="text-sm text-graphite hover:text-ink">
+        ← Papan Admin
+      </Link>
+      <h1 className="mt-2 text-2xl font-semibold tracking-tight">CoE Directory</h1>
+      <p className="mt-1 text-sm text-graphite">
+        Urus Direktori Sekolah dan Direktori USTP.
+      </p>
+
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {cards.map((c) => (
           <Link
-            href="/admin/direktori/export?listType=schools"
-            className="btn-outline-ink btn-sm"
-            prefetch={false}
+            key={c.href}
+            href={c.href}
+            className="card p-5 transition hover:-translate-y-0.5 hover:shadow-modal"
           >
-            CSV Sekolah
+            <p className="font-semibold">{c.title}</p>
+            <p className="mt-1 text-sm text-graphite">{c.description}</p>
           </Link>
-        </div>
-      </div>
-
-      <div className="mt-6">
-        <WhatsAppBroadcastPanel records={records} />
-      </div>
-
-      <div className="mt-6">
-        <AdminSchoolsTable records={records} />
-      </div>
-
-      <div className="mt-8 max-w-xl">
-        <TambahSekolahForm />
+        ))}
       </div>
     </>
   );

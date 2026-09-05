@@ -7,8 +7,6 @@ export type AdminDesktopNavigationItem = {
 export const ADMIN_OSC_PATHS = [
   "/admin/osc",
   "/admin/kandungan",
-  "/admin/pegawai",
-  "/admin/tetapan",
 ] as const;
 
 /** Laluan CoE yang dimasuki dari kad Papan Admin. */

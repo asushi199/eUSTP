@@ -14,6 +14,7 @@ test("accepts only @moe-dl.edu.my", () => {
 
 test("blocks open redirects on directory callback", () => {
   assert.equal(safeDirektoriCallbackUrl("/direktori/gpict"), "/direktori/gpict");
+  assert.equal(safeDirektoriCallbackUrl("/direktori/ustp"), "/direktori/ustp");
   assert.equal(safeDirektoriCallbackUrl("/admin"), "/direktori");
   assert.equal(safeDirektoriCallbackUrl("https://evil.example"), "/direktori");
   assert.equal(safeDirektoriCallbackUrl("//evil.example"), "/direktori");

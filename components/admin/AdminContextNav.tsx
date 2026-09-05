@@ -82,7 +82,10 @@ export function AdminMobileNav({ showContent }: { showContent: boolean }) {
           pathname.startsWith("/admin/tempahan") ||
           pathname.startsWith("/admin/peralatan") ||
           pathname.startsWith("/admin/khidmat-bantu"))) ||
-      (tab.id === "direktori" && pathname.startsWith("/admin/direktori")) ||
+      (tab.id === "direktori" &&
+        (pathname.startsWith("/admin/direktori") ||
+          pathname.startsWith("/admin/pegawai") ||
+          pathname.startsWith("/admin/tetapan"))) ||
       (tab.id === "osc" && matchPath(pathname, ADMIN_OSC_PATHS)) ||
       (tab.id === "papan" &&
         (pathname === "/admin" || matchPath(pathname, ADMIN_PAPAN_NESTED_PATHS))),

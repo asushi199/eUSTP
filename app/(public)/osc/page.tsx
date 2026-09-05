@@ -8,13 +8,12 @@ import { OSC_SECTIONS, getModuleAccent } from "@/lib/module-theme";
 export const metadata: Metadata = {
   title: "OSC USTP — NEXa Manjung",
   description:
-    "One Stop Center Unit Sumber Teknologi Pendidikan PPD Manjung — sumber dan maklumat asas dalam satu pusat.",
+    "One Stop Center Unit Sumber Teknologi Pendidikan PPD Manjung — bahan rasmi dalam satu pusat.",
 };
 
 /** Label kategori ringkas untuk setiap seksyen OSC. */
 const SECTION_TAG: Record<string, string> = {
   "/sumber": "Bahan & Dokumen",
-  "/maklumat-asas": "Organisasi & Takwim",
 };
 
 export default function OscPage() {
@@ -26,7 +25,7 @@ export default function OscPage() {
         eyebrow="One Stop Center"
         title="OSC USTP"
         accent={accent}
-        description="Pusat setempat Unit Sumber Teknologi Pendidikan — bahan rasmi dan maklumat asas unit, semuanya dari satu pintu."
+        description="Pusat setempat Unit Sumber Teknologi Pendidikan — bahan rasmi unit dari satu pintu."
       />
 
       <div className="mt-8 grid gap-4">

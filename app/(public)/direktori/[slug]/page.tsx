@@ -25,8 +25,8 @@ export default async function RoleDirectoryPage({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-8">
-      <Link href="/direktori" className="text-sm text-graphite hover:text-ink">
-        ← Directory
+      <Link href="/direktori/sekolah" className="text-sm text-graphite hover:text-ink">
+        ← Direktori Sekolah
       </Link>
       <h1 className="mt-2 text-3xl font-medium tracking-tight">{info.short}</h1>
       <p className="mt-1 text-graphite">{info.label}</p>

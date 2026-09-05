@@ -80,7 +80,7 @@ export default async function AdminOverviewPage() {
       {
         href: "/admin/direktori",
         title: "CoE Directory",
-        description: "Maklumat perhubungan sekolah, sejarah versi dan eksport CSV.",
+        description: "Direktori Sekolah dan Direktori USTP — perhubungan, pegawai dan tetapan.",
         accent: getModuleAccent("/direktori"),
       },
       {

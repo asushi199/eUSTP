@@ -21,7 +21,9 @@ export async function saveTetapan(formData: FormData): Promise<{ ok: boolean }> 
         set: { value, updatedAt: sql`now()` },
       });
   }
+  revalidatePath("/admin/direktori/tetapan");
   revalidatePath("/admin/tetapan");
+  revalidatePath("/direktori/ustp");
   revalidatePath("/maklumat-asas");
   return { ok: true };
 }

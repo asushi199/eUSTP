@@ -22,8 +22,8 @@ export default async function KemaskiniPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-8">
-      <Link href="/direktori" className="text-sm text-graphite hover:text-ink">
-        ← Directory
+      <Link href="/direktori/sekolah" className="text-sm text-graphite hover:text-ink">
+        ← Direktori Sekolah
       </Link>
       <h1 className="mt-2 text-3xl font-medium tracking-tight">
         Kemas Kini Maklumat Perhubungan Sekolah

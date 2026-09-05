@@ -1,5 +1,16 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-05 — Maklumat Asas ke CoE Directory
+
+- Hab awam `/direktori` ada dua kad: **Direktori Sekolah**
+  (`/direktori/sekolah`) dan **Direktori USTP** (`/direktori/ustp`).
+- Direktori USTP (carta, PKG, takwim, pegawai) hanya dipaparkan selepas
+  log masuk MOE-DL atau staf; tanpa sesi, tiada data. `/maklumat-asas`
+  dihalakan ke `/direktori/ustp`.
+- Kawalan pegawai/tetapan berpindah ke hab admin CoE Directory
+  (`/admin/direktori/pegawai`, `/admin/direktori/tetapan`). OSC Urus
+  tinggal Sumber sahaja.
+
 ## 2026-09-05 — OSC tanpa kad Analytics
 
 - Hab `/osc` hanya Sumber dan Maklumat Asas. CoE Analytics kekal di

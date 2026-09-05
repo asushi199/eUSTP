@@ -1,6 +1,6 @@
 /**
  * Senarai putih kunci tetapan — dipapar sebagai borang tetap dalam
- * /admin/tetapan (elak kunci salah taip merosakkan halaman awam).
+ * /admin/direktori/tetapan (elak kunci salah taip merosakkan halaman awam).
  */
 export const TETAPAN_KEYS: { key: string; label: string; hint?: string }[] = [
   { key: "carta_title", label: "Tajuk Carta Organisasi" },
