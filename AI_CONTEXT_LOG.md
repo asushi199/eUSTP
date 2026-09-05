@@ -1,5 +1,11 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-05 — CoE Media admin: bulan terkini lalai
+
+- `/admin/media` tidak lagi membuka Semua bulan. Lalai ialah bulan
+  terkini yang ada bahan, sama seperti halaman awam kategori. Semua
+  bulan kekal pilihan arkib.
+
 ## 2026-09-05 — CoE Analytics di Papan Admin
 
 - Platform kawalan nombor analisis (`/admin/analisis`) dipindah dari
