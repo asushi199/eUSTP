@@ -608,28 +608,43 @@
 
 .portal-module-card-list {
   margin: 0;
-  padding-left: 1.15rem;
+  padding: 0;
+  list-style: none;
   color: var(--ink, #1a1a1a);
   font-size: 0.875rem;
-  line-height: 1.55;
+  line-height: 1.45;
 }
 
 .portal-module-card-list li + li {
-  margin-top: 0.35rem;
+  border-top: 1px solid rgba(26, 26, 26, 0.07);
 }
 
-.portal-module-card-list a {
-  color: inherit;
+.portal-module-card-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 2.75rem;
+  padding: 0.4rem 0.1rem;
+  font-weight: 500;
+  color: var(--ink, #1a1a1a);
   text-decoration: none;
 }
 
-.portal-module-card-list a:hover {
+.portal-module-card-item:active {
   color: var(--module-accent);
 }
 
-.portal-module-card-more {
-  list-style: none;
-  margin-left: -1.15rem;
+.portal-module-card-item-chevron {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex-shrink: 0;
+  color: var(--module-accent);
+}
+
+.portal-module-card-list a:hover,
+.portal-module-card-list a:hover .portal-module-card-item-chevron {
+  color: var(--module-accent);
 }
 
 .portal-module-card-more a {

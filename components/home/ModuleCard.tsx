@@ -52,10 +52,12 @@ export function ModuleCard({
               {item.href ? (
                 <Link
                   href={item.href}
+                  className="portal-module-card-item"
                   target={item.external ? "_blank" : undefined}
                   rel={item.external ? "noopener noreferrer" : undefined}
                 >
-                  {item.label}
+                  <span>{item.label}</span>
+                  <ItemChevron />
                 </Link>
               ) : (
                 <span>{item.label}</span>
@@ -64,7 +66,10 @@ export function ModuleCard({
           ))}
           {moreLabel ? (
             <li className="portal-module-card-more">
-              <Link href={href}>{moreLabel}</Link>
+              <Link href={href} className="portal-module-card-item">
+                <span>{moreLabel}</span>
+                <ItemChevron />
+              </Link>
             </li>
           ) : null}
         </ul>
@@ -74,5 +79,22 @@ export function ModuleCard({
         </Link>
       </div>
     </article>
+  );
+}
+
+function ItemChevron() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="portal-module-card-item-chevron"
+      aria-hidden
+    >
+      <path d="M9 6l6 6-6 6" />
+    </svg>
   );
 }
