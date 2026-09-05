@@ -1,5 +1,13 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-05 — CoE Analytics di Papan Admin
+
+- Platform kawalan nombor analisis (`/admin/analisis`) dipindah dari
+  Urus OSC ke kad **CoE Analytics** pada Papan Admin. Bingkai kad
+  menggunakan aksen modul `#024AD8`.
+- OSC Urus tidak lagi menyenaraikan Analisis. Menu sisi / tab telefon
+  menonjolkan Papan Admin semasa di `/admin/analisis`.
+
 ## 2026-09-05 — NexaBot: /foto album Google Photos ke CoE Media
 
 - `/foto` (atau `/gambar`) dalam sembang peribadi atau kumpulan menanya

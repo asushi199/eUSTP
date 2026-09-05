@@ -56,9 +56,12 @@ export default async function AdminAnalisisPage({
 
   return (
     <>
-      <h1 className="text-2xl font-semibold tracking-tight">Data Analisis USTP</h1>
+      <Link href="/admin" className="text-sm text-graphite hover:text-ink">
+        ← Papan Admin
+      </Link>
+      <h1 className="mt-2 text-2xl font-semibold tracking-tight">CoE Analytics</h1>
       <p className="mt-1 text-sm text-graphite">
-        Kemas kini nombor untuk halaman awam /analisis — perubahan terpapar serta-merta.
+        Kemas kini nombor untuk /analisis — perubahan terpapar serta-merta.
       </p>
 
       {/* Tab modul */}

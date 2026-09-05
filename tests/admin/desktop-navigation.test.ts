@@ -18,7 +18,7 @@ test("keeps OSC beside Papan Admin for content administrators", () => {
   ]);
 });
 
-test("highlights Papan Admin for CoE Reports and Resources nested routes", () => {
+test("highlights Papan Admin for CoE Reports, Resources and Analytics nested routes", () => {
   assert.equal(isAdminDesktopNavActive("/admin", "/admin"), true);
   assert.equal(isAdminDesktopNavActive("/admin/booking", "/admin"), false);
   assert.equal(isAdminDesktopNavActive("/admin/pelaporan", "/admin"), true);
@@ -27,5 +27,7 @@ test("highlights Papan Admin for CoE Reports and Resources nested routes", () =>
   assert.equal(isAdminDesktopNavActive("/admin/resources/baharu", "/admin"), true);
   assert.equal(isAdminDesktopNavActive("/admin/media", "/admin"), true);
   assert.equal(isAdminDesktopNavActive("/admin/media/baharu", "/admin"), true);
+  assert.equal(isAdminDesktopNavActive("/admin/analisis", "/admin"), true);
+  assert.equal(isAdminDesktopNavActive("/admin/analisis", "/admin/osc"), false);
   assert.equal(isAdminDesktopNavActive("/admin/kandungan/baharu", "/admin/osc"), true);
 });

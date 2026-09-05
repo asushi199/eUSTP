@@ -7,12 +7,11 @@ export type AdminDesktopNavigationItem = {
 export const ADMIN_OSC_PATHS = [
   "/admin/osc",
   "/admin/kandungan",
-  "/admin/analisis",
   "/admin/pegawai",
   "/admin/tetapan",
 ] as const;
 
-/** Laluan CoE Reports / Resources yang dimasuki dari kad Papan Admin. */
+/** Laluan CoE yang dimasuki dari kad Papan Admin. */
 export const ADMIN_PAPAN_NESTED_PATHS = [
   "/admin/pelaporan",
   "/admin/laporan-dpd",
@@ -21,6 +20,7 @@ export const ADMIN_PAPAN_NESTED_PATHS = [
   "/admin/laporan-ustp",
   "/admin/resources",
   "/admin/media",
+  "/admin/analisis",
 ] as const;
 
 function matchPath(pathname: string, paths: readonly string[]): boolean {
@@ -38,7 +38,7 @@ export function isAdminDesktopNavActive(
   return false;
 }
 
-/** Desktop: Papan Admin + OSC. Pelaporan dipindah ke kad CoE Reports. */
+/** Desktop: Papan Admin + OSC. Reports / Analytics / Resources / Media di kad Papan. */
 export function getAdminDesktopNavigation(
   canManageKandungan: boolean,
 ): AdminDesktopNavigationItem[] {

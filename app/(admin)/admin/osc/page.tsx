@@ -72,8 +72,8 @@ const CHOICES: Choice[] = [
     tag: "Urus",
     title: "Urus OSC",
     description:
-      "Kemas kini kandungan OSC — kad bahan, nombor analisis, senarai pegawai dan tetapan.",
-    sections: ["Sumber", "Analisis", "Pegawai", "Tetapan"],
+      "Kemas kini kandungan OSC — kad bahan, senarai pegawai dan tetapan.",
+    sections: ["Sumber", "Pegawai", "Tetapan"],
     icon: URUS_ICON,
   },
 ];

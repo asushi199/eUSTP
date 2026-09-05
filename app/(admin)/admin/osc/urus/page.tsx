@@ -13,11 +13,6 @@ const URUS_CARDS: OscCard[] = [
     description: "Kad bahan — kertas kerja, laporan dan hebahan untuk /sumber.",
   },
   {
-    href: "/admin/analisis",
-    title: "Analisis USTP",
-    description: "Nombor DELIMa, DCS, Ains, Pensijilan dan OPTIK.",
-  },
-  {
     href: "/admin/pegawai",
     title: "Pegawai USTP",
     description: "Senarai pegawai halaman Maklumat Asas.",
@@ -55,8 +50,7 @@ export default async function AdminOscUrusPage() {
 
       <h1 className="mt-3 text-2xl font-semibold tracking-tight">Urus OSC</h1>
       <p className="mt-1 text-sm text-graphite">
-        Kemas kini kandungan OSC — sumber, analisis, pegawai dan tetapan maklumat
-        asas.
+        Kemas kini kandungan OSC — sumber, pegawai dan tetapan maklumat asas.
       </p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

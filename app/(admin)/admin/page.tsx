@@ -90,6 +90,12 @@ export default async function AdminOverviewPage() {
         accent: LAPORAN_HUB.accent,
       },
       {
+        href: "/admin/analisis",
+        title: "CoE Analytics",
+        description: "Kemas kini nombor DELIMa, DCS, Ains, Pensijilan dan AI Tools.",
+        accent: getModuleAccent("/analisis"),
+      },
+      {
         href: "/admin/resources",
         title: "CoE Resources",
         description: "Urus tajuk dan pautan surat, pekeliling dan nota.",
