@@ -3,10 +3,12 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import PageHeader from "@/components/PageHeader";
 import PublicPageShell from "@/components/PublicPageShell";
+import DbUnavailableNotice from "@/components/DbUnavailableNotice";
 import MediaExplorer from "@/components/media/MediaExplorer";
 import { toMediaExplorerGroups } from "@/lib/media/card-display";
 import { mediaKategoriBySlug } from "@/lib/media/kategori";
 import { listMediaCards } from "@/lib/media/queries";
+import { withDbTimeout } from "@/lib/db";
 import { getModuleAccent } from "@/lib/module-theme";
 
 export const dynamic = "force-dynamic";
@@ -31,14 +33,18 @@ export default async function MediaKategoriPage({
   if (!meta) notFound();
 
   const accent = getModuleAccent("/media");
-  const groups = toMediaExplorerGroups([
-    {
-      slug: meta.slug,
-      title: meta.title,
-      blurb: meta.blurb,
-      cards: await listMediaCards(meta.slug),
-    },
-  ]);
+  const cards = await withDbTimeout(listMediaCards(meta.slug)).catch((e) => {
+    console.error(
+      "[media/kategori] listMediaCards gagal:",
+      e instanceof Error ? e.message : e,
+    );
+    return null;
+  });
+  const groups = cards
+    ? toMediaExplorerGroups([
+        { slug: meta.slug, title: meta.title, blurb: meta.blurb, cards },
+      ])
+    : null;
 
   return (
     <PublicPageShell>
@@ -52,7 +58,11 @@ export default async function MediaKategoriPage({
         description={meta.blurb}
         className="mt-2"
       />
-      <MediaExplorer groups={groups} accent={accent} variant="kategori" />
+      {groups ? (
+        <MediaExplorer groups={groups} accent={accent} variant="kategori" />
+      ) : (
+        <DbUnavailableNotice />
+      )}
     </PublicPageShell>
   );
 }

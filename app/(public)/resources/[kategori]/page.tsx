@@ -3,7 +3,9 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import PageHeader from "@/components/PageHeader";
 import PublicPageShell from "@/components/PublicPageShell";
+import DbUnavailableNotice from "@/components/DbUnavailableNotice";
 import ResourcesExplorer from "@/components/resources/ResourcesExplorer";
+import { withDbTimeout } from "@/lib/db";
 import { getModuleAccent } from "@/lib/module-theme";
 import { resourcesKategoriBySlug } from "@/lib/resources/kategori";
 import { listResourcesCards } from "@/lib/resources/queries";
@@ -31,14 +33,18 @@ export default async function ResourcesKategoriPage({
   if (!meta) notFound();
 
   const accent = getModuleAccent("/resources");
-  const groups = toResourcesExplorerGroups([
-    {
-      slug: meta.slug,
-      title: meta.title,
-      blurb: meta.blurb,
-      cards: await listResourcesCards(meta.slug),
-    },
-  ]);
+  const cards = await withDbTimeout(listResourcesCards(meta.slug)).catch((e) => {
+    console.error(
+      "[resources/kategori] listResourcesCards gagal:",
+      e instanceof Error ? e.message : e,
+    );
+    return null;
+  });
+  const groups = cards
+    ? toResourcesExplorerGroups([
+        { slug: meta.slug, title: meta.title, blurb: meta.blurb, cards },
+      ])
+    : null;
 
   return (
     <PublicPageShell>
@@ -52,7 +58,11 @@ export default async function ResourcesKategoriPage({
         description={meta.blurb}
         className="mt-2"
       />
-      <ResourcesExplorer groups={groups} accent={accent} variant="kategori" />
+      {groups ? (
+        <ResourcesExplorer groups={groups} accent={accent} variant="kategori" />
+      ) : (
+        <DbUnavailableNotice />
+      )}
     </PublicPageShell>
   );
 }

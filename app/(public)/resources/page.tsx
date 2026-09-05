@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import PageHeader from "@/components/PageHeader";
 import PublicPageShell from "@/components/PublicPageShell";
+import DbUnavailableNotice from "@/components/DbUnavailableNotice";
 import ResourcesExplorer from "@/components/resources/ResourcesExplorer";
+import { withDbTimeout } from "@/lib/db";
 import { getModuleAccent } from "@/lib/module-theme";
 import { toResourcesExplorerGroups } from "@/lib/resources/search";
 import { listResourcesCardsGrouped } from "@/lib/resources/queries";
@@ -16,7 +18,14 @@ export const metadata: Metadata = {
 
 export default async function ResourcesPage() {
   const accent = getModuleAccent("/resources");
-  const groups = toResourcesExplorerGroups(await listResourcesCardsGrouped());
+  const raw = await withDbTimeout(listResourcesCardsGrouped()).catch((e) => {
+    console.error(
+      "[resources] listResourcesCardsGrouped gagal:",
+      e instanceof Error ? e.message : e,
+    );
+    return null;
+  });
+  const groups = raw ? toResourcesExplorerGroups(raw) : null;
 
   return (
     <PublicPageShell>
@@ -26,7 +35,11 @@ export default async function ResourcesPage() {
         accent={accent}
         description="Cari surat ikut tajuk, nama fail atau bulan — atau ketik kad kategori untuk buka bahan di dalamnya."
       />
-      <ResourcesExplorer groups={groups} accent={accent} variant="hub" />
+      {groups ? (
+        <ResourcesExplorer groups={groups} accent={accent} variant="hub" />
+      ) : (
+        <DbUnavailableNotice />
+      )}
     </PublicPageShell>
   );
 }
