@@ -59,7 +59,7 @@ export async function janaTeksLaporan(raw: unknown): Promise<JanaResult> {
   let maxOutputTokens: number;
   if (inp.field === "objektif") {
     maxOutputTokens = 800;
-    prompt = `Berdasarkan maklumat program di bawah, hasilkan bahagian OBJEKTIF aktiviti: 3 hingga 5 objektif yang jelas dan boleh diukur, setiap satu pada baris berasingan dan bermula dengan kata kerja. Selaraskan objektif dengan teras DPD yang dipilih.\n\n${ctx}`;
+    prompt = `Berdasarkan maklumat program di bawah, hasilkan 3 hingga 5 objektif aktiviti yang jelas dan boleh diukur, selaras dengan teras DPD yang dipilih.\n\nFormat jawapan (WAJIB):\n- Bentuk point form: setiap objektif pada baris berasingan dan bermula dengan tanda "• ".\n- Setiap objektif bermula dengan kata kerja.\n- JANGAN tulis sebarang tajuk atau perkataan "Objektif"; terus senaraikan objektif sahaja.\n\n${ctx}`;
   } else {
     maxOutputTokens = 1200;
     if (inp.dapatan) {
