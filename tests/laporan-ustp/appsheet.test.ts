@@ -32,7 +32,7 @@ test("targets the verified form and maps codes, dates, counts and multiple selec
     "BIL. PEGAWAI / GURU TERLIBAT": "10", "BIL. MURID TERLIBAT": "20", "BIL. KOMUNITI TERLIBAT": "0",
     "OBJEKTIF AKTIVITI": report.objectives, "REFLEKSI": report.reflection,
     "TERAS DALAM DPD": "TERAS1 , TERAS6", "PENGGUNAAN PERALATAN COE": "YA",
-    "PERALATAN COE YANG DIGUNAKAN": "SET KAMERA PTZ,MONITOR 21 INCI",
+    "PERALATAN COE YANG DIGUNAKAN": "SET KAMERA PTZ , MONITOR 21 INCI",
     "OS29000 (RM)": "100", "OS42000 (RM)": "200", "OS21000 (RM)": "50",
     "GAMBAR 1": report.photos[0].publicUrl, "GAMBAR 2": report.photos[1].publicUrl,
   });

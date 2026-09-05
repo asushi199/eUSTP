@@ -35,12 +35,12 @@ export function buildUstpAppSheetUrl(report: AppSheetReport) {
     "BIL. KOMUNITI TERLIBAT": String(report.communityCount),
     "OBJEKTIF AKTIVITI": report.objectives,
     "REFLEKSI": report.reflection,
-    // These exact list values and separators were verified in the target form.
-    // TERAS list uses " , " (its EnumList separator); PERALATAN uses "," — ruang
-    // di sekeliling koma menyebabkan "This entry is invalid" pada EnumList itu.
+    // Pemisah EnumList lalai AppSheet ialah ruang-koma-ruang " , " (bukan koma
+    // tunggal) — nilai mesti dicantum begitu supaya setiap item padan dengan
+    // pilihan yang sah, jika tidak ia menjadi "This entry is invalid".
     "TERAS DALAM DPD": report.teras.map((teras) => teras.replace("TERAS ", "TERAS")).join(" , "),
     "PENGGUNAAN PERALATAN COE": report.equipmentUsed === "Ya" ? "YA" : "TIDAK",
-    "PERALATAN COE YANG DIGUNAKAN": report.equipmentUsed === "Ya" ? report.equipment.join(",") : "",
+    "PERALATAN COE YANG DIGUNAKAN": report.equipmentUsed === "Ya" ? report.equipment.join(" , ") : "",
   };
   for (const [key, label] of ALLOCATIONS) {
     // The target form rejects decimal notation. Never round actual expenditure.
