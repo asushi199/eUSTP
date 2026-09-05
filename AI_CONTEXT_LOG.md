@@ -1,5 +1,11 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-05 — OSC tanpa kad Analytics
+
+- Hab `/osc` hanya Sumber dan Maklumat Asas. CoE Analytics kekal di
+  halaman utama (awam) dan kawalan di Papan Admin. `/analisis` masih
+  wujud sebagai laman dalaman, tetapi tidak lagi dipromosi dari OSC.
+
 ## 2026-09-05 — CoE Media admin: bulan terkini lalai
 
 - `/admin/media` tidak lagi membuka Semua bulan. Lalai ialah bulan

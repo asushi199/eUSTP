@@ -9,14 +9,14 @@ export type ModuleTheme = {
 const dpdEntry = resolveLaporanModuleHref("dpd", "/laporan-dpd");
 const pssEntry = resolveLaporanModuleHref("pss", "/laporan-pss");
 
-/** Hub OSC (One Stop Center) — menggabungkan Sumber, Analisis & Maklumat Asas. */
+/** Hub OSC (One Stop Center) — Sumber & Maklumat Asas. */
 const OSC_MODULE = {
   href: "/osc",
   internalHref: "/osc",
   external: false,
   title: "OSC USTP",
   description:
-    "One Stop Center USTP — sumber, analisis dan maklumat asas dalam satu pusat.",
+    "One Stop Center USTP — sumber dan maklumat asas dalam satu pusat.",
   accent: "#0EA5C9",
   iconKey: "osc" as const,
 } as const;
@@ -189,7 +189,7 @@ export const MODULES = [
 
 /** Sub-modul yang dinaungi OSC — dipapar dalam hub /osc. */
 export const OSC_SECTIONS = MODULES.filter((m) =>
-  ["/sumber", "/analisis", "/maklumat-asas"].includes(m.internalHref),
+  ["/sumber", "/maklumat-asas"].includes(m.internalHref),
 );
 
 /** Sub-modul di bawah hub /laporan — dipapar dalam halaman CoE Reports. */

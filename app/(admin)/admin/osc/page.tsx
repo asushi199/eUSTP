@@ -62,8 +62,8 @@ const CHOICES: Choice[] = [
     tag: "Lihat",
     title: "Lihat OSC",
     description:
-      "Semak imbas hab OSC seperti paparan awam — bahan, analisis dan maklumat asas dalam satu pusat.",
-    sections: ["Sumber", "Analisis", "Maklumat Asas"],
+      "Semak imbas hab OSC seperti paparan dalaman — bahan dan maklumat asas dalam satu pusat.",
+    sections: ["Sumber", "Maklumat Asas"],
     icon: LIHAT_ICON,
   },
   {
