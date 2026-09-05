@@ -22,6 +22,37 @@ export const USTP_CLUSTERS = [
 
 export const USTP_TERAS = ["TERAS 1", "TERAS 2", "TERAS 3", "TERAS 4", "TERAS 5", "TERAS 6"] as const;
 
+/** Tajuk + huraian rasmi setiap teras DPD — rujukan untuk penjanaan AI. */
+export const USTP_TERAS_INFO: Record<
+  (typeof USTP_TERAS)[number],
+  { tajuk: string; huraian: string }
+> = {
+  "TERAS 1": {
+    tajuk: "Murid Fasih Digital",
+    huraian: "Melahirkan murid yang fasih digital bagi memenuhi keperluan era digital.",
+  },
+  "TERAS 2": {
+    tajuk: "Pendidik Kompeten Digital",
+    huraian: "Meningkatkan kompetensi digital pendidik demi mengoptimumkan potensi murid.",
+  },
+  "TERAS 3": {
+    tajuk: "Budaya Kepimpinan Digital Berwawasan",
+    huraian: "Memupuk budaya kepimpinan digital yang berwawasan dalam kalangan peneraju pendidikan.",
+  },
+  "TERAS 4": {
+    tajuk: "Pengupayaan Infrastruktur dan Infostruktur",
+    huraian: "Memperkukuh dan meluaskan penyediaan infrastruktur serta infostruktur digital yang mampan.",
+  },
+  "TERAS 5": {
+    tajuk: "Kandungan Digital Berkualiti",
+    huraian: "Membangun dan menyediakan kandungan digital berkualiti yang selaras dengan kurikulum kebangsaan.",
+  },
+  "TERAS 6": {
+    tajuk: "Rakan Strategik yang Komited",
+    huraian: "Mengukuhkan kerjasama dan komitmen rakan strategik dalam memacu ekosistem pendidikan digital.",
+  },
+};
+
 export const USTP_EQUIPMENT = [
   "SET KAMERA PTZ",
   "MONITOR 21 INCI",

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { saveUstpReport } from "@/lib/actions/laporan-ustp";
+import { janaTeksLaporan } from "@/lib/actions/laporan-ustp-ai";
 import { compressImageForLaporan } from "@/lib/client/compress-image";
 import type { UstpReport } from "@/lib/schema";
 import { USTP_CLUSTERS, USTP_EQUIPMENT, USTP_PHOTO_MAX_BYTES, USTP_PKGS, USTP_TERAS, formatUstpMoney } from "@/lib/laporan-ustp/options";
@@ -23,6 +24,12 @@ export default function UstpReportForm({ id, responsibleByPkgCode, report }: { i
     if (preparedBy) names.add(preparedBy); // kekalkan nilai sedia ada (rekod lama)
     return Array.from(names);
   }, [responsibleByPkgCode, preparedBy]);
+  const [objectives, setObjectives] = useState(report?.objectives ?? "");
+  const [reflection, setReflection] = useState(report?.reflection ?? "");
+  const [dapatan, setDapatan] = useState("");
+  const [refleksiBebas, setRefleksiBebas] = useState(false);
+  const [aiField, setAiField] = useState<null | "objektif" | "refleksi">(null);
+  const [aiError, setAiError] = useState<{ field: "objektif" | "refleksi"; msg: string } | null>(null);
   const [equipmentUsed, setEquipmentUsed] = useState(report?.equipmentUsed ?? "Tidak");
   const [equipment, setEquipment] = useState<string[]>(report?.equipment ?? []);
   const [startDate, setStartDate] = useState(report?.startDate ?? "");
@@ -53,6 +60,43 @@ export default function UstpReportForm({ id, responsibleByPkgCode, report }: { i
     } catch {
       setError("Gambar tidak dapat diproses. Sila pilih gambar JPG, PNG atau WebP yang lebih kecil.");
     } finally { setProcessing(false); }
+  }
+
+  async function janaTeks(field: "objektif" | "refleksi", form: HTMLFormElement | null) {
+    if (!form || aiField) return;
+    const fd = new FormData(form);
+    const programName = String(fd.get("programName") ?? "").trim();
+    if (!programName) {
+      setAiError({ field, msg: "Sila isi Nama program dahulu sebelum menjana." });
+      return;
+    }
+    setAiError(null);
+    setAiField(field);
+    try {
+      const res = await janaTeksLaporan({
+        field,
+        programName,
+        cluster: String(fd.get("cluster") ?? ""),
+        teras: fd.getAll("teras").map(String),
+        schoolCount: Number(fd.get("schoolCount") ?? 0),
+        teacherCount: Number(fd.get("teacherCount") ?? 0),
+        studentCount: Number(fd.get("studentCount") ?? 0),
+        communityCount: Number(fd.get("communityCount") ?? 0),
+        location: String(fd.get("location") ?? ""),
+        organiser: String(fd.get("organiser") ?? ""),
+        dapatan: field === "refleksi" && !refleksiBebas ? dapatan : "",
+      });
+      if (!res.ok) {
+        setAiError({ field, msg: res.error });
+        return;
+      }
+      if (field === "objektif") setObjectives(res.text);
+      else setReflection(res.text);
+    } catch {
+      setAiError({ field, msg: "Penjanaan gagal. Cuba lagi." });
+    } finally {
+      setAiField(null);
+    }
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -118,7 +162,14 @@ export default function UstpReportForm({ id, responsibleByPkgCode, report }: { i
         <fieldset><legend className="label">Teras dalam DPD</legend>
           <div className="flex flex-wrap gap-x-6 gap-y-2">{USTP_TERAS.map((teras) => <label key={teras} className="flex min-h-11 items-center gap-2 text-sm"><input type="checkbox" name="teras" value={teras} defaultChecked={report?.teras.includes(teras)} className="h-4 w-4 accent-ink" />{teras}</label>)}</div>
         </fieldset>
-        <label className="block"><span className="label">Objektif aktiviti *</span><textarea name="objectives" className="textarea" rows={5} required maxLength={20000} defaultValue={report?.objectives} /></label>
+        <div className="block">
+          <div className="flex items-center justify-between gap-3">
+            <label htmlFor="objectives" className="label">Objektif aktiviti *</label>
+            <button type="button" className="btn-outline-ink !h-9 !min-h-0 shrink-0 px-3 py-0 text-xs" disabled={aiField !== null} onClick={(event) => janaTeks("objektif", event.currentTarget.form)}>{aiField === "objektif" ? "Menjana…" : "✨ Jana dengan AI"}</button>
+          </div>
+          <textarea id="objectives" name="objectives" className="textarea mt-1" rows={5} required maxLength={20000} value={objectives} onChange={(event) => setObjectives(event.target.value)} />
+          {aiError?.field === "objektif" && <p role="alert" className="mt-1 text-sm text-red-700">{aiError.msg}</p>}
+        </div>
       </fieldset>
       <fieldset disabled={busy || !!savedWarning} className="card space-y-5 p-5 sm:p-7">
         <legend className="sr-only">Peralatan dan peruntukan</legend>
@@ -138,7 +189,23 @@ export default function UstpReportForm({ id, responsibleByPkgCode, report }: { i
       <fieldset disabled={busy || !!savedWarning} className="card space-y-5 p-5 sm:p-7">
         <legend className="sr-only">Refleksi dan gambar</legend>
         <h2 className="text-lg font-semibold">Refleksi dan gambar</h2>
-        <label className="block"><span className="label">Refleksi *</span><textarea name="reflection" className="textarea" rows={5} required maxLength={20000} defaultValue={report?.reflection} /></label>
+        <div className="block">
+          <div className="flex items-center justify-between gap-3">
+            <label htmlFor="reflection" className="label">Refleksi *</label>
+            <button type="button" className="btn-outline-ink !h-9 !min-h-0 shrink-0 px-3 py-0 text-xs" disabled={aiField !== null} onClick={(event) => janaTeks("refleksi", event.currentTarget.form)}>{aiField === "refleksi" ? "Menjana…" : "✨ Jana dengan AI"}</button>
+          </div>
+          <div className="mt-1 rounded-lg border hairline bg-cloud p-3">
+            <label htmlFor="dapatan" className="label">Dapatan / pendapat untuk rujukan AI</label>
+            <textarea id="dapatan" className="textarea mt-1" rows={3} maxLength={4000} value={dapatan} disabled={refleksiBebas} onChange={(event) => setDapatan(event.target.value)} placeholder="Cth: sambutan menggalakkan, 45 murid hadir, cabaran capaian internet…" />
+            <label className="mt-2 flex min-h-11 items-center gap-2 text-sm">
+              <input type="checkbox" className="h-4 w-4 accent-ink" checked={refleksiBebas} onChange={(event) => setRefleksiBebas(event.target.checked)} />
+              Jana bebas tanpa rujukan
+            </label>
+            <p className="text-xs text-graphite">Medan ini hanya membantu AI — tidak disimpan dalam laporan.</p>
+          </div>
+          <textarea id="reflection" name="reflection" className="textarea mt-3" rows={5} required maxLength={20000} value={reflection} onChange={(event) => setReflection(event.target.value)} />
+          {aiError?.field === "refleksi" && <p role="alert" className="mt-1 text-sm text-red-700">{aiError.msg}</p>}
+        </div>
         <label className="block"><span className="label">Disediakan oleh *</span>
           <select name="preparedBy" className="input" required value={preparedBy} onChange={(event) => setPreparedBy(event.target.value)}>
             <option value="" disabled>Pilih pegawai bertanggungjawab</option>
