@@ -1,9 +1,9 @@
 export const USTP_PKGS = [
-  { code: "AQA1001", name: "PKG SITIAWAN" },
-  { code: "AQA1002", name: "PKG PANTAI REMIS" },
-  { code: "AQA1003", name: "PKG AYER TAWAR" },
-  { code: "AQA1004", name: "PKG BERUAS" },
-  { code: "AQA1005", name: "PKG SERI MANJUNG" },
+  { code: "AQA1001", name: "PKG SITIAWAN", pkgId: "sitiawan" },
+  { code: "AQA1002", name: "PKG PANTAI REMIS", pkgId: "pantai-remis" },
+  { code: "AQA1003", name: "PKG AYER TAWAR", pkgId: "ayer-tawar" },
+  { code: "AQA1004", name: "PKG BERUAS", pkgId: "beruas" },
+  { code: "AQA1005", name: "PKG SERI MANJUNG", pkgId: "seri-manjung" },
 ] as const;
 
 export const USTP_CLUSTERS = [

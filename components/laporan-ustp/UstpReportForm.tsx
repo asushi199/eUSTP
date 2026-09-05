@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { saveUstpReport } from "@/lib/actions/laporan-ustp";
 import { compressImageForLaporan } from "@/lib/client/compress-image";
@@ -13,10 +13,16 @@ const AMOUNTS = [
   ["os21000Sen", "OS21000 (RM)"], ["otherSen", "Peruntukan lain (RM)"],
 ] as const;
 
-export default function UstpReportForm({ id, preparedBy, report }: { id: string; preparedBy: string; report?: UstpReport }) {
+export default function UstpReportForm({ id, responsibleByPkgCode, report }: { id: string; responsibleByPkgCode: Record<string, string>; report?: UstpReport }) {
   const router = useRouter();
   const [pkgCode, setPkgCode] = useState(report?.pkgCode ?? "");
   const selectedPkg = USTP_PKGS.find((pkg) => pkg.code === pkgCode);
+  const [preparedBy, setPreparedBy] = useState(report?.preparedBy ?? "");
+  const preparedByOptions = useMemo(() => {
+    const names = new Set(Object.values(responsibleByPkgCode));
+    if (preparedBy) names.add(preparedBy); // kekalkan nilai sedia ada (rekod lama)
+    return Array.from(names);
+  }, [responsibleByPkgCode, preparedBy]);
   const [equipmentUsed, setEquipmentUsed] = useState(report?.equipmentUsed ?? "Tidak");
   const [equipment, setEquipment] = useState<string[]>(report?.equipment ?? []);
   const [startDate, setStartDate] = useState(report?.startDate ?? "");
@@ -76,7 +82,7 @@ export default function UstpReportForm({ id, preparedBy, report }: { id: string;
         <h2 className="text-lg font-semibold">Maklumat program</h2>
         <div className="space-y-5">
           <label className="block"><span className="label">KOD PKG *</span>
-            <select name="pkgCode" className="input" required value={pkgCode} onChange={(event) => setPkgCode(event.target.value)}>
+            <select name="pkgCode" className="input" required value={pkgCode} onChange={(event) => { const code = event.target.value; setPkgCode(code); const name = responsibleByPkgCode[code]; if (name) setPreparedBy(name); }}>
               <option value="" disabled>Pilih kod PKG</option>
               {USTP_PKGS.map((pkg) => <option key={pkg.code} value={pkg.code}>{pkg.code}</option>)}
             </select>
@@ -133,7 +139,12 @@ export default function UstpReportForm({ id, preparedBy, report }: { id: string;
         <legend className="sr-only">Refleksi dan gambar</legend>
         <h2 className="text-lg font-semibold">Refleksi dan gambar</h2>
         <label className="block"><span className="label">Refleksi *</span><textarea name="reflection" className="textarea" rows={5} required maxLength={20000} defaultValue={report?.reflection} /></label>
-        <label className="block"><span className="label">Disediakan oleh *</span><input name="preparedBy" className="input" required maxLength={200} defaultValue={report?.preparedBy ?? preparedBy} /></label>
+        <label className="block"><span className="label">Disediakan oleh *</span>
+          <select name="preparedBy" className="input" required value={preparedBy} onChange={(event) => setPreparedBy(event.target.value)}>
+            <option value="" disabled>Pilih pegawai bertanggungjawab</option>
+            {preparedByOptions.map((name) => <option key={name} value={name}>{name}</option>)}
+          </select>
+        </label>
         <p className="text-sm text-graphite">Pilih dua gambar program. Gambar dimampatkan secara automatik.</p>
         <div className="grid gap-5 sm:grid-cols-2">
           {[0, 1].map((index) => {
