@@ -1398,3 +1398,57 @@ Corak berselang = instance sihat vs beracun.
   menghantar mesej dalam WhatsApp.
 - Rekod yang tidak boleh dihantar kini dipaparkan bersama sekolah, jawatan,
   nama dan sebabnya supaya pentadbir boleh menyemak atau membetulkan Direktori.
+
+## 2026-09-05 - Laporan Program USTP
+
+- Semua pengguna backend (`Admin`, `Pegawai`, `PKG_Admin`) boleh menyediakan,
+  melihat, mengedit dan memadam laporan USTP tanpa skop pemilik PKG. Kad di
+  CoE Reports hanya dipaparkan kepada sesi staf; laporan awam lain kekal awam.
+- Senarai mengikut bulan tarikh mula program, lalai bulan semasa MYT, dengan
+  20 rekod setiap halaman. Minit Curai ditangguhkan atas arahan pengguna.
+- Lima KOD PKG, 11 kluster, enam teras berbilang pilihan dan 19 pilihan peralatan
+  mengikut rujukan pengguna. Peralatan laporan tidak mengubah inventori pinjaman.
+  Amaun disimpan dalam sen; jumlah dikira daripada empat komponen peruntukan.
+- Tepat dua gambar disimpan melalui GAS sedia ada ke
+  `Laporan USTP/tahun/bulan/id-laporan/`. Perkongsian pautan Drive dikekalkan
+  seperti diminta. Edit teks mengekalkan gambar; penggantian membersihkan gambar
+  lama selepas rekod disimpan. Versi rekod menghalang tindihan edit serentak.
+- PDF dijana atas permintaan tanpa disimpan di Drive, menggunakan struktur
+  jadual dan imej kepala daripada `docs/6f10807f.docx`. Kandungan panjang disambung
+  ke halaman tambahan; dua gambar dibenam tanpa dipotong. Hub berasaskan sesi
+  dan laluan USTP menggunakan NetworkOnly dalam PWA.
+- Migrasi `0040_laporan_program_ustp` hanya menambah jadual `laporan_ustp`, indeks,
+  FK pencipta kepada users dan RLS tanpa polisi. Fail migrasi dijana dan disemak.
+  Ketika sambungan tugas, kod sudah terkandung dalam commit susulan; semakan
+  baca sahaja mengesahkan jadual sebenar sudah wujud dengan 28 lajur sepadan,
+  RLS aktif dan sifar polisi. Tiada migrasi atau deployment dijalankan oleh sesi ini.
+- Verifikasi: build, typecheck, lint fail berkaitan dan 18 ujian lulus.
+  Ujian tindakan menggunakan DB/Drive/sesi palsu (tiada perubahan luaran).
+  Smoke HTTP: hub awam 200 tanpa kad staf; kelima-lima laluan USTP menghala ke
+  login bagi pelawat tanpa sesi. Pratonton komponen telefon mengesahkan multi-
+  pilihan, Ya/Tidak dan jumlah; PDF contoh dua/lima halaman dirender dan diperiksa,
+  dengan semua 70 perenggan objektif serta penanda akhir kekal.
+- CodeGraph auto-sync telah mengenali fail, simbol dan ujian baharu. Tool
+  `index_project` tidak tersedia dalam sesi ini; tiada CLI sync/index dijalankan.
+
+### 2026-09-05 — Pilihan kod PKG dalam Laporan USTP
+- Borang baharu dan suntingan memaparkan kod sahaja dalam pilihan PKG. Selepas kod dipilih, Negeri (Perak), SSTP/USTP (Manjung) dan nama PKG dipaparkan secara baca sahaja berdasarkan pilihan sedia ada.
+- Penyimpanan kekal menggunakan pkgCode; tiada perubahan skema. Pengguna mengesahkan AppSheet menerima kod sahaja (contohnya AQA1001), bukan gabungan kod dan nama.
+- Ujian pengguna mengesahkan pautan prefill AppSheet untuk nama program, tarikh, tempat, penganjur, bilangan peserta, objektif dan refleksi. Kluster, teras, peralatan dan gambar masih belum disahkan; butang integrasi belum ditambah.
+- Verifikasi perubahan borang PKG: npm run build, npm run typecheck dan ESLint khusus UstpReportForm.tsx lulus. Tiada deployment atau penghantaran laporan AppSheet dilakukan.
+
+### 2026-09-05 — Pautan praisi AppSheet Laporan USTP
+- Pengguna mengesahkan ujian pautan berjaya untuk kod PKG sahaja, kluster, TERAS1/TERAS2, YA dan dua pilihan peralatan, selain semua medan teks/tarikh/bilangan yang diuji sebelumnya.
+- Tambah Buka Borang AppSheet pada butiran laporan. Pautan asli membuka tab baharu menggunakan nilai laporan tersimpan, tanpa API, extension, penghantaran automatik atau penanda penyegerakan palsu.
+- Sasaran yang dikenal pasti daripada URL pengguna: app 5c64ec78-6110-44c0-8672-95282a8de83b, LAPORANPROGRAMSSTP-653903016, form LAPOR AKTIVITI. Pautan tidak menyalin vss atau ID transaksi lama.
+- TERAS 1–6 dipetakan kepada TERAS1–6; senarai menggunakan pemisah yang diuji. Tarikh dihantar MM/DD/YYYY. TIDAK menghantar senarai peralatan kosong. Pemetaan hanya merangkumi medan yang telah dikenal pasti; peruntukan dan gambar perlu dilengkapkan dalam AppSheet seperti dinyatakan pada UI.
+- Tiga ujian praisi lulus: kontrak pemetaan, TIDAK/senarai kosong, dan pengekodan teks panjang/Unicode/pemisah URL tanpa pemotongan. Pengesahan pengguna meliputi pautan sampel; data sebenar belum dihantar atau disimpan oleh agen.
+- Verifikasi integrasi pautan: 3 ujian lulus, ESLint fail terlibat lulus, npm run build dan npm run typecheck lulus. CodeGraph auto-sync mengenal pasti fungsi dan pemanggil baharu; index_project tidak tersedia. Tiada deployment.
+
+### 2026-09-05 — Peruntukan integer dan pautan gambar AppSheet
+- Pengguna mengesahkan OS29000/OS42000/OS21000 menerima 100/200/50 tanpa perpuluhan dan jumlah 350. Format 100.50/200.00/50.00 sebelum ini ditolak oleh borang.
+- Praisi kini menghantar tiga peruntukan dalam ringgit penuh sahaja. Nilai sen asal NEXa kekal; amaun pecahan tidak dipraisi atau dibundarkan, dengan amaran khusus pada halaman (medan AppSheet mungkin kekal 0). Peruntukan lain masih perlu dilengkapkan mengikut arahan UI jika wujud.
+- Kedua-dua GAMBAR 1/GAMBAR 2 berjaya memaparkan imej URL awam dalam tangkapan skrin pengguna. Pautan laporan kini menyertakan publicUrl dua foto NEXa. Ini rujukan kepada fail Drive NEXa, bukan salinan ke storan aplikasi sasaran; UI meminta pengguna mengekalkan fail asal dan memeriksa gambar.
+- Bacaan SELECT terhad kepada satu laporan USTP terbaru memulangkan senarai kosong. Oleh itu, foto Drive sebenar dan paparan selepas simpan/sync belum diuji. Tiada rekod, foto atau tetapan produksi diubah untuk ujian.
+- Lima ujian pemetaan lulus, termasuk format integer, pecahan sen tanpa pembundaran, pautan gambar dengan parameter dan teks panjang. ESLint fail terlibat lulus.
+- Verifikasi akhir fasa ini: npm run build dan npm run typecheck lulus; tiada deployment. Langkah seterusnya ialah menyimpan laporan NEXa pertama dengan dua foto dan menguji pautan dalam sesi AppSheet pengguna.

@@ -15,6 +15,8 @@ const AMOUNTS = [
 
 export default function UstpReportForm({ id, preparedBy, report }: { id: string; preparedBy: string; report?: UstpReport }) {
   const router = useRouter();
+  const [pkgCode, setPkgCode] = useState(report?.pkgCode ?? "");
+  const selectedPkg = USTP_PKGS.find((pkg) => pkg.code === pkgCode);
   const [equipmentUsed, setEquipmentUsed] = useState(report?.equipmentUsed ?? "Tidak");
   const [equipment, setEquipment] = useState<string[]>(report?.equipment ?? []);
   const [startDate, setStartDate] = useState(report?.startDate ?? "");
@@ -72,13 +74,18 @@ export default function UstpReportForm({ id, preparedBy, report }: { id: string;
       <fieldset disabled={busy || !!savedWarning} className="card space-y-5 p-5 sm:p-7">
         <legend className="sr-only">Maklumat program</legend>
         <h2 className="text-lg font-semibold">Maklumat program</h2>
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="space-y-5">
           <label className="block"><span className="label">KOD PKG *</span>
-            <select name="pkgCode" className="input" required defaultValue={report?.pkgCode ?? ""}>
-              <option value="" disabled>Pilih PKG</option>
-              {USTP_PKGS.map((pkg) => <option key={pkg.code} value={pkg.code}>{pkg.code} {pkg.name}</option>)}
+            <select name="pkgCode" className="input" required value={pkgCode} onChange={(event) => setPkgCode(event.target.value)}>
+              <option value="" disabled>Pilih kod PKG</option>
+              {USTP_PKGS.map((pkg) => <option key={pkg.code} value={pkg.code}>{pkg.code}</option>)}
             </select>
           </label>
+          <div className="space-y-5" aria-live="polite">
+            <label className="block"><span className="label">Negeri</span><input className="input bg-cloud text-steel" readOnly value={selectedPkg ? "Perak" : ""} /></label>
+            <label className="block"><span className="label">SSTP/USTP</span><input className="input bg-cloud text-steel" readOnly value={selectedPkg ? "Manjung" : ""} /></label>
+            <label className="block"><span className="label">PKG</span><input className="input bg-cloud text-steel" readOnly value={selectedPkg?.name ?? ""} /></label>
+          </div>
           <label className="block"><span className="label">Kluster program/aktiviti *</span>
             <select name="cluster" className="input" required defaultValue={report?.cluster ?? ""}>
               <option value="" disabled>Pilih kluster</option>
