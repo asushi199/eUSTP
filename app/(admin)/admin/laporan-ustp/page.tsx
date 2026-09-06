@@ -1,5 +1,4 @@
 import Link from "next/link";
-import MonthNav from "@/components/month-nav/MonthNav";
 import UstpReportList from "@/components/laporan-ustp/UstpReportList";
 import { requireUser } from "@/lib/rbac";
 import { listUstpReports, resolveUstpMonth } from "@/lib/laporan-ustp/queries";
@@ -19,8 +18,7 @@ export default async function UstpReportsPage({ searchParams }: { searchParams: 
       <Link href="/admin/laporan-ustp/baharu" className="btn-primary">Tambah Laporan</Link>
     </div>
     <section className="mt-6" aria-label="Bulan laporan">
-      <MonthNav value={month} path="/admin/laporan-ustp" showToday />
-      <UstpReportList reports={reports} />
+      <UstpReportList reports={reports} month={month} />
     </section>
   </>;
 }

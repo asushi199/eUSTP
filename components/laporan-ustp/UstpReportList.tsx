@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import MonthNav from "@/components/month-nav/MonthNav";
 import { formatUstpDate, ustpPkgLabel } from "@/lib/laporan-ustp/options";
 import {
   filterUstpReports,
@@ -10,8 +11,10 @@ import {
 
 export default function UstpReportList({
   reports,
+  month,
 }: {
   reports: UstpReportListItem[];
+  month: string;
 }) {
   const [query, setQuery] = useState("");
   const filtered = useMemo(
@@ -21,32 +24,35 @@ export default function UstpReportList({
   const searching = Boolean(query.trim());
 
   return (
-    <div className="mt-5 space-y-4">
-      <div>
-        <label htmlFor="carian-laporan-ustp" className="label">
-          Cari laporan
-        </label>
-        <div className="relative">
-          <svg
-            aria-hidden
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.8}
-            className="pointer-events-none absolute left-3 top-3 h-5 w-5 text-graphite"
-          >
-            <circle cx="11" cy="11" r="7" />
-            <path d="m20 20-4-4" />
-          </svg>
-          <input
-            id="carian-laporan-ustp"
-            className="input pl-10"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Nama program, PKG atau penyedia"
-            autoComplete="off"
-          />
+    <div className="space-y-4">
+      <div className="space-y-3">
+        <div>
+          <label htmlFor="carian-laporan-ustp" className="label">
+            Cari laporan
+          </label>
+          <div className="relative">
+            <svg
+              aria-hidden
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.8}
+              className="pointer-events-none absolute left-3 top-3 h-5 w-5 text-graphite"
+            >
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-4-4" />
+            </svg>
+            <input
+              id="carian-laporan-ustp"
+              className="input pl-10"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Nama program, PKG atau penyedia"
+              autoComplete="off"
+            />
+          </div>
         </div>
+        <MonthNav value={month} path="/admin/laporan-ustp" showToday />
       </div>
 
       {searching ? (
