@@ -1,18 +1,20 @@
 import "server-only";
 
+import { resolveGeminiModels } from "@/lib/ai/gemini-models";
+
 /**
  * Klien ringkas Gemini (REST) — tiada SDK tambahan. Dipanggil hanya di sisi
  * pelayan; API key kekal dalam GEMINI_API_KEY (.env.local), tidak pernah
  * terdedah ke klien.
  *
- * Kuota percuma diasingkan mengikut model. Lalai: 3.5 Flash dahulu,
- * 429/404 baharu jatuh ke 2.5 Flash.
+ * Kuota percuma diasingkan mengikut model. Lalai: 3.8 → 3.5 → 2.5
+ * (429/404 baharu jatuh ke model seterusnya).
  */
 
 const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models";
 
 export type GeminiResult =
-  | { ok: true; text: string }
+  | { ok: true; text: string; model: string }
   | { ok: false; error: string };
 
 type GenerateOptions = {
@@ -34,9 +36,7 @@ type GenerateOptions = {
 };
 
 function geminiModels() {
-  const primary = process.env.GEMINI_MODEL || "gemini-3.5-flash";
-  const fallback = process.env.GEMINI_MODEL_FALLBACK || "gemini-2.5-flash";
-  return [...new Set([primary, fallback].filter(Boolean))];
+  return resolveGeminiModels();
 }
 
 function thinkingConfig(model: string, budget?: number) {
@@ -134,7 +134,7 @@ export async function generateGeminiText(
         console.error("[gemini] respons kosong", model, JSON.stringify(data).slice(0, 500));
         return { ok: false, error: "AI tidak menghasilkan teks. Cuba lagi." };
       }
-      return { ok: true, text };
+      return { ok: true, text, model };
     } catch (e) {
       const aborted = e instanceof Error && e.name === "AbortError";
       console.error("[gemini] ralat:", model, e instanceof Error ? e.message : e);

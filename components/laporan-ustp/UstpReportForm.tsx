@@ -32,6 +32,7 @@ export default function UstpReportForm({ id, responsibleByPkgCode, report }: { i
   const [aiError, setAiError] = useState<{ field: "objektif" | "refleksi"; msg: string } | null>(null);
   /** Teks terakhir dijana AI — butang dikunci sehingga pengguna mengubahnya. */
   const [lastAi, setLastAi] = useState<{ objektif: string; refleksi: string }>({ objektif: "", refleksi: "" });
+  const [aiModel, setAiModel] = useState<{ objektif: string; refleksi: string }>({ objektif: "", refleksi: "" });
   const objektifLocked = lastAi.objektif !== "" && objectives === lastAi.objektif;
   const refleksiLocked = lastAi.refleksi !== "" && reflection === lastAi.refleksi;
   const [equipmentUsed, setEquipmentUsed] = useState(report?.equipmentUsed ?? "Tidak");
@@ -97,6 +98,7 @@ export default function UstpReportForm({ id, responsibleByPkgCode, report }: { i
       if (field === "objektif") setObjectives(res.text);
       else setReflection(res.text);
       setLastAi((prev) => ({ ...prev, [field]: res.text }));
+      setAiModel((prev) => ({ ...prev, [field]: res.model }));
     } catch {
       setAiError({ field, msg: "Penjanaan gagal. Cuba lagi." });
     } finally {
@@ -173,6 +175,9 @@ export default function UstpReportForm({ id, responsibleByPkgCode, report }: { i
             <button type="button" className="btn-outline-ink !h-9 !min-h-0 shrink-0 px-3 py-0 text-xs disabled:cursor-not-allowed disabled:opacity-50" disabled={aiField !== null || objektifLocked} title={objektifLocked ? "Ubah teks dijana untuk jana semula" : undefined} onClick={(event) => janaTeks("objektif", event.currentTarget.form)}>{aiField === "objektif" ? "Menjana…" : "✨ Jana dengan AI"}</button>
           </div>
           <textarea id="objectives" name="objectives" className="textarea mt-1" rows={5} required maxLength={20000} value={objectives} onChange={(event) => setObjectives(event.target.value)} />
+          {aiModel.objektif && lastAi.objektif && objectives === lastAi.objektif && (
+            <p className="mt-1 text-xs text-graphite">Dijana dengan {aiModel.objektif}</p>
+          )}
           {aiError?.field === "objektif" && <p role="alert" className="mt-1 text-sm text-red-700">{aiError.msg}</p>}
         </div>
       </fieldset>
@@ -209,6 +214,9 @@ export default function UstpReportForm({ id, responsibleByPkgCode, report }: { i
             <p className="text-xs text-graphite">Medan ini hanya membantu AI — tidak disimpan dalam laporan.</p>
           </div>
           <textarea id="reflection" name="reflection" className="textarea mt-3" rows={5} required maxLength={20000} value={reflection} onChange={(event) => setReflection(event.target.value)} />
+          {aiModel.refleksi && lastAi.refleksi && reflection === lastAi.refleksi && (
+            <p className="mt-1 text-xs text-graphite">Dijana dengan {aiModel.refleksi}</p>
+          )}
           {aiError?.field === "refleksi" && <p role="alert" className="mt-1 text-sm text-red-700">{aiError.msg}</p>}
         </div>
         <label className="block"><span className="label">Disediakan oleh *</span>

@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { requireUser } from "@/lib/rbac";
 import { generateGeminiText } from "@/lib/ai/gemini";
+import { labelGeminiModel } from "@/lib/ai/gemini-models";
 import { parseMinitAiItems } from "@/lib/minit-curai/ai";
 import {
   MINIT_AI_MAX_CHARS,
@@ -17,7 +18,7 @@ import {
 import type { MinitCuraiItem } from "@/lib/schema";
 
 export type JanaKandunganResult =
-  | { ok: true; items: MinitCuraiItem[] }
+  | { ok: true; items: MinitCuraiItem[]; model: string }
   | { ok: false; error: string };
 
 const metaSchema = z.object({
@@ -144,5 +145,5 @@ Format jawapan (WAJIB): JSON array sahaja, tanpa markdown, tanpa ayat tambahan.
   if (!items) {
     return { ok: false, error: "AI tidak dapat menyusun jadual. Semak nota/fail atau cuba lagi." };
   }
-  return { ok: true, items };
+  return { ok: true, items, model: labelGeminiModel(generated.model) };
 }

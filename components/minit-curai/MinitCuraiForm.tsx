@@ -74,6 +74,7 @@ export default function MinitCuraiForm({
   const [briefingKey, setBriefingKey] = useState(0);
   const [aiBusy, setAiBusy] = useState(false);
   const [aiError, setAiError] = useState("");
+  const [aiModel, setAiModel] = useState("");
   const [lastSource, setLastSource] = useState("");
   const officerNames = useMemo(() => {
     const names = new Set(reporters.filter(Boolean));
@@ -136,12 +137,15 @@ export default function MinitCuraiForm({
       const result = await janaKandunganMinit(payload);
       if (!result.ok) {
         setAiError(result.error);
+        setAiModel("");
         return;
       }
       setItems(result.items);
+      setAiModel(result.model);
       setLastSource(source);
     } catch {
       setAiError("Penjanaan gagal. Cuba lagi.");
+      setAiModel("");
     } finally {
       setAiBusy(false);
     }
@@ -331,6 +335,7 @@ export default function MinitCuraiForm({
               </button>
               <p className="text-xs text-graphite">AI menjana beberapa perkara. Hasil menggantikan baris sedia ada. Nota dan fail tidak disimpan.</p>
             </div>
+            {aiModel && !aiError && <p className="text-xs text-graphite">Dijana dengan {aiModel}</p>}
             {aiError && <p role="alert" className="text-sm text-red-700">{aiError}</p>}
           </div>
           {items.map((item, index) => (

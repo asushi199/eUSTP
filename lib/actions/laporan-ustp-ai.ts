@@ -3,9 +3,10 @@
 import { z } from "zod";
 import { requireUser } from "@/lib/rbac";
 import { generateGeminiText } from "@/lib/ai/gemini";
+import { labelGeminiModel } from "@/lib/ai/gemini-models";
 import { USTP_TERAS_INFO } from "@/lib/laporan-ustp/options";
 
-export type JanaResult = { ok: true; text: string } | { ok: false; error: string };
+export type JanaResult = { ok: true; text: string; model: string } | { ok: false; error: string };
 
 const num = z.coerce.number().int().min(0).max(9999999).optional().default(0);
 
@@ -71,5 +72,7 @@ export async function janaTeksLaporan(raw: unknown): Promise<JanaResult> {
     }
   }
 
-  return generateGeminiText(prompt, { system: SYSTEM, maxOutputTokens });
+  const generated = await generateGeminiText(prompt, { system: SYSTEM, maxOutputTokens });
+  if (!generated.ok) return generated;
+  return { ok: true, text: generated.text, model: labelGeminiModel(generated.model) };
 }
