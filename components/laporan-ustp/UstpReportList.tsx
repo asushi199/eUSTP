@@ -79,7 +79,7 @@ export default function UstpReportList({
           {filtered.map((report) => (
             <article
               key={report.id}
-              className="card flex flex-wrap items-center justify-between gap-4 p-5"
+              className="card flex flex-col gap-3 p-5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4"
             >
               <div className="min-w-0 flex-1">
                 <p className="text-xs text-graphite">
@@ -89,11 +89,11 @@ export default function UstpReportList({
                 <p className="mt-1 text-sm text-graphite">{ustpPkgLabel(report.pkgCode)}</p>
                 <p className="mt-1 text-xs text-graphite">Disediakan oleh: {report.preparedBy}</p>
               </div>
-              <div className="flex gap-3">
-                <Link href={`/admin/laporan-ustp/${report.id}`} className="btn-outline-ink">
+              <div className="flex gap-3 sm:shrink-0">
+                <Link href={`/admin/laporan-ustp/${report.id}`} className="btn-outline-ink flex-1 sm:flex-none">
                   Lihat
                 </Link>
-                <Link href={`/admin/laporan-ustp/${report.id}/edit`} className="btn-outline-ink">
+                <Link href={`/admin/laporan-ustp/${report.id}/edit`} className="btn-outline-ink flex-1 sm:flex-none">
                   Edit
                 </Link>
               </div>

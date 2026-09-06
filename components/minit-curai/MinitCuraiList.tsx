@@ -58,16 +58,16 @@ export default function MinitCuraiList({
       ) : (
         <div className="space-y-3">
           {filtered.map((report) => (
-            <article key={report.id} className="card flex flex-wrap items-center justify-between gap-4 p-5">
+            <article key={report.id} className="card flex flex-col gap-3 p-5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4">
               <div className="min-w-0 flex-1">
                 <p className="text-xs text-graphite">{formatMinitDate(report.meetingDate)}</p>
                 <h3 className="mt-1 break-words font-semibold">{report.tajuk}</h3>
                 <p className="mt-1 text-sm text-graphite">{report.unitSektor}</p>
                 <p className="mt-1 text-xs text-graphite">Pelapor: {report.reporterName}</p>
               </div>
-              <div className="flex gap-3">
-                <Link href={`/admin/minit-curai/${report.id}`} className="btn-outline-ink">Lihat</Link>
-                <Link href={`/admin/minit-curai/${report.id}/edit`} className="btn-outline-ink">Edit</Link>
+              <div className="flex gap-3 sm:shrink-0">
+                <Link href={`/admin/minit-curai/${report.id}`} className="btn-outline-ink flex-1 sm:flex-none">Lihat</Link>
+                <Link href={`/admin/minit-curai/${report.id}/edit`} className="btn-outline-ink flex-1 sm:flex-none">Edit</Link>
               </div>
             </article>
           ))}
