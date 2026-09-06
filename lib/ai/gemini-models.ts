@@ -18,7 +18,7 @@ export function thinkingConfigForModel(model: string, budget?: number) {
 }
 
 export function shouldFallbackGeminiStatus(status: number) {
-  return status === 400 || status === 404 || status === 429;
+  return status !== 401;
 }
 
 export function labelGeminiModel(model: string) {

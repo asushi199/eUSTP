@@ -8,7 +8,7 @@ import { resolveGeminiModels, shouldFallbackGeminiStatus, thinkingConfigForModel
  * terdedah ke klien.
  *
  * Kuota percuma diasingkan mengikut model. Lalai: 3.8 → 3.5 → 2.5
- * (429/404 baharu jatuh ke model seterusnya).
+ * (400/404/429/503 dan ralat lain kecuali 401 jatuh ke model seterusnya).
  */
 
 const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models";
@@ -128,7 +128,9 @@ export async function generateGeminiText(
 
       if (!text) {
         console.error("[gemini] respons kosong", model, JSON.stringify(data).slice(0, 500));
-        return { ok: false, error: "AI tidak menghasilkan teks. Cuba lagi." };
+        last = { ok: false, error: "AI tidak menghasilkan teks. Cuba lagi." };
+        if (!hasNext) return last;
+        continue;
       }
       return { ok: true, text, model };
     } catch (e) {
@@ -140,7 +142,7 @@ export async function generateGeminiText(
           ? "AI mengambil masa terlalu lama. Cuba lagi."
           : "Sambungan ke perkhidmatan AI gagal.",
       };
-      if (!hasNext || aborted) return last;
+      if (!hasNext) return last;
     } finally {
       clearTimeout(timer);
     }

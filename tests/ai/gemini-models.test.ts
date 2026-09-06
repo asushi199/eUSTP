@@ -21,11 +21,12 @@ test("GEMINI_MODELS overrides the default chain", () => {
   }), ["gemini-3.8-flash", "gemini-2.5-flash"]);
 });
 
-test("maps 3.8 thinking to low and falls back on 400", () => {
+test("maps 3.8 thinking to low and falls back on 400/503", () => {
   assert.deepEqual(thinkingConfigForModel("gemini-3.8-flash"), { thinkingLevel: "low" });
   assert.deepEqual(thinkingConfigForModel("gemini-3.5-flash"), { thinkingLevel: "minimal" });
   assert.equal(shouldFallbackGeminiStatus(400), true);
-  assert.equal(shouldFallbackGeminiStatus(500), false);
+  assert.equal(shouldFallbackGeminiStatus(503), true);
+  assert.equal(shouldFallbackGeminiStatus(401), false);
 });
 
 test("labels model ids for staff", () => {
