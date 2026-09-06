@@ -9,6 +9,7 @@ import {
   RESOURCES_BOT_KATEGORI_SLUGS,
   RESOURCES_DRIVE_FOLDER,
   RESOURCES_KATEGORI,
+  resourcesAdminHref,
   resourcesHref,
   resourcesKategoriBySlug,
 } from "../../lib/resources/kategori";
@@ -35,12 +36,17 @@ test("maps kategori groups into section view for nested cards", () => {
           title: "SPI 1",
           url: "https://drive.google.com/file/d/abc/view",
           aktif: true,
+          letterMonth: "2026-09",
+          createdAt: "2026-09-01T00:00:00.000Z",
         },
       ],
     },
   ]);
   assert.equal(groups[0]?.cards[0]?.typeLabel, "PDF");
   assert.equal(groups[0]?.slug, "pekeliling");
+  assert.equal(groups[0]?.cards[0]?.letterMonth, "2026-09");
+  assert.equal(resourcesAdminHref("pekeliling"), "/admin/resources?kategori=pekeliling");
+  assert.equal(resourcesAdminHref(), "/admin/resources");
 });
 
 test("infers Drive PDF and Canva URLs for preview", () => {

@@ -1,8 +1,8 @@
 import Link from "next/link";
+import MonthNav from "@/components/month-nav/MonthNav";
 import { requireUser } from "@/lib/rbac";
 import { listUstpReports, resolveUstpMonth } from "@/lib/laporan-ustp/queries";
 import { formatUstpDate, ustpPkgLabel } from "@/lib/laporan-ustp/options";
-import { currentLetterMonthKey, formatResourceMonthLabel, shiftLetterMonth } from "@/lib/resources/search";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Laporan Program USTP" };
@@ -21,20 +21,9 @@ export default async function UstpReportsPage({ searchParams }: { searchParams: 
       <Link href="/admin/laporan-ustp/baharu" className="btn-primary">Tambah Laporan</Link>
     </div>
     <section className="mt-6" aria-label="Bulan laporan">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Link href={href(shiftLetterMonth(month, -1))} className="btn-outline-ink" aria-label="Bulan sebelumnya">←</Link>
-          <h2 className="text-lg font-semibold">{formatResourceMonthLabel(month)}</h2>
-          <Link href={href(shiftLetterMonth(month, 1))} className="btn-outline-ink" aria-label="Bulan seterusnya">→</Link>
-        </div>
-        <form className="flex flex-wrap items-end gap-2" action="/admin/laporan-ustp">
-          <label><span className="label">Pilih bulan</span><input type="month" name="month" className="input" defaultValue={month} key={month} min="2000-01" max="2099-12" required /></label>
-          <button className="btn-outline-ink" type="submit">Papar</button>
-          <Link href={href(currentLetterMonthKey())} className="btn-outline-ink">Bulan Ini</Link>
-        </form>
-      </div>
+      <MonthNav value={month} href={href} showToday />
       <div className="mt-5 space-y-3">
-        {reports.length === 0 && <p className="card p-6 text-sm text-graphite">Tiada laporan pada halaman ini. Pilih bulan lain atau tambah laporan.</p>}
+        {reports.length === 0 && <p className="card p-6 text-sm text-graphite">Tiada laporan pada bulan ini. Pilih bulan lain atau tambah laporan.</p>}
         {reports.map((report) => <article key={report.id} className="card flex flex-wrap items-center justify-between gap-4 p-5">
           <div className="min-w-0 flex-1"><p className="text-xs text-graphite">{formatUstpDate(report.startDate)} – {formatUstpDate(report.endDate)}</p><h3 className="mt-1 break-words font-semibold">{report.programName}</h3><p className="mt-1 text-sm text-graphite">{ustpPkgLabel(report.pkgCode)}</p><p className="mt-1 text-xs text-graphite">Disediakan oleh: {report.preparedBy}</p></div>
           <div className="flex gap-3"><Link href={`/admin/laporan-ustp/${report.id}`} className="btn-outline-ink">Lihat</Link><Link href={`/admin/laporan-ustp/${report.id}/edit`} className="btn-outline-ink">Edit</Link></div>

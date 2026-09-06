@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import DeleteButton from "@/components/admin/DeleteButton";
 import ToggleAktifButton from "@/components/admin/ToggleAktifButton";
 import CardEmbed from "@/components/kandungan/CardEmbed";
+import MonthNav from "@/components/month-nav/MonthNav";
 import { deleteMediaCard, toggleMediaAktif } from "@/lib/actions/media";
 import type { MediaSectionCard, MediaSectionGroup } from "@/lib/media/card-display";
 import {
@@ -58,7 +59,7 @@ export default function MediaKategoriSections({
   return (
     <div className="mt-8 space-y-4">
       {allCards.length > 0 ? (
-        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_12.5rem] sm:items-end">
+        <div className="space-y-3">
           <div>
             <label htmlFor="carian-media-admin" className="label">
               Cari video / gambar
@@ -79,32 +80,20 @@ export default function MediaKategoriSections({
             />
           </div>
           {months.length > 0 ? (
-            <div>
-              <label htmlFor="bulan-media-admin" className="label">
-                Bulan
-              </label>
-              <select
-                id="bulan-media-admin"
-                className="input"
-                value={month}
-                onChange={(event) => setMonth(event.target.value)}
-              >
-                <option value="">Semua bulan</option>
-                {months.map((item) => (
-                  <option key={item.value} value={item.value}>
-                    {item.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <MonthNav
+              value={month}
+              onChange={setMonth}
+              allowAll
+              markedMonths={months.map((item) => item.value)}
+            />
           ) : null}
         </div>
       ) : null}
 
       {!isFiltering && months.length > 1 ? (
         <p className="text-sm text-graphite">
-          Paparan bulan terkini yang ada bahan. Pilih bulan lain atau Semua
-          bulan untuk arkib.
+          Paparan bulan terkini yang ada bahan. Guna anak panah atau ketik
+          nama bulan — atau pilih Semua bulan untuk arkib.
         </p>
       ) : null}
 

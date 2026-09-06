@@ -1,145 +1,231 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type CSSProperties } from "react";
+import { useMemo, useState } from "react";
+import AccentCard from "@/components/AccentCard";
 import DeleteButton from "@/components/admin/DeleteButton";
 import ToggleAktifButton from "@/components/admin/ToggleAktifButton";
 import CardEmbed from "@/components/kandungan/CardEmbed";
+import MonthNav from "@/components/month-nav/MonthNav";
 import {
   deleteResourcesCard,
   toggleResourcesAktif,
 } from "@/lib/actions/resources";
-import type { ResourcesSectionGroup } from "@/lib/resources/card-display";
+import type { ResourcesSectionCard, ResourcesSectionGroup } from "@/lib/resources/card-display";
+import { resourcesAdminHref } from "@/lib/resources/kategori";
+import {
+  filterResourceCards,
+  listResourceMonthOptions,
+  type ResourcesExplorerCard,
+} from "@/lib/resources/search";
 
-/** Senarai accordion untuk pentadbir sahaja — halaman awam guna pautan ke subhalaman. */
+type AdminCard = ResourcesExplorerCard & { aktif: boolean };
+
+function toAdminCard(group: ResourcesSectionGroup, card: ResourcesSectionCard): AdminCard {
+  return {
+    id: card.id,
+    title: card.title,
+    url: card.url,
+    kategoriSlug: group.slug,
+    kategoriTitle: group.title,
+    createdAt: card.createdAt,
+    letterMonth: card.letterMonth,
+    typeLabel: card.typeLabel,
+    embed: card.embed,
+    aktif: card.aktif,
+  };
+}
+
+/** Hab kategori + paparan bulan untuk pentadbir — sama corak halaman awam. */
 export default function ResourcesKategoriSections({
   groups,
-  defaultOpen,
+  selectedSlug,
   accent,
-  admin = false,
 }: {
   groups: ResourcesSectionGroup[];
-  defaultOpen?: string;
+  selectedSlug?: string;
   accent: string;
-  admin?: boolean;
 }) {
-  const [openSlug, setOpenSlug] = useState<string | null>(defaultOpen ?? null);
+  const selected = selectedSlug
+    ? groups.find((group) => group.slug === selectedSlug)
+    : undefined;
+
+  if (!selected) {
+    return (
+      <div className="mt-8 space-y-4">
+        {groups.map((group) => {
+          const n = group.cards.length;
+          return (
+            <AccentCard
+              key={group.slug}
+              href={resourcesAdminHref(group.slug)}
+              accent={accent}
+              className="flex items-start gap-4 p-5"
+            >
+              <span className="min-w-0 flex-1">
+                <span className="block text-lg font-semibold text-ink">{group.title}</span>
+                <span className="mt-1 block text-sm leading-relaxed text-graphite">
+                  {group.blurb}
+                </span>
+                <span className="status-badge mt-3 inline-block">
+                  {n > 0 ? `${n} bahan` : "Tiada kad"}
+                </span>
+              </span>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mt-1 h-5 w-5 shrink-0 transition group-hover:translate-x-0.5"
+                style={{ stroke: accent }}
+                aria-hidden
+              >
+                <path d="M5 12h14M13 6l6 6-6 6" />
+              </svg>
+            </AccentCard>
+          );
+        })}
+      </div>
+    );
+  }
+
+  return <AdminCategoryView group={selected} />;
+}
+
+function AdminCategoryView({ group }: { group: ResourcesSectionGroup }) {
+  const allCards = useMemo(
+    () => group.cards.map((card) => toAdminCard(group, card)),
+    [group],
+  );
+  const months = useMemo(() => listResourceMonthOptions(allCards), [allCards]);
+  const latestMonth = months[0]?.value ?? "";
+
+  const [query, setQuery] = useState("");
+  const [month, setMonth] = useState(latestMonth);
+
+  const isFiltering = Boolean(query.trim() || month !== latestMonth);
+  const filtered = useMemo(
+    () => filterResourceCards(allCards, { query, month }),
+    [allCards, query, month],
+  );
 
   return (
     <div className="mt-8 space-y-4">
-      {groups.map((group) => {
-        const open = openSlug === group.slug;
-        const n = group.cards.length;
-        const panelId = `resources-panel-${group.slug}`;
-        const gallery = group.cards.map((item) => ({
-          title: item.title,
-          url: item.url,
-          embed: item.embed,
-        }));
-        return (
-          <div
-            key={group.slug}
-            id={`resources-${group.slug}`}
-            className="card-accent"
-            style={{ "--card-accent": accent } as CSSProperties}
-          >
-            <h2 className="text-inherit">
-              <button
-                type="button"
-                aria-expanded={open}
-                aria-controls={panelId}
-                className="flex min-h-11 w-full cursor-pointer items-start justify-between gap-3 p-5 text-left"
-                onClick={() => setOpenSlug(open ? null : group.slug)}
-              >
-                <span className="min-w-0">
-                  <span className="block text-lg font-semibold text-ink">
-                    {group.title}
-                  </span>
-                  <span className="mt-1 block text-sm leading-relaxed text-graphite">
-                    {group.blurb}
-                  </span>
-                  <span className="status-badge mt-3 inline-block">
-                    {n > 0 ? `${n} bahan` : admin ? "Tiada kad" : "Akan datang"}
-                  </span>
-                </span>
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className={`mt-1 h-5 w-5 shrink-0 transition ${open ? "rotate-180" : ""}`}
-                  style={{ stroke: accent }}
-                  aria-hidden
-                >
-                  <path d="M6 9l6 6 6-6" />
-                </svg>
-              </button>
-            </h2>
-
-            {open ? (
-              <div
-                id={panelId}
-                className="border-t border-fog/70 bg-cloud/50 px-4 py-4 sm:px-5"
-              >
-                {admin ? (
-                  <div className="mb-4 flex justify-end">
-                    <Link
-                      href={`/admin/resources/baharu?kategori=${group.slug}`}
-                      className="btn-outline btn-sm"
-                    >
-                      Tambah Kad
-                    </Link>
-                  </div>
-                ) : null}
-
-                {n === 0 ? (
-                  <p className="py-4 text-center text-sm text-graphite">
-                    {admin
-                      ? "Tiada kad untuk kategori ini. Tambah surat (fail atau pautan)."
-                      : "Kandungan akan ditambah kemudian."}
-                  </p>
-                ) : (
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    {group.cards.map((c, i) => (
-                      <div key={c.id} className="space-y-2">
-                        <CardEmbed
-                          title={c.title}
-                          blurb=""
-                          url={c.url}
-                          typeLabel={c.typeLabel}
-                          embed={c.embed}
-                          gallery={gallery}
-                          galleryIndex={i}
-                        />
-                        {admin ? (
-                          <div className="flex flex-wrap items-center gap-3 px-1">
-                            <ToggleAktifButton
-                              aktif={c.aktif}
-                              action={toggleResourcesAktif.bind(null, c.id)}
-                            />
-                            <Link
-                              href={`/admin/resources/${c.id}`}
-                              className="link-blue text-sm"
-                            >
-                              Edit
-                            </Link>
-                            <DeleteButton
-                              action={deleteResourcesCard.bind(null, c.id)}
-                              confirmText={`Padam kad "${c.title}"?`}
-                            />
-                          </div>
-                        ) : null}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : null}
+      {allCards.length > 0 ? (
+        <div className="space-y-3">
+          <div>
+            <label htmlFor="carian-resources-admin" className="label">
+              Cari surat
+            </label>
+            <input
+              id="carian-resources-admin"
+              className="input"
+              value={query}
+              onChange={(event) => {
+                const next = event.target.value;
+                setQuery(next);
+                if (next.trim() && month === latestMonth) {
+                  setMonth("");
+                }
+              }}
+              placeholder="Tajuk atau tahun"
+              autoComplete="off"
+            />
           </div>
-        );
-      })}
+          {months.length > 0 ? (
+            <MonthNav
+              value={month}
+              onChange={setMonth}
+              allowAll
+              markedMonths={months.map((item) => item.value)}
+            />
+          ) : null}
+        </div>
+      ) : null}
+
+      {!isFiltering && months.length > 1 ? (
+        <p className="text-sm text-graphite">
+          Paparan bulan terkini yang ada surat. Guna anak panah atau ketik
+          nama bulan — atau pilih Semua bulan untuk arkib.
+        </p>
+      ) : null}
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {isFiltering ? (
+          <p className="text-sm text-graphite">{filtered.length} surat sepadan</p>
+        ) : (
+          <p className="text-sm text-graphite">
+            {filtered.length > 0
+              ? `${filtered.length} surat`
+              : allCards.length === 0
+                ? "Tiada kad"
+                : "Tiada surat pada bulan ini"}
+          </p>
+        )}
+        <div className="flex flex-wrap items-center gap-3">
+          {isFiltering ? (
+            <button
+              type="button"
+              className="text-sm font-medium text-ink underline-offset-2 hover:underline"
+              onClick={() => {
+                setQuery("");
+                setMonth(latestMonth);
+              }}
+            >
+              Kembali ke bulan terkini
+            </button>
+          ) : null}
+          <Link
+            href={`/admin/resources/baharu?kategori=${group.slug}`}
+            className="btn-outline btn-sm"
+          >
+            Tambah Kad
+          </Link>
+        </div>
+      </div>
+
+      {filtered.length === 0 ? (
+        <p className="py-8 text-center text-sm text-graphite">
+          {allCards.length === 0
+            ? "Tiada kad untuk kategori ini. Tambah surat (fail atau pautan)."
+            : "Tiada surat sepadan. Ubah kata carian atau bulan."}
+        </p>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((c, i) => (
+            <div key={c.id} className="space-y-2">
+              <CardEmbed
+                title={c.title}
+                blurb=""
+                url={c.url}
+                typeLabel={c.typeLabel}
+                embed={c.embed}
+                gallery={filtered.map((item) => ({
+                  title: item.title,
+                  url: item.url,
+                  embed: item.embed,
+                }))}
+                galleryIndex={i}
+              />
+              <div className="flex flex-wrap items-center gap-3 px-1">
+                <ToggleAktifButton
+                  aktif={c.aktif}
+                  action={toggleResourcesAktif.bind(null, c.id)}
+                />
+                <Link href={`/admin/resources/${c.id}`} className="link-blue text-sm">
+                  Edit
+                </Link>
+                <DeleteButton
+                  action={deleteResourcesCard.bind(null, c.id)}
+                  confirmText={`Padam kad "${c.title}"?`}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

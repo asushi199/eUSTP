@@ -1,0 +1,280 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { cn } from "@/lib/cn";
+import {
+  formatBulan,
+  monthLabelOf,
+  parseBulan,
+  shiftMonth,
+} from "@/lib/month-view";
+import { currentLetterMonthKey } from "@/lib/resources/search";
+
+const MONTH_SHORTS = Array.from({ length: 12 }, (_, m) =>
+  new Date(2000, m, 1).toLocaleDateString("ms-MY", { month: "short" }),
+);
+
+const MIN_YEAR = 2000;
+const MAX_YEAR = 2099;
+
+function clampParts(year: number, month: number): { year: number; month: number } {
+  if (year < MIN_YEAR) return { year: MIN_YEAR, month: 0 };
+  if (year > MAX_YEAR) return { year: MAX_YEAR, month: 11 };
+  return { year, month };
+}
+
+function shiftKey(value: string, delta: number): string {
+  const parsed = parseBulan(value);
+  if (!parsed) return value;
+  const shifted = shiftMonth(parsed.year, parsed.month, delta);
+  const clamped = clampParts(shifted.year, shifted.month);
+  return formatBulan(clamped.year, clamped.month);
+}
+
+export default function MonthNav({
+  value,
+  onChange,
+  href,
+  allowAll = false,
+  showToday = false,
+  markedMonths,
+  className,
+}: {
+  /** `YYYY-MM`, atau `""` untuk Semua bulan. */
+  value: string;
+  onChange?: (month: string) => void;
+  /** Jika diberi, anak panah jadi pautan dan pilihan bulan menavigasi serta-merta. */
+  href?: (month: string) => string;
+  allowAll?: boolean;
+  showToday?: boolean;
+  markedMonths?: readonly string[];
+  className?: string;
+}) {
+  const router = useRouter();
+  const parsed = parseBulan(value);
+  const canStep = Boolean(parsed);
+  const prevKey = parsed ? shiftKey(value, -1) : value;
+  const nextKey = parsed ? shiftKey(value, 1) : value;
+  const todayKey = currentLetterMonthKey();
+
+  function go(next: string) {
+    if (next === value) return;
+    onChange?.(next);
+    if (href) router.push(href(next));
+  }
+
+  return (
+    <div className={cn("flex flex-wrap items-center gap-2", className)}>
+      <div className="flex items-center gap-2">
+        <StepControl
+          href={href && canStep ? href(prevKey) : undefined}
+          disabled={!canStep || prevKey === value}
+          onClick={() => go(prevKey)}
+          label="Bulan sebelumnya"
+        >
+          ‹
+        </StepControl>
+        <MonthPicker
+          value={value}
+          allowAll={allowAll}
+          markedMonths={markedMonths}
+          onPick={go}
+        />
+        <StepControl
+          href={href && canStep ? href(nextKey) : undefined}
+          disabled={!canStep || nextKey === value}
+          onClick={() => go(nextKey)}
+          label="Bulan seterusnya"
+        >
+          ›
+        </StepControl>
+      </div>
+      {showToday && value !== todayKey ? (
+        href ? (
+          <Link href={href(todayKey)} className="btn-outline-ink btn-sm">
+            Bulan Ini
+          </Link>
+        ) : (
+          <button type="button" className="btn-outline-ink btn-sm" onClick={() => go(todayKey)}>
+            Bulan Ini
+          </button>
+        )
+      ) : null}
+    </div>
+  );
+}
+
+function StepControl({
+  href,
+  disabled,
+  onClick,
+  label,
+  children,
+}: {
+  href?: string;
+  disabled: boolean;
+  onClick: () => void;
+  label: string;
+  children: string;
+}) {
+  const className = "btn-outline-ink btn-sm";
+  if (href && !disabled) {
+    return (
+      <Link href={href} className={className} aria-label={label}>
+        {children}
+      </Link>
+    );
+  }
+  return (
+    <button type="button" className={className} aria-label={label} disabled={disabled} onClick={onClick}>
+      {children}
+    </button>
+  );
+}
+
+function MonthPicker({
+  value,
+  allowAll,
+  markedMonths,
+  onPick,
+}: {
+  value: string;
+  allowAll: boolean;
+  markedMonths?: readonly string[];
+  onPick: (month: string) => void;
+}) {
+  const parsed = parseBulan(value);
+  const [open, setOpen] = useState(false);
+  const [pickerYear, setPickerYear] = useState(parsed?.year ?? Number(currentLetterMonthKey().slice(0, 4)));
+  const ref = useRef<HTMLDivElement>(null);
+  const marked = new Set(markedMonths ?? []);
+
+  useEffect(() => {
+    if (open) setPickerYear(parsed?.year ?? Number(currentLetterMonthKey().slice(0, 4)));
+  }, [open, parsed?.year]);
+
+  useEffect(() => {
+    if (!open) return;
+    function onDocMouseDown(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", onDocMouseDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDocMouseDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const label = parsed ? monthLabelOf(parsed.year, parsed.month) : "Semua bulan";
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex min-w-[10.5rem] items-center justify-center gap-1 rounded-md px-2 py-1.5 font-semibold hover:bg-cloud/60"
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        aria-label="Pilih bulan"
+      >
+        {label}
+        <svg
+          aria-hidden
+          className={cn("h-4 w-4 text-graphite transition", open && "rotate-180")}
+          fill="none"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+
+      {open && (
+        <div
+          role="dialog"
+          aria-label="Pilih bulan"
+          className="absolute left-1/2 top-full z-20 mt-2 w-64 -translate-x-1/2 rounded-xl border border-fog bg-white p-3 shadow-modal"
+        >
+          {allowAll ? (
+            <button
+              type="button"
+              onClick={() => {
+                onPick("");
+                setOpen(false);
+              }}
+              className={cn(
+                "mb-2 w-full rounded-md px-2 py-1.5 text-sm font-medium transition",
+                !parsed ? "bg-ink text-white" : "text-ink hover:bg-cloud/70",
+              )}
+            >
+              Semua bulan
+            </button>
+          ) : null}
+          <div className="flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => setPickerYear((y) => Math.max(MIN_YEAR, y - 1))}
+              className="btn-outline-ink btn-sm"
+              aria-label="Tahun sebelumnya"
+              disabled={pickerYear <= MIN_YEAR}
+            >
+              ‹
+            </button>
+            <span className="font-semibold tabular-nums">{pickerYear}</span>
+            <button
+              type="button"
+              onClick={() => setPickerYear((y) => Math.min(MAX_YEAR, y + 1))}
+              className="btn-outline-ink btn-sm"
+              aria-label="Tahun seterusnya"
+              disabled={pickerYear >= MAX_YEAR}
+            >
+              ›
+            </button>
+          </div>
+          <div className="mt-3 grid grid-cols-3 gap-1.5">
+            {MONTH_SHORTS.map((monthLabel, m) => {
+              const key = formatBulan(pickerYear, m);
+              const active = parsed?.year === pickerYear && parsed.month === m;
+              return (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => {
+                    onPick(key);
+                    setOpen(false);
+                  }}
+                  className={cn(
+                    "rounded-md px-2 py-2 text-sm font-medium transition",
+                    active ? "bg-primary text-white" : "text-ink hover:bg-cloud/70",
+                  )}
+                >
+                  <span className="block">{monthLabel}</span>
+                  {marked.has(key) ? (
+                    <span
+                      className={cn(
+                        "mx-auto mt-1 block h-1 w-1 rounded-full",
+                        active ? "bg-white" : "bg-primary",
+                      )}
+                      aria-hidden
+                    />
+                  ) : (
+                    <span className="mt-1 block h-1" aria-hidden />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

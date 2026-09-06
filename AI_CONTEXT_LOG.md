@@ -1,5 +1,14 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-06 — Navigasi bulan: anak panah + pemilih di tengah
+
+- Komponen kongsi `MonthNav`: `‹ September 2026 ›`, ketik nama bulan untuk
+  pilih tahun/bulan. Tukar bulan menapis serta-merta (tiada butang Papar).
+- Dipakai pada Laporan Program USTP, CoE Resources (awam + admin), CoE
+  Media gambar/video (awam + admin), dan seksyen kalendar admin sedia ada.
+- Admin Surat tidak lagi accordion: hab kategori, ketik masuk, kemudian
+  tapis mengikut bulan seperti halaman awam.
+
 ## 2026-09-05 — TikTok USTP akaun rasmi
 
 - Pautan CoE Media: `https://www.tiktok.com/@ustpmanjung1`.

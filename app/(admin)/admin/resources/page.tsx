@@ -4,7 +4,7 @@ import { getModuleAccent } from "@/lib/module-theme";
 import { getTelegramBotUsername } from "@/lib/telegram/client";
 import { requireKandunganAccess } from "@/lib/rbac";
 import { toResourcesSectionGroups } from "@/lib/resources/card-display";
-import { RESOURCES_KATEGORI } from "@/lib/resources/kategori";
+import { resourcesKategoriBySlug } from "@/lib/resources/kategori";
 import { listResourcesCardsGrouped } from "@/lib/resources/queries";
 
 export const dynamic = "force-dynamic";
@@ -16,10 +16,7 @@ export default async function AdminResourcesPage({
 }) {
   await requireKandunganAccess();
   const sp = await searchParams;
-  const meta =
-    RESOURCES_KATEGORI.find((k) => k.slug === sp.kategori) ??
-    RESOURCES_KATEGORI.find((k) => k.slug === "pekeliling") ??
-    RESOURCES_KATEGORI[0];
+  const selected = resourcesKategoriBySlug(sp.kategori ?? "");
   const groups = toResourcesSectionGroups(
     await listResourcesCardsGrouped({ includeHidden: true }),
   );
@@ -29,22 +26,26 @@ export default async function AdminResourcesPage({
   return (
     <>
       <div>
-        <Link href="/admin" className="text-sm text-graphite hover:text-ink">
-          ← Papan Admin
+        <Link
+          href={selected ? "/admin/resources" : "/admin"}
+          className="text-sm text-graphite hover:text-ink"
+        >
+          {selected ? "← CoE Resources" : "← Papan Admin"}
         </Link>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">CoE Resources</h1>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight">
+          {selected ? selected.title : "CoE Resources"}
+        </h1>
         <p className="mt-1 text-sm text-graphite">
-          Ketik kad kategori untuk urus surat di dalamnya. Muat naik fail ke Google Drive,
-          atau hantar PDF kepada NexaBot
-          {bot ? ` (@${bot})` : ""} dengan /surat — dalam sembang peribadi atau kumpulan.
+          {selected
+            ? selected.blurb
+            : `Ketik kad kategori untuk urus surat mengikut bulan. Muat naik fail ke Google Drive, atau hantar PDF kepada NexaBot${bot ? ` (@${bot})` : ""} dengan /surat — dalam sembang peribadi atau kumpulan.`}
         </p>
       </div>
 
       <ResourcesKategoriSections
         groups={groups}
-        defaultOpen={meta.slug}
+        selectedSlug={selected?.slug}
         accent={accent}
-        admin
       />
     </>
   );

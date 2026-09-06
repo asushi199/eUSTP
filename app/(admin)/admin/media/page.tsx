@@ -29,7 +29,8 @@ export default async function AdminMediaPage({
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">CoE Media</h1>
         <p className="mt-1 text-sm text-graphite">
           Urus video dan gambar program. Paparan lalai ialah bulan terkini yang
-          ada bahan — pilih Semua bulan jika perlu arkib.
+          ada bahan. Guna anak panah atau ketik nama bulan — atau pilih Semua
+          bulan untuk arkib.
         </p>
       </div>
 

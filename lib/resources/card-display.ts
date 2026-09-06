@@ -34,6 +34,8 @@ export type ResourcesSectionCard = {
   aktif: boolean;
   typeLabel: string;
   embed: CardEmbedInfo;
+  letterMonth: string | null;
+  createdAt: string;
 };
 
 export type ResourcesSectionGroup = {
@@ -48,7 +50,14 @@ export function toResourcesSectionGroups(
     slug: string;
     title: string;
     blurb: string;
-    cards: Array<{ id: number; title: string; url: string; aktif: boolean }>;
+    cards: Array<{
+      id: number;
+      title: string;
+      url: string;
+      aktif: boolean;
+      letterMonth?: string | null;
+      createdAt?: Date | string;
+    }>;
   }>,
 ): ResourcesSectionGroup[] {
   return groups.map((g) => ({
@@ -64,6 +73,13 @@ export function toResourcesSectionGroups(
         aktif: c.aktif,
         typeLabel: display.typeLabel,
         embed: display.embed,
+        letterMonth: c.letterMonth ?? null,
+        createdAt:
+          typeof c.createdAt === "string"
+            ? c.createdAt
+            : c.createdAt
+              ? c.createdAt.toISOString()
+              : "",
       };
     }),
   }));

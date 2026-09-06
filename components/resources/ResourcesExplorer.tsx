@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import AccentCard from "@/components/AccentCard";
 import CardEmbed from "@/components/kandungan/CardEmbed";
+import MonthNav from "@/components/month-nav/MonthNav";
 import { resourcesHref } from "@/lib/resources/kategori";
 import {
   filterResourceCards,
@@ -57,7 +58,7 @@ export default function ResourcesExplorer({
               : "mt-8 space-y-3"
           }
         >
-        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_12.5rem] sm:items-end">
+        <div className="space-y-3">
           <div>
             <label htmlFor="carian-resources" className="label">
               Cari surat
@@ -91,24 +92,12 @@ export default function ResourcesExplorer({
             </div>
           </div>
           {months.length > 0 ? (
-            <div>
-              <label htmlFor="bulan-resources" className="label">
-                Bulan
-              </label>
-              <select
-                id="bulan-resources"
-                className="input"
-                value={month}
-                onChange={(event) => setMonth(event.target.value)}
-              >
-                <option value="">Semua bulan</option>
-                {months.map((item) => (
-                  <option key={item.value} value={item.value}>
-                    {item.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <MonthNav
+              value={month}
+              onChange={setMonth}
+              allowAll
+              markedMonths={months.map((item) => item.value)}
+            />
           ) : null}
         </div>
         {showLetters ? (
@@ -133,8 +122,8 @@ export default function ResourcesExplorer({
 
       {variant === "kategori" && showSearch && !isFiltering && months.length > 1 ? (
         <p className="mt-2 text-sm text-graphite">
-          Paparan bulan terkini yang ada surat. Pilih bulan lain atau Semua
-          bulan untuk arkib.
+          Paparan bulan terkini yang ada surat. Guna anak panah atau ketik
+          nama bulan — atau pilih Semua bulan untuk arkib.
         </p>
       ) : null}
 
