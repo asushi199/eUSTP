@@ -66,6 +66,16 @@ test("accepts omitted optional dates instead of English Required", () => {
   assert.equal(parsed.data.reviewedAt, null);
 });
 
+test("drops autofilled reviewer title when nama penyemak is empty", () => {
+  const parsed = parseMinitCurai(form({
+    reviewedByName: "",
+    reviewedByTitle: "Penolong Pegawai PPD USTP",
+  }));
+  assert.ok(parsed.success);
+  if (!parsed.success) return;
+  assert.equal(parsed.data.reviewedByTitle, "");
+});
+
 test("accepts omitted kaedah lain when Lain-lain is not selected", () => {
   const data = form();
   data.delete("kaedahLain");

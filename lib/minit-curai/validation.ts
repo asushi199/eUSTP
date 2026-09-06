@@ -65,6 +65,10 @@ const minitCuraiStepCFields = z.object({
   reviewedAt: optionalDate,
 });
 
+function withoutEmptyReviewer<T extends { reviewedByName: string; reviewedByTitle: string }>(data: T) {
+  return data.reviewedByName ? data : { ...data, reviewedByTitle: "" };
+}
+
 function refineStepC(
   data: z.output<typeof minitCuraiStepCFields>,
   context: z.RefinementCtx,
@@ -75,19 +79,19 @@ function refineStepC(
   if (data.reviewedByName && !data.reviewedByTitle) {
     context.addIssue({ code: "custom", path: ["reviewedByTitle"], message: "Sila isi jawatan / unit penyemak." });
   }
-  if (data.reviewedByTitle && !data.reviewedByName) {
-    context.addIssue({ code: "custom", path: ["reviewedByName"], message: "Sila isi nama penyemak." });
-  }
   if (data.reviewedAt && !data.reviewedByName) {
     context.addIssue({ code: "custom", path: ["reviewedByName"], message: "Sila isi nama penyemak." });
   }
 }
 
-export const minitCuraiStepCSchema = minitCuraiStepCFields.superRefine(refineStepC);
+export const minitCuraiStepCSchema = minitCuraiStepCFields
+  .transform(withoutEmptyReviewer)
+  .superRefine(refineStepC);
 
 export const minitCuraiSchema = minitCuraiStepASchema
   .merge(minitCuraiStepBSchema)
   .merge(minitCuraiStepCFields)
+  .transform(withoutEmptyReviewer)
   .superRefine(refineStepC);
 
 export type MinitCuraiData = z.output<typeof minitCuraiSchema>;

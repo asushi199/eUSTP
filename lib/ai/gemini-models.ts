@@ -1,5 +1,5 @@
 export const DEFAULT_GEMINI_MODELS = [
-  "gemini-3.8-flash",
+  "gemini-3.6-flash",
   "gemini-3.5-flash",
   "gemini-2.5-flash",
 ] as const;
@@ -11,7 +11,7 @@ export function resolveGeminiModels(env: Record<string, string | undefined> = pr
 }
 
 export function thinkingConfigForModel(model: string, budget?: number) {
-  if (/gemini-3\.8/i.test(model)) return { thinkingLevel: "low" };
+  if (/gemini-3\.[78]/i.test(model)) return { thinkingLevel: "low" };
   if (/gemini-3/i.test(model)) return { thinkingLevel: "minimal" };
   if (/gemini-2\.5/i.test(model)) return { thinkingBudget: budget ?? 0 };
   return null;

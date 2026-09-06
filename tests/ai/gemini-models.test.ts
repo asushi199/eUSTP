@@ -7,9 +7,9 @@ import {
   thinkingConfigForModel,
 } from "../../lib/ai/gemini-models";
 
-test("defaults to 3.8 then 3.5 then 2.5", () => {
+test("defaults to 3.6 then 3.5 then 2.5", () => {
   assert.deepEqual(resolveGeminiModels({}), [
-    "gemini-3.8-flash",
+    "gemini-3.6-flash",
     "gemini-3.5-flash",
     "gemini-2.5-flash",
   ]);
@@ -23,6 +23,7 @@ test("GEMINI_MODELS overrides the default chain", () => {
 
 test("maps 3.8 thinking to low and falls back on 400/503", () => {
   assert.deepEqual(thinkingConfigForModel("gemini-3.8-flash"), { thinkingLevel: "low" });
+  assert.deepEqual(thinkingConfigForModel("gemini-3.6-flash"), { thinkingLevel: "minimal" });
   assert.deepEqual(thinkingConfigForModel("gemini-3.5-flash"), { thinkingLevel: "minimal" });
   assert.equal(shouldFallbackGeminiStatus(400), true);
   assert.equal(shouldFallbackGeminiStatus(503), true);

@@ -8,6 +8,7 @@ import { janaKandunganMinit } from "@/lib/actions/minit-curai-ai";
 import {
   MINIT_CURAI_GRADES,
   MINIT_CURAI_KAEDAH,
+  MINIT_CURAI_OFFICER_TITLE,
   MINIT_CURAI_STEPS,
   MINIT_CURAI_UNIT,
   emptyMinitItem,
@@ -439,7 +440,7 @@ export default function MinitCuraiForm({
             </label>
             <label className="block">
               <span className="label">Jawatan / unit *</span>
-              <input name="preparedByTitle" className="input" required maxLength={200} defaultValue={report?.preparedByTitle ?? ""} />
+              <input name="preparedByTitle" className="input" required maxLength={200} defaultValue={report?.preparedByTitle || MINIT_CURAI_OFFICER_TITLE} />
             </label>
             <label className="block">
               <span className="label">Tarikh *</span>
@@ -453,7 +454,7 @@ export default function MinitCuraiForm({
             </label>
             <label className="block">
               <span className="label">Jawatan / unit</span>
-              <input name="reviewedByTitle" className="input" maxLength={200} defaultValue={report?.reviewedByTitle} />
+              <input name="reviewedByTitle" className="input" maxLength={200} defaultValue={report?.reviewedByTitle || MINIT_CURAI_OFFICER_TITLE} />
             </label>
             <label className="block">
               <span className="label">Tarikh</span>

@@ -7,7 +7,7 @@ import { resolveGeminiModels, shouldFallbackGeminiStatus, thinkingConfigForModel
  * pelayan; API key kekal dalam GEMINI_API_KEY (.env.local), tidak pernah
  * terdedah ke klien.
  *
- * Kuota percuma diasingkan mengikut model. Lalai: 3.8 → 3.5 → 2.5
+ * Kuota percuma diasingkan mengikut model. Lalai: 3.6 → 3.5 → 2.5
  * (400/404/429/503 dan ralat lain kecuali 401 jatuh ke model seterusnya).
  */
 

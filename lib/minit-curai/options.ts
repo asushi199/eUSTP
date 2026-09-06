@@ -1,4 +1,5 @@
 export const MINIT_CURAI_UNIT = "Unit Sumber Teknologi Pendidikan";
+export const MINIT_CURAI_OFFICER_TITLE = "Penolong Pegawai PPD USTP";
 
 export const MINIT_CURAI_GRADES = ["DG10", "DG12"] as const;
 
