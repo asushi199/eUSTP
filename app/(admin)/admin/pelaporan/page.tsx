@@ -28,6 +28,7 @@ export default async function AdminPelaporanPage() {
   const user = await requireUser();
   const cards: AdminCard[] = [
     { href: "/admin/laporan-ustp", title: "Laporan Program USTP", description: "Rekod program mengikut bulan, gambar dan muat turun PDF." },
+    { href: "/admin/minit-curai", title: "Minit Curai", description: "Rekod taklimat atau mesyuarat selepas pegawai pulang, kemudian muat turun PDF." },
     ...(canManageKandungan(user.peranan) ? CARDS : []),
   ];
 

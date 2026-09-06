@@ -174,6 +174,48 @@ export const laporanUstp = pgTable("laporan_ustp", {
 
 export type UstpReport = typeof laporanUstp.$inferSelect;
 
+export type MinitCuraiItem = {
+  perkara: string;
+  keputusan: string;
+  tindakan: string;
+  pegawai: string;
+};
+
+/** Minit curai dalaman — rekod taklimat/mesyuarat selepas pegawai pulang. */
+export const minitCurai = pgTable("minit_curai", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  reporterName: text("reporter_name").notNull(),
+  reporterTitle: text("reporter_title").notNull(),
+  unitSektor: text("unit_sektor").notNull(),
+  tajuk: text("tajuk").notNull(),
+  anjuran: text("anjuran").notNull(),
+  meetingDate: date("meeting_date").notNull(),
+  meetingTime: text("meeting_time").notNull(),
+  tempat: text("tempat").notNull(),
+  chairperson: text("chairperson").notNull(),
+  rujukanFail: text("rujukan_fail").notNull().default(""),
+  items: jsonb("items").$type<MinitCuraiItem[]>().notNull(),
+  rumusan: text("rumusan").notNull(),
+  lampiran: text("lampiran").notNull().default(""),
+  targetDate: date("target_date"),
+  disebarkanKepada: text("disebarkan_kepada").notNull(),
+  tarikhCurai: date("tarikh_curai").notNull(),
+  kaedah: jsonb("kaedah").$type<string[]>().notNull(),
+  kaedahLain: text("kaedah_lain").notNull().default(""),
+  preparedByName: text("prepared_by_name").notNull(),
+  preparedByTitle: text("prepared_by_title").notNull(),
+  preparedAt: date("prepared_at").notNull(),
+  reviewedByName: text("reviewed_by_name").notNull().default(""),
+  reviewedByTitle: text("reviewed_by_title").notNull().default(""),
+  reviewedAt: date("reviewed_at"),
+  createdBy: integer("created_by").references(() => users.id, { onDelete: "set null" }),
+  version: integer("version").notNull().default(1),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (t) => ({ meetingDateIdx: index("minit_curai_meeting_date_idx").on(t.meetingDate) }));
+
+export type MinitCurai = typeof minitCurai.$inferSelect;
+
 export const laporanStatus = pgEnum("laporan_status", ["BARU", "DISEMAK", "SELESAI"]);
 export const laporanModul = pgEnum("laporan_modul", ["dpd", "pss"]);
 

@@ -16,6 +16,7 @@ export const ADMIN_PAPAN_NESTED_PATHS = [
   "/admin/laporan-pss",
   "/admin/laporan-akhbar",
   "/admin/laporan-ustp",
+  "/admin/minit-curai",
   "/admin/resources",
   "/admin/media",
   "/admin/analisis",

@@ -1,0 +1,78 @@
+"use client";
+
+import Link from "next/link";
+import { useMemo, useState } from "react";
+import MonthNav from "@/components/month-nav/MonthNav";
+import { formatMinitDate } from "@/lib/minit-curai/options";
+import { filterMinitCurai, type MinitCuraiListItem } from "@/lib/minit-curai/search";
+
+export default function MinitCuraiList({
+  reports,
+  month,
+}: {
+  reports: MinitCuraiListItem[];
+  month: string;
+}) {
+  const [query, setQuery] = useState("");
+  const filtered = useMemo(() => filterMinitCurai(reports, query), [reports, query]);
+  const searching = Boolean(query.trim());
+
+  return (
+    <div className="space-y-4">
+      <div className="space-y-3">
+        <div>
+          <label htmlFor="carian-minit-curai" className="label">Cari minit</label>
+          <div className="relative">
+            <svg aria-hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="pointer-events-none absolute left-3 top-3 h-5 w-5 text-graphite">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-4-4" />
+            </svg>
+            <input
+              id="carian-minit-curai"
+              className="input pl-10"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Tajuk, pelapor, unit atau anjuran"
+              autoComplete="off"
+            />
+          </div>
+        </div>
+        <MonthNav value={month} path="/admin/minit-curai" showToday />
+      </div>
+
+      {searching ? (
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-graphite">
+          <span>{filtered.length} minit sepadan pada bulan ini</span>
+          <button type="button" className="font-medium text-ink underline-offset-2 hover:underline" onClick={() => setQuery("")}>
+            Kosongkan carian
+          </button>
+        </div>
+      ) : null}
+
+      {filtered.length === 0 ? (
+        <p className="card p-6 text-sm text-graphite">
+          {reports.length === 0
+            ? "Tiada minit pada bulan ini. Pilih bulan lain atau tambah minit curai."
+            : "Tiada minit sepadan. Ubah kata carian atau bulan."}
+        </p>
+      ) : (
+        <div className="space-y-3">
+          {filtered.map((report) => (
+            <article key={report.id} className="card flex flex-wrap items-center justify-between gap-4 p-5">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs text-graphite">{formatMinitDate(report.meetingDate)}</p>
+                <h3 className="mt-1 break-words font-semibold">{report.tajuk}</h3>
+                <p className="mt-1 text-sm text-graphite">{report.unitSektor}</p>
+                <p className="mt-1 text-xs text-graphite">Pelapor: {report.reporterName}</p>
+              </div>
+              <div className="flex gap-3">
+                <Link href={`/admin/minit-curai/${report.id}`} className="btn-outline-ink">Lihat</Link>
+                <Link href={`/admin/minit-curai/${report.id}/edit`} className="btn-outline-ink">Edit</Link>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

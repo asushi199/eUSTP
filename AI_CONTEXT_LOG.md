@@ -1,5 +1,15 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-06 — Minit Curai dalam CoE Reports
+
+- Modul staf sahaja, sama seperti Laporan Program USTP: `requireUser()`, kad
+  hanya pada hub `/laporan` untuk sesi staf dan pada `/admin/pelaporan`.
+- Borang ikut `Template_Minit_Curai_Terkini_v2.docx`, dipecah A (butiran),
+  B (kandungan berbilang isu) dan C (rumusan, curai, pengesahan).
+- Senarai mengikut bulan tarikh mesyuarat; PDF dijana atas permintaan.
+- Migrasi `0043_minit_curai`: jadual `minit_curai`, indeks tarikh, FK
+  pencipta, RLS tanpa polisi.
+
 ## 2026-09-06 — OSC dibubarkan, bahan ke Resources / Media
 
 - OSC / Sumber dimansuhkan. `/osc`, `/sumber`, `/admin/osc`,

@@ -44,7 +44,7 @@ const withPWA = withPWAInit({
     runtimeCaching: [
       {
         // Hub berbeza mengikut sesi; laporan dalaman tidak boleh dibaca daripada cache selepas log keluar.
-        urlPattern: ({ url }) => url.pathname === "/laporan" || url.pathname === "/admin/laporan-ustp" || url.pathname.startsWith("/admin/laporan-ustp/"),
+        urlPattern: ({ url }) => url.pathname === "/laporan" || url.pathname === "/admin/laporan-ustp" || url.pathname.startsWith("/admin/laporan-ustp/") || url.pathname === "/admin/minit-curai" || url.pathname.startsWith("/admin/minit-curai/"),
         handler: "NetworkOnly",
       },
       ...runtimeCaching,

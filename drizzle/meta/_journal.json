@@ -302,6 +302,13 @@
       "when": 1788672000000,
       "tag": "0042_retire_osc",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1788665618974,
+      "tag": "0043_minit_curai",
+      "breakpoints": true
     }
   ]
 }

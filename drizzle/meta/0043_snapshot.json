@@ -1,6 +1,6 @@
 {
-  "id": "9f2c4b81-6d5e-4a17-9c3a-1e8b7d0f2a44",
-  "prevId": "574a40f4-a8e6-4ee8-87d9-6ca65c77b1e0",
+  "id": "4c6a24de-e7fe-4ec8-b3a8-ee5409a6b340",
+  "prevId": "9f2c4b81-6d5e-4a17-9c3a-1e8b7d0f2a44",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -4209,6 +4209,232 @@
         }
       },
       "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.minit_curai": {
+      "name": "minit_curai",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "reporter_name": {
+          "name": "reporter_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reporter_title": {
+          "name": "reporter_title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "unit_sektor": {
+          "name": "unit_sektor",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tajuk": {
+          "name": "tajuk",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "anjuran": {
+          "name": "anjuran",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "meeting_date": {
+          "name": "meeting_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "meeting_time": {
+          "name": "meeting_time",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tempat": {
+          "name": "tempat",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "chairperson": {
+          "name": "chairperson",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rujukan_fail": {
+          "name": "rujukan_fail",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "items": {
+          "name": "items",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rumusan": {
+          "name": "rumusan",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lampiran": {
+          "name": "lampiran",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "target_date": {
+          "name": "target_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "disebarkan_kepada": {
+          "name": "disebarkan_kepada",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tarikh_curai": {
+          "name": "tarikh_curai",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "kaedah": {
+          "name": "kaedah",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "kaedah_lain": {
+          "name": "kaedah_lain",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "prepared_by_name": {
+          "name": "prepared_by_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "prepared_by_title": {
+          "name": "prepared_by_title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "prepared_at": {
+          "name": "prepared_at",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reviewed_by_name": {
+          "name": "reviewed_by_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "reviewed_by_title": {
+          "name": "reviewed_by_title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "reviewed_at": {
+          "name": "reviewed_at",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "minit_curai_meeting_date_idx": {
+          "name": "minit_curai_meeting_date_idx",
+          "columns": [
+            {
+              "expression": "meeting_date",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "minit_curai_created_by_users_id_fk": {
+          "name": "minit_curai_created_by_users_id_fk",
+          "tableFrom": "minit_curai",
+          "tableTo": "users",
+          "columnsFrom": [
+            "created_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},

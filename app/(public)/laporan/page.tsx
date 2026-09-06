@@ -11,7 +11,7 @@ import { isKnownPeranan } from "@/lib/roles";
 export const metadata: Metadata = {
   title: "CoE Reports — NEXa Manjung",
   description:
-    "Pilih Laporan DPD, Laporan PSS, Laporan Akhbar atau Semak Tebus Buku.",
+    "Pilih Laporan DPD, Laporan PSS, Laporan Akhbar, Semak Tebus Buku atau Minit Curai.",
 };
 
 const SECTION_TAG: Record<string, string> = {
@@ -23,7 +23,7 @@ const SECTION_TAG: Record<string, string> = {
 
 export default async function LaporanHubPage() {
   const user = await getSessionUser();
-  const showUstp = user?.authKind === "staff" && isKnownPeranan(user.peranan ?? "");
+  const showStaffReports = user?.authKind === "staff" && isKnownPeranan(user.peranan ?? "");
   const accent = getModuleAccent("/laporan");
   const looker = LAPORAN_ENTRY_OVERRIDE.enabled;
 
@@ -41,8 +41,32 @@ export default async function LaporanHubPage() {
       />
 
       <div className="mt-8 grid gap-4">
-        {showUstp && (
-          <AccentCard href="/admin/laporan-ustp" accent={accent} className="flex items-start gap-4 p-6">
+        {showStaffReports && [
+          {
+            href: "/admin/laporan-ustp",
+            title: "Laporan Program USTP",
+            description: "Rekod program USTP mengikut bulan, urus gambar dan muat turun laporan PDF.",
+            icon: (
+              <>
+                <rect x="6" y="4" width="12" height="17" rx="2" />
+                <path d="M9 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1" />
+                <path d="M9 11h6M9 15h4" />
+              </>
+            ),
+          },
+          {
+            href: "/admin/minit-curai",
+            title: "Minit Curai",
+            description: "Rekod taklimat atau mesyuarat selepas pegawai pulang, kemudian muat turun PDF.",
+            icon: (
+              <>
+                <rect x="5" y="4" width="14" height="16" rx="2" />
+                <path d="M8 9h8M8 13h6M8 17h4" />
+              </>
+            ),
+          },
+        ].map((item) => (
+          <AccentCard key={item.href} href={item.href} accent={accent} className="flex items-start gap-4 p-6">
             <span
               className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"
               style={{ backgroundColor: `${accent}14`, color: accent }}
@@ -57,20 +81,16 @@ export default async function LaporanHubPage() {
                 strokeLinejoin="round"
                 className="h-7 w-7"
               >
-                <rect x="6" y="4" width="12" height="17" rx="2" />
-                <path d="M9 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1" />
-                <path d="M9 11h6M9 15h4" />
+                {item.icon}
               </svg>
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block font-semibold text-ink">Laporan Program USTP</span>
-              <span className="mt-1.5 block text-sm leading-relaxed text-graphite">
-                Rekod program USTP mengikut bulan, urus gambar dan muat turun laporan PDF.
-              </span>
+              <span className="block font-semibold text-ink">{item.title}</span>
+              <span className="mt-1.5 block text-sm leading-relaxed text-graphite">{item.description}</span>
             </span>
             <span aria-hidden className="text-xl text-graphite">→</span>
           </AccentCard>
-        )}
+        ))}
         {LAPORAN_SECTIONS.map((s) => (
           <AccentCard
             key={s.internalHref}
