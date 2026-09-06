@@ -31,7 +31,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             {children}
           </main>
         </div>
-        <AdminMobileNav showContent={showContent} />
+        <AdminMobileNav />
       </div>
     </NotifyPemohonProvider>
   );

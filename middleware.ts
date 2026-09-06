@@ -6,13 +6,11 @@ const { auth } = NextAuth(authConfig);
 
 /**
  * Model public-first: kebanyakan halaman awam TIDAK melalui auth.
- * Pengecualian: modul OSC (/osc, /sumber, /analisis) kini dalaman sahaja —
- * hanya boleh dilihat selepas log masuk (arahan pengurusan: "OSC tidak boleh
- * dilihat orang luar"). Semakan peranan terperinci dibuat dalam layout
- * (admin) + lib/rbac.ts. Direktori USTP (/direktori/ustp) awam tetapi
- * kandungannya digate oleh akaun MOE-DL.
+ * Pengecualian: /analisis dalaman sahaja (akaun staf). Semakan peranan
+ * terperinci dibuat dalam layout (admin) + lib/rbac.ts. Direktori USTP
+ * (/direktori/ustp) awam tetapi kandungannya digate oleh akaun MOE-DL.
  */
-const PROTECTED_PREFIXES = ["/admin", "/osc", "/sumber", "/analisis"];
+const PROTECTED_PREFIXES = ["/admin", "/analisis"];
 
 function needsAuth(pathname: string): boolean {
   return PROTECTED_PREFIXES.some(
@@ -52,8 +50,6 @@ export default auth((req) => {
 export const config = {
   matcher: [
     "/admin/:path*",
-    "/osc/:path*",
-    "/sumber/:path*",
     "/analisis/:path*",
     "/login",
     "/tukar-kata-laluan",

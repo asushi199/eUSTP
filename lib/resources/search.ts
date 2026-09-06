@@ -146,6 +146,15 @@ export function formatResourceMonthLabel(monthKey: string): string {
   return nama ? `${nama} ${match[1]}` : monthKey;
 }
 
+export function resourceYearKey(monthKey: string): string {
+  const match = /^(\d{4})/.exec(monthKey);
+  return match?.[1] ?? "";
+}
+
+export function formatResourceYearLabel(yearKey: string): string {
+  return resourceYearKey(yearKey) || yearKey;
+}
+
 function padMonth(n: number): string {
   return String(n).padStart(2, "0");
 }
@@ -188,6 +197,17 @@ export function listLetterMonthWindow(
   for (let delta = -7; delta <= 7; delta += 1) {
     const value = shiftLetterMonth(centerMonth, delta);
     items.push({ value, label: formatResourceMonthLabel(value) });
+  }
+  return items;
+}
+
+/** Tahun 2020 hingga +1 (MYT) — borang admin kategori tahunan. Disimpan sebagai YYYY-01. */
+export function listLetterYearChoices(now = new Date()): Array<{ value: string; label: string }> {
+  const currentYear = Number(currentLetterMonthKey(now).slice(0, 4));
+  const maxYear = Number.isFinite(currentYear) ? currentYear + 1 : 2027;
+  const items: Array<{ value: string; label: string }> = [];
+  for (let year = maxYear; year >= LETTER_MONTH_MIN_YEAR; year -= 1) {
+    items.push({ value: `${year}-01`, label: String(year) });
   }
   return items;
 }
@@ -298,9 +318,29 @@ export function filterResourceCards<T extends ResourcesExplorerCard>(
   const query = opts.query ?? "";
   const month = opts.month?.trim() ?? "";
   return cards.filter((card) => {
-    if (month && !cardMonthKeys(card).includes(month)) return false;
+    if (month && !cardMatchesPeriod(card, month)) return false;
     return cardMatchesResourceQuery(card, query);
   });
+}
+
+function cardMatchesPeriod(
+  card: {
+    title: string;
+    url: string;
+    createdAt: string;
+    letterMonth?: string | null;
+    kategoriSlug?: string;
+  },
+  period: string,
+): boolean {
+  const keys = cardMonthKeys(card);
+  if (/^\d{4}$/.test(period)) {
+    return keys.some((key) => resourceYearKey(key) === period);
+  }
+  if (card.kategoriSlug === "arkib") {
+    return keys.some((key) => resourceYearKey(key) === resourceYearKey(period));
+  }
+  return keys.includes(period);
 }
 
 export function listResourceMonthOptions(
@@ -318,6 +358,38 @@ export function listResourceMonthOptions(
   return [...keys]
     .sort((a, b) => b.localeCompare(a))
     .map((value) => ({ value, label: formatResourceMonthLabel(value) }));
+}
+
+export function listResourceYearOptions(
+  cards: Array<{
+    title: string;
+    url: string;
+    createdAt: string;
+    letterMonth?: string | null;
+  }>,
+): Array<{ value: string; label: string }> {
+  const years = new Set<string>();
+  for (const card of cards) {
+    for (const key of cardMonthKeys(card)) {
+      const year = resourceYearKey(key);
+      if (year) years.add(year);
+    }
+  }
+  return [...years]
+    .sort((a, b) => b.localeCompare(a))
+    .map((value) => ({ value, label: value }));
+}
+
+/** Tahun terkini yang ada bahan (YYYY), atau "" jika tiada. */
+export function latestResourceYear(
+  cards: Array<{
+    title: string;
+    url: string;
+    createdAt: string;
+    letterMonth?: string | null;
+  }>,
+): string {
+  return listResourceYearOptions(cards)[0]?.value ?? "";
 }
 
 /** Bulan terkini yang ada surat (YYYY-MM), atau "" jika tiada. */

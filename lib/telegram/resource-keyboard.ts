@@ -1,4 +1,5 @@
 import {
+  RESOURCES_BOT_KATEGORI_LABEL,
   RESOURCES_BOT_KATEGORI_SLUGS,
   resourcesKategoriBySlug,
 } from "@/lib/resources/kategori";
@@ -36,11 +37,16 @@ export type TelegramInlineKeyboard = TelegramInlineButton[][];
 const BATAL: TelegramInlineButton = { text: "Batal", callback_data: RESOURCE_CANCEL_CALLBACK };
 
 export function kategoriKeyboard(): TelegramInlineKeyboard {
-  const row = RESOURCES_BOT_KATEGORI_SLUGS.map((slug) => ({
-    text: slug === "surat-ustp" ? "USTP" : "Sekolah / Guru / Murid",
+  const buttons = RESOURCES_BOT_KATEGORI_SLUGS.map((slug) => ({
+    text: RESOURCES_BOT_KATEGORI_LABEL[slug],
     callback_data: resourceKategoriCallbackData(slug),
   }));
-  return [row, [BATAL]];
+  const rows: TelegramInlineKeyboard = [];
+  for (let i = 0; i < buttons.length; i += 2) {
+    rows.push(buttons.slice(i, i + 2));
+  }
+  rows.push([BATAL]);
+  return rows;
 }
 
 export function monthKeyboard(centerMonth?: string, now = new Date()): TelegramInlineKeyboard {
@@ -115,9 +121,9 @@ export function resourceManageRow(cardId: number, padamOnly = false): TelegramIn
 
 export function kategoriPrompt(fileName: string): string {
   return [
-    `Surat diterima: ${fileName}`,
+    `Bahan diterima: ${fileName}`,
     "",
-    "Pilih kumpulan surat ini:",
+    "Pilih kumpulan (USTP, Sekolah, SPI atau Nota):",
   ].join("\n");
 }
 
@@ -130,13 +136,19 @@ export function monthPrompt(kategori: string): string {
   ].join("\n");
 }
 
+function titleExample(kategori: string): string {
+  if (kategori === "pekeliling") return "SPI KPM Bil 2 Tahun 2026";
+  if (kategori === "nota") return "Nota Panduan DELIMa";
+  return "Surat Jemputan Program DELIMa";
+}
+
 export function titlePrompt(kategori: string, letterMonth: string): string {
   const title = resourcesKategoriBySlug(kategori)?.title ?? kategori;
   return [
     `Kumpulan: ${title}`,
     `Bulan: ${formatResourceMonthLabel(letterMonth)}`,
     "",
-    "Taip nama surat ini. Contoh: Surat Jemputan Program DELIMa",
+    `Taip nama bahan ini. Contoh: ${titleExample(kategori)}`,
   ].join("\n");
 }
 

@@ -3,8 +3,8 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { saveResourcesCard } from "@/lib/actions/resources";
-import { RESOURCES_KATEGORI } from "@/lib/resources/kategori";
-import { listLetterMonthChoices } from "@/lib/resources/search";
+import { isResourcesYearKategori, RESOURCES_KATEGORI } from "@/lib/resources/kategori";
+import { listLetterMonthChoices, listLetterYearChoices } from "@/lib/resources/search";
 
 export type ResourcesCardFormValues = {
   id?: number;
@@ -20,7 +20,9 @@ export default function ResourcesCardForm({ values }: { values: ResourcesCardFor
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const months = listLetterMonthChoices();
+  const [kategori, setKategori] = useState(values.kategori);
+  const yearGrain = isResourcesYearKategori(kategori);
+  const months = yearGrain ? listLetterYearChoices() : listLetterMonthChoices();
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -45,7 +47,13 @@ export default function ResourcesCardForm({ values }: { values: ResourcesCardFor
         <label className="label" htmlFor="kategori">
           Kategori
         </label>
-        <select id="kategori" name="kategori" defaultValue={values.kategori} className="input">
+        <select
+          id="kategori"
+          name="kategori"
+          value={kategori}
+          onChange={(e) => setKategori(e.target.value)}
+          className="input"
+        >
           {RESOURCES_KATEGORI.map((k) => (
             <option key={k.slug} value={k.slug}>
               {k.title}
@@ -63,17 +71,24 @@ export default function ResourcesCardForm({ values }: { values: ResourcesCardFor
 
       <div>
         <label className="label" htmlFor="letterMonth">
-          Bulan surat
+          {yearGrain ? "Tahun bahan" : "Bulan surat"}
         </label>
         <select
           id="letterMonth"
           name="letterMonth"
-          defaultValue={values.letterMonth ?? ""}
+          key={`${kategori}:${yearGrain ? "year" : "month"}`}
+          defaultValue={
+            yearGrain && values.letterMonth
+              ? `${values.letterMonth.slice(0, 4)}-01`
+              : (values.letterMonth ?? "")
+          }
           className="input"
         >
           <option value="">Tidak dinyatakan</option>
           {values.letterMonth && !months.some((m) => m.value === values.letterMonth) ? (
-            <option value={values.letterMonth}>{values.letterMonth}</option>
+            <option value={values.letterMonth}>
+              {yearGrain ? values.letterMonth.slice(0, 4) : values.letterMonth}
+            </option>
           ) : null}
           {months.map((m) => (
             <option key={m.value} value={m.value}>
@@ -82,7 +97,9 @@ export default function ResourcesCardForm({ values }: { values: ResourcesCardFor
           ))}
         </select>
         <p className="mt-1 text-xs text-graphite">
-          Guna bulan pada surat, bukan bulan muat naik. Wajib jika memuat naik fail.
+          {yearGrain
+            ? "Guna tahun program atau laporan, bukan tahun muat naik. Wajib jika memuat naik fail."
+            : "Guna bulan pada surat, bukan bulan muat naik. Wajib jika memuat naik fail."}
         </p>
       </div>
 
@@ -93,7 +110,7 @@ export default function ResourcesCardForm({ values }: { values: ResourcesCardFor
         <input id="fail" name="fail" type="file" accept="application/pdf,image/*" className="input" />
         <p className="mt-1 text-xs text-graphite">
           PDF atau imej (JPG/PNG/WebP), maksimum 8 MB. Fail disimpan ke Google Drive mengikut
-          kumpulan dan bulan surat.
+          kumpulan dan {yearGrain ? "tahun bahan" : "bulan surat"}.
         </p>
       </div>
 

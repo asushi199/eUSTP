@@ -12,10 +12,11 @@ import {
   toggleResourcesAktif,
 } from "@/lib/actions/resources";
 import type { ResourcesSectionCard, ResourcesSectionGroup } from "@/lib/resources/card-display";
-import { resourcesAdminHref } from "@/lib/resources/kategori";
+import { isResourcesYearKategori, resourcesAdminHref } from "@/lib/resources/kategori";
 import {
   filterResourceCards,
   listResourceMonthOptions,
+  listResourceYearOptions,
   type ResourcesExplorerCard,
 } from "@/lib/resources/search";
 
@@ -99,8 +100,14 @@ function AdminCategoryView({ group }: { group: ResourcesSectionGroup }) {
     () => group.cards.map((card) => toAdminCard(group, card)),
     [group],
   );
-  const months = useMemo(() => listResourceMonthOptions(allCards), [allCards]);
+  const yearGrain = isResourcesYearKategori(group.slug);
+  const months = useMemo(
+    () => (yearGrain ? listResourceYearOptions(allCards) : listResourceMonthOptions(allCards)),
+    [allCards, yearGrain],
+  );
   const latestMonth = months[0]?.value ?? "";
+  const itemWord = yearGrain ? "bahan" : "surat";
+  const periodWord = yearGrain ? "tahun" : "bulan";
 
   const [query, setQuery] = useState("");
   const [month, setMonth] = useState(latestMonth);
@@ -117,7 +124,7 @@ function AdminCategoryView({ group }: { group: ResourcesSectionGroup }) {
         <div className="space-y-3">
           <div>
             <label htmlFor="carian-resources-admin" className="label">
-              Cari surat
+              {yearGrain ? "Cari bahan" : "Cari surat"}
             </label>
             <input
               id="carian-resources-admin"
@@ -139,6 +146,7 @@ function AdminCategoryView({ group }: { group: ResourcesSectionGroup }) {
               value={month}
               onChange={setMonth}
               allowAll
+              grain={yearGrain ? "year" : "month"}
               markedMonths={months.map((item) => item.value)}
             />
           ) : null}
@@ -147,21 +155,22 @@ function AdminCategoryView({ group }: { group: ResourcesSectionGroup }) {
 
       {!isFiltering && months.length > 1 ? (
         <p className="text-sm text-graphite">
-          Paparan bulan terkini yang ada surat. Guna anak panah atau ketik
-          nama bulan — atau pilih Semua bulan untuk arkib.
+          Paparan {periodWord} terkini yang ada {itemWord}. Guna anak panah
+          atau ketik nama {periodWord} — atau pilih Semua {periodWord} untuk
+          arkib.
         </p>
       ) : null}
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         {isFiltering ? (
-          <p className="text-sm text-graphite">{filtered.length} surat sepadan</p>
+          <p className="text-sm text-graphite">{filtered.length} {itemWord} sepadan</p>
         ) : (
           <p className="text-sm text-graphite">
             {filtered.length > 0
-              ? `${filtered.length} surat`
+              ? `${filtered.length} ${itemWord}`
               : allCards.length === 0
                 ? "Tiada kad"
-                : "Tiada surat pada bulan ini"}
+                : `Tiada ${itemWord} pada ${periodWord} ini`}
           </p>
         )}
         <div className="flex flex-wrap items-center gap-3">
@@ -174,7 +183,7 @@ function AdminCategoryView({ group }: { group: ResourcesSectionGroup }) {
                 setMonth(latestMonth);
               }}
             >
-              Kembali ke bulan terkini
+              {yearGrain ? "Kembali ke tahun terkini" : "Kembali ke bulan terkini"}
             </button>
           ) : null}
           <Link
@@ -189,8 +198,8 @@ function AdminCategoryView({ group }: { group: ResourcesSectionGroup }) {
       {filtered.length === 0 ? (
         <p className="py-8 text-center text-sm text-graphite">
           {allCards.length === 0
-            ? "Tiada kad untuk kategori ini. Tambah surat (fail atau pautan)."
-            : "Tiada surat sepadan. Ubah kata carian atau bulan."}
+            ? `Tiada kad untuk kategori ini. Tambah ${itemWord} (fail atau pautan).`
+            : `Tiada ${itemWord} sepadan. Ubah kata carian atau ${periodWord}.`}
         </p>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

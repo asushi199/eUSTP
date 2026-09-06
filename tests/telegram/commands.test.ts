@@ -82,6 +82,14 @@ test("parses resource wizard callback data", () => {
     type: "kategori",
     slug: "surat-sekolah",
   });
+  assert.deepEqual(parseResourceCallback(resourceKategoriCallbackData("pekeliling")), {
+    type: "kategori",
+    slug: "pekeliling",
+  });
+  assert.deepEqual(parseResourceCallback(resourceKategoriCallbackData("nota")), {
+    type: "kategori",
+    slug: "nota",
+  });
   assert.deepEqual(parseResourceCallback(resourceMonthCallbackData("2026-07")), {
     type: "bulan",
     month: "2026-07",
@@ -91,7 +99,7 @@ test("parses resource wizard callback data", () => {
     center: "2025-09",
   });
   assert.deepEqual(parseResourceCallback("rs:x"), { type: "batal" });
-  assert.equal(parseResourceCallback("rs:k:pekeliling"), null);
+  assert.equal(parseResourceCallback("rs:k:sijil"), null);
   assert.deepEqual(parseResourceCallback(resourceEditTitleCallbackData(42)), {
     type: "ubah_tajuk",
     cardId: 42,
@@ -145,6 +153,8 @@ test("keeps kategori and month callback data within Telegram's 64-byte limit", (
   }
   assert.equal(kategori.some((b) => b.text === "USTP"), true);
   assert.equal(kategori.some((b) => b.text === "Sekolah / Guru / Murid"), true);
+  assert.equal(kategori.some((b) => b.text === "SPI"), true);
+  assert.equal(kategori.some((b) => b.text === "Nota"), true);
   assert.equal(months.some((b) => b.text === "September 2026"), true);
   assert.equal(months.some((b) => b.text === "« 2025"), true);
   assert.equal(months.some((b) => b.text === "2027 »"), true);

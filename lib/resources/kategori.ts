@@ -5,15 +5,31 @@ export type ResourcesKategori = {
 };
 
 /** Kategori yang NexaBot boleh muat naik terus ke Drive. */
-export const RESOURCES_BOT_KATEGORI_SLUGS = ["surat-ustp", "surat-sekolah"] as const;
+export const RESOURCES_BOT_KATEGORI_SLUGS = [
+  "surat-ustp",
+  "surat-sekolah",
+  "pekeliling",
+  "nota",
+] as const;
 export type ResourcesBotKategoriSlug = (typeof RESOURCES_BOT_KATEGORI_SLUGS)[number];
+
+export const RESOURCES_BOT_KATEGORI_LABEL: Record<ResourcesBotKategoriSlug, string> = {
+  "surat-ustp": "USTP",
+  "surat-sekolah": "Sekolah / Guru / Murid",
+  pekeliling: "SPI",
+  nota: "Nota",
+};
 
 export const RESOURCES_DRIVE_FOLDER: Record<string, string> = {
   "surat-ustp": "Surat-USTP",
   "surat-sekolah": "Surat-Sekolah",
   pekeliling: "Pekeliling",
   nota: "Nota",
+  arkib: "Arkib",
 };
+
+/** Kategori yang disusun mengikut tahun (bukan bulan). */
+export const RESOURCES_YEAR_KATEGORI_SLUGS = ["arkib"] as const;
 
 /** Kategori awam CoE Resources — kad disimpan dalam `resources_cards`. */
 export const RESOURCES_KATEGORI: ResourcesKategori[] = [
@@ -37,6 +53,12 @@ export const RESOURCES_KATEGORI: ResourcesKategori[] = [
     title: "Nota / Modul / Panduan STP",
     blurb: "Nota, modul dan garis panduan rasmi Teknologi Pendidikan.",
   },
+  {
+    slug: "arkib",
+    title: "Kertas Kerja / Arkib",
+    blurb:
+      "Kertas kerja, OPR dan ePelaporan lama — disusun mengikut tahun. Program baharu guna Laporan Program USTP.",
+  },
 ];
 
 export function resourcesKategoriBySlug(slug: string): ResourcesKategori | undefined {
@@ -45,6 +67,10 @@ export function resourcesKategoriBySlug(slug: string): ResourcesKategori | undef
 
 export function isResourcesBotKategori(slug: string): slug is ResourcesBotKategoriSlug {
   return (RESOURCES_BOT_KATEGORI_SLUGS as readonly string[]).includes(slug);
+}
+
+export function isResourcesYearKategori(slug: string): boolean {
+  return (RESOURCES_YEAR_KATEGORI_SLUGS as readonly string[]).includes(slug);
 }
 
 export function resourcesHref(slug: string): string {

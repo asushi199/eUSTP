@@ -9,18 +9,6 @@ export type ModuleTheme = {
 const dpdEntry = resolveLaporanModuleHref("dpd", "/laporan-dpd");
 const pssEntry = resolveLaporanModuleHref("pss", "/laporan-pss");
 
-/** Hub OSC (One Stop Center) — Sumber USTP. */
-const OSC_MODULE = {
-  href: "/osc",
-  internalHref: "/osc",
-  external: false,
-  title: "OSC USTP",
-  description:
-    "One Stop Center USTP — bahan rasmi dan hebahan dalam satu pusat.",
-  accent: "#0EA5C9",
-  iconKey: "osc" as const,
-} as const;
-
 /** Hub CoE Directory — Direktori Sekolah dan Direktori USTP. */
 export const DIREKTORI_HUB = {
   href: "/direktori",
@@ -64,7 +52,7 @@ export const RESOURCES_HUB = {
   external: false,
   title: "CoE Resources",
   description:
-    "Surat program, pekeliling dan nota USTP — pekeliling rasmi sudah boleh dibuka.",
+    "Surat program, pekeliling, nota dan arkib kertas kerja USTP.",
   accent: "#EA580C",
   iconKey: "sumber" as const,
 } as const;
@@ -157,17 +145,6 @@ export const MODULES = [
     accent: "#024AD8",
     iconKey: "peralatan" as const,
   },
-  OSC_MODULE,
-  {
-    href: "/sumber",
-    internalHref: "/sumber",
-    external: false,
-    title: "Sumber USTP",
-    description:
-      "Kertas kerja, laporan, hebahan dan bahan sokongan USTP — semua dalam satu tempat.",
-    accent: "#0EA5C9",
-    iconKey: "sumber" as const,
-  },
   {
     href: "/analisis",
     internalHref: "/analisis",
@@ -199,11 +176,6 @@ export const MODULES = [
     iconKey: "maklumat" as const,
   },
 ] as const;
-
-/** Sub-modul yang dinaungi OSC — dipapar dalam hub /osc. */
-export const OSC_SECTIONS = MODULES.filter((m) =>
-  ["/sumber"].includes(m.internalHref),
-);
 
 /** Sub-modul di bawah hub /direktori. */
 export const DIREKTORI_SECTIONS = MODULES.filter((m) =>

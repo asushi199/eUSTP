@@ -1,16 +1,16 @@
 export type AdminDesktopNavigationItem = {
-  href: "/admin" | "/admin/osc";
-  label: "Papan Admin" | "OSC";
+  href: "/admin";
+  label: "Papan Admin";
 };
-
-/** Rangkaian laluan yang dikira sebagai "OSC" untuk sorotan menu. */
-export const ADMIN_OSC_PATHS = [
-  "/admin/osc",
-  "/admin/kandungan",
-] as const;
 
 /** Laluan CoE yang dimasuki dari kad Papan Admin. */
 export const ADMIN_PAPAN_NESTED_PATHS = [
+  "/admin/booking",
+  "/admin/tempahan",
+  "/admin/peralatan",
+  "/admin/khidmat-bantu",
+  "/admin/direktori",
+  "/admin/pegawai",
   "/admin/pelaporan",
   "/admin/laporan-dpd",
   "/admin/laporan-pss",
@@ -32,16 +32,12 @@ export function isAdminDesktopNavActive(
   if (href === "/admin") {
     return pathname === "/admin" || matchPath(pathname, ADMIN_PAPAN_NESTED_PATHS);
   }
-  if (href === "/admin/osc") return matchPath(pathname, ADMIN_OSC_PATHS);
   return false;
 }
 
-/** Desktop: Papan Admin + OSC. Reports / Analytics / Resources / Media di kad Papan. */
+/** Desktop: Papan Admin sahaja. Resources / Media / Reports di kad Papan. */
 export function getAdminDesktopNavigation(
-  canManageKandungan: boolean,
+  _canManageKandungan: boolean,
 ): AdminDesktopNavigationItem[] {
-  return [
-    { href: "/admin", label: "Papan Admin" },
-    ...(canManageKandungan ? [{ href: "/admin/osc" as const, label: "OSC" as const }] : []),
-  ];
+  return [{ href: "/admin", label: "Papan Admin" }];
 }

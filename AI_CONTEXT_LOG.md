@@ -1,5 +1,22 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-06 — OSC dibubarkan, bahan ke Resources / Media
+
+- OSC / Sumber dimansuhkan. `/osc`, `/sumber`, `/admin/osc`,
+  `/admin/kandungan` dihalakan ke CoE Resources.
+- CoE Resources ada kategori baharu **Kertas Kerja / Arkib** (`arkib`),
+  disusun mengikut tahun (bukan bulan). Mengandungi kertas kerja, OPR,
+  ePelaporan Canva, laporan program dan dokumen JNJ lama.
+- Buku pengurusan dan penyebaran dasar masuk **Nota**. Hebahan, impak
+  JNJ dan bahan pencapaian visual masuk CoE Media `koleksi`.
+- Looker DPD/PSS, Pelaporan Tambahan, Ruang Ilmu, Google Classroom,
+  contoh bahan DELIMa dan embed tapak (SESDA / Rak Maya / Artsteps)
+  dibuang.
+- Menu admin OSC (desktop + telefon) digugurkan; urusan melalui kad
+  Papan Admin (Resources / Media).
+- Migrasi `0042_retire_osc` memindah baris `kandungan_cards` lalu
+  mengosongkan jadual.
+
 ## 2026-09-06 — Carian Laporan Program USTP
 
 - `/admin/laporan-ustp` ada kotak carian serta-merta (nama program, PKG,

@@ -1,3 +1,12 @@
+import {
+  RESOURCES_BOT_KATEGORI_SLUGS,
+  type ResourcesBotKategoriSlug,
+} from "@/lib/resources/kategori";
+
+const RESOURCE_KATEGORI_CALLBACK = new RegExp(
+  `^rs:k:(${RESOURCES_BOT_KATEGORI_SLUGS.join("|")})$`,
+);
+
 export function parseBotCommand(
   text: string | undefined,
   botUsername: string,
@@ -45,7 +54,7 @@ export type MediaFotoCallback =
   | { type: "padam_ya"; cardId: number };
 
 export type ResourceCallback =
-  | { type: "kategori"; slug: "surat-ustp" | "surat-sekolah" }
+  | { type: "kategori"; slug: ResourcesBotKategoriSlug }
   | { type: "bulan"; month: string }
   | { type: "tahun"; center: string }
   | { type: "ubah_tajuk"; cardId: number }
@@ -62,9 +71,9 @@ function parseCardId(raw: string | undefined): number | null {
 export function parseResourceCallback(data: string | undefined): ResourceCallback | null {
   if (!data) return null;
   if (data === "rs:x") return { type: "batal" };
-  const kategori = /^rs:k:(surat-ustp|surat-sekolah)$/.exec(data);
+  const kategori = RESOURCE_KATEGORI_CALLBACK.exec(data);
   if (kategori) {
-    return { type: "kategori", slug: kategori[1] as "surat-ustp" | "surat-sekolah" };
+    return { type: "kategori", slug: kategori[1] as ResourcesBotKategoriSlug };
   }
   const month = /^rs:m:(\d{4}-\d{2})$/.exec(data);
   if (month) return { type: "bulan", month: month[1] };
@@ -93,7 +102,7 @@ export function parseResourceCallback(data: string | undefined): ResourceCallbac
   return null;
 }
 
-export function resourceKategoriCallbackData(slug: "surat-ustp" | "surat-sekolah"): string {
+export function resourceKategoriCallbackData(slug: ResourcesBotKategoriSlug): string {
   return `rs:k:${slug}`;
 }
 

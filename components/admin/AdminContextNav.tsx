@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ADMIN_OSC_PATHS, ADMIN_PAPAN_NESTED_PATHS } from "@/lib/admin/desktop-navigation";
+import { ADMIN_PAPAN_NESTED_PATHS } from "@/lib/admin/desktop-navigation";
 import { getAdminMobileNavigation } from "@/lib/admin/mobile-navigation";
 import { cn } from "@/lib/cn";
 
@@ -23,29 +23,6 @@ const PORTAL_ICON = (
   </svg>
 );
 
-const TEMPAHAN_ICON = (
-  <svg {...iconProps}>
-    <rect x="4" y="5" width="16" height="16" rx="2" />
-    <path d="M8 3v4M16 3v4M4 10h16" />
-  </svg>
-);
-
-const DIREKTORI_ICON = (
-  <svg {...iconProps}>
-    <circle cx="12" cy="8" r="3.5" />
-    <path d="M5 20c1.5-3.5 4-5 7-5s5.5 1.5 7 5" />
-  </svg>
-);
-
-const OSC_ICON = (
-  <svg {...iconProps}>
-    <rect x="3" y="3" width="8" height="8" rx="1.5" />
-    <rect x="13" y="3" width="8" height="8" rx="1.5" />
-    <rect x="3" y="13" width="8" height="8" rx="1.5" />
-    <rect x="13" y="13" width="8" height="8" rx="1.5" />
-  </svg>
-);
-
 const PAPAN_ICON = (
   <svg {...iconProps}>
     <rect x="3" y="3" width="8" height="8" rx="1.5" />
@@ -59,36 +36,19 @@ function matchPath(pathname: string, paths: readonly string[]): boolean {
   return paths.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
-/**
- * Bar bawah tetap (mudah alih) — tab konteks admin.
- * `showContent` dihantar dari layout mengikut peranan
- * (PKG_Admin tiada OSC).
- */
-export function AdminMobileNav({ showContent }: { showContent: boolean }) {
+/** Bar bawah tetap (mudah alih) — Papan + Portal. */
+export function AdminMobileNav() {
   const pathname = usePathname();
   const icons = {
-    booking: TEMPAHAN_ICON,
-    direktori: DIREKTORI_ICON,
-    osc: OSC_ICON,
     papan: PAPAN_ICON,
     portal: PORTAL_ICON,
   } as const;
-  const tabs = getAdminMobileNavigation(showContent).map((tab) => ({
+  const tabs = getAdminMobileNavigation().map((tab) => ({
     ...tab,
     icon: icons[tab.id],
     active:
-      (tab.id === "booking" &&
-        (pathname.startsWith("/admin/booking") ||
-          pathname.startsWith("/admin/tempahan") ||
-          pathname.startsWith("/admin/peralatan") ||
-          pathname.startsWith("/admin/khidmat-bantu"))) ||
-      (tab.id === "direktori" &&
-        (pathname.startsWith("/admin/direktori") ||
-          pathname.startsWith("/admin/pegawai") ||
-          pathname.startsWith("/admin/tetapan"))) ||
-      (tab.id === "osc" && matchPath(pathname, ADMIN_OSC_PATHS)) ||
-      (tab.id === "papan" &&
-        (pathname === "/admin" || matchPath(pathname, ADMIN_PAPAN_NESTED_PATHS))),
+      tab.id === "papan" &&
+      (pathname === "/admin" || matchPath(pathname, ADMIN_PAPAN_NESTED_PATHS)),
   }));
 
   return (

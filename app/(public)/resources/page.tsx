@@ -33,7 +33,7 @@ export default async function ResourcesPage() {
         eyebrow="CoE Resources"
         title="Sumber Surat dan Pekeliling"
         accent={accent}
-        description="Cari surat ikut tajuk, nama fail atau bulan — atau ketik kad kategori untuk buka bahan di dalamnya."
+        description="Cari surat, pekeliling, nota atau kertas kerja ikut tajuk, nama fail, bulan atau tahun — atau ketik kad kategori untuk buka bahan di dalamnya."
       />
       {groups ? (
         <ResourcesExplorer groups={groups} accent={accent} variant="hub" />

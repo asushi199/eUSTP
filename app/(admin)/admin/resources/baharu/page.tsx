@@ -22,7 +22,7 @@ export default async function TambahResourcesKadPage({
       </Link>
       <h1 className="mt-2 text-2xl font-semibold tracking-tight">Tambah Kad</h1>
       <p className="mt-1 text-sm text-graphite">
-        Isi tajuk, bulan surat, dan muat naik fail atau tampal pautan.
+        Isi tajuk, bulan atau tahun, dan muat naik fail atau tampal pautan.
       </p>
       <div className="mt-5">
         <ResourcesCardForm

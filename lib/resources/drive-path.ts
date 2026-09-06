@@ -1,4 +1,4 @@
-import { RESOURCES_DRIVE_FOLDER } from "./kategori";
+import { isResourcesYearKategori, RESOURCES_DRIVE_FOLDER } from "./kategori";
 
 const MONTH_KEY = /^\d{4}-\d{2}$/;
 
@@ -33,7 +33,7 @@ export function sanitizeResourcesFileName(
   return `${base || "Surat"}.${ext}`;
 }
 
-/** Folder Drive: CoE-Resources / kumpulan / tahun / YYYY-MM */
+/** Folder Drive: CoE-Resources / kumpulan / tahun [/ YYYY-MM] */
 export function buildResourcesDrivePath(opts: {
   kategori: string;
   letterMonth: string;
@@ -43,8 +43,11 @@ export function buildResourcesDrivePath(opts: {
 }): { fileName: string; subPath: string[] } {
   const year = opts.letterMonth.slice(0, 4);
   const group = RESOURCES_DRIVE_FOLDER[opts.kategori] ?? opts.kategori;
+  const subPath = isResourcesYearKategori(opts.kategori)
+    ? ["CoE-Resources", group, year]
+    : ["CoE-Resources", group, year, opts.letterMonth];
   return {
     fileName: sanitizeResourcesFileName(opts.title, opts.originalName, opts.mime),
-    subPath: ["CoE-Resources", group, year, opts.letterMonth],
+    subPath,
   };
 }

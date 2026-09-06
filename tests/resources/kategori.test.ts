@@ -6,6 +6,7 @@ import {
 } from "../../lib/resources/card-display";
 import {
   isResourcesBotKategori,
+  isResourcesYearKategori,
   RESOURCES_BOT_KATEGORI_SLUGS,
   RESOURCES_DRIVE_FOLDER,
   RESOURCES_KATEGORI,
@@ -61,9 +62,22 @@ test("infers Drive PDF and Canva URLs for preview", () => {
   assert.equal(inferResourceCardType("https://example.com/nota"), "link");
 });
 
-test("limits NexaBot uploads to the two program-letter groups", () => {
-  assert.deepEqual([...RESOURCES_BOT_KATEGORI_SLUGS], ["surat-ustp", "surat-sekolah"]);
+test("allows NexaBot uploads to all four CoE Resources groups", () => {
+  assert.deepEqual([...RESOURCES_BOT_KATEGORI_SLUGS], [
+    "surat-ustp",
+    "surat-sekolah",
+    "pekeliling",
+    "nota",
+  ]);
   assert.equal(isResourcesBotKategori("surat-ustp"), true);
-  assert.equal(isResourcesBotKategori("pekeliling"), false);
+  assert.equal(isResourcesBotKategori("pekeliling"), true);
+  assert.equal(isResourcesBotKategori("nota"), true);
   assert.equal(RESOURCES_DRIVE_FOLDER["surat-sekolah"], "Surat-Sekolah");
+  assert.equal(RESOURCES_DRIVE_FOLDER.pekeliling, "Pekeliling");
+  assert.equal(RESOURCES_DRIVE_FOLDER.nota, "Nota");
+  assert.equal(RESOURCES_DRIVE_FOLDER.arkib, "Arkib");
+  assert.equal(isResourcesBotKategori("arkib"), false);
+  assert.equal(isResourcesYearKategori("arkib"), true);
+  assert.equal(isResourcesYearKategori("pekeliling"), false);
+  assert.equal(RESOURCES_KATEGORI.some((k) => k.slug === "arkib"), true);
 });

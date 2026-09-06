@@ -4,10 +4,11 @@ import { useMemo, useState } from "react";
 import AccentCard from "@/components/AccentCard";
 import CardEmbed from "@/components/kandungan/CardEmbed";
 import MonthNav from "@/components/month-nav/MonthNav";
-import { resourcesHref } from "@/lib/resources/kategori";
+import { isResourcesYearKategori, resourcesHref } from "@/lib/resources/kategori";
 import {
   filterResourceCards,
   listResourceMonthOptions,
+  listResourceYearOptions,
   type ResourcesExplorerGroup,
 } from "@/lib/resources/search";
 
@@ -21,9 +22,16 @@ export default function ResourcesExplorer({
   variant: "hub" | "kategori";
 }) {
   const allCards = useMemo(() => groups.flatMap((group) => group.cards), [groups]);
-  const months = useMemo(() => listResourceMonthOptions(allCards), [allCards]);
+  const yearGrain =
+    variant === "kategori" && groups.length === 1 && isResourcesYearKategori(groups[0]!.slug);
+  const months = useMemo(
+    () => (yearGrain ? listResourceYearOptions(allCards) : listResourceMonthOptions(allCards)),
+    [allCards, yearGrain],
+  );
   const latestMonth = months[0]?.value ?? "";
   const defaultMonth = variant === "kategori" ? latestMonth : "";
+  const itemWord = yearGrain ? "bahan" : "surat";
+  const periodWord = yearGrain ? "tahun" : "bulan";
 
   const [query, setQuery] = useState("");
   const [month, setMonth] = useState(defaultMonth);
@@ -61,7 +69,7 @@ export default function ResourcesExplorer({
         <div className="space-y-3">
           <div>
             <label htmlFor="carian-resources" className="label">
-              Cari surat
+              {yearGrain ? "Cari bahan" : "Cari surat"}
             </label>
             <div className="relative">
               <svg
@@ -96,6 +104,7 @@ export default function ResourcesExplorer({
               value={month}
               onChange={setMonth}
               allowAll
+              grain={yearGrain ? "year" : "month"}
               markedMonths={months.map((item) => item.value)}
             />
           ) : null}
@@ -122,15 +131,16 @@ export default function ResourcesExplorer({
 
       {variant === "kategori" && showSearch && !isFiltering && months.length > 1 ? (
         <p className="mt-2 text-sm text-graphite">
-          Paparan bulan terkini yang ada surat. Guna anak panah atau ketik
-          nama bulan — atau pilih Semua bulan untuk arkib.
+          Paparan {periodWord} terkini yang ada {itemWord}. Guna anak panah
+          atau ketik nama {periodWord} — atau pilih Semua {periodWord} untuk
+          arkib.
         </p>
       ) : null}
 
       {isFiltering ? (
         <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-graphite">
           <span>
-            {filtered.length} surat sepadan
+            {filtered.length} {itemWord} sepadan
             {variant === "hub" ? " merentas kategori" : ""}
           </span>
           <button
@@ -199,7 +209,7 @@ export default function ResourcesExplorer({
           <p className="mt-8 py-8 text-center text-sm text-graphite">
             {allCards.length === 0
               ? "Kandungan akan ditambah kemudian."
-              : "Tiada surat sepadan. Ubah kata carian atau bulan."}
+              : `Tiada ${itemWord} sepadan. Ubah kata carian atau ${periodWord}.`}
           </p>
         ) : (
           <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -261,6 +271,13 @@ function ResourcesKategoriIcon({ slug }: { slug: string }) {
         <svg {...common}>
           <path d="M5 4a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z" />
           <path d="M9 3v18M12 8h3M12 12h3" />
+        </svg>
+      );
+    case "arkib":
+      return (
+        <svg {...common}>
+          <path d="M4 7h16v13H4z" />
+          <path d="M8 7V5h8v2M8 12h8M8 16h5" />
         </svg>
       );
     default:

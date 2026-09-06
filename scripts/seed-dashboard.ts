@@ -5,6 +5,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { eq, sql } from "drizzle-orm";
 import * as schema from "../lib/schema";
+import { classifyOscCard } from "./osc-archive";
 
 /**
  * Import satu kali data dashboard lama (Google Sheet CSV export) ke Postgres.
@@ -185,7 +186,7 @@ async function main() {
   const client = postgres(url, { max: 1, prepare: false });
   const db = drizzle(client, { schema });
 
-  /* 1. Kad kandungan */
+  /* 1. OSC sudah dibubarkan — pindah CSV lama ke Resources / Media, kosongkan kandungan. */
   const topikFiles: Array<[string, Topik]> = [
     ["osc-integrasi.csv", "integrasi"],
     ["osc-hebahan.csv", "hebahan"],
@@ -194,18 +195,52 @@ async function main() {
     ["osc-pemerkasaan.csv", "pemerkasaan"],
     ["bahan-sokongan.csv", "bahan_sokongan"],
   ];
-  await db.delete(schema.kandunganCards);
+  const archivedResources: (typeof schema.resourcesCards.$inferInsert)[] = [];
+  const archivedMedia: (typeof schema.mediaCards.$inferInsert)[] = [];
+  const seenUrl = new Set<string>();
+  let dropped = 0;
   for (const [file, topik] of topikFiles) {
     const m = readCsv(file);
     if (!m || m.length < 2) continue;
-    const cards = parseCards(m, topik);
-    if (cards.length) await db.insert(schema.kandunganCards).values(cards);
-    console.log(`kandungan_cards ← ${topik}: ${cards.length} baris`);
+    for (const card of parseCards(m, topik)) {
+      const mapped = classifyOscCard({
+        subtopikKey: card.subtopikKey ?? "",
+        title: card.title,
+        url: card.url,
+        type: card.type ?? "pdf",
+      });
+      if (mapped.dest === "drop") {
+        dropped += 1;
+        continue;
+      }
+      if (seenUrl.has(mapped.url)) continue;
+      seenUrl.add(mapped.url);
+      if (mapped.dest === "media") {
+        archivedMedia.push({
+          kategori: "koleksi",
+          title: mapped.title,
+          url: mapped.url,
+          letterMonth: mapped.letterMonth,
+          sort: archivedMedia.length + 10,
+        });
+      } else {
+        archivedResources.push({
+          kategori: mapped.dest,
+          title: mapped.title,
+          url: mapped.url,
+          letterMonth: mapped.letterMonth,
+          sort: archivedResources.length + 10,
+        });
+      }
+    }
   }
+  await db.delete(schema.kandunganCards);
+  console.log(`kandungan_cards ← 0 (OSC dibubarkan; ${dropped} kad dibuang)`);
 
   /* 1b. Kad CoE Resources */
   await db.delete(schema.resourcesCards);
   const resourcesMatrix = readCsv("resources-pekeliling.csv");
+  const resourceRows: (typeof schema.resourcesCards.$inferInsert)[] = [];
   if (resourcesMatrix && resourcesMatrix.length > 1) {
     const rh = resourcesMatrix[0];
     const rIdx = {
@@ -213,29 +248,33 @@ async function main() {
       sort: colIndex(rh, "sort", "susunan", "no"),
       title: colIndex(rh, "title", "tajuk", "nama"),
       url: colIndex(rh, "url", "link", "pautan"),
+      letterMonth: colIndex(rh, "letter_month", "bulan"),
     };
     const rcell = (r: string[], i: number) => (i >= 0 ? String(r[i] ?? "").trim() : "");
-    const resourceRows: (typeof schema.resourcesCards.$inferInsert)[] = [];
     for (let ri = 1; ri < resourcesMatrix.length; ri++) {
       const r = resourcesMatrix[ri];
       const title = rcell(r, rIdx.title);
       const url = rcell(r, rIdx.url);
       const kategori = rcell(r, rIdx.kategori) || "pekeliling";
       if (!title || !url) continue;
+      seenUrl.add(url);
       resourceRows.push({
         kategori,
         title,
         url,
+        letterMonth: rcell(r, rIdx.letterMonth) || null,
         sort: num(rcell(r, rIdx.sort)) ?? 999,
       });
     }
-    if (resourceRows.length) await db.insert(schema.resourcesCards).values(resourceRows);
-    console.log(`resources_cards ← ${resourceRows.length} baris`);
   }
+  resourceRows.push(...archivedResources.filter((row) => !resourceRows.some((r) => r.url === row.url)));
+  if (resourceRows.length) await db.insert(schema.resourcesCards).values(resourceRows);
+  console.log(`resources_cards ← ${resourceRows.length} baris`);
 
   /* 1c. Kad CoE Media */
   await db.delete(schema.mediaCards);
   const mediaMatrix = readCsv("media-koleksi.csv");
+  const mediaRows: (typeof schema.mediaCards.$inferInsert)[] = [];
   if (mediaMatrix && mediaMatrix.length > 1) {
     const mh = mediaMatrix[0];
     const mIdx = {
@@ -246,7 +285,6 @@ async function main() {
       letterMonth: colIndex(mh, "letter_month", "bulan"),
     };
     const mcell = (r: string[], i: number) => (i >= 0 ? String(r[i] ?? "").trim() : "");
-    const mediaRows: (typeof schema.mediaCards.$inferInsert)[] = [];
     for (let ri = 1; ri < mediaMatrix.length; ri++) {
       const r = mediaMatrix[ri];
       const title = mcell(r, mIdx.title);
@@ -261,9 +299,10 @@ async function main() {
         sort: num(mcell(r, mIdx.sort)) ?? 999,
       });
     }
-    if (mediaRows.length) await db.insert(schema.mediaCards).values(mediaRows);
-    console.log(`media_cards ← ${mediaRows.length} baris`);
   }
+  mediaRows.push(...archivedMedia.filter((row) => !mediaRows.some((r) => r.url === row.url)));
+  if (mediaRows.length) await db.insert(schema.mediaCards).values(mediaRows);
+  console.log(`media_cards ← ${mediaRows.length} baris`);
 
   /* 2. Analisis */
   await db.delete(schema.analisisMetrics);

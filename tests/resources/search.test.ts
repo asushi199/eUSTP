@@ -7,9 +7,12 @@ import {
   filterResourceCards,
   formatResourceMonthLabel,
   latestResourceMonth,
+  latestResourceYear,
   listLetterMonthChoices,
   listLetterMonthWindow,
+  listLetterYearChoices,
   listResourceMonthOptions,
+  listResourceYearOptions,
   normalizeResourceQuery,
   resourceMonthKey,
   shiftLetterMonth,
@@ -140,4 +143,28 @@ test("picks the latest month that actually has letters", () => {
   assert.equal(months[0]?.value, "2026-08");
   assert.equal(latestResourceMonth(cards), "2026-08");
   assert.equal(latestResourceMonth([]), "");
+});
+
+test("filters arkib cards by year, including from a month query on the hub", () => {
+  const arkib = card({
+    id: 3,
+    title: "ePelaporan · 2024",
+    kategoriSlug: "arkib",
+    kategoriTitle: "Kertas Kerja / Arkib",
+    letterMonth: "2024-01",
+    createdAt: "2026-01-10T04:00:00.000Z",
+  });
+  assert.equal(filterResourceCards([arkib], { month: "2024" }).length, 1);
+  assert.equal(filterResourceCards([arkib], { month: "2025" }).length, 0);
+  assert.equal(filterResourceCards([arkib], { month: "2024-08" }).length, 1);
+  assert.equal(filterResourceCards([arkib], { month: "2025-08" }).length, 0);
+  assert.equal(latestResourceYear([arkib]), "2024");
+  assert.deepEqual(listResourceYearOptions([arkib]).map((item) => item.value), ["2024"]);
+});
+
+test("lists year choices from 2020 through next year", () => {
+  const years = listLetterYearChoices(new Date("2026-09-04T12:00:00+08:00"));
+  assert.equal(years[0]?.value, "2027-01");
+  assert.equal(years[0]?.label, "2027");
+  assert.equal(years.at(-1)?.value, "2020-01");
 });

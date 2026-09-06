@@ -60,10 +60,11 @@ GPICT/DELIMa/GPM, Tempahan PKG, Portal Sumber/Analisis/Maklumat Asas). Sumber as
 - `lib/stats/` — satu statistik satu fungsi; carta recharts di `/statistik`,
   `/analisis` dan modal Analisis halaman utama (`HomeAnalisisBand`, dimuat
   malas via `next/dynamic` — JANGAN import recharts terus dalam halaman utama).
-- **OSC (One Stop Center):** `/osc` ialah hub dalaman yang menaungi `/sumber`,
-  `/analisis`, `/maklumat-asas`. Halaman utama papar jalur **CoE Analytics**
-  (bukan kad) + 5 kad `HOME_MODULES` (Reports, Resources, Direktori, Services,
-  Media). Menu desktop di bar sisi; telefon kekal tab bawah + Lagi.
+- **OSC sudah dimansuhkan.** `/osc` dan `/sumber` dihalakan ke `/resources`.
+  Halaman utama papar jalur **CoE Analytics** (bukan kad) + 5 kad
+  `HOME_MODULES` (Reports, Resources, Direktori, Services, Media). Menu
+  desktop di bar sisi; telefon kekal tab bawah + Lagi. `/analisis` kekal
+  dalaman (staf).
 - Petak statistik DPD/PSS halaman utama disorok (`SHOW_LAPORAN_TILES=false`
   dalam `app/(public)/page.tsx`) — pelaporan 2026 masih guna Looker Studio.
 

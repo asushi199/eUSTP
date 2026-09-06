@@ -98,7 +98,7 @@ export default async function AdminOverviewPage() {
       {
         href: "/admin/resources",
         title: "CoE Resources",
-        description: "Urus tajuk dan pautan surat, pekeliling dan nota.",
+        description: "Urus surat, pekeliling, nota dan arkib kertas kerja.",
         accent: RESOURCES_HUB.accent,
       },
       {

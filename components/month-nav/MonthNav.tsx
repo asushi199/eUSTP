@@ -44,9 +44,10 @@ export default function MonthNav({
   allowAll = false,
   showToday = false,
   markedMonths,
+  grain = "month",
   className,
 }: {
-  /** `YYYY-MM`, atau `""` untuk Semua bulan. */
+  /** `YYYY-MM` (bulan) atau `YYYY` (tahun), atau `""` untuk semua. */
   value: string;
   onChange?: (month: string) => void;
   /** Laluan pelayan (boleh diserialkan). Anak panah dan pilihan bulan menavigasi serta-merta. */
@@ -54,14 +55,26 @@ export default function MonthNav({
   allowAll?: boolean;
   showToday?: boolean;
   markedMonths?: readonly string[];
+  grain?: "month" | "year";
   className?: string;
 }) {
   const router = useRouter();
-  const parsed = parseBulan(value);
-  const canStep = Boolean(parsed);
-  const prevKey = parsed ? shiftKey(value, -1) : value;
-  const nextKey = parsed ? shiftKey(value, 1) : value;
-  const todayKey = currentLetterMonthKey();
+  const isYear = grain === "year";
+  const yearValue = /^(\d{4})/.exec(value)?.[1] ?? "";
+  const parsed = isYear ? null : parseBulan(value);
+  const yearNum = yearValue ? Number(yearValue) : NaN;
+  const canStep = isYear ? Number.isFinite(yearNum) : Boolean(parsed);
+  const prevKey = isYear
+    ? String(Math.max(MIN_YEAR, yearNum - 1))
+    : parsed
+      ? shiftKey(value, -1)
+      : value;
+  const nextKey = isYear
+    ? String(Math.min(MAX_YEAR, yearNum + 1))
+    : parsed
+      ? shiftKey(value, 1)
+      : value;
+  const todayKey = isYear ? currentLetterMonthKey().slice(0, 4) : currentLetterMonthKey();
 
   function go(next: string) {
     if (next === value) return;
@@ -76,21 +89,30 @@ export default function MonthNav({
           href={path && canStep ? monthPath(path, prevKey) : undefined}
           disabled={!canStep || prevKey === value}
           onClick={() => go(prevKey)}
-          label="Bulan sebelumnya"
+          label={isYear ? "Tahun sebelumnya" : "Bulan sebelumnya"}
         >
           ‹
         </StepControl>
-        <MonthPicker
-          value={value}
-          allowAll={allowAll}
-          markedMonths={markedMonths}
-          onPick={go}
-        />
+        {isYear ? (
+          <YearPicker
+            value={value}
+            allowAll={allowAll}
+            markedYears={markedMonths}
+            onPick={go}
+          />
+        ) : (
+          <MonthPicker
+            value={value}
+            allowAll={allowAll}
+            markedMonths={markedMonths}
+            onPick={go}
+          />
+        )}
         <StepControl
           href={path && canStep ? monthPath(path, nextKey) : undefined}
           disabled={!canStep || nextKey === value}
           onClick={() => go(nextKey)}
-          label="Bulan seterusnya"
+          label={isYear ? "Tahun seterusnya" : "Bulan seterusnya"}
         >
           ›
         </StepControl>
@@ -98,11 +120,11 @@ export default function MonthNav({
       {showToday && value !== todayKey ? (
         path ? (
           <Link href={monthPath(path, todayKey)} className="btn-outline-ink btn-sm">
-            Bulan Ini
+            {isYear ? "Tahun Ini" : "Bulan Ini"}
           </Link>
         ) : (
           <button type="button" className="btn-outline-ink btn-sm" onClick={() => go(todayKey)}>
-            Bulan Ini
+            {isYear ? "Tahun Ini" : "Bulan Ini"}
           </button>
         )
       ) : null}
@@ -262,6 +284,159 @@ function MonthPicker({
                   )}
                 >
                   <span className="block">{monthLabel}</span>
+                  {marked.has(key) ? (
+                    <span
+                      className={cn(
+                        "mx-auto mt-1 block h-1 w-1 rounded-full",
+                        active ? "bg-white" : "bg-primary",
+                      )}
+                      aria-hidden
+                    />
+                  ) : (
+                    <span className="mt-1 block h-1" aria-hidden />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function YearPicker({
+  value,
+  allowAll,
+  markedYears,
+  onPick,
+}: {
+  value: string;
+  allowAll: boolean;
+  markedYears?: readonly string[];
+  onPick: (year: string) => void;
+}) {
+  const selected = /^(\d{4})/.exec(value)?.[1] ?? "";
+  const selectedYear = selected ? Number(selected) : Number(currentLetterMonthKey().slice(0, 4));
+  const [open, setOpen] = useState(false);
+  const [windowStart, setWindowStart] = useState(selectedYear - 4);
+  const ref = useRef<HTMLDivElement>(null);
+  const marked = new Set(
+    (markedYears ?? []).map((key) => /^(\d{4})/.exec(key)?.[1] ?? key).filter(Boolean),
+  );
+
+  useEffect(() => {
+    if (open) setWindowStart(Math.max(MIN_YEAR, selectedYear - 4));
+  }, [open, selectedYear]);
+
+  useEffect(() => {
+    if (!open) return;
+    function onDocMouseDown(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", onDocMouseDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDocMouseDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const years = Array.from({ length: 9 }, (_, i) => windowStart + i).filter(
+    (year) => year >= MIN_YEAR && year <= MAX_YEAR,
+  );
+  const label = selected || "Semua tahun";
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex min-w-[10.5rem] items-center justify-center gap-1 rounded-md px-2 py-1.5 font-semibold hover:bg-cloud/60"
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        aria-label="Pilih tahun"
+      >
+        {label}
+        <svg
+          aria-hidden
+          className={cn("h-4 w-4 text-graphite transition", open && "rotate-180")}
+          fill="none"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+
+      {open && (
+        <div
+          role="dialog"
+          aria-label="Pilih tahun"
+          className="absolute left-1/2 top-full z-20 mt-2 w-64 -translate-x-1/2 rounded-xl border border-fog bg-white p-3 shadow-modal"
+        >
+          {allowAll ? (
+            <button
+              type="button"
+              onClick={() => {
+                onPick("");
+                setOpen(false);
+              }}
+              className={cn(
+                "mb-2 w-full rounded-md px-2 py-1.5 text-sm font-medium transition",
+                !selected ? "bg-ink text-white" : "text-ink hover:bg-cloud/70",
+              )}
+            >
+              Semua tahun
+            </button>
+          ) : null}
+          <div className="flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => setWindowStart((y) => Math.max(MIN_YEAR, y - 9))}
+              className="btn-outline-ink btn-sm"
+              aria-label="Julat tahun sebelumnya"
+              disabled={windowStart <= MIN_YEAR}
+            >
+              ‹
+            </button>
+            <span className="font-semibold tabular-nums">
+              {years[0]}–{years[years.length - 1]}
+            </span>
+            <button
+              type="button"
+              onClick={() => setWindowStart((y) => Math.min(MAX_YEAR - 8, y + 9))}
+              className="btn-outline-ink btn-sm"
+              aria-label="Julat tahun seterusnya"
+              disabled={windowStart + 8 >= MAX_YEAR}
+            >
+              ›
+            </button>
+          </div>
+          <div className="mt-3 grid grid-cols-3 gap-1.5">
+            {years.map((year) => {
+              const key = String(year);
+              const active = selected === key;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => {
+                    onPick(key);
+                    setOpen(false);
+                  }}
+                  className={cn(
+                    "rounded-md px-2 py-2 text-sm font-medium transition",
+                    active ? "bg-primary text-white" : "text-ink hover:bg-cloud/70",
+                  )}
+                >
+                  <span className="block tabular-nums">{key}</span>
                   {marked.has(key) ? (
                     <span
                       className={cn(

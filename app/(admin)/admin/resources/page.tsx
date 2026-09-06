@@ -38,7 +38,7 @@ export default async function AdminResourcesPage({
         <p className="mt-1 text-sm text-graphite">
           {selected
             ? selected.blurb
-            : `Ketik kad kategori untuk urus surat mengikut bulan. Muat naik fail ke Google Drive, atau hantar PDF kepada NexaBot${bot ? ` (@${bot})` : ""} dengan /surat — dalam sembang peribadi atau kumpulan.`}
+            : `Ketik kad kategori untuk urus surat mengikut bulan, atau arkib mengikut tahun. Muat naik fail ke Google Drive, atau hantar PDF kepada NexaBot${bot ? ` (@${bot})` : ""} dengan /surat — dalam sembang peribadi atau kumpulan.`}
         </p>
       </div>
 

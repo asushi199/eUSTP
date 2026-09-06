@@ -20,6 +20,18 @@ const nextConfig = {
       bodySizeLimit: "10mb",
     },
   },
+  async redirects() {
+    return [
+      { source: "/osc", destination: "/resources", permanent: true },
+      { source: "/osc/:path*", destination: "/resources", permanent: true },
+      { source: "/sumber", destination: "/resources", permanent: true },
+      { source: "/sumber/:path*", destination: "/resources", permanent: true },
+      { source: "/admin/osc", destination: "/admin/resources", permanent: true },
+      { source: "/admin/osc/:path*", destination: "/admin/resources", permanent: true },
+      { source: "/admin/kandungan", destination: "/admin/resources", permanent: true },
+      { source: "/admin/kandungan/:path*", destination: "/admin/resources", permanent: true },
+    ];
+  },
 };
 
 const withPWA = withPWAInit({

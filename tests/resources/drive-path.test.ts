@@ -18,6 +18,17 @@ test("builds Drive folders by group, year, and chosen letter month", () => {
   assert.equal(path.fileName, "Jemputan Program DELIMa.pdf");
 });
 
+test("stores arkib files by year only", () => {
+  const path = buildResourcesDrivePath({
+    kategori: "arkib",
+    letterMonth: "2025-01",
+    title: "Kertas kerja · Bengkel Digital 2025",
+    originalName: "kk.pdf",
+    mime: "application/pdf",
+  });
+  assert.deepEqual(path.subPath, ["CoE-Resources", "Arkib", "2025"]);
+});
+
 test("sanitizes path characters in the stored file name", () => {
   assert.equal(
     sanitizeResourcesFileName('Surat: Sekolah / Guru', "a.png", "image/png"),

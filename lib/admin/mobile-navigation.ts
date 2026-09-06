@@ -1,24 +1,13 @@
-import { TEMPAHAN_HUB } from "@/lib/module-theme";
-
 export type AdminMobileNavigationItem = {
-  id: "booking" | "direktori" | "osc" | "papan" | "portal";
+  id: "papan" | "portal";
   href: string;
   label: string;
 };
 
-/** Tab mudah alih memfokuskan pusat urusan, bukan salinan papan admin. */
-export function getAdminMobileNavigation(
-  canManageKandungan: boolean,
-): AdminMobileNavigationItem[] {
+/** Tab mudah alih: Papan merangkumi semua modul; Portal kembali ke laman awam. */
+export function getAdminMobileNavigation(): AdminMobileNavigationItem[] {
   return [
-    { id: "booking", href: "/admin/booking", label: TEMPAHAN_HUB.title },
-    ...(canManageKandungan
-      ? [
-          { id: "direktori" as const, href: "/admin/direktori", label: "CoE Directory" },
-          { id: "osc" as const, href: "/admin/osc", label: "OSC" },
-          { id: "papan" as const, href: "/admin", label: "Papan" },
-        ]
-      : []),
+    { id: "papan", href: "/admin", label: "Papan" },
     { id: "portal", href: "/", label: "Portal" },
   ];
 }
