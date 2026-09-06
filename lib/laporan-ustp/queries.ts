@@ -11,18 +11,22 @@ export function resolveUstpMonth(value?: string) {
   return value && /^(20\d{2})-(0[1-9]|1[0-2])$/.test(value) ? value : currentLetterMonthKey();
 }
 
-export async function listUstpReports(month: string, page: number) {
+export async function listUstpReports(month: string) {
   await requireUser();
   const selectedMonth = resolveUstpMonth(month);
-  const rows = await db.select({
-    id: laporanUstp.id, programName: laporanUstp.programName,
-    pkgCode: laporanUstp.pkgCode, startDate: laporanUstp.startDate,
-    endDate: laporanUstp.endDate, preparedBy: laporanUstp.preparedBy,
-    version: laporanUstp.version,
+  return db.select({
+    id: laporanUstp.id,
+    programName: laporanUstp.programName,
+    pkgCode: laporanUstp.pkgCode,
+    startDate: laporanUstp.startDate,
+    endDate: laporanUstp.endDate,
+    preparedBy: laporanUstp.preparedBy,
+    location: laporanUstp.location,
+    organiser: laporanUstp.organiser,
+    cluster: laporanUstp.cluster,
   }).from(laporanUstp)
     .where(and(gte(laporanUstp.startDate, `${selectedMonth}-01`), lt(laporanUstp.startDate, `${shiftLetterMonth(selectedMonth, 1)}-01`)))
-    .orderBy(desc(laporanUstp.startDate), desc(laporanUstp.id)).limit(21).offset((page - 1) * 20);
-  return { reports: rows.slice(0, 20), hasNext: rows.length > 20 };
+    .orderBy(desc(laporanUstp.startDate), desc(laporanUstp.id));
 }
 
 export async function getUstpReport(id: string) {

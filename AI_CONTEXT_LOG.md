@@ -1,5 +1,10 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-06 — Carian Laporan Program USTP
+
+- `/admin/laporan-ustp` ada kotak carian serta-merta (nama program, PKG,
+  penyedia, lokasi, penganjur, kluster) dalam bulan yang dipilih.
+
 ## 2026-09-06 — Fix Laporan Program: jangan hantar fungsi ke MonthNav
 
 - Halaman pelayan tidak boleh menghantar `href` fungsi kepada klien
