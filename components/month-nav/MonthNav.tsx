@@ -33,10 +33,14 @@ function shiftKey(value: string, delta: number): string {
   return formatBulan(clamped.year, clamped.month);
 }
 
+function monthPath(path: string, month: string) {
+  return `${path}?month=${encodeURIComponent(month)}&page=1`;
+}
+
 export default function MonthNav({
   value,
   onChange,
-  href,
+  path,
   allowAll = false,
   showToday = false,
   markedMonths,
@@ -45,8 +49,8 @@ export default function MonthNav({
   /** `YYYY-MM`, atau `""` untuk Semua bulan. */
   value: string;
   onChange?: (month: string) => void;
-  /** Jika diberi, anak panah jadi pautan dan pilihan bulan menavigasi serta-merta. */
-  href?: (month: string) => string;
+  /** Laluan pelayan (boleh diserialkan). Anak panah dan pilihan bulan menavigasi serta-merta. */
+  path?: string;
   allowAll?: boolean;
   showToday?: boolean;
   markedMonths?: readonly string[];
@@ -62,14 +66,14 @@ export default function MonthNav({
   function go(next: string) {
     if (next === value) return;
     onChange?.(next);
-    if (href) router.push(href(next));
+    if (path) router.push(monthPath(path, next));
   }
 
   return (
     <div className={cn("flex flex-wrap items-center gap-2", className)}>
       <div className="flex items-center gap-2">
         <StepControl
-          href={href && canStep ? href(prevKey) : undefined}
+          href={path && canStep ? monthPath(path, prevKey) : undefined}
           disabled={!canStep || prevKey === value}
           onClick={() => go(prevKey)}
           label="Bulan sebelumnya"
@@ -83,7 +87,7 @@ export default function MonthNav({
           onPick={go}
         />
         <StepControl
-          href={href && canStep ? href(nextKey) : undefined}
+          href={path && canStep ? monthPath(path, nextKey) : undefined}
           disabled={!canStep || nextKey === value}
           onClick={() => go(nextKey)}
           label="Bulan seterusnya"
@@ -92,8 +96,8 @@ export default function MonthNav({
         </StepControl>
       </div>
       {showToday && value !== todayKey ? (
-        href ? (
-          <Link href={href(todayKey)} className="btn-outline-ink btn-sm">
+        path ? (
+          <Link href={monthPath(path, todayKey)} className="btn-outline-ink btn-sm">
             Bulan Ini
           </Link>
         ) : (

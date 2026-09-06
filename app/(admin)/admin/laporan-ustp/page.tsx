@@ -21,7 +21,7 @@ export default async function UstpReportsPage({ searchParams }: { searchParams: 
       <Link href="/admin/laporan-ustp/baharu" className="btn-primary">Tambah Laporan</Link>
     </div>
     <section className="mt-6" aria-label="Bulan laporan">
-      <MonthNav value={month} href={href} showToday />
+      <MonthNav value={month} path="/admin/laporan-ustp" showToday />
       <div className="mt-5 space-y-3">
         {reports.length === 0 && <p className="card p-6 text-sm text-graphite">Tiada laporan pada bulan ini. Pilih bulan lain atau tambah laporan.</p>}
         {reports.map((report) => <article key={report.id} className="card flex flex-wrap items-center justify-between gap-4 p-5">

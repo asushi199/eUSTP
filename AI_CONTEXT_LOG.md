@@ -1,5 +1,10 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-06 — Fix Laporan Program: jangan hantar fungsi ke MonthNav
+
+- Halaman pelayan tidak boleh menghantar `href` fungsi kepada klien
+  (ralat Vercel Digest). `MonthNav` kini terima `path` rentetan.
+
 ## 2026-09-06 — Navigasi bulan: anak panah + pemilih di tengah
 
 - Komponen kongsi `MonthNav`: `‹ September 2026 ›`, ketik nama bulan untuk
