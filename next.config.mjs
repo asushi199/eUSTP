@@ -10,7 +10,7 @@ const nextConfig = {
    * hang) — buktinya /api/diag lulus semua semakan sementara halaman DB
    * timeout. Externalize supaya runtime guna modul node_modules sebenar.
    */
-  serverExternalPackages: ["postgres"],
+  serverExternalPackages: ["postgres", "unpdf"],
   outputFileTracingIncludes: {
     "/**": ["./public/templates/kew-pa-9-am24.pdf", "./public/templates/laporan-ustp-header.jpg"],
   },

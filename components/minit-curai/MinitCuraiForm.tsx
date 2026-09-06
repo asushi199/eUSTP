@@ -70,9 +70,11 @@ export default function MinitCuraiForm({
   );
   const [kaedah, setKaedah] = useState<string[]>(report?.kaedah ?? []);
   const [notes, setNotes] = useState("");
+  const [briefing, setBriefing] = useState<File | null>(null);
+  const [briefingKey, setBriefingKey] = useState(0);
   const [aiBusy, setAiBusy] = useState(false);
   const [aiError, setAiError] = useState("");
-  const [lastNotes, setLastNotes] = useState("");
+  const [lastSource, setLastSource] = useState("");
   const officerNames = useMemo(() => {
     const names = new Set(reporters.filter(Boolean));
     if (report?.reporterName) names.add(report.reporterName);
@@ -107,11 +109,15 @@ export default function MinitCuraiForm({
     setItems((current) => current.map((item, slot) => slot === index ? { ...item, [key]: value } : item));
   }
 
+  function sourceKey() {
+    return `${notes.trim()}|${briefing ? `${briefing.name}:${briefing.size}:${briefing.lastModified}` : ""}`;
+  }
+
   async function janaKandungan(form: HTMLFormElement | null) {
-    if (!form || aiBusy || (notes.trim() === lastNotes && lastNotes !== "")) return;
-    const trimmed = notes.trim();
-    if (!trimmed) {
-      setAiError("Sila tampal nota pegawai dahulu sebelum menjana.");
+    const source = sourceKey();
+    if (!form || aiBusy || (lastSource !== "" && source === lastSource)) return;
+    if (!notes.trim() && !briefing) {
+      setAiError("Sila tampal nota atau muat naik PDF/PPTX dahulu sebelum menjana.");
       return;
     }
     setAiBusy(true);
@@ -119,20 +125,21 @@ export default function MinitCuraiForm({
     setError("");
     try {
       const data = new FormData(form);
-      const result = await janaKandunganMinit({
-        notes: trimmed,
-        tajuk: String(data.get("tajuk") ?? ""),
-        anjuran: String(data.get("anjuran") ?? ""),
-        chairperson: String(data.get("chairperson") ?? ""),
-        unitSektor: String(data.get("unitSektor") ?? ""),
-        officers: officerNames,
-      });
+      const payload = new FormData();
+      payload.set("notes", notes);
+      payload.set("tajuk", String(data.get("tajuk") ?? ""));
+      payload.set("anjuran", String(data.get("anjuran") ?? ""));
+      payload.set("chairperson", String(data.get("chairperson") ?? ""));
+      payload.set("unitSektor", String(data.get("unitSektor") ?? ""));
+      payload.set("officers", JSON.stringify(officerNames));
+      if (briefing) payload.set("fail", briefing);
+      const result = await janaKandunganMinit(payload);
       if (!result.ok) {
         setAiError(result.error);
         return;
       }
       setItems(result.items);
-      setLastNotes(trimmed);
+      setLastSource(source);
     } catch {
       setAiError("Penjanaan gagal. Cuba lagi.");
     } finally {
@@ -265,7 +272,9 @@ export default function MinitCuraiForm({
           <legend className="sr-only">B. Kandungan</legend>
           <div className="card space-y-4 p-5 sm:p-7">
             <h2 className="text-lg font-semibold">B. Kandungan</h2>
-            <p className="text-sm text-graphite">Tampal nota pegawai dalam mana-mana bahasa. AI menyusun perkara, keputusan, tindakan dan pegawai dalam point form. Semak sebelum menyimpan.</p>
+            <p className="text-sm text-graphite">
+              Tampal nota atau muat naik PDF/PPTX. AI memecahkan kepada beberapa perkara secara automatik — semak sebelum menyimpan.
+            </p>
             <label className="block">
               <span className="label">Nota pegawai untuk rujukan AI</span>
               <textarea
@@ -277,17 +286,48 @@ export default function MinitCuraiForm({
                 placeholder="Tampal nota mesyuarat, chat atau draf — BM, Inggeris, Cina atau campur."
               />
             </label>
+            <label className="block">
+              <span className="label">Fail taklimat (PDF atau PPTX)</span>
+              <input
+                key={briefingKey}
+                type="file"
+                accept=".pdf,.pptx,application/pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                className="mt-1 block min-h-11 w-full text-sm"
+                onChange={(event) => {
+                  const file = event.target.files?.[0] ?? null;
+                  setBriefing(file);
+                }}
+              />
+              {briefing ? (
+                <p className="mt-1 text-xs text-graphite">
+                  {briefing.name} · fail dibaca untuk AI sahaja, tidak disimpan.
+                  {" "}
+                  <button
+                    type="button"
+                    className="font-medium text-ink underline-offset-2 hover:underline"
+                    onClick={() => {
+                      setBriefing(null);
+                      setBriefingKey((key) => key + 1);
+                    }}
+                  >
+                    Buang fail
+                  </button>
+                </p>
+              ) : (
+                <p className="mt-1 text-xs text-graphite">Maksimum 4MB. Teks diekstrak di pelayan, kemudian fail dibuang — tidak masuk Storage.</p>
+              )}
+            </label>
             <div className="flex flex-wrap items-center gap-3">
               <button
                 type="button"
                 className="btn-outline-ink disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={aiBusy || (lastNotes !== "" && notes.trim() === lastNotes)}
-                title={lastNotes !== "" && notes.trim() === lastNotes ? "Ubah nota untuk jana semula" : undefined}
+                disabled={aiBusy || (lastSource !== "" && sourceKey() === lastSource)}
+                title={lastSource !== "" && sourceKey() === lastSource ? "Ubah nota atau fail untuk jana semula" : undefined}
                 onClick={(event) => void janaKandungan(event.currentTarget.form)}
               >
                 {aiBusy ? "Menjana…" : "✨ Jana dengan AI"}
               </button>
-              <p className="text-xs text-graphite">Medan nota tidak disimpan. Hasil AI menggantikan baris sedia ada.</p>
+              <p className="text-xs text-graphite">AI menjana beberapa perkara. Hasil menggantikan baris sedia ada. Nota dan fail tidak disimpan.</p>
             </div>
             {aiError && <p role="alert" className="text-sm text-red-700">{aiError}</p>}
           </div>

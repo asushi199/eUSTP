@@ -1,5 +1,13 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-06 — Minit Curai: AI baca PDF/PPTX tanpa Storage
+
+- Peringkat B boleh muat naik PDF/PPTX. Fail diekstrak teks di memori
+  (`unpdf` / `jszip`), digabung dengan nota, kemudian dibuang.
+- Tidak ditulis ke Supabase Storage. Kuota AI ikut teks (maks 8000 aksara),
+  sama seperti nota tampal — bukan keseluruhan fail/imej slaid.
+- Prompt AI wajib pecahkan kepada beberapa perkara; UI nyatakan ini.
+
 ## 2026-09-06 — 0043 minit_curai terlepas kerana journal `when`
 
 - `0042_retire_osc` guna `when: 1788672000000` (nombor bulat), manakala
