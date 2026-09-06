@@ -6,9 +6,10 @@ import { useRouter } from "next/navigation";
 import { saveMinitCurai } from "@/lib/actions/minit-curai";
 import { janaKandunganMinit } from "@/lib/actions/minit-curai-ai";
 import {
+  MINIT_CURAI_GRADES,
   MINIT_CURAI_KAEDAH,
   MINIT_CURAI_STEPS,
-  MINIT_CURAI_UNITS,
+  MINIT_CURAI_UNIT,
   emptyMinitItem,
   todayYmd,
   type MinitCuraiStepId,
@@ -18,20 +19,47 @@ import {
   parseMinitCuraiStepB,
   parseMinitCuraiStepC,
 } from "@/lib/minit-curai/validation";
-import type { MinitCurai, MinitCuraiItem } from "@/lib/schema";
+import type { MinitCuraiItem } from "@/lib/schema";
 
 type Officer = { nama: string; jawatan: string };
+
+type MinitFormReport = {
+  version: number;
+  items: MinitCuraiItem[];
+  kaedah: string[];
+  reporterName: string;
+  reporterTitle: string;
+  unitSektor: string;
+  tajuk: string;
+  anjuran: string;
+  meetingDate: string;
+  meetingTime: string;
+  tempat: string;
+  chairperson: string;
+  rujukanFail: string;
+  lampiran: string;
+  targetDate: string | null;
+  disebarkanKepada: string;
+  tarikhCurai: string;
+  kaedahLain: string;
+  preparedByName: string;
+  preparedByTitle: string;
+  preparedAt: string;
+  reviewedByName: string;
+  reviewedByTitle: string;
+  reviewedAt: string | null;
+};
 
 export default function MinitCuraiForm({
   id,
   currentUser,
-  officers,
+  reporters,
   report,
 }: {
   id: string;
   currentUser: Officer;
-  officers: Officer[];
-  report?: MinitCurai;
+  reporters: string[];
+  report?: MinitFormReport;
 }) {
   const router = useRouter();
   const [step, setStep] = useState<MinitCuraiStepId>("A");
@@ -46,18 +74,19 @@ export default function MinitCuraiForm({
   const [aiError, setAiError] = useState("");
   const [lastNotes, setLastNotes] = useState("");
   const officerNames = useMemo(() => {
-    const names = new Set(officers.map((officer) => officer.nama).filter(Boolean));
+    const names = new Set(reporters.filter(Boolean));
     if (report?.reporterName) names.add(report.reporterName);
     if (report?.preparedByName) names.add(report.preparedByName);
     if (report?.reviewedByName) names.add(report.reviewedByName);
-    if (currentUser.nama) names.add(currentUser.nama);
     return Array.from(names);
-  }, [officers, report, currentUser.nama]);
-
-  function officerTitle(name: string) {
-    if (name === currentUser.nama) return currentUser.jawatan;
-    return officers.find((officer) => officer.nama === name)?.jawatan ?? "";
-  }
+  }, [reporters, report]);
+  const defaultOfficer = reporters.includes(currentUser.nama) ? currentUser.nama : "";
+  const defaultReporter = report?.reporterName || defaultOfficer;
+  const gradeOptions = useMemo(() => {
+    const grades = new Set<string>(MINIT_CURAI_GRADES);
+    if (report?.reporterTitle) grades.add(report.reporterTitle);
+    return Array.from(grades);
+  }, [report?.reporterTitle]);
 
   function applyStep(next: MinitCuraiStepId, form: HTMLFormElement) {
     const data = new FormData(form);
@@ -184,23 +213,21 @@ export default function MinitCuraiForm({
           <h2 className="text-lg font-semibold">A. Butiran laporan</h2>
           <label className="block">
             <span className="label">Nama pegawai / pelapor *</span>
-            <select name="reporterName" className="input" required defaultValue={report?.reporterName || currentUser.nama} onChange={(event) => {
-              const title = officerTitle(event.target.value);
-              const field = event.currentTarget.form?.elements.namedItem("reporterTitle");
-              if (title && field instanceof HTMLInputElement) field.value = title;
-            }}>
+            <select name="reporterName" className="input" required defaultValue={defaultReporter}>
               <option value="" disabled>Pilih pegawai</option>
               {officerNames.map((name) => <option key={name} value={name}>{name}</option>)}
             </select>
           </label>
           <label className="block">
             <span className="label">Jawatan / gred *</span>
-            <input name="reporterTitle" className="input" required maxLength={200} defaultValue={report?.reporterTitle || currentUser.jawatan} />
+            <select name="reporterTitle" className="input" required defaultValue={report?.reporterTitle ?? ""}>
+              <option value="" disabled>Pilih gred</option>
+              {gradeOptions.map((grade) => <option key={grade} value={grade}>{grade}</option>)}
+            </select>
           </label>
           <label className="block">
             <span className="label">Unit / sektor *</span>
-            <input name="unitSektor" className="input" required maxLength={200} list="minit-unit" defaultValue={report?.unitSektor} />
-            <datalist id="minit-unit">{MINIT_CURAI_UNITS.map((unit) => <option key={unit} value={unit} />)}</datalist>
+            <input name="unitSektor" className="input bg-cloud" readOnly value={MINIT_CURAI_UNIT} />
           </label>
           <label className="block">
             <span className="label">Tajuk taklimat / mesyuarat / kursus / bengkel *</span>
@@ -229,7 +256,7 @@ export default function MinitCuraiForm({
             <input name="chairperson" className="input" required maxLength={200} defaultValue={report?.chairperson} />
           </label>
           <label className="block">
-            <span className="label">Rujukan / no. fail</span>
+            <span className="label">Rujukan / no. fail (jika ada)</span>
             <input name="rujukanFail" className="input" maxLength={200} defaultValue={report?.rujukanFail} />
           </label>
         </fieldset>
@@ -356,18 +383,14 @@ export default function MinitCuraiForm({
             <p className="text-sm font-medium">Disediakan oleh</p>
             <label className="block">
               <span className="label">Nama *</span>
-              <select name="preparedByName" className="input" required defaultValue={report?.preparedByName || currentUser.nama} onChange={(event) => {
-                const title = officerTitle(event.target.value);
-                const field = event.currentTarget.form?.elements.namedItem("preparedByTitle");
-                if (title && field instanceof HTMLInputElement) field.value = title;
-              }}>
+              <select name="preparedByName" className="input" required defaultValue={report?.preparedByName || defaultOfficer}>
                 <option value="" disabled>Pilih pegawai</option>
                 {officerNames.map((name) => <option key={name} value={name}>{name}</option>)}
               </select>
             </label>
             <label className="block">
               <span className="label">Jawatan / unit *</span>
-              <input name="preparedByTitle" className="input" required maxLength={200} defaultValue={report?.preparedByTitle || currentUser.jawatan} />
+              <input name="preparedByTitle" className="input" required maxLength={200} defaultValue={report?.preparedByTitle ?? ""} />
             </label>
             <label className="block">
               <span className="label">Tarikh *</span>

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { MINIT_CURAI_KAEDAH } from "./options";
+import { MINIT_CURAI_GRADES, MINIT_CURAI_KAEDAH, MINIT_CURAI_UNIT } from "./options";
 
 const text = (label: string, max = 500) => z.string().trim()
   .min(1, `Sila isi ${label}.`).max(max, `${label} terlalu panjang (maksimum ${max} aksara).`);
@@ -21,8 +21,8 @@ const itemSchema = z.object({
 
 export const minitCuraiStepASchema = z.object({
   reporterName: text("nama pegawai / pelapor", 200),
-  reporterTitle: text("jawatan / gred", 200),
-  unitSektor: text("unit / sektor", 200),
+  reporterTitle: z.enum(MINIT_CURAI_GRADES, { errorMap: () => ({ message: "Sila pilih jawatan / gred." }) }),
+  unitSektor: z.literal(MINIT_CURAI_UNIT, { errorMap: () => ({ message: "Unit / sektor tidak sah." }) }),
   tajuk: text("tajuk taklimat / mesyuarat / kursus / bengkel"),
   anjuran: text("anjuran"),
   meetingDate: date,

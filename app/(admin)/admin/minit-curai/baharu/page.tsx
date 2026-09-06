@@ -2,13 +2,13 @@ import { randomUUID } from "node:crypto";
 import Link from "next/link";
 import MinitCuraiForm from "@/components/minit-curai/MinitCuraiForm";
 import { requireUser } from "@/lib/rbac";
-import { listMinitCuraiOfficers } from "@/lib/minit-curai/queries";
+import { listMinitCuraiReporters } from "@/lib/minit-curai/queries";
 
 export const metadata = { title: "Tambah Minit Curai" };
 
 export default async function NewMinitCuraiPage() {
   const user = await requireUser();
-  const officers = await listMinitCuraiOfficers();
+  const reporters = await listMinitCuraiReporters();
   return (
     <>
       <Link href="/admin/minit-curai" className="text-sm text-graphite hover:text-ink">← Minit Curai</Link>
@@ -17,7 +17,7 @@ export default async function NewMinitCuraiPage() {
       <MinitCuraiForm
         id={randomUUID()}
         currentUser={{ nama: user.nama, jawatan: user.jawatan }}
-        officers={officers}
+        reporters={reporters}
       />
     </>
   );

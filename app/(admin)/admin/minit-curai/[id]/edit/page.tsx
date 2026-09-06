@@ -2,14 +2,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import MinitCuraiForm from "@/components/minit-curai/MinitCuraiForm";
 import { requireUser } from "@/lib/rbac";
-import { getMinitCurai, listMinitCuraiOfficers } from "@/lib/minit-curai/queries";
+import { getMinitCurai, listMinitCuraiReporters } from "@/lib/minit-curai/queries";
 
 export const metadata = { title: "Edit Minit Curai" };
 
 export default async function EditMinitCuraiPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const user = await requireUser();
-  const [report, officers] = await Promise.all([getMinitCurai(id), listMinitCuraiOfficers()]);
+  const [report, reporters] = await Promise.all([getMinitCurai(id), listMinitCuraiReporters()]);
   if (!report) notFound();
   return (
     <>
@@ -18,7 +18,7 @@ export default async function EditMinitCuraiPage({ params }: { params: Promise<{
       <MinitCuraiForm
         id={id}
         currentUser={{ nama: user.nama, jawatan: user.jawatan }}
-        officers={officers}
+        reporters={reporters}
         report={report}
       />
     </>

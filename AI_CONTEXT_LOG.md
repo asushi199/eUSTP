@@ -1,5 +1,14 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-06 — 0043 minit_curai terlepas kerana journal `when`
+
+- `0042_retire_osc` guna `when: 1788672000000` (nombor bulat), manakala
+  `0043_minit_curai` dijana dengan `when` lebih awal. Drizzle migrator
+  susun ikut `when`, jadi `npm run db:migrate` anggap 0043 sudah selesai
+  dan **tidak cipta jadual** — production 500 Digest.
+- Betulkan `when` 0043 kepada `1788672000001`, kemudian migrate semula.
+  Jadual `minit_curai` kini wujud pada Supabase production.
+
 ## 2026-09-06 — AI Kandungan Minit Curai
 
 - Peringkat B ada nota pegawai (mana-mana bahasa, tidak disimpan) dan

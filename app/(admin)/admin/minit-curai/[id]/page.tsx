@@ -17,7 +17,7 @@ export default async function MinitCuraiDetailPage({
   const report = await getMinitCurai(id);
   if (!report) notFound();
   const { saved } = await searchParams;
-  const month = report.meetingDate.slice(0, 7);
+  const month = String(report.meetingDate).slice(0, 7);
   const kaedah = [
     report.kaedah.filter((item) => item !== "Lain-lain").join(", "),
     report.kaedahLain ? `Lain-lain: ${report.kaedahLain}` : "",

@@ -14,8 +14,8 @@ function form(overrides: Record<string, string> = {}, items = [{
   const data = new FormData();
   const fields = {
     reporterName: "Ahmad Bin Ali",
-    reporterTitle: "Pegawai USTP",
-    unitSektor: "USTP PPD Manjung",
+    reporterTitle: "DG10",
+    unitSektor: "Unit Sumber Teknologi Pendidikan",
     tajuk: "Taklimat Dasar Pendidikan Digital",
     anjuran: "JPN Perak",
     meetingDate: "2026-09-06",
@@ -57,6 +57,8 @@ test("parses a complete minit curai and keeps multiple content rows", () => {
 
 test("rejects empty content, missing required fields and lain-lain without details", () => {
   assert.equal(parseMinitCurai(form({ tajuk: "" })).success, false);
+  assert.equal(parseMinitCurai(form({ reporterTitle: "Pentadbir Sistem" })).success, false);
+  assert.equal(parseMinitCurai(form({ unitSektor: "PKG Sitiawan" })).success, false);
   assert.equal(parseMinitCurai(form({}, [])).success, false);
   assert.equal(parseMinitCurai(form({ meetingDate: "2026-02-30" })).success, false);
   const lain = form({ kaedahLain: "" }, undefined, ["Lain-lain"]);

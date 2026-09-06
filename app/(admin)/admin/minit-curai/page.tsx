@@ -1,7 +1,7 @@
 import Link from "next/link";
 import MinitCuraiList from "@/components/minit-curai/MinitCuraiList";
 import { requireUser } from "@/lib/rbac";
-import { listMinitCurai, resolveMinitMonth } from "@/lib/minit-curai/queries";
+import { loadMinitCuraiList, resolveMinitMonth } from "@/lib/minit-curai/queries";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Minit Curai" };
@@ -10,7 +10,7 @@ export default async function MinitCuraiPage({ searchParams }: { searchParams: P
   await requireUser();
   const params = await searchParams;
   const month = resolveMinitMonth(params.month);
-  const reports = await listMinitCurai(month);
+  const { reports, error } = await loadMinitCuraiList(month);
   return (
     <>
       <Link href="/laporan" className="text-sm text-graphite hover:text-ink">← CoE Reports</Link>
@@ -23,9 +23,16 @@ export default async function MinitCuraiPage({ searchParams }: { searchParams: P
         </div>
         <Link href="/admin/minit-curai/baharu" className="btn-primary">Tambah Minit</Link>
       </div>
-      <section className="mt-6" aria-label="Bulan minit curai">
-        <MinitCuraiList reports={reports} month={month} />
-      </section>
+      {error ? (
+        <div className="card mt-6 border-amber-200 bg-amber-50/80 p-6 text-sm leading-relaxed text-graphite">
+          <p className="font-semibold text-ink">Minit Curai belum dapat dimuatkan</p>
+          <p className="mt-2">{error}</p>
+        </div>
+      ) : (
+        <section className="mt-6" aria-label="Bulan minit curai">
+          <MinitCuraiList reports={reports} month={month} />
+        </section>
+      )}
     </>
   );
 }
