@@ -3,18 +3,45 @@ import test from "node:test";
 import JSZip from "jszip";
 import { PDFDocument, StandardFonts } from "pdf-lib";
 import {
+  briefingImageMime,
   combineBriefingNotes,
   detectBriefingKind,
   extractBriefingText,
   isSparseBriefingText,
+  planBriefingUploads,
   slicePdfForVision,
 } from "../../lib/minit-curai/extract-briefing";
 
-test("detects pdf, pptx and rejects old ppt", () => {
+test("detects pdf, pptx, images and rejects old ppt", () => {
   assert.equal(detectBriefingKind("slaid.pdf", "application/pdf"), "pdf");
   assert.equal(detectBriefingKind("taklimat.PPTX", "application/octet-stream"), "pptx");
   assert.equal(detectBriefingKind("lama.ppt", "application/vnd.ms-powerpoint"), "ppt");
+  assert.equal(detectBriefingKind("nota.jpg", "image/jpeg"), "image");
+  assert.equal(detectBriefingKind("papan.PNG", ""), "image");
+  assert.equal(briefingImageMime("foto.webp", "application/octet-stream"), "image/webp");
+  assert.equal(detectBriefingKind("animasi.gif", "image/gif"), null);
   assert.equal(detectBriefingKind("nota.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"), null);
+});
+
+test("plans image uploads and rejects mixed or oversized sets", () => {
+  const images = planBriefingUploads([
+    { name: "a.jpg", type: "image/jpeg", size: 1200 },
+    { name: "b.png", type: "image/png", size: 800 },
+  ]);
+  assert.equal(images.ok, true);
+  if (!images.ok) return;
+  assert.equal(images.mode, "images");
+  if (images.mode !== "images") return;
+  assert.deepEqual(images.mimeTypes, ["image/jpeg", "image/png"]);
+
+  const mixed = planBriefingUploads([
+    { name: "slaid.pdf", type: "application/pdf", size: 1000 },
+    { name: "nota.jpg", type: "image/jpeg", size: 1000 },
+  ]);
+  assert.equal(mixed.ok, false);
+
+  const huge = planBriefingUploads([{ name: "besar.jpg", type: "image/jpeg", size: 5 * 1024 * 1024 }]);
+  assert.equal(huge.ok, false);
 });
 
 test("combines notes and file text without exceeding the clip", () => {

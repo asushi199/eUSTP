@@ -6,12 +6,11 @@ import { generateGeminiText } from "@/lib/ai/gemini";
 import { parseMinitAiItems } from "@/lib/minit-curai/ai";
 import {
   MINIT_AI_MAX_CHARS,
-  MINIT_AI_MAX_FILE_BYTES,
   MINIT_AI_MAX_VISION_PAGES,
   combineBriefingNotes,
-  detectBriefingKind,
   extractBriefingText,
   isSparseBriefingText,
+  planBriefingUploads,
   prepareBriefingVision,
   type GeminiAttachment,
 } from "@/lib/minit-curai/extract-briefing";
@@ -49,30 +48,37 @@ function officersFrom(form: FormData) {
 
 async function sourceFrom(form: FormData) {
   const notes = textField(form, "notes");
-  const file = form.get("fail");
-  if (!(file instanceof File) || file.size === 0) {
+  const files = form.getAll("fail").filter((item): item is File => item instanceof File && item.size > 0);
+  const plan = planBriefingUploads(files);
+  if (!plan.ok) return plan;
+  if (plan.mode === "none") {
     return notes.trim()
       ? { ok: true as const, notes: notes.trim(), attachments: [] as GeminiAttachment[] }
-      : { ok: false as const, error: "Sila tampal nota atau muat naik PDF/PPTX dahulu." };
+      : { ok: false as const, error: "Sila tampal nota atau muat naik PDF, PPTX atau gambar dahulu." };
   }
-  if (file.size > MINIT_AI_MAX_FILE_BYTES) {
-    return { ok: false as const, error: "Fail terlalu besar (maksimum 4MB). Ringkaskan atau tampal nota." };
+  if (plan.mode === "images") {
+    const attachments: GeminiAttachment[] = [];
+    for (const [index, file] of files.entries()) {
+      attachments.push({
+        mimeType: plan.mimeTypes[index] ?? "image/jpeg",
+        bytes: new Uint8Array(await file.arrayBuffer()),
+      });
+    }
+    return {
+      ok: true as const,
+      notes: notes.trim() || "(Gambar taklimat — baca kandungan dalam imej.)",
+      attachments,
+    };
   }
-  const kind = detectBriefingKind(file.name, file.type);
-  if (kind === "ppt") {
-    return { ok: false as const, error: "Fail .ppt lama tidak disokong. Simpan sebagai PDF atau PPTX." };
-  }
-  if (!kind) {
-    return { ok: false as const, error: "Hanya PDF atau PPTX diterima." };
-  }
+  const file = files[plan.index];
   const bytes = new Uint8Array(await file.arrayBuffer());
-  const extracted = await extractBriefingText(bytes, kind);
+  const extracted = await extractBriefingText(bytes, plan.kind);
   if (!extracted.ok) return extracted;
   const combined = combineBriefingNotes(notes, extracted.text);
   if (!isSparseBriefingText(combined)) {
     return { ok: true as const, notes: combined, attachments: [] as GeminiAttachment[] };
   }
-  const vision = await prepareBriefingVision(bytes, kind);
+  const vision = await prepareBriefingVision(bytes, plan.kind);
   if (!vision.ok) {
     return combined
       ? { ok: true as const, notes: combined, attachments: [] as GeminiAttachment[] }
@@ -112,7 +118,7 @@ export async function janaKandunganMinit(form: FormData): Promise<JanaKandunganR
   const scanned = source.attachments.length > 0;
 
   const prompt = `Ubah nota/fail taklimat di bawah menjadi jadual Kandungan minit curai. Sumber mungkin dalam mana-mana bahasa; hasil mesti Bahasa Melayu rasmi.
-${scanned ? `\nFail dilampirkan ialah slaid/PDF imbasan. Baca teks dalam imej (maksimum ${MINIT_AI_MAX_VISION_PAGES} halaman/slaid pertama).\n` : ""}
+${scanned ? `\nFail dilampirkan ialah slaid, PDF imbasan atau gambar. Baca teks dalam imej (maksimum ${MINIT_AI_MAX_VISION_PAGES} halaman/slaid/gambar pertama).\n` : ""}
 ${context ? `${context}\n\n` : ""}Nota / teks fail:
 ${inp.notes}
 

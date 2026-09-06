@@ -70,7 +70,7 @@ export default function MinitCuraiForm({
   );
   const [kaedah, setKaedah] = useState<string[]>(report?.kaedah ?? []);
   const [notes, setNotes] = useState("");
-  const [briefing, setBriefing] = useState<File | null>(null);
+  const [briefings, setBriefings] = useState<File[]>([]);
   const [briefingKey, setBriefingKey] = useState(0);
   const [aiBusy, setAiBusy] = useState(false);
   const [aiError, setAiError] = useState("");
@@ -110,14 +110,14 @@ export default function MinitCuraiForm({
   }
 
   function sourceKey() {
-    return `${notes.trim()}|${briefing ? `${briefing.name}:${briefing.size}:${briefing.lastModified}` : ""}`;
+    return `${notes.trim()}|${briefings.map((file) => `${file.name}:${file.size}:${file.lastModified}`).join(",")}`;
   }
 
   async function janaKandungan(form: HTMLFormElement | null) {
     const source = sourceKey();
     if (!form || aiBusy || (lastSource !== "" && source === lastSource)) return;
-    if (!notes.trim() && !briefing) {
-      setAiError("Sila tampal nota atau muat naik PDF/PPTX dahulu sebelum menjana.");
+    if (!notes.trim() && !briefings.length) {
+      setAiError("Sila tampal nota atau muat naik PDF, PPTX atau gambar dahulu sebelum menjana.");
       return;
     }
     setAiBusy(true);
@@ -132,7 +132,7 @@ export default function MinitCuraiForm({
       payload.set("chairperson", String(data.get("chairperson") ?? ""));
       payload.set("unitSektor", String(data.get("unitSektor") ?? ""));
       payload.set("officers", JSON.stringify(officerNames));
-      if (briefing) payload.set("fail", briefing);
+      for (const file of briefings) payload.append("fail", file);
       const result = await janaKandunganMinit(payload);
       if (!result.ok) {
         setAiError(result.error);
@@ -273,7 +273,7 @@ export default function MinitCuraiForm({
           <div className="card space-y-4 p-5 sm:p-7">
             <h2 className="text-lg font-semibold">B. Kandungan</h2>
             <p className="text-sm text-graphite">
-              Tampal nota atau muat naik PDF/PPTX. AI memecahkan kepada beberapa perkara secara automatik — semak sebelum menyimpan.
+              Tampal nota atau muat naik PDF, PPTX atau gambar. AI memecahkan kepada beberapa perkara secara automatik — semak sebelum menyimpan.
             </p>
             <label className="block">
               <span className="label">Nota pegawai untuk rujukan AI</span>
@@ -287,26 +287,26 @@ export default function MinitCuraiForm({
               />
             </label>
             <label className="block">
-              <span className="label">Fail taklimat (PDF atau PPTX)</span>
+              <span className="label">Fail taklimat (PDF, PPTX atau gambar)</span>
               <input
                 key={briefingKey}
                 type="file"
-                accept=".pdf,.pptx,application/pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                multiple
+                accept=".pdf,.pptx,.jpg,.jpeg,.png,.webp,application/pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation,image/jpeg,image/png,image/webp"
                 className="mt-1 block min-h-11 w-full text-sm"
                 onChange={(event) => {
-                  const file = event.target.files?.[0] ?? null;
-                  setBriefing(file);
+                  setBriefings(Array.from(event.target.files ?? []));
                 }}
               />
-              {briefing ? (
+              {briefings.length ? (
                 <p className="mt-1 text-xs text-graphite">
-                  {briefing.name} · fail dibaca untuk AI sahaja, tidak disimpan.
+                  {briefings.map((file) => file.name).join(", ")} · fail dibaca untuk AI sahaja, tidak disimpan.
                   {" "}
                   <button
                     type="button"
                     className="font-medium text-ink underline-offset-2 hover:underline"
                     onClick={() => {
-                      setBriefing(null);
+                      setBriefings([]);
                       setBriefingKey((key) => key + 1);
                     }}
                   >
@@ -315,7 +315,7 @@ export default function MinitCuraiForm({
                 </p>
               ) : (
                 <p className="mt-1 text-xs text-graphite">
-                  Maksimum 4MB, tidak masuk Storage. PDF bertulis murah; PDF imbasan/gambar dibaca AI (20 halaman pertama).
+                  Maksimum 4MB keseluruhan, tidak masuk Storage. Satu PDF/PPTX, atau beberapa gambar JPEG/PNG/WebP (dibaca AI).
                 </p>
               )}
             </label>

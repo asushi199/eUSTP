@@ -9,7 +9,66 @@ export const MINIT_AI_MAX_VISION_PAGES = 20;
 
 export type GeminiAttachment = { mimeType: string; bytes: Uint8Array };
 
-export type BriefingKind = "pdf" | "pptx";
+export type BriefingKind = "pdf" | "pptx" | "image";
+
+const IMAGE_MIME: Record<string, string> = {
+  "image/jpeg": "image/jpeg",
+  "image/jpg": "image/jpeg",
+  "image/png": "image/png",
+  "image/webp": "image/webp",
+};
+
+export function briefingImageMime(name: string, mime: string): string | null {
+  const type = IMAGE_MIME[mime.toLowerCase()];
+  if (type) return type;
+  const ext = name.toLowerCase().split(".").pop();
+  if (ext === "jpg" || ext === "jpeg") return "image/jpeg";
+  if (ext === "png") return "image/png";
+  if (ext === "webp") return "image/webp";
+  return null;
+}
+
+export type BriefingFileRef = { name: string; type: string; size: number };
+export type BriefingUploadPlan =
+  | { ok: true; mode: "none" }
+  | { ok: true; mode: "document"; kind: "pdf" | "pptx"; index: number }
+  | { ok: true; mode: "images"; mimeTypes: string[] }
+  | { ok: false; error: string };
+
+export function planBriefingUploads(files: BriefingFileRef[]): BriefingUploadPlan {
+  const present = files.filter((file) => file.size > 0);
+  if (!present.length) return { ok: true, mode: "none" };
+  const total = present.reduce((sum, file) => sum + file.size, 0);
+  if (total > MINIT_AI_MAX_FILE_BYTES) {
+    return { ok: false, error: "Fail terlalu besar (maksimum 4MB). Ringkaskan atau tampal nota." };
+  }
+  if (present.length > MINIT_AI_MAX_VISION_PAGES) {
+    return { ok: false, error: `Maksimum ${MINIT_AI_MAX_VISION_PAGES} gambar.` };
+  }
+  const kinds = present.map((file) => detectBriefingKind(file.name, file.type));
+  if (kinds.includes("ppt")) {
+    return { ok: false, error: "Fail .ppt lama tidak disokong. Simpan sebagai PDF atau PPTX." };
+  }
+  if (kinds.some((kind) => !kind)) {
+    return { ok: false, error: "Hanya PDF, PPTX atau gambar (JPEG, PNG, WebP) diterima." };
+  }
+  const documentIndex = kinds.findIndex((kind) => kind === "pdf" || kind === "pptx");
+  const imageCount = kinds.filter((kind) => kind === "image").length;
+  if (documentIndex >= 0 && imageCount > 0) {
+    return { ok: false, error: "Sila muat naik satu PDF/PPTX atau gambar sahaja, bukan kedua-duanya." };
+  }
+  if (kinds.filter((kind) => kind === "pdf" || kind === "pptx").length > 1) {
+    return { ok: false, error: "Sila muat naik satu PDF atau PPTX sahaja." };
+  }
+  if (documentIndex >= 0) {
+    return { ok: true, mode: "document", kind: kinds[documentIndex] as "pdf" | "pptx", index: documentIndex };
+  }
+  return {
+    ok: true,
+    mode: "images",
+    mimeTypes: present.map((file) => briefingImageMime(file.name, file.type) ?? "image/jpeg"),
+  };
+}
 
 export function detectBriefingKind(name: string, mime: string): BriefingKind | "ppt" | null {
   const fileName = name.toLowerCase();
@@ -20,6 +79,7 @@ export function detectBriefingKind(name: string, mime: string): BriefingKind | "
     || fileName.endsWith(".pptx")
   ) return "pptx";
   if (type === "application/vnd.ms-powerpoint" || fileName.endsWith(".ppt")) return "ppt";
+  if (briefingImageMime(name, mime)) return "image";
   return null;
 }
 
@@ -98,19 +158,19 @@ async function extractPdfText(bytes: Uint8Array) {
 
 export async function extractBriefingText(
   bytes: Uint8Array,
-  kind: BriefingKind,
+  kind: Exclude<BriefingKind, "image">,
 ): Promise<{ ok: true; text: string } | { ok: false; error: string }> {
   try {
     const raw = kind === "pdf" ? await extractPdfText(bytes) : await extractPptxText(bytes);
     return { ok: true, text: clipBriefingText(raw) };
   } catch {
-    return { ok: false, error: "Fail tidak dapat dibaca. Guna PDF atau PPTX, atau tampal nota." };
+    return { ok: false, error: "Fail tidak dapat dibaca. Guna PDF, PPTX atau gambar, atau tampal nota." };
   }
 }
 
 export async function prepareBriefingVision(
   bytes: Uint8Array,
-  kind: BriefingKind,
+  kind: Exclude<BriefingKind, "image">,
 ): Promise<{ ok: true; attachments: GeminiAttachment[] } | { ok: false; error: string }> {
   try {
     if (kind === "pdf") {
