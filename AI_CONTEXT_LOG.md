@@ -7,6 +7,10 @@
 - Tidak ditulis ke Supabase Storage. Kuota AI ikut teks (maks 8000 aksara),
   sama seperti nota tampal — bukan keseluruhan fail/imej slaid.
 - Prompt AI wajib pecahkan kepada beberapa perkara; UI nyatakan ini.
+- Jika teks terlalu sedikit (PDF imbasan/gambar), hantar 20 halaman
+  pertama kepada Gemini sebagai PDF/imej. Masih tidak disimpan.
+- Gemini percuma: kuota berasingan mengikut model. Lalai 3.5 Flash
+  dahulu, 429/404 baharu jatuh ke 2.5 Flash.
 
 ## 2026-09-06 — 0043 minit_curai terlepas kerana journal `when`
 

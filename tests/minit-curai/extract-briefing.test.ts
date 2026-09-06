@@ -6,6 +6,8 @@ import {
   combineBriefingNotes,
   detectBriefingKind,
   extractBriefingText,
+  isSparseBriefingText,
+  slicePdfForVision,
 } from "../../lib/minit-curai/extract-briefing";
 
 test("detects pdf, pptx and rejects old ppt", () => {
@@ -32,6 +34,21 @@ test("extracts slide text from a pptx zip", async () => {
   if (!extracted.ok) return;
   assert.match(extracted.text, /Dasar DPD baharu/);
   assert.match(extracted.text, /Hebahan staf/);
+});
+
+test("treats short or empty extract as scanned briefing", () => {
+  assert.equal(isSparseBriefingText(""), true);
+  assert.equal(isSparseBriefingText("Tajuk sahaja"), true);
+  assert.equal(isSparseBriefingText("A".repeat(80)), false);
+});
+
+test("keeps only the first pages of a long pdf for vision", async () => {
+  const source = await PDFDocument.create();
+  for (let index = 0; index < 12; index += 1) source.addPage([300, 200]);
+  const sliced = await PDFDocument.load(await slicePdfForVision(await source.save(), 8));
+  assert.equal(sliced.getPageCount(), 8);
+  const twenty = await PDFDocument.load(await slicePdfForVision(await source.save()));
+  assert.equal(twenty.getPageCount(), 12);
 });
 
 test("extracts visible text from a simple pdf", async () => {

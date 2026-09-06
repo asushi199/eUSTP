@@ -314,7 +314,9 @@ export default function MinitCuraiForm({
                   </button>
                 </p>
               ) : (
-                <p className="mt-1 text-xs text-graphite">Maksimum 4MB. Teks diekstrak di pelayan, kemudian fail dibuang — tidak masuk Storage.</p>
+                <p className="mt-1 text-xs text-graphite">
+                  Maksimum 4MB, tidak masuk Storage. PDF bertulis murah; PDF imbasan/gambar dibaca AI (20 halaman pertama).
+                </p>
               )}
             </label>
             <div className="flex flex-wrap items-center gap-3">

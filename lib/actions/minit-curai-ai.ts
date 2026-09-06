@@ -7,9 +7,13 @@ import { parseMinitAiItems } from "@/lib/minit-curai/ai";
 import {
   MINIT_AI_MAX_CHARS,
   MINIT_AI_MAX_FILE_BYTES,
+  MINIT_AI_MAX_VISION_PAGES,
   combineBriefingNotes,
   detectBriefingKind,
   extractBriefingText,
+  isSparseBriefingText,
+  prepareBriefingVision,
+  type GeminiAttachment,
 } from "@/lib/minit-curai/extract-briefing";
 import type { MinitCuraiItem } from "@/lib/schema";
 
@@ -27,7 +31,7 @@ const metaSchema = z.object({
 });
 
 const SYSTEM =
-  "Anda pegawai USTP PPD Manjung yang menyusun minit curai rasmi. Tulis dalam Bahasa Melayu rasmi, padat dan profesional. Jangan cipta fakta, nama, tarikh atau keputusan yang tiada dalam nota.";
+  "Anda pegawai USTP PPD Manjung yang menyusun minit curai rasmi. Tulis dalam Bahasa Melayu rasmi, padat dan profesional. Jangan cipta fakta, nama, tarikh atau keputusan yang tiada dalam nota atau slaid.";
 
 function textField(form: FormData, key: string) {
   const value = form.get(key);
@@ -43,12 +47,12 @@ function officersFrom(form: FormData) {
   }
 }
 
-async function notesFrom(form: FormData) {
+async function sourceFrom(form: FormData) {
   const notes = textField(form, "notes");
   const file = form.get("fail");
   if (!(file instanceof File) || file.size === 0) {
     return notes.trim()
-      ? { ok: true as const, notes: notes.trim() }
+      ? { ok: true as const, notes: notes.trim(), attachments: [] as GeminiAttachment[] }
       : { ok: false as const, error: "Sila tampal nota atau muat naik PDF/PPTX dahulu." };
   }
   if (file.size > MINIT_AI_MAX_FILE_BYTES) {
@@ -61,18 +65,29 @@ async function notesFrom(form: FormData) {
   if (!kind) {
     return { ok: false as const, error: "Hanya PDF atau PPTX diterima." };
   }
-  const extracted = await extractBriefingText(new Uint8Array(await file.arrayBuffer()), kind);
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const extracted = await extractBriefingText(bytes, kind);
   if (!extracted.ok) return extracted;
   const combined = combineBriefingNotes(notes, extracted.text);
-  if (!combined) {
-    return { ok: false as const, error: "Sila tampal nota atau muat naik PDF/PPTX dahulu." };
+  if (!isSparseBriefingText(combined)) {
+    return { ok: true as const, notes: combined, attachments: [] as GeminiAttachment[] };
   }
-  return { ok: true as const, notes: combined };
+  const vision = await prepareBriefingVision(bytes, kind);
+  if (!vision.ok) {
+    return combined
+      ? { ok: true as const, notes: combined, attachments: [] as GeminiAttachment[] }
+      : vision;
+  }
+  return {
+    ok: true as const,
+    notes: combined || "(Fail imbasan / slaid imej — baca kandungan dalam fail.)",
+    attachments: vision.attachments,
+  };
 }
 
 export async function janaKandunganMinit(form: FormData): Promise<JanaKandunganResult> {
   await requireUser();
-  const source = await notesFrom(form);
+  const source = await sourceFrom(form);
   if (!source.ok) return source;
   const parsed = metaSchema.safeParse({
     notes: source.notes,
@@ -94,9 +109,10 @@ export async function janaKandunganMinit(form: FormData): Promise<JanaKandunganR
     inp.unitSektor ? `Unit pelapor: ${inp.unitSektor}` : null,
     `Pegawai yang mungkin relevan: ${officers}`,
   ].filter(Boolean).join("\n");
+  const scanned = source.attachments.length > 0;
 
   const prompt = `Ubah nota/fail taklimat di bawah menjadi jadual Kandungan minit curai. Sumber mungkin dalam mana-mana bahasa; hasil mesti Bahasa Melayu rasmi.
-
+${scanned ? `\nFail dilampirkan ialah slaid/PDF imbasan. Baca teks dalam imej (maksimum ${MINIT_AI_MAX_VISION_PAGES} halaman/slaid pertama).\n` : ""}
 ${context ? `${context}\n\n` : ""}Nota / teks fail:
 ${inp.notes}
 
@@ -114,7 +130,8 @@ Format jawapan (WAJIB): JSON array sahaja, tanpa markdown, tanpa ayat tambahan.
     system: SYSTEM,
     maxOutputTokens: 3000,
     temperature: 0.3,
-    timeoutMs: 30000,
+    timeoutMs: scanned ? 45000 : 30000,
+    attachments: source.attachments,
   });
   if (!generated.ok) return generated;
   const items = parseMinitAiItems(generated.text);
