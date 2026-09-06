@@ -58,11 +58,12 @@ export function classifyOscCard(input: {
   }
 
   if (key === "slot-buku" || key === "slot-dasar") {
+    const isPanduanAi = /panduan literasi kecerdasan buatan ai kpm/i.test(title);
     return {
       dest: "nota",
       title,
       url,
-      letterMonth: yearMonthFromTitle(title),
+      letterMonth: isPanduanAi ? "2026-09" : yearMonthFromTitle(title),
     };
   }
 
