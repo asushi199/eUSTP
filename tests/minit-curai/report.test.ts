@@ -55,6 +55,26 @@ test("parses a complete minit curai and keeps multiple content rows", () => {
   assert.equal(parsed.data.rumusan, "");
 });
 
+test("accepts omitted optional dates instead of English Required", () => {
+  const data = form({ targetDate: "", reviewedAt: "" });
+  data.delete("targetDate");
+  data.delete("reviewedAt");
+  const parsed = parseMinitCurai(data);
+  assert.ok(parsed.success);
+  if (!parsed.success) return;
+  assert.equal(parsed.data.targetDate, null);
+  assert.equal(parsed.data.reviewedAt, null);
+});
+
+test("accepts omitted kaedah lain when Lain-lain is not selected", () => {
+  const data = form();
+  data.delete("kaedahLain");
+  const parsed = parseMinitCurai(data);
+  assert.ok(parsed.success);
+  if (!parsed.success) return;
+  assert.equal(parsed.data.kaedahLain, "");
+});
+
 test("rejects empty content, missing required fields and lain-lain without details", () => {
   assert.equal(parseMinitCurai(form({ tajuk: "" })).success, false);
   assert.equal(parseMinitCurai(form({ reporterTitle: "Pentadbir Sistem" })).success, false);

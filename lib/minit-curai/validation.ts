@@ -1,16 +1,28 @@
 import { z } from "zod";
 import { MINIT_CURAI_GRADES, MINIT_CURAI_KAEDAH, MINIT_CURAI_UNIT } from "./options";
 
-const text = (label: string, max = 500) => z.string().trim()
-  .min(1, `Sila isi ${label}.`).max(max, `${label} terlalu panjang (maksimum ${max} aksara).`);
-const optionalText = (label: string, max = 500) => z.string().trim()
-  .max(max, `${label} terlalu panjang (maksimum ${max} aksara).`);
-const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Tarikh tidak sah.")
+const text = (label: string, max = 500) => z.preprocess(
+  (value) => (value == null ? "" : value),
+  z.string({ invalid_type_error: `Sila isi ${label}.` }).trim()
+    .min(1, `Sila isi ${label}.`).max(max, `${label} terlalu panjang (maksimum ${max} aksara).`),
+);
+const optionalText = (label: string, max = 500) => z.preprocess(
+  (value) => (value == null ? "" : value),
+  z.string().trim().max(max, `${label} terlalu panjang (maksimum ${max} aksara).`),
+);
+const dateString = z.string({ invalid_type_error: "Sila isi tarikh." })
+  .trim()
+  .min(1, "Sila isi tarikh.")
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Tarikh tidak sah.")
   .refine((value) => {
     const parsed = new Date(`${value}T00:00:00Z`);
     return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
   }, "Tarikh tidak sah.");
-const optionalDate = z.union([z.literal(""), date]).transform((value) => value || null);
+const date = z.preprocess((value) => (value == null ? "" : value), dateString);
+const optionalDate = z.preprocess(
+  (value) => (value == null ? "" : value),
+  z.union([z.literal(""), dateString]).transform((value) => value || null),
+);
 
 const itemSchema = z.object({
   perkara: text("perkara / isu / makluman", 4000),

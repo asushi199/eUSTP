@@ -177,7 +177,7 @@ export default function MinitCuraiForm({
   const stepIndex = MINIT_CURAI_STEPS.findIndex((item) => item.id === step);
 
   return (
-    <form onSubmit={submit} className="mt-6 space-y-6">
+    <form noValidate onSubmit={submit} className="mt-6 space-y-6">
       <input type="hidden" name="id" value={id} />
       <input type="hidden" name="version" value={report?.version ?? 0} />
       <input type="hidden" name="items" value={JSON.stringify(items)} />
@@ -345,19 +345,19 @@ export default function MinitCuraiForm({
               </div>
               <label className="block">
                 <span className="label">Perkara / isu / makluman *</span>
-                <textarea className="textarea" rows={3} required maxLength={4000} value={item.perkara} onChange={(event) => updateItem(index, "perkara", event.target.value)} />
+                <textarea className="textarea" rows={3} maxLength={4000} value={item.perkara} onChange={(event) => updateItem(index, "perkara", event.target.value)} />
               </label>
               <label className="block">
                 <span className="label">Keputusan / penjelasan *</span>
-                <textarea className="textarea" rows={3} required maxLength={4000} value={item.keputusan} onChange={(event) => updateItem(index, "keputusan", event.target.value)} />
+                <textarea className="textarea" rows={3} maxLength={4000} value={item.keputusan} onChange={(event) => updateItem(index, "keputusan", event.target.value)} />
               </label>
               <label className="block">
                 <span className="label">Tindakan susulan *</span>
-                <textarea className="textarea" rows={3} required maxLength={4000} value={item.tindakan} onChange={(event) => updateItem(index, "tindakan", event.target.value)} />
+                <textarea className="textarea" rows={3} maxLength={4000} value={item.tindakan} onChange={(event) => updateItem(index, "tindakan", event.target.value)} />
               </label>
               <label className="block">
                 <span className="label">Pegawai / unit bertanggungjawab *</span>
-                <input className="input" required maxLength={500} value={item.pegawai} onChange={(event) => updateItem(index, "pegawai", event.target.value)} />
+                <input className="input" maxLength={500} value={item.pegawai} onChange={(event) => updateItem(index, "pegawai", event.target.value)} />
               </label>
             </div>
           ))}
@@ -411,11 +411,13 @@ export default function MinitCuraiForm({
                 ))}
               </div>
             </fieldset>
-            {kaedah.includes("Lain-lain") && (
+            {kaedah.includes("Lain-lain") ? (
               <label className="block">
                 <span className="label">Nyatakan kaedah lain *</span>
                 <input name="kaedahLain" className="input" required maxLength={200} defaultValue={report?.kaedahLain} />
               </label>
+            ) : (
+              <input type="hidden" name="kaedahLain" value="" />
             )}
           </fieldset>
 
