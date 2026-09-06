@@ -31,7 +31,6 @@ export default async function MinitCuraiDetailPage({
     ["Tempat / platform", report.tempat],
     ["Pengerusi / pegawai yang menyampaikan", report.chairperson],
     ["Rujukan / no. fail", report.rujukanFail || "—"],
-    ["Rumusan / cadangan pelapor", report.rumusan],
     ["Lampiran / bahan diterima", report.lampiran || "—"],
     ["Tarikh sasaran tindakan selesai", report.targetDate ? formatMinitDate(report.targetDate) : "—"],
     ["Disebarkan kepada", report.disebarkanKepada],

@@ -1,5 +1,13 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-06 — AI Kandungan Minit Curai
+
+- Peringkat B ada nota pegawai (mana-mana bahasa, tidak disimpan) dan
+  `Jana dengan AI` untuk mengisi jadual perkara / keputusan / tindakan /
+  pegawai dalam point form.
+- Rumusan panjang digugurkan: Kandungan sudah merekod isu dan keputusan.
+  Peringkat C kekal lampiran, tarikh sasaran, penyebaran dan pengesahan.
+
 ## 2026-09-06 — Minit Curai dalam CoE Reports
 
 - Modul staf sahaja, sama seperti Laporan Program USTP: `requireUser()`, kad

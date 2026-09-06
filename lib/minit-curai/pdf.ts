@@ -116,8 +116,7 @@ export async function generateMinitCuraiPdf(report: MinitCurai) {
     row("Pegawai / unit bertanggungjawab", item.pegawai);
   });
 
-  heading("C. RUMUSAN & CATATAN PELAPOR");
-  row("Rumusan / cadangan pelapor", report.rumusan);
+  heading("C. LAMPIRAN & SASARAN");
   row("Lampiran / bahan diterima", report.lampiran || "-");
   row("Tarikh sasaran tindakan selesai", report.targetDate ? formatMinitDate(report.targetDate) : "-");
 

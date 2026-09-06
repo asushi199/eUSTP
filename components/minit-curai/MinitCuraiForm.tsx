@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { saveMinitCurai } from "@/lib/actions/minit-curai";
+import { janaKandunganMinit } from "@/lib/actions/minit-curai-ai";
 import {
   MINIT_CURAI_KAEDAH,
   MINIT_CURAI_STEPS,
@@ -40,6 +41,10 @@ export default function MinitCuraiForm({
     report?.items.length ? report.items : [emptyMinitItem()],
   );
   const [kaedah, setKaedah] = useState<string[]>(report?.kaedah ?? []);
+  const [notes, setNotes] = useState("");
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiError, setAiError] = useState("");
+  const [lastNotes, setLastNotes] = useState("");
   const officerNames = useMemo(() => {
     const names = new Set(officers.map((officer) => officer.nama).filter(Boolean));
     if (report?.reporterName) names.add(report.reporterName);
@@ -71,6 +76,39 @@ export default function MinitCuraiForm({
 
   function updateItem(index: number, key: keyof MinitCuraiItem, value: string) {
     setItems((current) => current.map((item, slot) => slot === index ? { ...item, [key]: value } : item));
+  }
+
+  async function janaKandungan(form: HTMLFormElement | null) {
+    if (!form || aiBusy || (notes.trim() === lastNotes && lastNotes !== "")) return;
+    const trimmed = notes.trim();
+    if (!trimmed) {
+      setAiError("Sila tampal nota pegawai dahulu sebelum menjana.");
+      return;
+    }
+    setAiBusy(true);
+    setAiError("");
+    setError("");
+    try {
+      const data = new FormData(form);
+      const result = await janaKandunganMinit({
+        notes: trimmed,
+        tajuk: String(data.get("tajuk") ?? ""),
+        anjuran: String(data.get("anjuran") ?? ""),
+        chairperson: String(data.get("chairperson") ?? ""),
+        unitSektor: String(data.get("unitSektor") ?? ""),
+        officers: officerNames,
+      });
+      if (!result.ok) {
+        setAiError(result.error);
+        return;
+      }
+      setItems(result.items);
+      setLastNotes(trimmed);
+    } catch {
+      setAiError("Penjanaan gagal. Cuba lagi.");
+    } finally {
+      setAiBusy(false);
+    }
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -196,11 +234,35 @@ export default function MinitCuraiForm({
           </label>
         </fieldset>
 
-      <fieldset disabled={saving} hidden={step !== "B"} className="space-y-4">
+      <fieldset disabled={saving || aiBusy} hidden={step !== "B"} className="space-y-4">
           <legend className="sr-only">B. Kandungan</legend>
-          <div className="card space-y-2 p-5 sm:p-7">
+          <div className="card space-y-4 p-5 sm:p-7">
             <h2 className="text-lg font-semibold">B. Kandungan</h2>
-            <p className="text-sm text-graphite">Rekod setiap isu, keputusan, tindakan susulan dan pegawai bertanggungjawab. Tambah baris jika perlu.</p>
+            <p className="text-sm text-graphite">Tampal nota pegawai dalam mana-mana bahasa. AI menyusun perkara, keputusan, tindakan dan pegawai dalam point form. Semak sebelum menyimpan.</p>
+            <label className="block">
+              <span className="label">Nota pegawai untuk rujukan AI</span>
+              <textarea
+                className="textarea mt-1"
+                rows={6}
+                maxLength={8000}
+                value={notes}
+                onChange={(event) => setNotes(event.target.value)}
+                placeholder="Tampal nota mesyuarat, chat atau draf — BM, Inggeris, Cina atau campur."
+              />
+            </label>
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                className="btn-outline-ink disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={aiBusy || (lastNotes !== "" && notes.trim() === lastNotes)}
+                title={lastNotes !== "" && notes.trim() === lastNotes ? "Ubah nota untuk jana semula" : undefined}
+                onClick={(event) => void janaKandungan(event.currentTarget.form)}
+              >
+                {aiBusy ? "Menjana…" : "✨ Jana dengan AI"}
+              </button>
+              <p className="text-xs text-graphite">Medan nota tidak disimpan. Hasil AI menggantikan baris sedia ada.</p>
+            </div>
+            {aiError && <p role="alert" className="text-sm text-red-700">{aiError}</p>}
           </div>
           {items.map((item, index) => (
             <div key={index} className="card space-y-4 p-5 sm:p-7">
@@ -236,13 +298,11 @@ export default function MinitCuraiForm({
         </fieldset>
 
       <div hidden={step !== "C"} className="space-y-6">
+          <input type="hidden" name="rumusan" value="" />
           <fieldset disabled={saving} className="card space-y-5 p-5 sm:p-7">
-            <legend className="sr-only">C. Rumusan dan catatan pelapor</legend>
-            <h2 className="text-lg font-semibold">C. Rumusan dan catatan pelapor</h2>
-            <label className="block">
-              <span className="label">Rumusan / cadangan pelapor *</span>
-              <textarea name="rumusan" className="textarea" rows={6} required maxLength={20000} defaultValue={report?.rumusan} />
-            </label>
+            <legend className="sr-only">C. Catatan pelapor</legend>
+            <h2 className="text-lg font-semibold">C. Catatan pelapor</h2>
+            <p className="text-sm text-graphite">Perkara, keputusan dan tindakan sudah ada dalam Kandungan. Isi lampiran atau tarikh sasaran jika perlu.</p>
             <label className="block">
               <span className="label">Lampiran / bahan diterima</span>
               <textarea name="lampiran" className="textarea" rows={3} maxLength={4000} defaultValue={report?.lampiran} placeholder="Cth: slaid taklimat, minit rasmi, pekeliling" />
@@ -334,12 +394,12 @@ export default function MinitCuraiForm({
 
       <div className="flex flex-wrap items-center gap-3">
         {step !== "A" && (
-          <button type="button" className="btn-outline-ink" disabled={saving} onClick={() => { setError(""); setStep(step === "C" ? "B" : "A"); }}>
+          <button type="button" className="btn-outline-ink" disabled={saving || aiBusy} onClick={() => { setError(""); setStep(step === "C" ? "B" : "A"); }}>
             Kembali
           </button>
         )}
         {step !== "C" ? (
-          <button type="button" className="btn-primary" disabled={saving} onClick={(event) => applyStep(step === "A" ? "B" : "C", event.currentTarget.form!)}>
+          <button type="button" className="btn-primary" disabled={saving || aiBusy} onClick={(event) => applyStep(step === "A" ? "B" : "C", event.currentTarget.form!)}>
             Seterusnya
           </button>
         ) : (

@@ -19,7 +19,7 @@ export type MinitCuraiKaedah = (typeof MINIT_CURAI_KAEDAH)[number];
 export const MINIT_CURAI_STEPS = [
   { id: "A", title: "Butiran", hint: "Pegawai, tajuk dan tarikh mesyuarat" },
   { id: "B", title: "Kandungan", hint: "Isu, keputusan dan tindakan susulan" },
-  { id: "C", title: "Rumusan", hint: "Cadangan, curai dan pengesahan" },
+  { id: "C", title: "Curai", hint: "Penyebaran dan pengesahan" },
 ] as const;
 
 export type MinitCuraiStepId = (typeof MINIT_CURAI_STEPS)[number]["id"];

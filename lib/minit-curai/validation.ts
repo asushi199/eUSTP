@@ -37,7 +37,7 @@ export const minitCuraiStepBSchema = z.object({
 });
 
 const minitCuraiStepCFields = z.object({
-  rumusan: text("rumusan / cadangan pelapor", 20000),
+  rumusan: optionalText("catatan pelapor", 20000),
   lampiran: optionalText("lampiran / bahan diterima", 4000),
   targetDate: optionalDate,
   disebarkanKepada: text("disebarkan kepada", 2000),

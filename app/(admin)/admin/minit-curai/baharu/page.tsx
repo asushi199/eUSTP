@@ -13,7 +13,7 @@ export default async function NewMinitCuraiPage() {
     <>
       <Link href="/admin/minit-curai" className="text-sm text-graphite hover:text-ink">← Minit Curai</Link>
       <h1 className="mt-3 text-2xl font-semibold">Tambah Minit Curai</h1>
-      <p className="mt-1 text-sm text-graphite">Isi peringkat A, kemudian B dan C. Minit hanya kelihatan kepada staf.</p>
+      <p className="mt-1 text-sm text-graphite">Isi A, jana atau lengkapkan Kandungan di B, kemudian curai di C. Minit hanya kelihatan kepada staf.</p>
       <MinitCuraiForm
         id={randomUUID()}
         currentUser={{ nama: user.nama, jawatan: user.jawatan }}

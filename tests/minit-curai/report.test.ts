@@ -23,7 +23,7 @@ function form(overrides: Record<string, string> = {}, items = [{
     tempat: "Dewan JPN Perak",
     chairperson: "Pengarah JPN",
     rujukanFail: "JPN/USTP/2026/12",
-    rumusan: "Perlu sebarkan keputusan kepada semua PKG.",
+    rumusan: "",
     lampiran: "Slaid taklimat",
     targetDate: "2026-09-20",
     disebarkanKepada: "Semua pegawai USTP",
@@ -52,6 +52,7 @@ test("parses a complete minit curai and keeps multiple content rows", () => {
   assert.equal(parsed.data.items.length, 2);
   assert.equal(parsed.data.targetDate, "2026-09-20");
   assert.equal(parsed.data.reviewedAt, null);
+  assert.equal(parsed.data.rumusan, "");
 });
 
 test("rejects empty content, missing required fields and lain-lain without details", () => {
@@ -74,7 +75,7 @@ test("wraps long tokens and paragraph breaks without dropping content", async ()
   assert.ok(lines.every((line) => font.widthOfTextAtSize(line, 9) <= 100));
 });
 
-test("generates additional PDF pages for long rumusan", async () => {
+test("generates additional PDF pages for long kandungan", async () => {
   const parsed = parseMinitCurai(form());
   assert.ok(parsed.success);
   const report: MinitCurai = {
@@ -88,7 +89,12 @@ test("generates additional PDF pages for long rumusan", async () => {
   const short = await PDFDocument.load(await generateMinitCuraiPdf(report));
   const long = await PDFDocument.load(await generateMinitCuraiPdf({
     ...report,
-    rumusan: "Rumusan mesyuarat untuk tindakan semua pegawai. ".repeat(400),
+    items: [{
+      perkara: "• Perkara mesyuarat untuk tindakan semua pegawai. ".repeat(80),
+      keputusan: "• Keputusan mesyuarat. ".repeat(80),
+      tindakan: "• Tindakan susulan. ".repeat(80),
+      pegawai: "Pengurus PKG Sitiawan",
+    }],
   }));
   assert.ok(long.getPageCount() > short.getPageCount());
   for (const page of long.getPages()) {
