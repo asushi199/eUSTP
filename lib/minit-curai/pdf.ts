@@ -38,7 +38,12 @@ export function wrapMinitPdfText(font: PDFFont, value: string, width: number): s
   return lines;
 }
 
-export async function generateMinitCuraiPdf(report: MinitCurai) {
+export async function generateMinitCuraiPdf(
+  report: Omit<MinitCurai, "createdAt" | "updatedAt"> & {
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+  },
+) {
   const pdf = await PDFDocument.create();
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
