@@ -1,5 +1,12 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-06 — NexaBot: PKG_Admin boleh urus
+
+- `/surat` `/foto` `/kemaskini` `/padam` kini untuk semua staf backend
+  (`Admin`, `Pegawai`, `PKG_Admin`) yang akaun aktif + Telegram terikat.
+- Tidak membuka modul kandungan admin (laporan/direktori/khidmat) kepada
+  PKG_Admin — hanya NexaBot.
+
 ## 2026-09-06 — Minit Curai: AI baca PDF/PPTX tanpa Storage
 
 - Peringkat B boleh muat naik PDF/PPTX. Fail diekstrak teks di memori

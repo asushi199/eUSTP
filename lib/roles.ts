@@ -2,7 +2,7 @@
  * Peranan pengguna NEXa (hanya untuk backend /admin — halaman awam tiada log masuk):
  * - Admin     : pentadbir penuh USTP (semua modul; akaun baharu melalui skrip)
  * - Pegawai   : pegawai PPD — semua modul laporan/direktori
- * - PKG_Admin : pentadbir PKG — hanya modul tempahan bagi PKG sendiri (pkgId)
+ * - PKG_Admin : pentadbir PKG — tempahan PKG sendiri + NexaBot
  */
 export const USER_PERANAN = ["Admin", "Pegawai", "PKG_Admin"] as const;
 export type UserPeranan = (typeof USER_PERANAN)[number];
@@ -18,6 +18,11 @@ export function canManageKandungan(peranan: UserPeranan | null | undefined): boo
 
 /** Tempahan (admin) — semua peranan; PKG_Admin terhad kepada pkgId sendiri. */
 export function canManageTempahan(peranan: UserPeranan | null | undefined): boolean {
+  return typeof peranan === "string" && isKnownPeranan(peranan);
+}
+
+/** NexaBot (Telegram) — semua staf backend yang akaun aktif + Telegram terikat. */
+export function canUseNexaBot(peranan: UserPeranan | null | undefined): boolean {
   return typeof peranan === "string" && isKnownPeranan(peranan);
 }
 

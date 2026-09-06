@@ -24,7 +24,7 @@ import { publishMediaLink, removeMediaCard, updateMediaCardMeta } from "@/lib/me
 import { extractGooglePhotosUrl, fetchGooglePhotosAlbumTitle } from "@/lib/media/google-photos";
 import { extractFotoUrl } from "./foto-url";
 import { mediaHref } from "@/lib/media/kategori";
-import { canManageKandungan } from "@/lib/roles";
+import { canUseNexaBot } from "@/lib/roles";
 import {
   draftCardIdFromFileId,
   draftFileIdForCard,
@@ -194,7 +194,7 @@ async function findStaffByTelegramUserId(telegramUserId: string): Promise<StaffR
     columns: { id: true, peranan: true },
     where: and(eq(users.aktif, true), eq(users.telegramChatId, telegramUserId)),
   });
-  if (!user || !canManageKandungan(user.peranan)) return null;
+  if (!user || !canUseNexaBot(user.peranan)) return null;
   return user;
 }
 
@@ -1275,7 +1275,7 @@ async function handleMessage(message: TelegramResourceMessage): Promise<boolean>
     ) {
       await reply(
         String(chatId),
-        "Akaun Telegram ini belum disambungkan sebagai pentadbir. Ikat akaun peribadi anda di /admin/telegram dahulu, kemudian cuba semula.",
+        "Akaun Telegram ini belum disambungkan. Ikat akaun peribadi anda di /admin/telegram dahulu, kemudian cuba semula.",
         undefined,
         { messageThreadId: threadIdOf(message) },
       );
