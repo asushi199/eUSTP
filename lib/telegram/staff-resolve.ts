@@ -7,10 +7,10 @@ export function normalizeTelegramUsername(
 
 export function pickDestinationOwnerUserId(opts: {
   responsibleUserId: number | null | undefined;
-  pkgAdminIds: number[];
-  fallbackAdminId: number | null | undefined;
+  candidateUserIds: number[];
+  fallbackUserId: number | null | undefined;
 }): number | null {
   if (opts.responsibleUserId) return opts.responsibleUserId;
-  if (opts.pkgAdminIds.length > 0) return opts.pkgAdminIds[0];
-  return opts.fallbackAdminId ?? null;
+  if (opts.candidateUserIds.length > 0) return opts.candidateUserIds[0];
+  return opts.fallbackUserId ?? null;
 }

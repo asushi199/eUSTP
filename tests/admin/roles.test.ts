@@ -1,17 +1,16 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { canManageKandungan, canUseNexaBot } from "../../lib/roles";
+import { canManageKandungan, canManageTempahan } from "../../lib/roles";
 
-test("NexaBot accepts Admin, Pegawai, and PKG_Admin", () => {
-  assert.equal(canUseNexaBot("Admin"), true);
-  assert.equal(canUseNexaBot("Pegawai"), true);
-  assert.equal(canUseNexaBot("PKG_Admin"), true);
-  assert.equal(canUseNexaBot(null), false);
-  assert.equal(canUseNexaBot(undefined), false);
-});
-
-test("kandungan admin stays limited to Admin and Pegawai", () => {
+test("Admin and Pegawai share kandungan access; PKG_Admin does not", () => {
   assert.equal(canManageKandungan("Admin"), true);
   assert.equal(canManageKandungan("Pegawai"), true);
   assert.equal(canManageKandungan("PKG_Admin"), false);
+});
+
+test("tempahan is open to every staff role; PKG scope is pkgId", () => {
+  assert.equal(canManageTempahan("Admin"), true);
+  assert.equal(canManageTempahan("Pegawai"), true);
+  assert.equal(canManageTempahan("PKG_Admin"), true);
+  assert.equal(canManageTempahan(null), false);
 });

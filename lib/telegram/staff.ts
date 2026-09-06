@@ -3,25 +3,27 @@ import "server-only";
 import { and, eq, inArray, isNotNull } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { getKhidmatBantuTelegramResponsibleUserId } from "@/lib/khidmat-bantu/queries";
-import { canUseNexaBot, type UserPeranan } from "@/lib/roles";
 import { pkgs, telegramDestinations, users } from "@/lib/schema";
 import { KHIDMAT_TELEGRAM_DESTINATION_ID } from "./binding";
 import { normalizeTelegramUsername, pickDestinationOwnerUserId } from "./staff-resolve";
 
-export type TelegramStaff = { id: number; peranan: UserPeranan };
+export type TelegramStaff = { id: number };
 export { normalizeTelegramUsername, pickDestinationOwnerUserId };
-
-function asStaff(user: { id: number; peranan: UserPeranan } | null | undefined): TelegramStaff | null {
-  if (!user || !canUseNexaBot(user.peranan)) return null;
-  return { id: user.id, peranan: user.peranan };
-}
 
 async function loadStaff(userId: number): Promise<TelegramStaff | null> {
   const user = await db.query.users.findFirst({
-    columns: { id: true, peranan: true },
+    columns: { id: true },
     where: and(eq(users.id, userId), eq(users.aktif, true)),
   });
-  return asStaff(user);
+  return user ? { id: user.id } : null;
+}
+
+async function findAnyAktifStaff(): Promise<TelegramStaff | null> {
+  const user = await db.query.users.findFirst({
+    columns: { id: true },
+    where: eq(users.aktif, true),
+  });
+  return user ? { id: user.id } : null;
 }
 
 async function findStaffForDestinationIds(destinationIds: string[]): Promise<TelegramStaff | null> {
@@ -45,20 +47,11 @@ async function findStaffForDestinationIds(destinationIds: string[]): Promise<Tel
       }
     }
 
-    const pkgAdmins = await db
-      .select({ id: users.id, peranan: users.peranan })
+    const pkgUsers = await db
+      .select({ id: users.id })
       .from(users)
-      .where(
-        and(
-          eq(users.aktif, true),
-          eq(users.peranan, "PKG_Admin"),
-          inArray(users.pkgId, pkgIds),
-        ),
-      );
-    if (pkgAdmins[0]) {
-      const staff = asStaff(pkgAdmins[0]);
-      if (staff) return staff;
-    }
+      .where(and(eq(users.aktif, true), inArray(users.pkgId, pkgIds)));
+    if (pkgUsers[0]) return { id: pkgUsers[0].id };
   }
 
   if (wantsKhidmat) {
@@ -69,36 +62,30 @@ async function findStaffForDestinationIds(destinationIds: string[]): Promise<Tel
     }
   }
 
-  const fallbackAdmin = await db.query.users.findFirst({
-    columns: { id: true, peranan: true },
-    where: and(eq(users.aktif, true), eq(users.peranan, "Admin")),
-  });
-  return asStaff(fallbackAdmin);
+  return findAnyAktifStaff();
 }
 
-/** Akaun peribadi, nama Telegram, atau sambungan PKG/khidmat semuanya dikira terikat. */
+/** Akaun staf aktif yang Telegramnya terikat — peranan tidak ditapis. */
 export async function findStaffByTelegramIdentity(
   telegramUserId: string,
   telegramUsername?: string | null,
 ): Promise<TelegramStaff | null> {
   const byChat = await db.query.users.findFirst({
-    columns: { id: true, peranan: true },
+    columns: { id: true },
     where: and(eq(users.aktif, true), eq(users.telegramChatId, telegramUserId)),
   });
-  const personal = asStaff(byChat);
-  if (personal) return personal;
+  if (byChat) return { id: byChat.id };
 
   const username = normalizeTelegramUsername(telegramUsername);
   if (username) {
     const boundUsers = await db
-      .select({ id: users.id, peranan: users.peranan, telegramUsername: users.telegramUsername })
+      .select({ id: users.id, telegramUsername: users.telegramUsername })
       .from(users)
       .where(and(eq(users.aktif, true), isNotNull(users.telegramBoundAt)));
     const byUsername = boundUsers.find(
       (user) => normalizeTelegramUsername(user.telegramUsername) === username,
     );
-    const named = asStaff(byUsername);
-    if (named) return named;
+    if (byUsername) return { id: byUsername.id };
   }
 
   const destinations = await db
@@ -116,7 +103,7 @@ export async function attachTelegramIdentityToDestinationUser(
 ): Promise<void> {
   const pkgId = destinationId.startsWith("pkg:") ? destinationId.slice(4) : null;
   let responsibleUserId: number | null = null;
-  let pkgAdminIds: number[] = [];
+  let candidateUserIds: number[] = [];
 
   if (pkgId) {
     const pkg = await db.query.pkgs.findFirst({
@@ -124,25 +111,20 @@ export async function attachTelegramIdentityToDestinationUser(
       where: eq(pkgs.id, pkgId),
     });
     responsibleUserId = pkg?.telegramResponsibleUserId ?? null;
-    const admins = await db
+    const pkgUsers = await db
       .select({ id: users.id })
       .from(users)
-      .where(
-        and(eq(users.aktif, true), eq(users.peranan, "PKG_Admin"), eq(users.pkgId, pkgId)),
-      );
-    pkgAdminIds = admins.map((row) => row.id);
+      .where(and(eq(users.aktif, true), eq(users.pkgId, pkgId)));
+    candidateUserIds = pkgUsers.map((row) => row.id);
   } else if (destinationId === KHIDMAT_TELEGRAM_DESTINATION_ID) {
     responsibleUserId = await getKhidmatBantuTelegramResponsibleUserId();
   }
 
-  const fallbackAdmin = await db.query.users.findFirst({
-    columns: { id: true },
-    where: and(eq(users.aktif, true), eq(users.peranan, "Admin")),
-  });
+  const fallback = await findAnyAktifStaff();
   const userId = pickDestinationOwnerUserId({
     responsibleUserId,
-    pkgAdminIds,
-    fallbackAdminId: fallbackAdmin?.id ?? null,
+    candidateUserIds,
+    fallbackUserId: fallback?.id ?? null,
   });
   if (!userId) return;
 

@@ -1,5 +1,12 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-06 — NexaBot: jangan tapis peranan
+
+- NexaBot hanya semak akaun aktif + Telegram terikat. `canUseNexaBot`
+  digugurkan — Admin/Pegawai/PKG_Admin tidak dibeza.
+- Ikatan destinasi: pegawai ditetapkan (`telegramResponsibleUserId`)
+  dahulu, kemudian mana-mana staf `pkgId` itu, bukan tekaan peranan.
+
 ## 2026-09-06 — NexaBot: sambungan PKG dikira terikat
 
 - `/surat` gagal jika hanya ikat destinasi PKG (notifikasi), kerana bot

@@ -12,36 +12,36 @@ test("normalizes Telegram usernames without the at sign", () => {
   assert.equal(normalizeTelegramUsername(null), null);
 });
 
-test("prefers the responsible officer, then PKG admin, then fallback admin", () => {
+test("prefers the designated officer, then any candidate, then fallback", () => {
   assert.equal(
     pickDestinationOwnerUserId({
       responsibleUserId: 9,
-      pkgAdminIds: [3, 4],
-      fallbackAdminId: 1,
+      candidateUserIds: [3, 4],
+      fallbackUserId: 1,
     }),
     9,
   );
   assert.equal(
     pickDestinationOwnerUserId({
       responsibleUserId: null,
-      pkgAdminIds: [3, 4],
-      fallbackAdminId: 1,
+      candidateUserIds: [3, 4],
+      fallbackUserId: 1,
     }),
     3,
   );
   assert.equal(
     pickDestinationOwnerUserId({
       responsibleUserId: null,
-      pkgAdminIds: [],
-      fallbackAdminId: 1,
+      candidateUserIds: [],
+      fallbackUserId: 1,
     }),
     1,
   );
   assert.equal(
     pickDestinationOwnerUserId({
       responsibleUserId: null,
-      pkgAdminIds: [],
-      fallbackAdminId: null,
+      candidateUserIds: [],
+      fallbackUserId: null,
     }),
     null,
   );
