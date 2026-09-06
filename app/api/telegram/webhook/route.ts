@@ -10,6 +10,7 @@ import {
 } from "@/lib/telegram/binding";
 import { sendTelegramMessage } from "@/lib/telegram/client";
 import { handleTelegramResourceUpdate } from "@/lib/telegram/resource-upload";
+import { attachTelegramIdentityToDestinationUser } from "@/lib/telegram/staff";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -167,9 +168,10 @@ async function handleBindToken(
           where: eq(pkgs.id, pkgId),
         })
       : null;
+    await attachTelegramIdentityToDestinationUser(destination.id, chatId, username);
     await sendTelegramMessage(
       chatId,
-      `Telegram telah disambungkan dengan ${telegramDestinationLabel(destination.id, pkg?.name)}. Notifikasi permohonan akan dihantar ke sini.`,
+      `Telegram telah disambungkan dengan ${telegramDestinationLabel(destination.id, pkg?.name)}. Notifikasi permohonan akan dihantar ke sini. Taip /mula untuk bantuan NexaBot.`,
     );
   } catch {
     await sendTelegramMessage(

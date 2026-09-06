@@ -4,7 +4,7 @@ import { and, eq, lt } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { isGasStorageConfigured } from "@/lib/gas-upload";
 import { resolveSuratMime } from "@/lib/khidmat-bantu/surat-mime";
-import { telegramResourceDrafts, users } from "@/lib/schema";
+import { telegramResourceDrafts } from "@/lib/schema";
 import { isLetterMonthKey } from "@/lib/resources/drive-path";
 import {
   isResourcesBotKategori,
@@ -24,7 +24,7 @@ import { publishMediaLink, removeMediaCard, updateMediaCardMeta } from "@/lib/me
 import { extractGooglePhotosUrl, fetchGooglePhotosAlbumTitle } from "@/lib/media/google-photos";
 import { extractFotoUrl } from "./foto-url";
 import { mediaHref } from "@/lib/media/kategori";
-import { canUseNexaBot } from "@/lib/roles";
+import { findStaffByTelegramIdentity, type TelegramStaff } from "@/lib/telegram/staff";
 import {
   draftCardIdFromFileId,
   draftFileIdForCard,
@@ -123,7 +123,7 @@ export type TelegramResourceUpdate = {
 };
 
 type DraftRow = typeof telegramResourceDrafts.$inferSelect;
-type StaffRow = { id: number; peranan: typeof users.$inferSelect.peranan };
+type StaffRow = TelegramStaff;
 
 function portalBaseUrl(): string {
   return (process.env.APP_BASE_URL ?? "").trim().replace(/\/$/, "");
@@ -189,13 +189,11 @@ function mediaCardStatusText(
     .join("\n");
 }
 
-async function findStaffByTelegramUserId(telegramUserId: string): Promise<StaffRow | null> {
-  const user = await db.query.users.findFirst({
-    columns: { id: true, peranan: true },
-    where: and(eq(users.aktif, true), eq(users.telegramChatId, telegramUserId)),
-  });
-  if (!user || !canUseNexaBot(user.peranan)) return null;
-  return user;
+async function findStaffByTelegramUserId(
+  telegramUserId: string,
+  telegramUsername?: string | null,
+): Promise<StaffRow | null> {
+  return findStaffByTelegramIdentity(telegramUserId, telegramUsername);
 }
 
 async function findDraft(chatId: string, telegramUserId: string): Promise<DraftRow | null> {
@@ -1258,7 +1256,7 @@ async function handleMessage(message: TelegramResourceMessage): Promise<boolean>
   }
 
   const telegramUserId = String(fromId);
-  const staff = await findStaffByTelegramUserId(telegramUserId);
+  const staff = await findStaffByTelegramUserId(telegramUserId, message.from?.username);
   if (!staff) {
     const command = parseBotCommand(message.text ?? message.caption, getTelegramBotUsername());
     const file = extractFile(message, command === "surat");
@@ -1275,7 +1273,7 @@ async function handleMessage(message: TelegramResourceMessage): Promise<boolean>
     ) {
       await reply(
         String(chatId),
-        "Akaun Telegram ini belum disambungkan. Ikat akaun peribadi anda di /admin/telegram dahulu, kemudian cuba semula.",
+        "Akaun Telegram ini belum disambungkan. Ikat Telegram di /admin/telegram (sambungan PKG atau akaun peribadi), kemudian cuba semula.",
         undefined,
         { messageThreadId: threadIdOf(message) },
       );
@@ -1306,7 +1304,7 @@ async function handleCallback(query: TelegramResourceCallback): Promise<boolean>
   const mediaParsed = parseMediaFotoCallback(query.data);
   if (mediaParsed) {
     const telegramUserId = String(fromId);
-    const staff = await findStaffByTelegramUserId(telegramUserId);
+    const staff = await findStaffByTelegramUserId(telegramUserId, query.from?.username);
     if (!staff) {
       await answerTelegramCallback(callbackId, "Tiada kebenaran.");
       return true;
@@ -1344,7 +1342,7 @@ async function handleCallback(query: TelegramResourceCallback): Promise<boolean>
   }
 
   const telegramUserId = String(fromId);
-  const staff = await findStaffByTelegramUserId(telegramUserId);
+  const staff = await findStaffByTelegramUserId(telegramUserId, query.from?.username);
   if (!staff) {
     await answerTelegramCallback(callbackId, "Tiada kebenaran.");
     return true;

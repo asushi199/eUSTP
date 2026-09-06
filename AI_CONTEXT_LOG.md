@@ -1,5 +1,14 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-06 — NexaBot: sambungan PKG dikira terikat
+
+- `/surat` gagal jika hanya ikat destinasi PKG (notifikasi), kerana bot
+  hanya semak `users.telegram_chat_id`. Halaman Telegram menandakan ikatan
+  peribadi sebagai pilihan, jadi pegawai rasa sudah terikat.
+- Kini NexaBot terima: akaun peribadi, nama pengguna Telegram, atau
+  `telegram_destinations.chat_id` (sambungan PKG/khidmat). Ikatan destinasi
+  baharu juga disalin ke akaun pegawai bertanggungjawab jika belum ada.
+
 ## 2026-09-06 — NexaBot: PKG_Admin boleh urus
 
 - `/surat` `/foto` `/kemaskini` `/padam` kini untuk semua staf backend

@@ -104,7 +104,8 @@ export default async function AdminTelegramPage() {
       <h1 className="text-2xl font-semibold tracking-tight">Telegram</h1>
       <p className="mt-1 text-sm text-graphite">
         Jana pautan sambungan untuk setiap PKG. Pegawai buka pautan di Telegram
-        dan tekan Start — tidak perlu log masuk portal.
+        dan tekan Start — tidak perlu log masuk portal. Sambungan ini juga
+        membolehkan NexaBot (/surat, /foto).
       </p>
 
       <section className="mt-6 max-w-2xl space-y-4">
@@ -122,7 +123,7 @@ export default async function AdminTelegramPage() {
               <TelegramBindingCard
                 key={pkg.id}
                 title={pkg.name}
-                description="Pautan ini menyambungkan Telegram pegawai bagi Tempahan Bilik dan Peralatan PKG ini."
+                description="Pautan ini menyambungkan Telegram pegawai bagi Tempahan Bilik, Peralatan dan NexaBot PKG ini."
                 connected={pkg.connected}
                 username={pkg.username}
                 boundAt={pkg.boundAt}
@@ -150,7 +151,8 @@ export default async function AdminTelegramPage() {
           Akaun Telegram pentadbir ini
         </h2>
         <p className="mt-1 text-sm text-graphite">
-          Pilihan. Sambungan peribadi berasingan daripada sambungan PKG di atas.
+          Pilihan. Jika pegawai sudah sambung PKG di atas, NexaBot sudah boleh
+          digunakan — sambungan ini hanya untuk notifikasi peribadi.
         </p>
         <div className="mt-4">
           <TelegramBindingCard
