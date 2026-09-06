@@ -5,6 +5,7 @@ import { requireUser } from "@/lib/rbac";
 import { generateGeminiText } from "@/lib/ai/gemini";
 import { labelGeminiModel } from "@/lib/ai/gemini-models";
 import { parseMinitAiItems } from "@/lib/minit-curai/ai";
+import { MINIT_CURAI_TINDAKAN_BY } from "@/lib/minit-curai/options";
 import {
   MINIT_AI_MAX_CHARS,
   MINIT_AI_MAX_VISION_PAGES,
@@ -127,7 +128,7 @@ Tugas:
 - WAJIB pecahkan kepada beberapa perkara berasingan jika ada lebih daripada satu isu, keputusan atau tindakan (1 hingga 15 objek).
 - Jangan gabungkan semua isu dalam satu perkara. Satu isu / keputusan / tindakan = satu objek.
 - Setiap medan perkara, keputusan dan tindakan WAJIB point form: setiap ayat pada baris berasingan dan bermula dengan "• ".
-- pegawai ialah nama atau unit bertanggungjawab. Jika tidak dinyatakan, guna "Tidak dinyatakan". Jangan cipta nama.
+- pegawai ialah pegawai/unit yang melaksanakan tindakan. Secara lalai SEMUA tindakan ialah "${MINIT_CURAI_TINDAKAN_BY}", kecuali sumber menyatakan nama atau unit lain secara jelas. Jangan cipta nama lain.
 - Jangan ulang rumusan keseluruhan; hanya isi jadual.
 
 Format jawapan (WAJIB): JSON array sahaja, tanpa markdown, tanpa ayat tambahan.

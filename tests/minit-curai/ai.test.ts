@@ -23,6 +23,17 @@ test("parses fenced JSON and drops incomplete rows", () => {
   assert.equal(items[0].pegawai, "PKG Sitiawan");
 });
 
+test("defaults unnamed tindakan to Penolong PPD USTP Daerah Manjung", () => {
+  const items = parseMinitAiItems(JSON.stringify([
+    { perkara: "Dasar DPD", keputusan: "Laksana", tindakan: "Hebahan", pegawai: "Tidak dinyatakan" },
+    { perkara: "Hebahan", keputusan: "Hantar", tindakan: "E-mel", pegawai: "" },
+  ]));
+  assert.ok(items);
+  assert.equal(items.length, 2);
+  assert.equal(items[0].pegawai, "Penolong PPD USTP Daerah Manjung");
+  assert.equal(items[1].pegawai, "Penolong PPD USTP Daerah Manjung");
+});
+
 test("rejects empty or invalid AI payloads", () => {
   assert.equal(parseMinitAiItems(""), null);
   assert.equal(parseMinitAiItems("Tiada jadual"), null);

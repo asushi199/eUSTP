@@ -1,5 +1,6 @@
 export const MINIT_CURAI_UNIT = "Unit Sumber Teknologi Pendidikan";
 export const MINIT_CURAI_OFFICER_TITLE = "Penolong Pegawai PPD USTP";
+export const MINIT_CURAI_TINDAKAN_BY = "Penolong PPD USTP Daerah Manjung";
 
 export const MINIT_CURAI_GRADES = ["DG10", "DG12"] as const;
 
@@ -32,5 +33,5 @@ export function todayYmd(now = new Date()) {
 }
 
 export function emptyMinitItem() {
-  return { perkara: "", keputusan: "", tindakan: "", pegawai: "" };
+  return { perkara: "", keputusan: "", tindakan: "", pegawai: MINIT_CURAI_TINDAKAN_BY };
 }

@@ -1,3 +1,4 @@
+import { MINIT_CURAI_TINDAKAN_BY } from "./options";
 import type { MinitCuraiItem } from "@/lib/schema";
 
 const MAX_ITEMS = 15;
@@ -38,8 +39,10 @@ export function parseMinitAiItems(raw: string): MinitCuraiItem[] | null {
     const perkara = normalizePointForm(String(record.perkara ?? ""));
     const keputusan = normalizePointForm(String(record.keputusan ?? ""));
     const tindakan = normalizePointForm(String(record.tindakan ?? ""));
-    const pegawai = String(record.pegawai ?? "").replace(/\s+/g, " ").trim();
-    if (!perkara || !keputusan || !tindakan || !pegawai) continue;
+    const rawPegawai = String(record.pegawai ?? "").replace(/\s+/g, " ").trim();
+    const unnamed = !rawPegawai || /^tidak dinyatakan$/i.test(rawPegawai);
+    const pegawai = unnamed ? MINIT_CURAI_TINDAKAN_BY : rawPegawai;
+    if (!perkara || !keputusan || !tindakan) continue;
     items.push({
       perkara: clip(perkara, MAX_FIELD),
       keputusan: clip(keputusan, MAX_FIELD),
