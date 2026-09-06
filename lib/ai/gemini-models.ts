@@ -10,6 +10,17 @@ export function resolveGeminiModels(env: Record<string, string | undefined> = pr
   return [...DEFAULT_GEMINI_MODELS];
 }
 
+export function thinkingConfigForModel(model: string, budget?: number) {
+  if (/gemini-3\.8/i.test(model)) return { thinkingLevel: "low" };
+  if (/gemini-3/i.test(model)) return { thinkingLevel: "minimal" };
+  if (/gemini-2\.5/i.test(model)) return { thinkingBudget: budget ?? 0 };
+  return null;
+}
+
+export function shouldFallbackGeminiStatus(status: number) {
+  return status === 400 || status === 404 || status === 429;
+}
+
 export function labelGeminiModel(model: string) {
   const parts = model.replace(/^gemini-/i, "").split("-").filter(Boolean);
   if (parts.length < 2) return model;

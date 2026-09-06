@@ -1,6 +1,6 @@
 import "server-only";
 
-import { resolveGeminiModels } from "@/lib/ai/gemini-models";
+import { resolveGeminiModels, shouldFallbackGeminiStatus, thinkingConfigForModel } from "@/lib/ai/gemini-models";
 
 /**
  * Klien ringkas Gemini (REST) — tiada SDK tambahan. Dipanggil hanya di sisi
@@ -39,12 +39,6 @@ function geminiModels() {
   return resolveGeminiModels();
 }
 
-function thinkingConfig(model: string, budget?: number) {
-  if (/gemini-3/i.test(model)) return { thinkingLevel: "minimal" };
-  if (/gemini-2\.5/i.test(model)) return { thinkingBudget: budget ?? 0 };
-  return null;
-}
-
 export async function generateGeminiText(
   prompt: string,
   opts: GenerateOptions = {},
@@ -78,7 +72,7 @@ export async function generateGeminiText(
         temperature: opts.temperature ?? 0.7,
         maxOutputTokens: opts.maxOutputTokens ?? 1024,
       };
-      const thinking = thinkingConfig(model, opts.thinkingBudget);
+      const thinking = thinkingConfigForModel(model, opts.thinkingBudget);
       if (thinking) generationConfig.thinkingConfig = thinking;
 
       const res = await fetch(
@@ -103,10 +97,12 @@ export async function generateGeminiText(
       if (!res.ok) {
         const detail = await res.text().catch(() => "");
         console.error("[gemini] HTTP", res.status, model, detail.slice(0, 500));
-        if (hasNext && (res.status === 429 || res.status === 404)) {
+        if (hasNext && shouldFallbackGeminiStatus(res.status)) {
           last = {
             ok: false,
-            error: "Kuota AI harian/seminit telah dicapai. Cuba sebentar lagi.",
+            error: res.status === 429
+              ? "Kuota AI harian/seminit telah dicapai. Cuba sebentar lagi."
+              : "Perkhidmatan AI tidak tersedia buat masa ini.",
           };
           continue;
         }
