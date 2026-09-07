@@ -4,6 +4,11 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { uploadSuratPermohonanAction } from "@/lib/actions/khidmat-bantu";
 import { compressImageForLaporan } from "@/lib/client/compress-image";
 import { isAllowedSuratMime } from "@/lib/khidmat-bantu/surat-mime";
+import {
+  isSuratUploadMetaReady,
+  SURAT_UPLOAD_META_DEBOUNCE_MS,
+  suratUploadWaitHint,
+} from "@/lib/khidmat-bantu/surat-upload-meta";
 import { cn } from "@/lib/cn";
 import type { KhidmatSuratPermohonan } from "@/lib/schema";
 
@@ -42,31 +47,96 @@ export default function SuratPermohonanInput({
   const [dragOver, setDragOver] = useState(false);
   const [uploading, startUpload] = useTransition();
   const uploadedMetaRef = useRef<string | null>(null);
+  const attemptedKeyRef = useRef<string | null>(null);
+  const generationRef = useRef(0);
+  const skipDebounceRef = useRef(false);
 
-  const metaKey = `${orgName}|${activityDate}|${serviceType}`;
+  const metaKey = `${orgName.trim()}|${activityDate}|${serviceType}`;
+  const metaReady = isSuratUploadMetaReady(orgName, activityDate);
+  const waitHint = selected && !uploaded && !uploading ? suratUploadWaitHint(orgName, activityDate) : null;
 
   useEffect(() => {
     onReadyChange?.(!!uploaded && !uploading);
   }, [uploaded, uploading, onReadyChange]);
 
-  // Jangan reset semasa upload sedang berjalan; beritahu jika medan berubah selepas berjaya.
+  // Medan berubah selepas berjaya: kekalkan fail, muat naik semula dengan meta baharu.
   useEffect(() => {
     if (uploading) return;
     if (!uploaded || !uploadedMetaRef.current) return;
     if (metaKey === uploadedMetaRef.current) return;
-    setSelected(null);
+    generationRef.current += 1;
+    attemptedKeyRef.current = null;
     setUploaded(null);
     uploadedMetaRef.current = null;
     setNotice(null);
-    setError("Tarikh, sekolah/unit atau jenis perkhidmatan berubah — sila muat naik surat semula.");
-    if (inputRef.current) inputRef.current.value = "";
+    setError(null);
   }, [metaKey, uploaded, uploading]);
 
-  function canUploadMeta(): string | null {
-    if (!orgName.trim()) return "Sila isi nama sekolah/unit dahulu.";
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(activityDate)) return "Sila pilih tarikh cadangan dahulu.";
-    return null;
-  }
+  // Muat naik apabila fail + nama + tarikh sedia; debounce elak muat naik semasa taip nama unit.
+  useEffect(() => {
+    if (!selected || uploaded || uploading || disabled || !metaReady) return;
+    if (attemptedKeyRef.current === metaKey) return;
+
+    const file = selected;
+    const uploadedKey = metaKey;
+    const delay = skipDebounceRef.current ? 0 : SURAT_UPLOAD_META_DEBOUNCE_MS;
+    const timer = window.setTimeout(() => {
+      skipDebounceRef.current = false;
+      const gen = generationRef.current;
+      attemptedKeyRef.current = uploadedKey;
+      startUpload(async () => {
+        try {
+          let uploadFile = file;
+          let compressNotice: string | undefined;
+          if (file.type.startsWith("image/")) {
+            const compressed = await compressImageForLaporan(file);
+            uploadFile = compressed.file;
+            compressNotice = compressed.notice;
+          }
+
+          const fd = new FormData();
+          fd.set("file", uploadFile);
+          fd.set("orgName", orgName.trim());
+          fd.set("activityDate", activityDate);
+          fd.set("serviceType", serviceType);
+
+          const res = await uploadSuratPermohonanAction(fd);
+          if (gen !== generationRef.current) return;
+          if (!res.ok) {
+            setError(res.error);
+            setUploaded(null);
+            return;
+          }
+
+          setUploaded(res.surat);
+          uploadedMetaRef.current = uploadedKey;
+          setError(null);
+          setNotice(
+            compressNotice
+              ? `${compressNotice} Fail berjaya dimuat naik.`
+              : "Fail berjaya dimuat naik.",
+          );
+        } catch (err) {
+          if (gen !== generationRef.current) return;
+          setError(err instanceof Error ? err.message : "Gagal memuat naik surat permohonan.");
+          setUploaded(null);
+        }
+      });
+    }, delay);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    selected,
+    uploaded,
+    uploading,
+    disabled,
+    metaReady,
+    metaKey,
+    orgName,
+    activityDate,
+    serviceType,
+    startUpload,
+  ]);
 
   function validateFile(file: File | null): string | null {
     if (!file) return "Fail tidak sah.";
@@ -77,68 +147,33 @@ export default function SuratPermohonanInput({
     return null;
   }
 
-  function startUploadFile(file: File) {
-    const metaErr = canUploadMeta();
-    if (metaErr) {
-      setError(metaErr);
-      setSelected(null);
-      if (inputRef.current) inputRef.current.value = "";
-      return;
-    }
+  function acceptFile(file: File) {
     const fileErr = validateFile(file);
     if (fileErr) {
+      generationRef.current += 1;
+      attemptedKeyRef.current = null;
       setError(fileErr);
       setSelected(null);
+      setUploaded(null);
+      uploadedMetaRef.current = null;
       if (inputRef.current) inputRef.current.value = "";
       return;
     }
 
+    generationRef.current += 1;
+    attemptedKeyRef.current = null;
+    skipDebounceRef.current = isSuratUploadMetaReady(orgName, activityDate);
     setSelected(file);
     setUploaded(null);
+    uploadedMetaRef.current = null;
     setError(null);
     setNotice(null);
-
-    startUpload(async () => {
-      try {
-        let uploadFile = file;
-        let compressNotice: string | undefined;
-        if (file.type.startsWith("image/")) {
-          const compressed = await compressImageForLaporan(file);
-          uploadFile = compressed.file;
-          compressNotice = compressed.notice;
-        }
-
-        const fd = new FormData();
-        fd.set("file", uploadFile);
-        fd.set("orgName", orgName.trim());
-        fd.set("activityDate", activityDate);
-        fd.set("serviceType", serviceType);
-
-        const res = await uploadSuratPermohonanAction(fd);
-        if (!res.ok) {
-          setError(res.error);
-          setUploaded(null);
-          return;
-        }
-
-        setUploaded(res.surat);
-        uploadedMetaRef.current = metaKey;
-        setNotice(
-          compressNotice
-            ? `${compressNotice} Fail berjaya dimuat naik.`
-            : "Fail berjaya dimuat naik.",
-        );
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Gagal memuat naik surat permohonan.");
-        setUploaded(null);
-      }
-    });
   }
 
   function onInputChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] ?? null;
     if (!file) return;
-    startUploadFile(file);
+    acceptFile(file);
   }
 
   function onDrop(e: React.DragEvent) {
@@ -147,10 +182,12 @@ export default function SuratPermohonanInput({
     if (disabled || uploading) return;
     const file = e.dataTransfer.files?.[0] ?? null;
     if (!file) return;
-    startUploadFile(file);
+    acceptFile(file);
   }
 
   function clearFile() {
+    generationRef.current += 1;
+    attemptedKeyRef.current = null;
     setSelected(null);
     setUploaded(null);
     uploadedMetaRef.current = null;
@@ -245,7 +282,7 @@ export default function SuratPermohonanInput({
                 ? "Memuat naik ke Google Drive…"
                 : uploaded
                   ? `✓ Dimuat naik · ${formatBytes(selected.size)}`
-                  : formatBytes(selected.size)}
+                  : waitHint ?? (error ? formatBytes(selected.size) : "Akan dimuat naik…")}
             </p>
           </div>
           <div className="flex shrink-0 gap-2">
@@ -270,8 +307,7 @@ export default function SuratPermohonanInput({
       )}
 
       <p className="mt-2 text-xs text-graphite">
-        PDF atau imej (JPG/PNG/WebP), maksimum 8 MB. Muat naik surat selepas pilih tarikh
-        cadangan. Fail disimpan ke Google Drive melalui GAS.
+        PDF atau imej (JPG/PNG/WebP), maksimum 8 MB.
       </p>
       {notice && !error && <p className="mt-1 text-xs text-primary">{notice}</p>}
       {error && <p className="mt-1 text-xs text-bloom-deep">{error}</p>}

@@ -1,5 +1,17 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-07 — Khidmat Bantu: muat naik surat tanpa tertib medan
+
+- Surat boleh dipilih pada bila-bila masa. Muat naik ke Drive hanya bermula
+  apabila nama sekolah/unit + tarikh cadangan sudah ada (debounce 800ms,
+  elak muat naik semasa taip nama unit). Butang hantar kekal menunggu
+  muat naik selesai.
+- Jangan gabungkan muat naik dengan submit — GAS + Vercel boleh timeout.
+  Jangan muat naik tanpa tarikh: folder/nama fail Drive
+  `Khidmat-Bantu/<tahun>/<YYYY-MM>/` + `YYYY-MM-DD_org_service_…`.
+- Jika tarikh/sekolah/jenis berubah selepas berjaya, fail yang sama dimuat
+  naik semula; fail lama di Drive tidak dipadam (sama seperti sebelum ini).
+
 ## 2026-09-07 — Admin boleh tukar lokasi (bilik) semasa "Ubah" tempahan
 
 - Panel admin tempahan (`AdminBookingActions`) kini ada dropdown **Lokasi (bilik)**
