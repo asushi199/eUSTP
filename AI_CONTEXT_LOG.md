@@ -1577,3 +1577,5 @@ Corak berselang = instance sihat vs beracun.
   singkatan seperti "Sept") supaya tarikh snapshot ikut nama fail, bukan tarikh larian.
 - CSV mentah mengandungi nama & emel pelajar — TIDAK dikomit; corak
   `/docs/Data Baucar Buku*.csv` ditambah ke `.gitignore`.
+- Betulkan susun atur tarikh snapshot pada tajuk halaman: guna ruang tak-pecah
+  (String.fromCharCode(160)) supaya "7 September 2026" tak dipecah antara baris.

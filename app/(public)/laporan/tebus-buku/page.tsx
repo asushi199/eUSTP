@@ -30,7 +30,8 @@ export default async function TebusBukuIndexPage() {
     unavailable = true;
   }
 
-  const tarikh = formatTarikhSnapshot(sourcedAt);
+  // Guna ruang tak-pecah supaya "7 September 2026" tak dipisah antara baris.
+  const tarikh = formatTarikhSnapshot(sourcedAt)?.replace(/ /g, String.fromCharCode(160));
 
   return (
     <PublicPageShell narrow>
