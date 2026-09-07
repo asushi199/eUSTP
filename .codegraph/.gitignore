@@ -1,6 +1,0 @@
-# Keep the shared index DB; ignore local/runtime transients only.
-*
-!.gitignore
-!codegraph.db
-!codegraph.db-wal
-!codegraph.db-shm
