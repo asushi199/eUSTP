@@ -14,6 +14,11 @@ tmp/
 # CodeGraph local index (per-machine, auto-generated)
 .codegraph/
 
+# Fail kerja tempatan (tidak dikongsi)
+/docs/6f10807f.docx
+/docs/Template_Minit_Curai_Terkini_v2.docx
+/tebus buku/
+
 # PWA (generated at build)
 public/sw.js
 public/sw.js.map
