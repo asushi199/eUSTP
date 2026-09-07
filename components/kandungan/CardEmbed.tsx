@@ -51,10 +51,7 @@ export default function CardEmbed({
 
   return (
     <div className="card flex flex-col p-4">
-      <div className="flex items-start justify-between gap-2">
-        <p className="font-semibold leading-snug">{title}</p>
-        <span className="status-badge shrink-0">{typeLabel}</span>
-      </div>
+      <p className="font-semibold leading-snug">{title}</p>
       {blurb ? <p className="mt-1 text-sm leading-relaxed text-graphite">{blurb}</p> : null}
 
       {showYoutubeThumb ? (
@@ -138,6 +135,7 @@ export default function CardEmbed({
             Tutup Video
           </button>
         ) : null}
+        {typeLabel ? <span className="status-badge ml-auto shrink-0">{typeLabel}</span> : null}
       </div>
 
       {preview ? (
