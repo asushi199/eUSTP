@@ -282,7 +282,7 @@ export default function SuratPermohonanInput({
                 ? "Memuat naik ke Google Drive…"
                 : uploaded
                   ? `✓ Dimuat naik · ${formatBytes(selected.size)}`
-                  : waitHint ?? "Akan dimuat naik…"}
+                  : waitHint ?? (error ? formatBytes(selected.size) : "Akan dimuat naik…")}
             </p>
           </div>
           <div className="flex shrink-0 gap-2">
