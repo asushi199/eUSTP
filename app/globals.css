@@ -19,6 +19,13 @@
     overflow-x: clip;
     background-color: var(--portal-canvas, #f4f8fb);
   }
+
+  /* UA stylesheet: min-inline-size: min-content. Placeholder panjang (cth. masa)
+     menolak input keluar dari kad pada skrin telefon. */
+  fieldset {
+    min-width: 0;
+    min-inline-size: 0;
+  }
 }
 
 @layer components {
@@ -68,7 +75,7 @@
     @apply rounded-xl bg-cloud;
   }
   .input {
-    @apply block h-11 w-full rounded-md border border-steel bg-white px-4 text-[15px] text-ink placeholder-graphite/70 focus:border-ink focus:outline-none focus:ring-1 focus:ring-ink;
+    @apply box-border block h-11 w-full min-w-0 max-w-full rounded-md border border-steel bg-white px-4 text-[15px] text-ink placeholder-graphite/70 focus:border-ink focus:outline-none focus:ring-1 focus:ring-ink;
   }
   .textarea {
     @apply block w-full rounded-md border border-steel bg-white px-4 py-3 text-[15px] text-ink placeholder-graphite/70 focus:border-ink focus:outline-none focus:ring-1 focus:ring-ink;

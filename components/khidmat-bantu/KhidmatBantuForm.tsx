@@ -60,7 +60,7 @@ export default function KhidmatBantuForm({ schools }: { schools: SchoolOption[] 
   }, [applicantType, schoolCode, schools]);
 
   return (
-    <form action={formAction} className="card space-y-6 p-6">
+    <form action={formAction} className="card min-w-0 max-w-full space-y-6 overflow-x-clip p-4 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-primary">
@@ -101,7 +101,7 @@ export default function KhidmatBantuForm({ schools }: { schools: SchoolOption[] 
             </p>
           )}
 
-          <fieldset className="space-y-4">
+          <fieldset className="min-w-0 max-w-full space-y-4">
             <legend className="text-sm font-semibold text-ink">Maklumat Pemohon</legend>
 
             <div>
@@ -201,8 +201,8 @@ export default function KhidmatBantuForm({ schools }: { schools: SchoolOption[] 
               </div>
             ) : null}
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
+            <div className="grid min-w-0 gap-4 sm:grid-cols-2">
+              <div className="min-w-0">
                 <label className="label" htmlFor="applicantName">
                   Nama pemohon
                 </label>
@@ -214,7 +214,7 @@ export default function KhidmatBantuForm({ schools }: { schools: SchoolOption[] 
                   autoComplete="name"
                 />
               </div>
-              <div>
+              <div className="min-w-0">
                 <label className="label" htmlFor="contact">
                   No. telefon
                 </label>
@@ -241,10 +241,10 @@ export default function KhidmatBantuForm({ schools }: { schools: SchoolOption[] 
             </div>
           </fieldset>
 
-          <fieldset className="space-y-4 border-t border-fog pt-6">
+          <fieldset className="min-w-0 max-w-full space-y-4 border-t border-fog pt-6">
             <legend className="text-sm font-semibold text-ink">Perkhidmatan Dimohon</legend>
 
-            <div>
+            <div className="min-w-0">
               <label className="label" htmlFor="serviceType">
                 Jenis perkhidmatan
               </label>
@@ -265,7 +265,7 @@ export default function KhidmatBantuForm({ schools }: { schools: SchoolOption[] 
               </select>
             </div>
 
-            <div>
+            <div className="min-w-0">
               <label className="label" htmlFor="tajukProgram">
                 Tajuk program
               </label>
@@ -279,8 +279,8 @@ export default function KhidmatBantuForm({ schools }: { schools: SchoolOption[] 
               />
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
+            <div className="grid min-w-0 gap-4 sm:grid-cols-2">
+              <div className="min-w-0">
                 <label className="label" htmlFor="activityDate">
                   Tarikh cadangan
                 </label>
@@ -294,7 +294,7 @@ export default function KhidmatBantuForm({ schools }: { schools: SchoolOption[] 
                   onChange={(e) => setActivityDate(e.target.value)}
                 />
               </div>
-              <div>
+              <div className="min-w-0">
                 <label className="label" htmlFor="activityTime">
                   Masa cadangan
                 </label>
@@ -308,14 +308,14 @@ export default function KhidmatBantuForm({ schools }: { schools: SchoolOption[] 
               </div>
             </div>
 
-            <div>
+            <div className="min-w-0">
               <label className="label" htmlFor="lokasi">
                 Lokasi / venue
               </label>
               <input id="lokasi" name="lokasi" className="input" required />
             </div>
 
-            <div>
+            <div className="min-w-0">
               <label className="label" htmlFor="surat-upload">
                 Muat naik surat permohonan
               </label>
