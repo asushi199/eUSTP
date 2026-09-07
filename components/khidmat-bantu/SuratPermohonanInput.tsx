@@ -271,7 +271,7 @@ export default function SuratPermohonanInput({
 
       <p className="mt-2 text-xs text-graphite">
         PDF atau imej (JPG/PNG/WebP), maksimum 8 MB. Muat naik surat selepas pilih tarikh
-        cadangan. Fail disimpan ke Google Drive melalui GAS.
+        cadangan.
       </p>
       {notice && !error && <p className="mt-1 text-xs text-primary">{notice}</p>}
       {error && <p className="mt-1 text-xs text-bloom-deep">{error}</p>}
