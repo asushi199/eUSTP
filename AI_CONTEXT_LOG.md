@@ -1563,3 +1563,17 @@ Corak berselang = instance sihat vs beracun.
 - Bacaan SELECT terhad kepada satu laporan USTP terbaru memulangkan senarai kosong. Oleh itu, foto Drive sebenar dan paparan selepas simpan/sync belum diuji. Tiada rekod, foto atau tetapan produksi diubah untuk ujian.
 - Lima ujian pemetaan lulus, termasuk format integer, pecahan sen tanpa pembundaran, pautan gambar dengan parameter dan teks panjang. ESLint fail terlibat lulus.
 - Verifikasi akhir fasa ini: npm run build dan npm run typecheck lulus; tiada deployment. Langkah seterusnya ialah menyimpan laporan NEXa pertama dengan dua foto dan menguji pautan dalam sesi AppSheet pengguna.
+
+### 2026-09-07 — Kemas kini snapshot Tebus Buku (7 Sept 2026)
+- Import semula data baucar buku PPD MANJUNG daripada CSV terkini
+  (`docs/Data Baucar Buku 7 Sept 2026 7.50 pagi.csv`) melalui
+  `npm run db:import-tebus-buku`. Snapshot lama diganti dalam satu transaksi.
+- Hasil disahkan pada DB: 17,659 pelajar, 21 sekolah, sudah tebus 11,605,
+  sudah guna 10,281, sourced_at 2026-09-07 (dipapar "7 September 2026").
+- Halaman `laporan/tebus-buku` dan `[kod]` ialah force-dynamic — data terus
+  dibaca dari DB, tiada redeploy diperlukan.
+- `parseSourcedAt` dalam `scripts/import-tebus-buku.ts` dinaik taraf: dahulu
+  hanya kenal "Ogos" pada nama fail, kini kenal nama bulan BM/Inggeris (termasuk
+  singkatan seperti "Sept") supaya tarikh snapshot ikut nama fail, bukan tarikh larian.
+- CSV mentah mengandungi nama & emel pelajar — TIDAK dikomit; corak
+  `/docs/Data Baucar Buku*.csv` ditambah ke `.gitignore`.

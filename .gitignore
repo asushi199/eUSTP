@@ -18,6 +18,8 @@ tmp/
 /docs/6f10807f.docx
 /docs/Template_Minit_Curai_Terkini_v2.docx
 /tebus buku/
+# Data baucar buku mentah (mengandungi nama & emel pelajar — jangan komit)
+/docs/Data Baucar Buku*.csv
 
 # PWA (generated at build)
 public/sw.js

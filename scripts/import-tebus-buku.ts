@@ -44,10 +44,29 @@ function parseCsvLine(line: string): string[] {
   return parts;
 }
 
+const MONTH_TOKENS: Record<string, number> = {
+  jan: 1, januari: 1, january: 1,
+  feb: 2, februari: 2, february: 2,
+  mac: 3, mar: 3, march: 3,
+  apr: 4, april: 4,
+  mei: 5, may: 5,
+  jun: 6, june: 6,
+  jul: 7, julai: 7, july: 7,
+  ogo: 8, ogos: 8, aug: 8, ogs: 8, august: 8,
+  sep: 9, sept: 9, september: 9,
+  okt: 10, oct: 10, oktober: 10, october: 10,
+  nov: 11, november: 11,
+  dis: 12, dec: 12, disember: 12, december: 12,
+};
+
+// Kesan tarikh snapshot dari nama fail, cth. "26Ogos2026" atau "7 Sept 2026".
 function parseSourcedAt(filePath: string): string {
-  const match = /(\d{1,2})Ogos(\d{4})/i.exec(filePath);
-  if (match) {
-    return `${match[2]}-08-${match[1].padStart(2, "0")}`;
+  const compact = /(\d{1,2})\s*([A-Za-z]+)\s*(\d{4})/.exec(filePath);
+  if (compact) {
+    const month = MONTH_TOKENS[compact[2].toLowerCase()];
+    if (month) {
+      return `${compact[3]}-${String(month).padStart(2, "0")}-${compact[1].padStart(2, "0")}`;
+    }
   }
   const now = new Date();
   const month = String(now.getMonth() + 1).padStart(2, "0");
