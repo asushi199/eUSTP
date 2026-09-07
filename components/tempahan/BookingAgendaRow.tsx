@@ -24,10 +24,12 @@ export default function BookingAgendaRow({
   pkgId,
   booking,
   roomName,
+  rooms = [],
 }: {
   pkgId: string;
   booking: BookingRow;
   roomName: string;
+  rooms?: Array<{ slug: string; name: string }>;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -83,6 +85,8 @@ export default function BookingAgendaRow({
             status={booking.status}
             currentDate={booking.date}
             currentSlot={booking.slot}
+            currentRoomSlug={booking.roomSlug}
+            rooms={rooms}
             applicantName={booking.name}
             applicantPhone={booking.contact}
             roomName={roomName}

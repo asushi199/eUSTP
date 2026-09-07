@@ -1,5 +1,19 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-07 — Admin boleh tukar lokasi (bilik) semasa "Ubah" tempahan
+
+- Panel admin tempahan (`AdminBookingActions`) kini ada dropdown **Lokasi (bilik)**
+  di borang "Ubah", di samping tarikh + slot. Senarai bilik = bilik aktif PKG
+  (diambil dari `roomNames`, dihantar turun melalui `TempahanAdminView` →
+  `BookingCard`/`BookingAgendaRow`). Bilik semasa sentiasa dimuat sebagai opsyen
+  walau dinyahaktif.
+- `rescheduleBookingCore` menerima `nextRoomSlug`: sahkan bilik wujud + aktif,
+  semak konflik pada bilik **baharu** (hari yang diedit + setiap hari lain dalam
+  kumpulan lintas hari). Tarikh/slot kekal per-hari; **bilik dikongsi seluruh
+  kumpulan** (satu tempahan = satu lokasi) — kemas kini dalam satu transaksi.
+- Lokasi Autosijil ikut automatik: `pushBookingDetailsToAutosijil` kira semula
+  `location` dari `roomSlug` selepas ubah.
+
 ## 2026-09-06 — NexaBot: jangan tapis peranan
 
 - NexaBot hanya semak akaun aktif + Telegram terikat. `canUseNexaBot`
@@ -383,7 +397,6 @@
 - `/admin/laporan-akhbar` kini memaparkan **Baki 2024–2025 (RM)** di samping
   lajur Baki 2026. Nilai diambil daripada `baki_peruntukan_2024_2025_rm`
   yang sudah diisi sekolah; sekolah belum hantar kekal `—`.
-
 ## 2026-08-27 — Siaran WhatsApp: tampal senarai sekolah
 
 - Panel Siaran WhatsApp di `/admin/direktori` menerima tampalan senarai sekolah

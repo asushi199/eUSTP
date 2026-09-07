@@ -89,6 +89,7 @@ export async function adminCancelBooking(
 const updateBookingScheduleSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Tarikh tidak sah."),
   slot: z.enum(["am", "pm", "full_day"]),
+  roomSlug: z.string().trim().min(1).max(120).optional(),
 });
 
 export async function adminUpdateBookingSchedule(
@@ -107,19 +108,27 @@ export async function adminUpdateBookingSchedule(
   const parsed = updateBookingScheduleSchema.safeParse({
     date: formData.get("date"),
     slot: formData.get("slot"),
+    roomSlug: formData.get("roomSlug") ?? undefined,
   });
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Input tidak sah." };
   }
 
   try {
-    await rescheduleBookingCore(pkgId, bookingId, parsed.data.date, parsed.data.slot);
+    await rescheduleBookingCore(
+      pkgId,
+      bookingId,
+      parsed.data.date,
+      parsed.data.slot,
+      parsed.data.roomSlug,
+    );
   } catch (e) {
     return { ok: false, error: friendlyBookingError(e) };
   }
 
   refreshBookingPaths(pkgId);
   refreshRoomPath(pkgId, booking.roomSlug);
+  refreshRoomPath(pkgId, parsed.data.roomSlug);
   return { ok: true };
 }
 

@@ -43,6 +43,10 @@ export default function TempahanAdminView({
   }
 
   const roomName = (slug: string) => roomNames[slug] ?? slug;
+  const rooms = useMemo(
+    () => Object.entries(roomNames).map(([slug, name]) => ({ slug, name })),
+    [roomNames],
+  );
 
   const monthItems = useMemo<MonthItem[]>(
     () =>
@@ -65,13 +69,14 @@ export default function TempahanAdminView({
               pkgId={pkgId}
               booking={b}
               roomName={rn}
+              rooms={rooms}
               bare
               showDate={false}
             />
           ),
         };
       }),
-    [monthBookings, roomNames, pkgId],
+    [monthBookings, roomNames, rooms, pkgId],
   );
 
   return (
@@ -91,6 +96,7 @@ export default function TempahanAdminView({
                   pkgId={pkgId}
                   booking={b}
                   roomName={roomName(b.roomSlug)}
+                  rooms={rooms}
                 />
               ))}
             </div>
@@ -101,6 +107,7 @@ export default function TempahanAdminView({
                   pkgId={pkgId}
                   booking={b}
                   roomName={roomName(b.roomSlug)}
+                  rooms={rooms}
                 />
               ))}
             </div>

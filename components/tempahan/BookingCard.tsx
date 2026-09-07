@@ -21,12 +21,14 @@ export default function BookingCard({
   pkgId,
   booking,
   roomName,
+  rooms = [],
   bare = false,
   showDate = true,
 }: {
   pkgId: string;
   booking: BookingRow;
   roomName: string;
+  rooms?: Array<{ slug: string; name: string }>;
   bare?: boolean;
   showDate?: boolean;
 }) {
@@ -81,6 +83,8 @@ export default function BookingCard({
           status={booking.status}
           currentDate={booking.date}
           currentSlot={booking.slot}
+          currentRoomSlug={booking.roomSlug}
+          rooms={rooms}
           applicantName={booking.name}
           applicantPhone={booking.contact}
           roomName={roomName}

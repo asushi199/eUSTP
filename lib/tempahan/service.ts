@@ -4,14 +4,19 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { bookings } from "@/lib/schema";
 import { getEditableBookingConflict } from "./admin-booking";
-import { parseSlot } from "./booking-rules";
+import { getConflictingBooking, parseSlot } from "./booking-rules";
 import { generateAttendanceToken } from "./approval-token";
 import {
   cancelAutosijilForBooking,
   pushBookingDetailsToAutosijil,
   syncApprovedBookingToAutosijil,
 } from "./autosijil-sync";
-import { getBooking, listActiveBookings, listBookingGroup } from "./queries";
+import {
+  getBooking,
+  getRoomBySlug,
+  listActiveBookings,
+  listBookingGroup,
+} from "./queries";
 
 
 function attendanceTokensFor(existing: {
@@ -106,6 +111,7 @@ export async function rescheduleBookingCore(
   id: string,
   nextDate: string,
   nextSlotRaw: string,
+  nextRoomSlugRaw?: string,
 ): Promise<void> {
   const existing = await getBooking(pkgId, id);
   if (!existing) throw new Error("Tempahan tidak dijumpai.");
@@ -113,21 +119,65 @@ export async function rescheduleBookingCore(
   const nextSlot = parseSlot(nextSlotRaw);
   if (!nextSlot) throw new Error("Slot tempahan tidak sah.");
 
-  const active = await listActiveBookings(pkgId, nextDate);
-  const conflict = getEditableBookingConflict(active, {
-    bookingId: id,
-    roomSlug: existing.roomSlug,
-    date: nextDate,
-    slot: nextSlot,
-  });
-  if (conflict) {
+  const nextRoomSlug = nextRoomSlugRaw?.trim() || existing.roomSlug;
+  const roomChanged = nextRoomSlug !== existing.roomSlug;
+
+  if (roomChanged) {
+    const room = await getRoomBySlug(pkgId, nextRoomSlug);
+    if (!room || !room.active) {
+      throw new Error("Bilik tidak sah atau tidak aktif.");
+    }
+  }
+
+  // Tarikh/slot ditukar pada hari yang diedit sahaja; bilik dikongsi seluruh
+  // tempahan lintas hari (satu tempahan = satu lokasi).
+  const groupRows =
+    roomChanged && existing.groupId
+      ? await listBookingGroup(pkgId, existing.groupId)
+      : [];
+  const groupIds = new Set(groupRows.map((row) => row.id));
+
+  // Konflik hari yang diedit (tarikh/slot/bilik baharu).
+  const activeEdited = await listActiveBookings(pkgId, nextDate);
+  if (
+    getEditableBookingConflict(activeEdited, {
+      bookingId: id,
+      roomSlug: nextRoomSlug,
+      date: nextDate,
+      slot: nextSlot,
+    })
+  ) {
     throw new Error("Slot bilik ini sudah ditempah");
   }
 
-  await db
-    .update(bookings)
-    .set({ date: nextDate, slot: nextSlot })
-    .where(and(eq(bookings.pkgId, pkgId), eq(bookings.id, id)));
+  // Konflik hari lain dalam kumpulan apabila bilik ditukar (tarikh kekal).
+  for (const row of groupRows) {
+    if (row.id === id) continue;
+    const active = await listActiveBookings(pkgId, row.date);
+    const conflict = getConflictingBooking(
+      active.filter((b) => !groupIds.has(b.id)),
+      nextRoomSlug,
+      row.date,
+      row.slot,
+    );
+    if (conflict) {
+      throw new Error("Slot bilik ini sudah ditempah");
+    }
+  }
+
+  await db.transaction(async (tx) => {
+    // Bilik dahulu untuk seluruh kumpulan supaya lokasi Autosijil ikut bilik baharu.
+    if (roomChanged && existing.groupId) {
+      await tx
+        .update(bookings)
+        .set({ roomSlug: nextRoomSlug })
+        .where(and(eq(bookings.pkgId, pkgId), eq(bookings.groupId, existing.groupId)));
+    }
+    await tx
+      .update(bookings)
+      .set({ date: nextDate, slot: nextSlot, roomSlug: nextRoomSlug })
+      .where(and(eq(bookings.pkgId, pkgId), eq(bookings.id, id)));
+  });
 
   // Sync Autosijil jika sudah terikat — kegagalan tidak batalkan ubah jadual
   await pushBookingDetailsToAutosijil(pkgId, id);

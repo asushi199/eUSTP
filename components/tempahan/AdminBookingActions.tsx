@@ -31,6 +31,8 @@ export default function AdminBookingActions({
   status,
   currentDate,
   currentSlot,
+  currentRoomSlug,
+  rooms = [],
   applicantName,
   applicantPhone,
   roomName,
@@ -47,6 +49,8 @@ export default function AdminBookingActions({
   status: BookingStatus;
   currentDate: string;
   currentSlot: Slot;
+  currentRoomSlug: string;
+  rooms?: Array<{ slug: string; name: string }>;
   applicantName: string;
   applicantPhone: string;
   roomName: string;
@@ -65,7 +69,12 @@ export default function AdminBookingActions({
   const [editing, setEditing] = useState(false);
   const [date, setDate] = useState(currentDate);
   const [slot, setSlot] = useState<Slot>(currentSlot);
+  const [roomSlug, setRoomSlug] = useState(currentRoomSlug);
   const [needSijil, setNeedSijil] = useState(requiresCertificate);
+  // Pastikan bilik semasa sentiasa ada dalam senarai (mis. bilik dinyahaktif).
+  const roomOptions = rooms.some((r) => r.slug === currentRoomSlug)
+    ? rooms
+    : [{ slug: currentRoomSlug, name: roomName }, ...rooms];
   const decisionWhatsappUrl =
     status === "approved" || status === "rejected"
       ? buildBookingDecisionWhatsAppUrl(applicantPhone, {
@@ -115,6 +124,7 @@ export default function AdminBookingActions({
     const fd = new FormData();
     fd.set("date", date);
     fd.set("slot", slot);
+    fd.set("roomSlug", roomSlug);
     startTransition(async () => {
       const res = await adminUpdateBookingSchedule(pkgId, bookingId, fd);
       if (!res.ok) {
@@ -172,6 +182,7 @@ export default function AdminBookingActions({
             onClick={() => {
               setDate(currentDate);
               setSlot(currentSlot);
+              setRoomSlug(currentRoomSlug);
               setError(null);
               setEditing((value) => !value);
             }}
@@ -276,6 +287,28 @@ export default function AdminBookingActions({
 
       {editing && (
         <form onSubmit={saveSchedule} className="mt-3 space-y-3 rounded-lg border border-fog/80 bg-cloud/30 p-3">
+          <div>
+            <label className="label" htmlFor={`room-${bookingId}`}>
+              Lokasi (bilik)
+            </label>
+            <select
+              id={`room-${bookingId}`}
+              className="input"
+              value={roomSlug}
+              onChange={(e) => setRoomSlug(e.target.value)}
+            >
+              {roomOptions.map((room) => (
+                <option key={room.slug} value={room.slug}>
+                  {room.name}
+                </option>
+              ))}
+            </select>
+            {isMultiDay && roomSlug !== currentRoomSlug && (
+              <p className="mt-1 text-xs text-graphite">
+                Bilik akan ditukar untuk semua hari dalam tempahan ini.
+              </p>
+            )}
+          </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <label className="label" htmlFor={`date-${bookingId}`}>
@@ -309,7 +342,7 @@ export default function AdminBookingActions({
             </div>
           </div>
           <p className="text-xs text-graphite">
-            Tarikh semasa: {currentDate} · {formatSlot(currentSlot)}
+            Semasa: {roomName} · {currentDate} · {formatSlot(currentSlot)}
           </p>
           <div className="flex flex-wrap gap-2">
             <button type="submit" className="btn-primary btn-sm" disabled={pending}>
