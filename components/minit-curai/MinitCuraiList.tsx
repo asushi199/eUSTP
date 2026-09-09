@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import MonthNav from "@/components/month-nav/MonthNav";
-import { formatMinitDate } from "@/lib/minit-curai/options";
+import { formatMinitDateRange } from "@/lib/minit-curai/options";
 import { filterMinitCurai, type MinitCuraiListItem } from "@/lib/minit-curai/search";
 
 export default function MinitCuraiList({
@@ -60,7 +60,7 @@ export default function MinitCuraiList({
           {filtered.map((report) => (
             <article key={report.id} className="card flex flex-col gap-3 p-5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4">
               <div className="min-w-0 flex-1">
-                <p className="text-xs text-graphite">{formatMinitDate(report.meetingDate)}</p>
+                <p className="text-xs text-graphite">{formatMinitDateRange(report.meetingDate, report.meetingEndDate)}</p>
                 <h3 className="mt-1 break-words font-semibold">{report.tajuk}</h3>
                 <p className="mt-1 text-sm text-graphite">{report.unitSektor}</p>
                 <p className="mt-1 text-xs text-graphite">Pelapor: {report.reporterName}</p>

@@ -34,6 +34,7 @@ type MinitFormReport = {
   tajuk: string;
   anjuran: string;
   meetingDate: string;
+  meetingEndDate: string | null;
   meetingTime: string;
   tempat: string;
   chairperson: string;
@@ -251,14 +252,19 @@ export default function MinitCuraiForm({
           </label>
           <div className="grid gap-5 sm:grid-cols-2">
             <label className="block">
-              <span className="label">Tarikh *</span>
+              <span className="label">Tarikh mula *</span>
               <input type="date" name="meetingDate" className="input" required defaultValue={report?.meetingDate} />
             </label>
             <label className="block">
-              <span className="label">Masa *</span>
-              <input name="meetingTime" className="input" required maxLength={120} placeholder="Cth: 9.00 pagi – 12.00 tengah hari" defaultValue={report?.meetingTime} />
+              <span className="label">Tarikh tamat</span>
+              <input type="date" name="meetingEndDate" className="input" defaultValue={report?.meetingEndDate ?? ""} />
+              <span className="mt-1 block text-xs text-graphite">Kosongkan atau isi tarikh yang sama jika program sehari.</span>
             </label>
           </div>
+          <label className="block">
+            <span className="label">Masa *</span>
+            <input name="meetingTime" className="input" required maxLength={120} placeholder="Cth: 9.00 pagi – 12.00 tengah hari" defaultValue={report?.meetingTime} />
+          </label>
           <label className="block">
             <span className="label">Tempat / platform *</span>
             <input name="tempat" className="input" required maxLength={500} placeholder="Cth: Dewan PKG Sitiawan / Google Meet" defaultValue={report?.tempat} />

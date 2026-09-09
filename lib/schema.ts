@@ -190,6 +190,7 @@ export const minitCurai = pgTable("minit_curai", {
   tajuk: text("tajuk").notNull(),
   anjuran: text("anjuran").notNull(),
   meetingDate: date("meeting_date").notNull(),
+  meetingEndDate: date("meeting_end_date"),
   meetingTime: text("meeting_time").notNull(),
   tempat: text("tempat").notNull(),
   chairperson: text("chairperson").notNull(),

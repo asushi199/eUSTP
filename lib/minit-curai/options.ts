@@ -28,6 +28,14 @@ export function formatMinitDate(value: string | Date) {
   return ymd.split("-").reverse().join("/");
 }
 
+/** Sehari: tarikh mula sahaja. Beberapa hari: mula – tamat. */
+export function formatMinitDateRange(start: string | Date, end?: string | Date | null) {
+  const from = formatMinitDate(start);
+  if (!end) return from;
+  const to = formatMinitDate(end);
+  return to === from ? from : `${from} – ${to}`;
+}
+
 export function todayYmd(now = new Date()) {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kuala_Lumpur" }).format(now);
 }

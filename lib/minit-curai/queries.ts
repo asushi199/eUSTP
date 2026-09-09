@@ -27,6 +27,7 @@ export async function listMinitCurai(month: string) {
     id: minitCurai.id,
     tajuk: minitCurai.tajuk,
     meetingDate: minitCurai.meetingDate,
+    meetingEndDate: minitCurai.meetingEndDate,
     reporterName: minitCurai.reporterName,
     unitSektor: minitCurai.unitSektor,
     anjuran: minitCurai.anjuran,
@@ -37,7 +38,11 @@ export async function listMinitCurai(month: string) {
       lt(minitCurai.meetingDate, `${shiftLetterMonth(selectedMonth, 1)}-01`),
     ))
     .orderBy(desc(minitCurai.meetingDate), desc(minitCurai.id));
-  return rows.map((row) => ({ ...row, meetingDate: String(row.meetingDate) }));
+  return rows.map((row) => ({
+    ...row,
+    meetingDate: String(row.meetingDate),
+    meetingEndDate: row.meetingEndDate ? String(row.meetingEndDate) : null,
+  }));
 }
 
 export async function loadMinitCuraiList(month: string) {
@@ -73,6 +78,7 @@ export async function getMinitCurai(id: string) {
   return {
     ...report,
     meetingDate: asYmd(report.meetingDate),
+    meetingEndDate: report.meetingEndDate ? asYmd(report.meetingEndDate) : null,
     targetDate: report.targetDate ? asYmd(report.targetDate) : null,
     tarikhCurai: asYmd(report.tarikhCurai),
     preparedAt: asYmd(report.preparedAt),

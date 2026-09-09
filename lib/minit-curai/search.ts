@@ -2,6 +2,7 @@ export type MinitCuraiListItem = {
   id: string;
   tajuk: string;
   meetingDate: string;
+  meetingEndDate?: string | null;
   reporterName: string;
   unitSektor: string;
   anjuran: string;
@@ -25,6 +26,7 @@ export function minitCuraiHaystack(report: MinitCuraiListItem): string {
       report.anjuran,
       report.tempat,
       report.meetingDate,
+      report.meetingEndDate ?? "",
     ].join(" "),
   );
 }

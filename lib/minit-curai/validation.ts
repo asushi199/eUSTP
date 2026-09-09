@@ -31,18 +31,41 @@ const itemSchema = z.object({
   pegawai: text("pegawai / unit bertanggungjawab", 500),
 });
 
-export const minitCuraiStepASchema = z.object({
+function refineMeetingDates(
+  data: { meetingDate: string; meetingEndDate: string | null },
+  context: z.RefinementCtx,
+) {
+  if (data.meetingEndDate && data.meetingEndDate < data.meetingDate) {
+    context.addIssue({
+      code: "custom",
+      path: ["meetingEndDate"],
+      message: "Tarikh tamat tidak boleh mendahului tarikh mula.",
+    });
+  }
+}
+
+function withoutSameEndDate<T extends { meetingDate: string; meetingEndDate: string | null }>(data: T) {
+  return {
+    ...data,
+    meetingEndDate: data.meetingEndDate && data.meetingEndDate !== data.meetingDate ? data.meetingEndDate : null,
+  };
+}
+
+export const minitCuraiStepAFields = z.object({
   reporterName: text("nama pegawai / pelapor", 200),
   reporterTitle: z.enum(MINIT_CURAI_GRADES, { errorMap: () => ({ message: "Sila pilih jawatan / gred." }) }),
   unitSektor: z.literal(MINIT_CURAI_UNIT, { errorMap: () => ({ message: "Unit / sektor tidak sah." }) }),
   tajuk: text("tajuk taklimat / mesyuarat / kursus / bengkel"),
   anjuran: text("anjuran"),
   meetingDate: date,
+  meetingEndDate: optionalDate,
   meetingTime: text("masa", 120),
   tempat: text("tempat / platform"),
   chairperson: text("pengerusi / pegawai yang menyampaikan", 200),
   rujukanFail: optionalText("rujukan / no. fail", 200),
 });
+
+export const minitCuraiStepASchema = minitCuraiStepAFields.superRefine(refineMeetingDates);
 
 export const minitCuraiStepBSchema = z.object({
   items: z.array(itemSchema).min(1, "Sila isi sekurang-kurangnya satu perkara / isu.").max(30),
@@ -88,11 +111,14 @@ export const minitCuraiStepCSchema = minitCuraiStepCFields
   .transform(withoutEmptyReviewer)
   .superRefine(refineStepC);
 
-export const minitCuraiSchema = minitCuraiStepASchema
+export const minitCuraiSchema = minitCuraiStepAFields
   .merge(minitCuraiStepBSchema)
   .merge(minitCuraiStepCFields)
-  .transform(withoutEmptyReviewer)
-  .superRefine(refineStepC);
+  .transform((data) => withoutSameEndDate(withoutEmptyReviewer(data)))
+  .superRefine((data, context) => {
+    refineMeetingDates(data, context);
+    refineStepC(data, context);
+  });
 
 export type MinitCuraiData = z.output<typeof minitCuraiSchema>;
 
