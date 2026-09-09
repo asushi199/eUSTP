@@ -128,6 +128,7 @@ Tugas:
 - WAJIB pecahkan kepada beberapa perkara berasingan jika ada lebih daripada satu isu, keputusan atau tindakan (1 hingga 15 objek).
 - Jangan gabungkan semua isu dalam satu perkara. Satu isu / keputusan / tindakan = satu objek.
 - Setiap medan perkara, keputusan dan tindakan WAJIB point form: setiap ayat pada baris berasingan dan bermula dengan "• ".
+- Jangan guna anak panah, tanda semak, emoji, kotak atau simbol hiasan. Hanya "• " sebagai penanda point form. Tulis aksara Rumi / Latin sahaja.
 - pegawai ialah pegawai/unit yang melaksanakan tindakan. Secara lalai SEMUA tindakan ialah "${MINIT_CURAI_TINDAKAN_BY}", kecuali sumber menyatakan nama atau unit lain secara jelas. Jangan cipta nama lain.
 - Jangan ulang rumusan keseluruhan; hanya isi jadual.
 

@@ -1,5 +1,19 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-09 — Minit Curai PDF: aksara luar WinAnsi
+
+- Prompt AI Kandungan: hanya "• " untuk point form; jangan anak panah,
+  tanda semak, emoji. `normalizePointForm` turut buang simbol itu semasa
+  parse, supaya hasil disimpan bersih walaupun model abaikan arahan.
+
+- Muat turun PDF gagal dengan 502 "Semak teks menggunakan aksara Rumi"
+  kerana `pdf-lib` Helvetica hanya encode WinAnsi. Teks dari Word/AI
+  (anak panah `→`, tanda semak `✓`, ZWSP, aksara CJK) menyebabkan
+  `widthOfTextAtSize` / `drawText` throw.
+- `pdfText` kini map simbol biasa (`→` → `->`, `✓` → `v`) dan ganti
+  aksara lain yang Helvetica tidak encode dengan `?`. Kandungan Rumi
+  kekal; PDF dijana tanpa menyuruh pengguna sunting semula.
+
 ## 2026-09-07 — Khidmat Bantu: muat naik surat tanpa tertib medan
 
 - Surat boleh dipilih pada bila-bila masa. Muat naik ke Drive hanya bermula

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { PDFDocument, StandardFonts } from "pdf-lib";
 import { parseMinitCurai } from "../../lib/minit-curai/validation";
-import { generateMinitCuraiPdf, wrapMinitPdfText } from "../../lib/minit-curai/pdf";
+import { generateMinitCuraiPdf, pdfText, wrapMinitPdfText } from "../../lib/minit-curai/pdf";
 import type { MinitCurai } from "../../lib/schema";
 
 function form(overrides: Record<string, string> = {}, items = [{
@@ -95,6 +95,36 @@ test("rejects empty content, missing required fields and lain-lain without detai
   assert.equal(parseMinitCurai(lain).success, false);
   lain.set("kaedahLain", "Telegram kumpulan");
   assert.ok(parseMinitCurai(lain).success);
+});
+
+test("sanitizes arrows, marks and non-Rumi characters so Helvetica can encode", async () => {
+  const pdf = await PDFDocument.create();
+  const font = await pdf.embedFont(StandardFonts.Helvetica);
+  const text = pdfText("Tindakan → unit\n✓ Selesai\nteks\u200btersembunyi\n王 Chong", font);
+  assert.equal(text, "Tindakan -> unit\nv Selesai\ntekstersembunyi\n? Chong");
+  assert.doesNotThrow(() => font.encodeText(text.replace(/\n/g, " ")));
+});
+
+test("generates PDF when kandungan has Word/AI symbols outside WinAnsi", async () => {
+  const parsed = parseMinitCurai(form());
+  assert.ok(parsed.success);
+  const report: MinitCurai = {
+    ...parsed.data,
+    id: "8d9b2329-b170-43ce-a03f-37c92a74f755",
+    version: 1,
+    createdBy: 1,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    items: [{
+      perkara: "• Objektif kursus drone → penerbitan digital\n✓ Pendaftaran peserta",
+      keputusan: "Semua PKG laksana minggu depan — ikut slaid ‘taklimat’.",
+      tindakan: "Hebahan WhatsApp + e-mel\u200b kepada staf.\n王 老师",
+      pegawai: "Penolong PPD USTP Daerah Manjung",
+    }],
+  };
+  const bytes = await generateMinitCuraiPdf(report);
+  const loaded = await PDFDocument.load(bytes);
+  assert.ok(loaded.getPageCount() >= 1);
 });
 
 test("wraps long tokens and paragraph breaks without dropping content", async () => {

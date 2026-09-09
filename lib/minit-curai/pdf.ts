@@ -13,13 +13,48 @@ const BORDER = rgb(0.65, 0.65, 0.65);
 const INK = rgb(0.08, 0.08, 0.08);
 const FOG = rgb(0.94, 0.94, 0.94);
 
-function pdfText(value: string) {
-  return value.replace(/\r\n?/g, "\n").replace(/\t/g, "    ").replace(/\u00a0/g, " ");
+/** Helvetica only encodes WinAnsi. Map common symbols, then drop the rest. */
+export function pdfText(value: string, font: PDFFont) {
+  const normalized = String(value ?? "")
+    .replace(/\r\n?/g, "\n")
+    .replace(/\t/g, "    ")
+    .replace(/\u00a0/g, " ")
+    .replace(/[\u200B-\u200D\uFEFF]/g, "")
+    .replace(/[\u2192\u21D2\u2794\u27A1]/g, "->")
+    .replace(/[\u2190\u21D0]/g, "<-")
+    .replace(/[\u2713\u2714]/g, "v")
+    .replace(/[\u2717\u2718]/g, "x");
+  return encodeWinAnsi(font, normalized);
+}
+
+function encodeWinAnsi(font: PDFFont, value: string) {
+  try {
+    if (!value.includes("\n")) {
+      font.encodeText(value);
+      return value;
+    }
+  } catch {
+    /* fall through and replace unsupported characters */
+  }
+  let encoded = "";
+  for (const character of value) {
+    if (character === "\n") {
+      encoded += character;
+      continue;
+    }
+    try {
+      font.encodeText(character);
+      encoded += character;
+    } catch {
+      encoded += "?";
+    }
+  }
+  return encoded;
 }
 
 export function wrapMinitPdfText(font: PDFFont, value: string, width: number): string[] {
   const lines: string[] = [];
-  for (const paragraph of pdfText(value).split("\n")) {
+  for (const paragraph of pdfText(value, font).split("\n")) {
     if (!paragraph.trim()) { lines.push(""); continue; }
     let line = "";
     for (const word of paragraph.trim().split(/\s+/)) {
