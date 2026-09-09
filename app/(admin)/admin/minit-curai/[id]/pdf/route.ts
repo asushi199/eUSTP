@@ -19,7 +19,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
         "Content-Disposition": `attachment; filename="Minit-Curai-${report.meetingDate}-${id}.pdf"`,
       },
     });
-  } catch {
-    return Response.json({ error: "PDF tidak dapat dijana. Semak teks menggunakan aksara Rumi, kemudian cuba lagi." }, { status: 502, headers });
+  } catch (error) {
+    console.error("[minit-curai/pdf]", error);
+    return Response.json({ error: "PDF tidak dapat dijana. Sila cuba lagi." }, { status: 502, headers });
   }
 }
