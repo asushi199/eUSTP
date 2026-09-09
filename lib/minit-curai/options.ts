@@ -8,6 +8,7 @@ export const MINIT_CURAI_KAEDAH = [
   "Mesyuarat",
   "E-mel",
   "WhatsApp",
+  "Telegram",
   "Lain-lain",
 ] as const;
 

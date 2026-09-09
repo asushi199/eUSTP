@@ -112,6 +112,13 @@ test("accepts omitted kaedah lain when Lain-lain is not selected", () => {
   assert.equal(parsed.data.kaedahLain, "");
 });
 
+test("accepts Telegram as a kaedah penyebaran", () => {
+  const parsed = parseMinitCurai(form({}, undefined, ["WhatsApp", "Telegram"]));
+  assert.ok(parsed.success);
+  if (!parsed.success) return;
+  assert.deepEqual(parsed.data.kaedah, ["WhatsApp", "Telegram"]);
+});
+
 test("rejects empty content, missing required fields and lain-lain without details", () => {
   assert.equal(parseMinitCurai(form({ tajuk: "" })).success, false);
   assert.equal(parseMinitCurai(form({ reporterTitle: "Pentadbir Sistem" })).success, false);

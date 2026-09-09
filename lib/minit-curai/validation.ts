@@ -78,7 +78,7 @@ const minitCuraiStepCFields = z.object({
   disebarkanKepada: text("disebarkan kepada", 2000),
   tarikhCurai: date,
   kaedah: z.array(z.enum(MINIT_CURAI_KAEDAH)).min(1, "Sila pilih sekurang-kurangnya satu kaedah penyebaran.")
-    .max(4).transform((items) => [...new Set(items)]),
+    .max(MINIT_CURAI_KAEDAH.length).transform((items) => [...new Set(items)]),
   kaedahLain: optionalText("kaedah lain", 200),
   preparedByName: text("nama penyedia", 200),
   preparedByTitle: text("jawatan / unit penyedia", 200),
