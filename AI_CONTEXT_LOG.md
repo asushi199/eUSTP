@@ -1,5 +1,12 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-09 — Minit Curai: tarikh tamat untuk bengkel beberapa hari
+
+- Medan `meeting_end_date` (pilihan). Kosong atau sama dengan tarikh mula
+  = program sehari. Tarikh kemudian = julat `mula – tamat` pada senarai,
+  halaman butiran dan PDF.
+- Migrasi `0044_minit_curai_end_date`.
+
 ## 2026-09-09 — Minit Curai PDF: aksara luar WinAnsi
 
 - Prompt AI Kandungan: hanya "• " untuk point form; jangan anak panah,

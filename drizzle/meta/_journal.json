@@ -309,6 +309,13 @@
       "when": 1788672000001,
       "tag": "0043_minit_curai",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1788932041281,
+      "tag": "0044_minit_curai_end_date",
+      "breakpoints": true
     }
   ]
 }

@@ -1,6 +1,6 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont } from "pdf-lib";
 import type { MinitCurai } from "@/lib/schema";
-import { formatMinitDate } from "./options";
+import { formatMinitDate, formatMinitDateRange } from "./options";
 
 const WIDTH = 595.28;
 const HEIGHT = 841.89;
@@ -143,7 +143,7 @@ export async function generateMinitCuraiPdf(
   row("Unit / sektor", report.unitSektor);
   row("Tajuk", report.tajuk);
   row("Anjuran", report.anjuran);
-  row("Tarikh / masa", `${formatMinitDate(report.meetingDate)} · ${report.meetingTime}`);
+  row("Tarikh / masa", `${formatMinitDateRange(report.meetingDate, report.meetingEndDate)} · ${report.meetingTime}`);
   row("Tempat / platform", report.tempat);
   row("Pengerusi / penyampai", report.chairperson);
   row("Rujukan / no. fail", report.rujukanFail || "-");

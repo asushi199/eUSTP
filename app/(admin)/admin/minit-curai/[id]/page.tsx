@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import MinitCuraiActions from "@/components/minit-curai/MinitCuraiActions";
 import { getMinitCurai } from "@/lib/minit-curai/queries";
-import { formatMinitDate } from "@/lib/minit-curai/options";
+import { formatMinitDate, formatMinitDateRange } from "@/lib/minit-curai/options";
 
 export const metadata = { title: "Minit Curai" };
 
@@ -27,7 +27,7 @@ export default async function MinitCuraiDetailPage({
     ["Jawatan / gred", report.reporterTitle],
     ["Unit / sektor", report.unitSektor],
     ["Anjuran", report.anjuran],
-    ["Tarikh / masa", `${formatMinitDate(report.meetingDate)} · ${report.meetingTime}`],
+    ["Tarikh / masa", `${formatMinitDateRange(report.meetingDate, report.meetingEndDate)} · ${report.meetingTime}`],
     ["Tempat / platform", report.tempat],
     ["Pengerusi / pegawai yang menyampaikan", report.chairperson],
     ["Rujukan / no. fail", report.rujukanFail || "—"],

@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { PDFDocument, StandardFonts } from "pdf-lib";
-import { parseMinitCurai } from "../../lib/minit-curai/validation";
+import { parseMinitCurai, parseMinitCuraiStepA } from "../../lib/minit-curai/validation";
+import { formatMinitDateRange } from "../../lib/minit-curai/options";
 import { generateMinitCuraiPdf, pdfText, wrapMinitPdfText } from "../../lib/minit-curai/pdf";
 import type { MinitCurai } from "../../lib/schema";
 
@@ -53,6 +54,7 @@ test("parses a complete minit curai and keeps multiple content rows", () => {
   assert.equal(parsed.data.targetDate, "2026-09-20");
   assert.equal(parsed.data.reviewedAt, null);
   assert.equal(parsed.data.rumusan, "");
+  assert.equal(parsed.data.meetingEndDate, null);
 });
 
 test("accepts omitted optional dates instead of English Required", () => {
@@ -64,6 +66,31 @@ test("accepts omitted optional dates instead of English Required", () => {
   if (!parsed.success) return;
   assert.equal(parsed.data.targetDate, null);
   assert.equal(parsed.data.reviewedAt, null);
+});
+
+test("keeps a later meeting end date and treats same-day end as single day", () => {
+  const range = parseMinitCurai(form({ meetingEndDate: "2026-09-08" }));
+  assert.ok(range.success);
+  if (!range.success) return;
+  assert.equal(range.data.meetingEndDate, "2026-09-08");
+  const same = parseMinitCurai(form({ meetingEndDate: "2026-09-06" }));
+  assert.ok(same.success);
+  if (!same.success) return;
+  assert.equal(same.data.meetingEndDate, null);
+  const omitted = form();
+  omitted.delete("meetingEndDate");
+  const parsed = parseMinitCurai(omitted);
+  assert.ok(parsed.success);
+  if (!parsed.success) return;
+  assert.equal(parsed.data.meetingEndDate, null);
+  assert.equal(parseMinitCurai(form({ meetingEndDate: "2026-09-05" })).success, false);
+  assert.equal(parseMinitCuraiStepA(form({ meetingEndDate: "2026-09-05" })).success, false);
+});
+
+test("formats a date range only when the end day differs", () => {
+  assert.equal(formatMinitDateRange("2026-09-06"), "06/09/2026");
+  assert.equal(formatMinitDateRange("2026-09-06", "2026-09-06"), "06/09/2026");
+  assert.equal(formatMinitDateRange("2026-09-06", "2026-09-08"), "06/09/2026 – 08/09/2026");
 });
 
 test("drops autofilled reviewer title when nama penyemak is empty", () => {
@@ -122,7 +149,7 @@ test("generates PDF when kandungan has Word/AI symbols outside WinAnsi", async (
       pegawai: "Penolong PPD USTP Daerah Manjung",
     }],
   };
-  const bytes = await generateMinitCuraiPdf(report);
+  const bytes = await generateMinitCuraiPdf({ ...report, meetingEndDate: "2026-09-08" });
   const loaded = await PDFDocument.load(bytes);
   assert.ok(loaded.getPageCount() >= 1);
 });
