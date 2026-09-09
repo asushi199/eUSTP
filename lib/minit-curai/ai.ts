@@ -5,13 +5,27 @@ const MAX_ITEMS = 15;
 const MAX_FIELD = 4000;
 const MAX_PEGAWAI = 500;
 
+/** Buang anak panah, tanda semak, emoji dan ZWSP; kekalkan Rumi + "• " sahaja. */
+export function stripDecorativeSymbols(value: string) {
+  return value
+    .replace(/[\u200B-\u200D\uFEFF]/g, "")
+    .replace(/[\u2190-\u21FF\u27A1\u2794\u27F6]/g, " ")
+    .replace(/[\u2713\u2714\u2717\u2718\u2610-\u2612\u2705\u274C]/g, "")
+    .replace(/[\u{1F300}-\u{1FAFF}]/gu, "")
+    .replace(/[★☆●○◆■□▪▫]/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
 export function normalizePointForm(value: string): string {
   const lines = value
     .replace(/\r\n?/g, "\n")
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean)
-    .map((line) => line.replace(/^[-*•–—]\s*/, "").replace(/^\d+[.)]\s*/, "").trim())
+    .map((line) => stripDecorativeSymbols(
+      line.replace(/^[-*•–—]\s*/, "").replace(/^\d+[.)]\s*/, ""),
+    ))
     .filter(Boolean);
   return lines.map((line) => `• ${line}`).join("\n");
 }
@@ -39,7 +53,7 @@ export function parseMinitAiItems(raw: string): MinitCuraiItem[] | null {
     const perkara = normalizePointForm(String(record.perkara ?? ""));
     const keputusan = normalizePointForm(String(record.keputusan ?? ""));
     const tindakan = normalizePointForm(String(record.tindakan ?? ""));
-    const rawPegawai = String(record.pegawai ?? "").replace(/\s+/g, " ").trim();
+    const rawPegawai = stripDecorativeSymbols(String(record.pegawai ?? "").replace(/\s+/g, " "));
     const unnamed = !rawPegawai || /^tidak dinyatakan$/i.test(rawPegawai);
     const pegawai = unnamed ? MINIT_CURAI_TINDAKAN_BY : rawPegawai;
     if (!perkara || !keputusan || !tindakan) continue;

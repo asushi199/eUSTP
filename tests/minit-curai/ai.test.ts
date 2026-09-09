@@ -10,6 +10,23 @@ test("normalizes mixed bullets and numbered lines into point form", () => {
   ].join("\n"));
 });
 
+test("strips arrows, check marks and leftover symbols from AI point form", () => {
+  assert.equal(normalizePointForm("Objektif drone → penerbitan\n✓ Pendaftaran peserta"), [
+    "• Objektif drone penerbitan",
+    "• Pendaftaran peserta",
+  ].join("\n"));
+  const items = parseMinitAiItems(JSON.stringify([{
+    perkara: "Kursus drone → digital",
+    keputusan: "✔ Diluluskan",
+    tindakan: "Hebahan staf",
+    pegawai: "PKG Sitiawan → USTP",
+  }]));
+  assert.ok(items);
+  assert.equal(items[0].perkara, "• Kursus drone digital");
+  assert.equal(items[0].keputusan, "• Diluluskan");
+  assert.equal(items[0].pegawai, "PKG Sitiawan USTP");
+});
+
 test("parses fenced JSON and drops incomplete rows", () => {
   const items = parseMinitAiItems(`\`\`\`json
 [

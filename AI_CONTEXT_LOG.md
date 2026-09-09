@@ -2,6 +2,10 @@
 
 ## 2026-09-09 — Minit Curai PDF: aksara luar WinAnsi
 
+- Prompt AI Kandungan: hanya "• " untuk point form; jangan anak panah,
+  tanda semak, emoji. `normalizePointForm` turut buang simbol itu semasa
+  parse, supaya hasil disimpan bersih walaupun model abaikan arahan.
+
 - Muat turun PDF gagal dengan 502 "Semak teks menggunakan aksara Rumi"
   kerana `pdf-lib` Helvetica hanya encode WinAnsi. Teks dari Word/AI
   (anak panah `→`, tanda semak `✓`, ZWSP, aksara CJK) menyebabkan
