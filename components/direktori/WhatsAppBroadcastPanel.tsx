@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import {
   DIRECTORY_ROLES,
   ROLE_INFO,
@@ -42,26 +43,82 @@ type InvalidContact = {
   reason: "Nombor belum diisi" | "Format nombor tidak sah";
 };
 
+export type BroadcastLetter = {
+  id: number;
+  title: string;
+  url: string;
+  kategoriTitle: string;
+  letterMonth: string | null;
+  aktif: boolean;
+};
+
 const DEFAULT_MESSAGE = "Salam sejahtera,\n\nMakluman daripada NEXa Manjung:\n\nTerima kasih.";
+const MAX_LETTERS = 5;
 
 function whatsappUrl(phone: string, message: string) {
   return `https://wa.me/${phone}?text=${encodeURIComponent(message.trim())}`;
 }
 
-export default function WhatsAppBroadcastPanel({ records }: { records: BroadcastSchool[] }) {
+export default function WhatsAppBroadcastPanel({
+  records,
+  letters = [],
+  initialLetterIds = [],
+}: {
+  records: BroadcastSchool[];
+  letters?: BroadcastLetter[];
+  initialLetterIds?: number[];
+}) {
   const zones = useMemo(
     () => [...new Set(records.map((record) => record.zone.trim()).filter(Boolean))].sort(),
     [records],
   );
+  const lettersById = useMemo(() => new Map(letters.map((letter) => [letter.id, letter])), [letters]);
+  const initialSelectedLetters = useMemo(
+    () => initialLetterIds.filter((id) => lettersById.has(id)).slice(0, MAX_LETTERS),
+    [initialLetterIds, lettersById],
+  );
+
   const [selectedZones, setSelectedZones] = useState<string[]>([]);
   const [selectedRoles, setSelectedRoles] = useState<DirectoryRole[]>(["PGB"]);
   const [schoolQuery, setSchoolQuery] = useState("");
   const [schoolCode, setSchoolCode] = useState("");
   const [picks, setPicks] = useState<Record<string, string>>({});
   const [message, setMessage] = useState(DEFAULT_MESSAGE);
+  const [selectedLetterIds, setSelectedLetterIds] = useState<number[]>(initialSelectedLetters);
+  const [letterQuery, setLetterQuery] = useState("");
   const [openedPhones, setOpenedPhones] = useState<string[]>([]);
   const [copied, setCopied] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(initialSelectedLetters.length > 0);
+
+  const selectedLetters = useMemo(
+    () =>
+      selectedLetterIds
+        .map((id) => lettersById.get(id))
+        .filter((letter): letter is BroadcastLetter => Boolean(letter)),
+    [selectedLetterIds, lettersById],
+  );
+
+  const filteredLetters = useMemo(() => {
+    const q = letterQuery.trim().toLowerCase();
+    if (!q) return letters;
+    return letters.filter((letter) => `${letter.title} ${letter.kategoriTitle}`.toLowerCase().includes(q));
+  }, [letters, letterQuery]);
+
+  function toggleLetter(id: number) {
+    setSelectedLetterIds((current) => {
+      if (current.includes(id)) return current.filter((item) => item !== id);
+      if (current.length >= MAX_LETTERS) return current;
+      return [...current, id];
+    });
+  }
+
+  function composeMessage(base: string) {
+    const trimmed = base.trim();
+    if (selectedLetters.length === 0) return trimmed;
+    const lines = selectedLetters.map((letter) => `• ${letter.title}\n${letter.url}`).join("\n");
+    const block = `Surat berkaitan:\n${lines}`;
+    return trimmed ? `${trimmed}\n\n${block}` : block;
+  }
 
   const schoolsInZones = useMemo(() => {
     if (selectedZones.length === 0) return records;
@@ -202,20 +259,22 @@ export default function WhatsAppBroadcastPanel({ records }: { records: Broadcast
   }
 
   async function copyMessage() {
-    if (!message.trim() || !navigator.clipboard) return;
-    await navigator.clipboard.writeText(message.trim());
+    const composed = composeMessage(message);
+    if (!composed || !navigator.clipboard) return;
+    await navigator.clipboard.writeText(composed);
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1800);
   }
 
   function openConversation(recipient: Recipient) {
-    window.open(whatsappUrl(recipient.phone, message), "_blank", "noopener,noreferrer");
+    window.open(whatsappUrl(recipient.phone, composeMessage(message)), "_blank", "noopener,noreferrer");
     setOpenedPhones((current) =>
       current.includes(recipient.phone) ? current : [...current, recipient.phone],
     );
   }
 
-  const canOpen = recipients.length > 0 && Boolean(message.trim());
+  const composedMessage = composeMessage(message);
+  const canOpen = recipients.length > 0 && Boolean(composedMessage);
 
   return (
     <section className="card overflow-hidden">
@@ -354,10 +413,84 @@ export default function WhatsAppBroadcastPanel({ records }: { records: Broadcast
             <textarea id="mesej-siaran" className="input min-h-36 resize-y" value={message} onChange={(event) => setMessage(event.target.value)} />
             <div className="mt-2 flex items-center justify-between gap-3">
               <p className="text-xs text-graphite">Mesej yang sama akan disediakan untuk setiap penerima.</p>
-              <button type="button" className="btn-outline-ink btn-sm shrink-0" onClick={copyMessage} disabled={!message.trim()}>
+              <button type="button" className="btn-outline-ink btn-sm shrink-0" onClick={copyMessage} disabled={!composedMessage}>
                 {copied ? "Disalin" : "Salin mesej"}
               </button>
             </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between gap-2">
+              <label className="label" htmlFor="carian-surat-siaran">Lampiran surat (pautan)</label>
+              <span className="text-xs tabular-nums text-graphite">{selectedLetters.length}/{MAX_LETTERS}</span>
+            </div>
+            <p className="mb-2 text-xs text-graphite">
+              Pilih surat CoE Resources — pautannya ditambah di hujung mesej. WhatsApp tidak membenarkan fail dilampirkan terus, jadi penerima klik pautan untuk buka. Maksimum {MAX_LETTERS}.
+            </p>
+
+            {selectedLetters.length > 0 && (
+              <div className="mb-2 flex flex-wrap gap-2">
+                {selectedLetters.map((letter) => (
+                  <span key={letter.id} className="inline-flex items-center gap-1.5 rounded-full border border-brand/30 bg-blue-50 px-2.5 py-1 text-xs text-brand">
+                    <span className="max-w-[12rem] truncate">{letter.title}</span>
+                    <button
+                      type="button"
+                      className="text-brand/70 transition-colors hover:text-brand"
+                      onClick={() => toggleLetter(letter.id)}
+                      aria-label={`Buang ${letter.title}`}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {letters.length === 0 ? (
+              <p className="text-xs text-graphite">Tiada surat dalam CoE Resources lagi.</p>
+            ) : (
+              <>
+                <input
+                  id="carian-surat-siaran"
+                  className="input"
+                  placeholder="Cari surat mengikut tajuk atau kategori"
+                  value={letterQuery}
+                  onChange={(event) => setLetterQuery(event.target.value)}
+                />
+                <div className="mt-2 max-h-56 space-y-1 overflow-y-auto rounded-lg border border-slate-200 p-1">
+                  {filteredLetters.length === 0 ? (
+                    <p className="px-2 py-3 text-center text-xs text-graphite">Tiada surat sepadan.</p>
+                  ) : (
+                    filteredLetters.map((letter) => {
+                      const checked = selectedLetterIds.includes(letter.id);
+                      const disabled = !checked && selectedLetters.length >= MAX_LETTERS;
+                      return (
+                        <label
+                          key={letter.id}
+                          className={`flex items-start gap-2 rounded-md px-2 py-1.5 text-sm ${checked ? "bg-blue-50" : "hover:bg-slate-50"} ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
+                        >
+                          <input
+                            type="checkbox"
+                            className="mt-0.5 h-4 w-4 accent-[#024ad8]"
+                            checked={checked}
+                            disabled={disabled}
+                            onChange={() => toggleLetter(letter.id)}
+                          />
+                          <span className="min-w-0">
+                            <span className="block truncate text-ink">{letter.title}</span>
+                            <span className="mt-0.5 block text-xs text-graphite">
+                              {letter.kategoriTitle}
+                              {letter.letterMonth ? ` · ${letter.letterMonth}` : ""}
+                              {!letter.aktif ? " · disorok" : ""}
+                            </span>
+                          </span>
+                        </label>
+                      );
+                    })
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -394,9 +527,7 @@ export default function WhatsAppBroadcastPanel({ records }: { records: Broadcast
                       aria-label={opened ? "Buka semula WhatsApp" : "Buka WhatsApp"}
                       title={opened ? "Buka semula WhatsApp" : "Buka WhatsApp"}
                     >
-                      <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 sm:hidden" fill="currentColor">
-                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.372-.025-.521-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zm-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.885-9.885 9.885zM20.52 3.449C18.24 1.245 15.24 0 12.045 0 5.463 0 .104 5.359.101 11.892c0 2.096.549 4.14 1.595 5.945L0 24l6.335-1.652a11.95 11.95 0 005.71 1.454h.005c6.582 0 11.941-5.359 11.944-11.893a11.86 11.86 0 00-3.48-8.464z" />
-                      </svg>
+                      <WhatsAppIcon className="h-5 w-5 sm:hidden" />
                       <span className="max-sm:hidden">{opened ? "Buka semula" : "Buka WhatsApp"}</span>
                     </button>
                   </div>

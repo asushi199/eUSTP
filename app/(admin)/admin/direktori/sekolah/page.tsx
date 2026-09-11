@@ -2,15 +2,44 @@ import Link from "next/link";
 import AdminSchoolsTable from "@/components/direktori/AdminSchoolsTable";
 import ExportGuruMenu from "@/components/direktori/ExportGuruMenu";
 import TambahSekolahForm from "@/components/direktori/TambahSekolahForm";
-import WhatsAppBroadcastPanel from "@/components/direktori/WhatsAppBroadcastPanel";
+import WhatsAppBroadcastPanel, {
+  type BroadcastLetter,
+} from "@/components/direktori/WhatsAppBroadcastPanel";
 import { requireKandunganAccess } from "@/lib/rbac";
 import { listAdminSchools } from "@/lib/direktori/queries";
+import { listResourcesCardsGrouped } from "@/lib/resources/queries";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminDirektoriSekolahPage() {
+export default async function AdminDirektoriSekolahPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ surat?: string | string[] }>;
+}) {
   await requireKandunganAccess();
-  const records = await listAdminSchools();
+  const [records, grouped, sp] = await Promise.all([
+    listAdminSchools(),
+    listResourcesCardsGrouped({ includeHidden: true }),
+    searchParams,
+  ]);
+
+  const letters: BroadcastLetter[] = grouped.flatMap((group) =>
+    group.cards
+      .filter((card) => card.url.trim())
+      .map((card) => ({
+        id: card.id,
+        title: card.title,
+        url: card.url,
+        kategoriTitle: group.title,
+        letterMonth: card.letterMonth ?? null,
+        aktif: card.aktif,
+      })),
+  );
+
+  const suratRaw = sp.surat;
+  const initialLetterIds = (Array.isArray(suratRaw) ? suratRaw : suratRaw ? [suratRaw] : [])
+    .map((value) => Number(value))
+    .filter((value) => Number.isInteger(value) && value > 0);
 
   return (
     <>
@@ -37,7 +66,11 @@ export default async function AdminDirektoriSekolahPage() {
       </div>
 
       <div className="mt-6">
-        <WhatsAppBroadcastPanel records={records} />
+        <WhatsAppBroadcastPanel
+          records={records}
+          letters={letters}
+          initialLetterIds={initialLetterIds}
+        />
       </div>
 
       <div className="mt-6">

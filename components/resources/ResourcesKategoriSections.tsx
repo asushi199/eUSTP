@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import AccentCard from "@/components/AccentCard";
 import DeleteButton from "@/components/admin/DeleteButton";
 import ToggleAktifButton from "@/components/admin/ToggleAktifButton";
+import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import CardEmbed from "@/components/kandungan/CardEmbed";
 import MonthNav from "@/components/month-nav/MonthNav";
 import {
@@ -225,6 +226,14 @@ function AdminCategoryView({ group }: { group: ResourcesSectionGroup }) {
                 />
                 <Link href={`/admin/resources/${c.id}`} className="link-blue text-sm">
                   Edit
+                </Link>
+                <Link
+                  href={`/admin/direktori/sekolah?surat=${c.id}`}
+                  className="link-blue inline-flex items-center gap-1 text-sm"
+                  title="Kongsi surat ini melalui siaran WhatsApp"
+                >
+                  <WhatsAppIcon className="h-4 w-4" />
+                  WhatsApp
                 </Link>
                 <DeleteButton
                   action={deleteResourcesCard.bind(null, c.id)}
