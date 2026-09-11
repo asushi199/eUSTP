@@ -231,7 +231,7 @@ function AdminCategoryView({ group }: { group: ResourcesSectionGroup }) {
                 </Link>
                 {canShareWhatsApp ? (
                   <Link
-                    href={`/admin/direktori/sekolah?surat=${c.id}`}
+                    href={`/admin/direktori/siaran?surat=${c.id}`}
                     className="link-blue inline-flex items-center gap-1 text-sm"
                     title="Kongsi surat ini melalui siaran WhatsApp"
                   >

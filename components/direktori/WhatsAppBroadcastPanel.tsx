@@ -64,10 +64,12 @@ export default function WhatsAppBroadcastPanel({
   records,
   letters = [],
   initialLetterIds = [],
+  defaultExpanded = false,
 }: {
   records: BroadcastSchool[];
   letters?: BroadcastLetter[];
   initialLetterIds?: number[];
+  defaultExpanded?: boolean;
 }) {
   const zones = useMemo(
     () => [...new Set(records.map((record) => record.zone.trim()).filter(Boolean))].sort(),
@@ -108,7 +110,7 @@ export default function WhatsAppBroadcastPanel({
   const [letterKategori, setLetterKategori] = useState(initialKategori);
   const [openedPhones, setOpenedPhones] = useState<string[]>([]);
   const [copied, setCopied] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(initialSelectedLetters.length > 0);
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded || initialSelectedLetters.length > 0);
 
   const selectedLetters = useMemo(
     () =>
@@ -329,7 +331,7 @@ export default function WhatsAppBroadcastPanel({
       </div>
 
       {isExpanded && <div id="siaran-whatsapp-kandungan" className="grid gap-6 border-t hairline p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.8fr)]">
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           <fieldset>
             <legend className="label">PKG / zon sekolah</legend>
             <p className="mb-3 text-xs text-graphite">Kosongkan pilihan untuk semua PKG.</p>
@@ -532,7 +534,7 @@ export default function WhatsAppBroadcastPanel({
           </div>
         </div>
 
-        <aside className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 sm:p-5">
+        <aside className="min-w-0 rounded-xl border border-slate-200 bg-slate-50/70 p-4 sm:p-5">
           <h3 className="font-semibold text-ink">Senarai penghantaran</h3>
           <p className="mt-1 text-sm text-graphite">
             {selectedRoles.length === 0 ? "Pilih sekurang-kurangnya satu jawatan." : "Nombor berulang digabungkan supaya tidak dihantar dua kali."}

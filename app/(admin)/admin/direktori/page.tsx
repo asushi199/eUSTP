@@ -14,6 +14,11 @@ export default async function AdminDirektoriHubPage() {
       description: "Maklumat perhubungan sekolah, sejarah versi dan eksport CSV.",
     },
     {
+      href: "/admin/direktori/siaran",
+      title: "Siaran WhatsApp",
+      description: "Hantar mesej mengikut PKG/jawatan dan lampir pautan surat CoE Resources.",
+    },
+    {
       href: "/admin/direktori/pegawai",
       title: "Pegawai USTP",
       description: "Senarai pegawai untuk Direktori USTP.",
