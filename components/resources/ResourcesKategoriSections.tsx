@@ -109,6 +109,8 @@ function AdminCategoryView({ group }: { group: ResourcesSectionGroup }) {
   const latestMonth = months[0]?.value ?? "";
   const itemWord = yearGrain ? "bahan" : "surat";
   const periodWord = yearGrain ? "tahun" : "bulan";
+  // Arkib tidak masuk pemilih siaran WhatsApp, jadi sembunyikan pautan kongsi di sini.
+  const canShareWhatsApp = group.slug !== "arkib";
 
   const [query, setQuery] = useState("");
   const [month, setMonth] = useState(latestMonth);
@@ -227,14 +229,16 @@ function AdminCategoryView({ group }: { group: ResourcesSectionGroup }) {
                 <Link href={`/admin/resources/${c.id}`} className="link-blue text-sm">
                   Edit
                 </Link>
-                <Link
-                  href={`/admin/direktori/sekolah?surat=${c.id}`}
-                  className="link-blue inline-flex items-center gap-1 text-sm"
-                  title="Kongsi surat ini melalui siaran WhatsApp"
-                >
-                  <WhatsAppIcon className="h-4 w-4" />
-                  WhatsApp
-                </Link>
+                {canShareWhatsApp ? (
+                  <Link
+                    href={`/admin/direktori/sekolah?surat=${c.id}`}
+                    className="link-blue inline-flex items-center gap-1 text-sm"
+                    title="Kongsi surat ini melalui siaran WhatsApp"
+                  >
+                    <WhatsAppIcon className="h-4 w-4" />
+                    WhatsApp
+                  </Link>
+                ) : null}
                 <DeleteButton
                   action={deleteResourcesCard.bind(null, c.id)}
                   confirmText={`Padam kad "${c.title}"?`}

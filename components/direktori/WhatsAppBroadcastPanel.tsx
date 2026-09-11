@@ -47,6 +47,7 @@ export type BroadcastLetter = {
   id: number;
   title: string;
   url: string;
+  kategoriSlug: string;
   kategoriTitle: string;
   letterMonth: string | null;
   aktif: boolean;
@@ -78,6 +79,24 @@ export default function WhatsAppBroadcastPanel({
     [initialLetterIds, lettersById],
   );
 
+  // Senarai kategori surat yang ada (mengikut susunan datang; Arkib sudah ditapis di pelayan).
+  const letterKategoriOptions = useMemo(() => {
+    const seen = new Map<string, string>();
+    for (const letter of letters) {
+      if (!seen.has(letter.kategoriSlug)) seen.set(letter.kategoriSlug, letter.kategoriTitle);
+    }
+    return [...seen.entries()].map(([slug, title]) => ({ slug, title }));
+  }, [letters]);
+
+  const initialKategori = useMemo(() => {
+    const firstSelected = initialSelectedLetters.length
+      ? lettersById.get(initialSelectedLetters[0])
+      : undefined;
+    if (firstSelected) return firstSelected.kategoriSlug;
+    if (letters.some((letter) => letter.kategoriSlug === "surat-sekolah")) return "surat-sekolah";
+    return "";
+  }, [initialSelectedLetters, lettersById, letters]);
+
   const [selectedZones, setSelectedZones] = useState<string[]>([]);
   const [selectedRoles, setSelectedRoles] = useState<DirectoryRole[]>(["PGB"]);
   const [schoolQuery, setSchoolQuery] = useState("");
@@ -86,6 +105,7 @@ export default function WhatsAppBroadcastPanel({
   const [message, setMessage] = useState(DEFAULT_MESSAGE);
   const [selectedLetterIds, setSelectedLetterIds] = useState<number[]>(initialSelectedLetters);
   const [letterQuery, setLetterQuery] = useState("");
+  const [letterKategori, setLetterKategori] = useState(initialKategori);
   const [openedPhones, setOpenedPhones] = useState<string[]>([]);
   const [copied, setCopied] = useState(false);
   const [isExpanded, setIsExpanded] = useState(initialSelectedLetters.length > 0);
@@ -100,9 +120,12 @@ export default function WhatsAppBroadcastPanel({
 
   const filteredLetters = useMemo(() => {
     const q = letterQuery.trim().toLowerCase();
-    if (!q) return letters;
-    return letters.filter((letter) => `${letter.title} ${letter.kategoriTitle}`.toLowerCase().includes(q));
-  }, [letters, letterQuery]);
+    return letters.filter((letter) => {
+      if (letterKategori && letter.kategoriSlug !== letterKategori) return false;
+      if (q && !`${letter.title} ${letter.kategoriTitle}`.toLowerCase().includes(q)) return false;
+      return true;
+    });
+  }, [letters, letterQuery, letterKategori]);
 
   function toggleLetter(id: number) {
     setSelectedLetterIds((current) => {
@@ -450,13 +473,28 @@ export default function WhatsAppBroadcastPanel({
               <p className="text-xs text-graphite">Tiada surat dalam CoE Resources lagi.</p>
             ) : (
               <>
-                <input
-                  id="carian-surat-siaran"
-                  className="input"
-                  placeholder="Cari surat mengikut tajuk atau kategori"
-                  value={letterQuery}
-                  onChange={(event) => setLetterQuery(event.target.value)}
-                />
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <select
+                    aria-label="Tapis kategori surat"
+                    className="input sm:w-56"
+                    value={letterKategori}
+                    onChange={(event) => setLetterKategori(event.target.value)}
+                  >
+                    <option value="">Semua kategori</option>
+                    {letterKategoriOptions.map((option) => (
+                      <option key={option.slug} value={option.slug}>
+                        {option.title}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    id="carian-surat-siaran"
+                    className="input sm:flex-1"
+                    placeholder="Cari surat mengikut tajuk"
+                    value={letterQuery}
+                    onChange={(event) => setLetterQuery(event.target.value)}
+                  />
+                </div>
                 <div className="mt-2 max-h-56 space-y-1 overflow-y-auto rounded-lg border border-slate-200 p-1">
                   {filteredLetters.length === 0 ? (
                     <p className="px-2 py-3 text-center text-xs text-graphite">Tiada surat sepadan.</p>

@@ -23,18 +23,22 @@ export default async function AdminDirektoriSekolahPage({
     searchParams,
   ]);
 
-  const letters: BroadcastLetter[] = grouped.flatMap((group) =>
-    group.cards
-      .filter((card) => card.url.trim())
-      .map((card) => ({
-        id: card.id,
-        title: card.title,
-        url: card.url,
-        kategoriTitle: group.title,
-        letterMonth: card.letterMonth ?? null,
-        aktif: card.aktif,
-      })),
-  );
+  // Arkib (kertas kerja lama) tidak disiarkan — kecualikan daripada pemilih.
+  const letters: BroadcastLetter[] = grouped
+    .filter((group) => group.slug !== "arkib")
+    .flatMap((group) =>
+      group.cards
+        .filter((card) => card.url.trim())
+        .map((card) => ({
+          id: card.id,
+          title: card.title,
+          url: card.url,
+          kategoriSlug: group.slug,
+          kategoriTitle: group.title,
+          letterMonth: card.letterMonth ?? null,
+          aktif: card.aktif,
+        })),
+    );
 
   const suratRaw = sp.surat;
   const initialLetterIds = (Array.isArray(suratRaw) ? suratRaw : suratRaw ? [suratRaw] : [])
