@@ -1,5 +1,20 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-13 — Kemas kini snapshot Tebus Buku (13 Sept 2026)
+
+- Import semula data baucar buku PPD MANJUNG daripada CSV terkini
+  (`docs/Data Baucar Buku 13 Sept 2026.csv`, sumber desktop
+  `Dashboard Operasi Bahagian_Butiran Tebus_Guna_Table (2).csv`)
+  melalui `npm run db:import-tebus-buku`. Hanya baris `PPD MANJUNG`;
+  snapshot lama diganti dalam satu transaksi.
+- Hasil: 17,659 pelajar, 21 sekolah, sudah tebus 12,797 (7 Sept: 11,605),
+  sudah guna 11,532 (7 Sept: 10,281), sourced_at 2026-09-13.
+- Halaman `laporan/tebus-buku` force-dynamic — data terus dari DB,
+  tiada redeploy. Disahkan di produksi: tarikh "13 September 2026",
+  senarai sekolah dan carian pelajar SMK TOK PERDANA.
+- CSV mentah mengandungi nama & emel pelajar — TIDAK dikomit
+  (sudah di `.gitignore`).
+
 ## 2026-09-09 — Minit Curai: tarikh tamat untuk bengkel beberapa hari
 
 - Medan `meeting_end_date` (pilihan). Kosong atau sama dengan tarikh mula
