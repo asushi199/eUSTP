@@ -255,13 +255,21 @@ export default function AdminLoanList({
           <div className="mt-4 space-y-4">
             <div>
               <p className="label">Bulan pinjaman</p>
-              <MonthNav
-                className="mt-1"
-                value={selectedMonth}
-                allowAll
-                showToday
-                onChange={changeMonth}
-              />
+              <div className="mt-1 flex flex-wrap items-center gap-2">
+                <MonthNav
+                  value={selectedMonth}
+                  showToday
+                  onChange={changeMonth}
+                />
+                <button
+                  type="button"
+                  className="btn-outline-ink btn-sm"
+                  onClick={() => changeMonth("")}
+                  disabled={!selectedMonth}
+                >
+                  Semua bulan
+                </button>
+              </div>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
