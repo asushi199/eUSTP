@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
+import MonthNav from "@/components/month-nav/MonthNav";
 import {
   ADMIN_LOAN_PAGE_SIZE,
   EQUIPMENT_LOAN_WORKFLOW_ORDER,
@@ -247,71 +248,60 @@ export default function AdminLoanList({
             <h2 className="font-semibold text-ink">Tapis permohonan</h2>
             <p className="mt-1 text-sm text-graphite">
               {scopedToMonth
-                ? "Status dan carian dalam bulan ini digunakan serta-merta. Menukar bulan memuatkan semula rekod bulan itu sahaja."
+                ? "Status dan carian dalam bulan ini digunakan serta-merta. Anak panah atau pemilih bulan memuatkan semula rekod bulan itu sahaja."
                 : "Semua bulan dimuatkan 25 rekod setiap muka surat. Status dan carian menapis di pelayan tanpa butang Tapis."}
             </p>
           </div>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-4 space-y-4">
             <div>
-              <label className="label" htmlFor="loan-month">
-                Bulan pinjaman
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  id="loan-month"
-                  name="bulan"
-                  type="month"
-                  className="input min-w-0 flex-1"
-                  value={selectedMonth}
-                  onChange={(event) => changeMonth(event.target.value)}
-                />
-                <button
-                  type="button"
-                  className="btn-outline-ink shrink-0 whitespace-nowrap px-4 text-xs"
-                  onClick={() => changeMonth("")}
-                  disabled={!selectedMonth}
-                >
-                  Semua bulan
-                </button>
-              </div>
-            </div>
-            <div>
-              <label className="label" htmlFor="loan-status">
-                Status
-              </label>
-              <select
-                id="loan-status"
-                name="status"
-                className="input"
-                value={status}
-                onChange={(event) =>
-                  changeStatus(event.target.value as EquipmentLoanStatus | "")
-                }
-              >
-                <option value="">Semua status</option>
-                {EQUIPMENT_LOAN_WORKFLOW_ORDER.map((value) => (
-                  <option key={value} value={value}>
-                    {EQUIPMENT_LOAN_STATUS_LABEL[value]}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="sm:col-span-2 lg:col-span-1">
-              <label className="label" htmlFor="loan-search">
-                Cari sekolah
-              </label>
-              <input
-                id="loan-search"
-                name="cari"
-                className="input"
-                value={search}
-                onChange={(event) => changeSearch(event.target.value)}
-                placeholder="Kod, nama sekolah, pemohon atau no. rujukan"
-                autoComplete="off"
+              <p className="label">Bulan pinjaman</p>
+              <MonthNav
+                className="mt-1"
+                value={selectedMonth}
+                allowAll
+                showToday
+                onChange={changeMonth}
               />
-              <p className="mt-1 text-xs text-graphite">
-                {visibleTotal.toLocaleString("ms-MY")} permohonan sepadan
-              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className="label" htmlFor="loan-status">
+                  Status
+                </label>
+                <select
+                  id="loan-status"
+                  name="status"
+                  className="input"
+                  value={status}
+                  onChange={(event) =>
+                    changeStatus(event.target.value as EquipmentLoanStatus | "")
+                  }
+                >
+                  <option value="">Semua status</option>
+                  {EQUIPMENT_LOAN_WORKFLOW_ORDER.map((value) => (
+                    <option key={value} value={value}>
+                      {EQUIPMENT_LOAN_STATUS_LABEL[value]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="label" htmlFor="loan-search">
+                  Cari sekolah
+                </label>
+                <input
+                  id="loan-search"
+                  name="cari"
+                  className="input"
+                  value={search}
+                  onChange={(event) => changeSearch(event.target.value)}
+                  placeholder="Kod, nama sekolah, pemohon atau no. rujukan"
+                  autoComplete="off"
+                />
+                <p className="mt-1 text-xs text-graphite">
+                  {visibleTotal.toLocaleString("ms-MY")} permohonan sepadan
+                </p>
+              </div>
             </div>
           </div>
         </div>
