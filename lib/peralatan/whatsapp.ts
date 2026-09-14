@@ -45,7 +45,7 @@ export function buildEquipmentDecisionWhatsAppUrl(
     expectedReturnDate: string;
     items: string[];
     decisionNote: string;
-    decision: "approved" | "rejected" | "handed_over";
+    decision: "approved" | "rejected" | "handed_over" | "cancelled";
   },
 ): string {
   const normalized = normalizeWhatsAppPhone(phone);
@@ -53,13 +53,16 @@ export function buildEquipmentDecisionWhatsAppUrl(
 
   const approved = details.decision === "approved";
   const handedOver = details.decision === "handed_over";
+  const cancelled = details.decision === "cancelled";
   const message = [
     "Makluman pinjaman peralatan NEXa Manjung",
     `Salam sejahtera ${details.applicantName},`,
     `Rujukan: ${details.referenceNo}`,
-    approved || handedOver
-      ? "Permohonan pinjaman peralatan anda telah diluluskan."
-      : "Permohonan pinjaman peralatan anda tidak dapat diluluskan.",
+    cancelled
+      ? "Permohonan pinjaman peralatan anda telah dibatalkan."
+      : approved || handedOver
+        ? "Permohonan pinjaman peralatan anda telah diluluskan."
+        : "Permohonan pinjaman peralatan anda tidak dapat diluluskan.",
     `Peralatan: ${details.items.join(", ")}`,
     `Tempoh: ${details.borrowDate} hingga ${details.expectedReturnDate}`,
     ...(approved || handedOver

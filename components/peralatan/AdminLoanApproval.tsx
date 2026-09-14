@@ -4,12 +4,16 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   approveEquipmentLoan,
+  cancelEquipmentLoan,
   rejectEquipmentLoan,
 } from "@/lib/actions/peralatan-admin";
 import type { NotifyPemohonPrompt } from "@/lib/admin/notify-pemohon";
 import { useNotifyPemohon } from "@/components/admin/NotifyPemohonProvider";
 import { buildEquipmentDecisionWhatsAppUrl } from "@/lib/peralatan/whatsapp";
-import { EQUIPMENT_LOAN_STATUS_LABEL } from "@/lib/peralatan/status";
+import {
+  canCancelEquipmentLoan,
+  EQUIPMENT_LOAN_STATUS_LABEL,
+} from "@/lib/peralatan/status";
 import type { EquipmentLoanDetail } from "@/lib/peralatan/types";
 import {
   equipmentUnitOptionLabel,
@@ -72,9 +76,11 @@ export default function AdminLoanApproval({
       quantity === approvedQuantities[item.id]
     );
   });
+  const canCancel = canCancelEquipmentLoan(request.status);
   const decisionWhatsappUrl =
     request.status === "approved" ||
     request.status === "rejected" ||
+    request.status === "cancelled" ||
     request.status === "handed_over"
       ? buildEquipmentDecisionWhatsAppUrl(request.contact, {
           referenceNo: request.referenceNo,
@@ -87,9 +93,11 @@ export default function AdminLoanApproval({
           decision:
             request.status === "rejected"
               ? "rejected"
-              : request.status === "handed_over"
-                ? "handed_over"
-                : "approved",
+              : request.status === "cancelled"
+                ? "cancelled"
+                : request.status === "handed_over"
+                  ? "handed_over"
+                  : "approved",
         })
       : "";
 
@@ -219,6 +227,41 @@ export default function AdminLoanApproval({
     });
   }
 
+  function runCancel() {
+    const confirmed = window.confirm(
+      request.status === "approved"
+        ? "Pemohon tidak jadi meminjam? Unit yang telah ditempah akan dikembalikan sebagai tersedia."
+        : "Batalkan permohonan ini? Tindakan akan direkodkan sebagai dibatalkan.",
+    );
+    if (!confirmed) return;
+    const formData = new FormData();
+    formData.set("decisionNote", decisionNote);
+    startTransition(async () => {
+      const result = await cancelEquipmentLoan(pkgId, request.id, formData);
+      if (!result.ok) {
+        setError(result.error ?? "Tindakan tidak berjaya.");
+        return;
+      }
+      const prompt: NotifyPemohonPrompt = {
+        href: buildEquipmentDecisionWhatsAppUrl(request.contact, {
+          referenceNo: request.referenceNo,
+          applicantName: request.applicantName,
+          pkgName: request.pkgName,
+          borrowDate: request.borrowDate,
+          expectedReturnDate: request.expectedReturnDate,
+          items: request.items.map(
+            (item) => `${item.categoryName} (${item.quantity})`,
+          ),
+          decisionNote,
+          decision: "cancelled",
+        }),
+        decision: "cancelled",
+      };
+      window.setTimeout(() => promptNotifyPemohon(prompt), 0);
+      router.refresh();
+    });
+  }
+
   return (
     <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
       <div className="space-y-5">
@@ -238,11 +281,13 @@ export default function AdminLoanApproval({
             <span className="status-badge">
               <span
                 className={`status-dot ${
-                  request.status === "approved"
-                    ? "bg-primary"
+                  request.status === "pending"
+                    ? "bg-amber-400"
                     : request.status === "rejected"
                       ? "bg-bloom-deep"
-                      : "bg-amber-400"
+                      : request.status === "cancelled"
+                        ? "bg-graphite"
+                        : "bg-primary"
                 }`}
               />
               {EQUIPMENT_LOAN_STATUS_LABEL[request.status]}
@@ -504,6 +549,14 @@ export default function AdminLoanApproval({
               >
                 Tolak permohonan
               </button>
+              <button
+                type="button"
+                className="btn-outline-ink mt-2 w-full"
+                disabled={pending}
+                onClick={runCancel}
+              >
+                {pending ? "Memproses…" : "Batal permohonan"}
+              </button>
               {!fullyAllocated ? (
                 <p className="mt-3 text-center text-xs leading-relaxed text-graphite">
                   Lengkapkan semua nombor siri sebelum meluluskan.
@@ -513,8 +566,11 @@ export default function AdminLoanApproval({
           ) : (
             <div className="mt-4 space-y-3 rounded-lg bg-cloud p-4 text-sm text-graphite">
               <p>
-                Keputusan telah direkodkan. Perubahan seterusnya mesti melalui aliran
-                serahan atau pemulangan.
+                {request.status === "approved"
+                  ? "Permohonan telah diluluskan. Sahkan serahan apabila peralatan diambil. Jika pemohon tidak jadi meminjam, batalkan permohonan untuk membebaskan stok."
+                  : request.status === "cancelled"
+                    ? "Permohonan ini telah dibatalkan. Unit yang ditempah telah dikembalikan sebagai tersedia."
+                    : "Keputusan telah direkodkan. Perubahan seterusnya mesti melalui aliran serahan atau pemulangan."}
               </p>
               {decisionWhatsappUrl ? (
                 <a
@@ -525,6 +581,16 @@ export default function AdminLoanApproval({
                 >
                   WhatsApp pemohon
                 </a>
+              ) : null}
+              {canCancel ? (
+                <button
+                  type="button"
+                  className="btn-outline-ink mt-2 w-full"
+                  disabled={pending}
+                  onClick={runCancel}
+                >
+                  {pending ? "Memproses…" : "Batal permohonan"}
+                </button>
               ) : null}
             </div>
           )}

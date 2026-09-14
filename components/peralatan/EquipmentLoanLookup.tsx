@@ -193,7 +193,9 @@ export default function EquipmentLoanLookup() {
                     </ul>
                   </div>
 
-                  {request.status === "rejected" && request.decisionNote ? (
+                  {(request.status === "rejected" ||
+                    request.status === "cancelled") &&
+                  request.decisionNote ? (
                     <div className="mt-4 rounded-lg border border-bloom-rose bg-bloom-rose/20 p-4 text-sm leading-relaxed text-charcoal">
                       <p className="font-semibold text-bloom-deep">Catatan pegawai</p>
                       <p className="mt-1">{request.decisionNote}</p>

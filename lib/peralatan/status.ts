@@ -26,3 +26,8 @@ export const EQUIPMENT_LOAN_STATUS_LABEL: Record<
   handed_over: "Telah diserahkan",
   returned: "Dipulangkan",
 };
+
+/** Boleh dibatalkan sehingga peralatan diserahkan kepada pemohon. */
+export function canCancelEquipmentLoan(status: EquipmentLoanListItem["status"]) {
+  return status === "pending" || status === "approved";
+}

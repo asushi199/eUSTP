@@ -17,6 +17,12 @@ test("asks the admin to notify after rejecting from the backend", () => {
   assert.match(copy.body, /tutup dan hantar kemudian dari permohonan ini/);
 });
 
+test("asks the admin to notify after cancelling from the backend", () => {
+  const copy = getNotifyPemohonCopy("cancelled");
+  assert.match(copy.body, /telah dibatalkan/);
+  assert.match(copy.body, /tutup dan hantar kemudian dari permohonan ini/);
+});
+
 test("explains when the applicant phone cannot open WhatsApp", () => {
   const copy = getNotifyPemohonCopy("approved");
   assert.match(copy.missingPhone, /Nombor WhatsApp pemohon tidak sah/);

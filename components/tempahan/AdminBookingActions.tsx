@@ -21,7 +21,6 @@ import {
   type Slot,
 } from "@/lib/tempahan/booking-rules";
 import { useNotifyPemohon } from "@/components/admin/NotifyPemohonProvider";
-import type { NotifyPemohonPrompt } from "@/lib/admin/notify-pemohon";
 import { buildBookingDecisionWhatsAppUrl } from "@/lib/tempahan/whatsapp";
 import { formatMalayDate } from "@/lib/tempahan/date";
 
@@ -90,7 +89,7 @@ export default function AdminBookingActions({
   function run(
     action: () => Promise<{ ok: boolean; error?: string }>,
     confirmMsg?: string,
-    notifyDecision?: NotifyPemohonPrompt["decision"],
+    notifyDecision?: "approved" | "rejected",
   ) {
     if (confirmMsg && !window.confirm(confirmMsg)) return;
     setError(null);

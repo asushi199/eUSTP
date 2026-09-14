@@ -1,4 +1,4 @@
-export type NotifyPemohonDecision = "approved" | "rejected";
+export type NotifyPemohonDecision = "approved" | "rejected" | "cancelled";
 
 export type NotifyPemohonPrompt = {
   href: string;
@@ -6,12 +6,15 @@ export type NotifyPemohonPrompt = {
 };
 
 export function getNotifyPemohonCopy(decision: NotifyPemohonDecision) {
-  const approved = decision === "approved";
+  const body =
+    decision === "approved"
+      ? "Permohonan telah diluluskan. Hantar mesej WhatsApp kepada pemohon sekarang, atau tutup dan hantar kemudian dari permohonan ini."
+      : decision === "cancelled"
+        ? "Permohonan telah dibatalkan. Hantar mesej WhatsApp kepada pemohon sekarang, atau tutup dan hantar kemudian dari permohonan ini."
+        : "Permohonan telah ditolak. Hantar mesej WhatsApp kepada pemohon sekarang, atau tutup dan hantar kemudian dari permohonan ini.";
   return {
     title: "Maklumkan pemohon?",
-    body: approved
-      ? "Permohonan telah diluluskan. Hantar mesej WhatsApp kepada pemohon sekarang, atau tutup dan hantar kemudian dari permohonan ini."
-      : "Permohonan telah ditolak. Hantar mesej WhatsApp kepada pemohon sekarang, atau tutup dan hantar kemudian dari permohonan ini.",
+    body,
     confirmLabel: "WhatsApp pemohon",
     dismissLabel: "Tutup",
     missingPhone:

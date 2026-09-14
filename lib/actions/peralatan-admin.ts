@@ -15,6 +15,7 @@ import {
   generateKewPa9Pdf,
 } from "@/lib/peralatan/kew-pa9";
 import { getEquipmentLoanDetail } from "@/lib/peralatan/queries";
+import { canCancelEquipmentLoan } from "@/lib/peralatan/status";
 import type { EquipmentDocumentStage } from "@/lib/peralatan/types";
 import { requireTempahanAccess } from "@/lib/rbac";
 import {
@@ -899,6 +900,94 @@ export async function rejectEquipmentLoan(
   });
   refreshEquipmentPaths(pkgId, requestId);
   return { ok: true };
+}
+
+export async function cancelEquipmentLoan(
+  pkgId: string,
+  requestId: string,
+  formData: FormData,
+): Promise<EquipmentAdminActionResult> {
+  const user = await requireTempahanAccess(pkgId);
+  const decisionNote = text(formData, "decisionNote", 1000);
+
+  try {
+    await db.transaction(async (tx) => {
+      const request = await tx.query.equipmentLoanRequests.findFirst({
+        where: and(
+          eq(equipmentLoanRequests.id, requestId),
+          eq(equipmentLoanRequests.pkgId, pkgId),
+        ),
+      });
+      if (!request || !canCancelEquipmentLoan(request.status)) {
+        throw new Error(
+          request?.status === "handed_over" || request?.status === "returned"
+            ? "Peralatan telah diserahkan. Permohonan ini tidak boleh dibatalkan."
+            : "Permohonan ini tidak boleh dibatalkan.",
+        );
+      }
+
+      const allocations = await allocatedUnitsForRequest(tx, requestId);
+      const unitIds = allocations.map((allocation) => allocation.unitId);
+      const cancelledAt = new Date();
+
+      if (request.status === "approved") {
+        if (unitIds.length === 0) {
+          throw new Error("Tiada unit ditempah untuk permohonan ini.");
+        }
+        const updatedUnits = await tx
+          .update(equipmentUnits)
+          .set({ status: "available", updatedAt: cancelledAt })
+          .where(
+            and(
+              inArray(equipmentUnits.id, unitIds),
+              eq(equipmentUnits.pkgId, pkgId),
+              eq(equipmentUnits.status, "reserved"),
+            ),
+          )
+          .returning({ id: equipmentUnits.id });
+        if (updatedUnits.length !== unitIds.length) {
+          throw new Error(
+            "Status unit telah berubah. Muat semula halaman sebelum membatalkan.",
+          );
+        }
+        await tx
+          .update(equipmentLoanAllocations)
+          .set({ releasedAt: cancelledAt })
+          .where(
+            inArray(
+              equipmentLoanAllocations.id,
+              allocations.map((allocation) => allocation.allocationId),
+            ),
+          );
+      }
+
+      await tx
+        .update(equipmentLoanRequests)
+        .set({
+          status: "cancelled",
+          decisionNote: decisionNote || request.decisionNote,
+          updatedAt: cancelledAt,
+        })
+        .where(eq(equipmentLoanRequests.id, requestId));
+      await tx.insert(equipmentLoanEvents).values({
+        requestId,
+        action: "application_cancelled",
+        actorUserId: Number(user.id),
+        details: {
+          previousStatus: request.status,
+          unitIds,
+          decisionNote: decisionNote || request.decisionNote,
+        },
+      });
+    });
+    refreshEquipmentPaths(pkgId, requestId);
+    return { ok: true };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Pembatalan gagal.",
+    };
+  }
 }
 
 async function allocatedUnitsForRequest(

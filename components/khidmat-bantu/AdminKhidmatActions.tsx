@@ -8,7 +8,6 @@ import {
   adminApproveKhidmat,
   adminRejectKhidmat,
 } from "@/lib/actions/khidmat-bantu-admin";
-import type { NotifyPemohonPrompt } from "@/lib/admin/notify-pemohon";
 import { buildKhidmatDecisionWhatsAppUrl } from "@/lib/khidmat-bantu/whatsapp";
 
 type KhidmatWhatsAppDetails = {
@@ -35,7 +34,7 @@ export default function AdminKhidmatActions({
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  function decisionUrl(decision: NotifyPemohonPrompt["decision"]) {
+  function decisionUrl(decision: "approved" | "rejected") {
     if (!whatsappDetails) return "";
     return buildKhidmatDecisionWhatsAppUrl(applicantPhone, {
       ...whatsappDetails,
@@ -48,7 +47,7 @@ export default function AdminKhidmatActions({
 
   function run(
     action: () => Promise<{ ok: boolean; error?: string }>,
-    notifyDecision: NotifyPemohonPrompt["decision"],
+    notifyDecision: "approved" | "rejected",
   ) {
     setError(null);
     startTransition(async () => {

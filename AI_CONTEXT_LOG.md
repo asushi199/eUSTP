@@ -1,5 +1,14 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-14 — Batal permohonan pinjaman peralatan sebelum serahan
+
+- Admin boleh **Batal permohonan** selagi status `pending` atau `approved`.
+  Selepas `handed_over` (peralatan sudah diserahkan), butang hilang.
+- Jika sudah diluluskan, unit `reserved` dikembalikan kepada `available`
+  dan peruntukan ditanda `releasedAt`. Rekod kekal sebagai `cancelled`
+  (bukan padam keras) untuk jejak audit KEW.PA-9.
+- WhatsApp pemohon disediakan selepas pembatalan, sama seperti lulus/tolak.
+
 ## 2026-09-14 — Kemas kini snapshot tebus baucar buku (PPD Manjung)
 
 - Import semula `tebus_buku_pelajar` daripada CSV JPN baharu
