@@ -109,6 +109,14 @@ export default async function AdminOverviewPage() {
       },
     );
   }
+  if (user.peranan === "Admin") {
+    cards.push({
+      href: "/admin/backup",
+      title: "Sandaran Data",
+      description: "Muat turun atau sandar pangkalan data ke Google Drive.",
+      accent: "#475569",
+    });
+  }
 
   return (
     <>

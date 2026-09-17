@@ -1649,3 +1649,32 @@ Corak berselang = instance sihat vs beracun.
   `/docs/Data Baucar Buku*.csv` ditambah ke `.gitignore`.
 - Betulkan susun atur tarikh snapshot pada tajuk halaman: guna ruang tak-pecah
   (String.fromCharCode(160)) supaya "7 September 2026" tak dipecah antara baris.
+
+### 2026-09-17 — Sandaran data (butang admin + Vercel Cron)
+- Punca: Supabase free tier tiada sandaran terurus. Ditambah eksport logik
+  semua jadual `public` → satu JSON setiap jadual → ZIP (DEFLATE, jszip).
+  Peranan `postgres` (Drizzle) memintas RLS jadi semua baris terkandung.
+- Teras boleh guna semula: `lib/backup/dump.ts` (`createBackupZip`) senaraikan
+  jadual dari `information_schema` (auto-liputi jadual baharu), dump `select *`
+  setiap satu; bigint→string, bytea→{__type,base64}, Date→ISO. Manifest+README
+  disertakan. `lib/backup/store.ts` muat naik ke Google Drive via GAS
+  (subPath `_backup/tahun/bulan`) & rekod status terakhir dalam `app_settings`
+  (key `backup:last`) — TIADA migrasi/jadual baharu.
+- Tiga entri: (1) muat turun ZIP ke komputer admin —
+  `app/(admin)/admin/backup/download/route.ts` (Admin sahaja, salinan luar-talian);
+  (2) butang "Sandar ke Google Drive" — `lib/actions/backup.ts`;
+  (3) automatik — `app/api/cron/backup/route.ts` dilindungi `CRON_SECRET`
+  (`Authorization: Bearer`), bukan di bawah middleware /admin.
+- UI: `app/(admin)/admin/backup/page.tsx` + `components/admin/BackupPanel.tsx`
+  (status sandaran terakhir, dua butang, amaran jika Drive/cron belum sedia).
+  Kad "Sandaran Data" (Admin sahaja, accent #475569) ditambah di `/admin`.
+  `requireAdmin` baharu dalam `lib/rbac.ts` (Admin sahaja — dump mengandungi
+  hash kata laluan/token).
+- Jadual: `vercel.json` crons `0 18 * * *` (UTC) = ~2:00 pagi MYT harian.
+  Hobby plan = maksimum sehari sekali (mencukupi). `.env.local.example` +CRON_SECRET.
+- Verifikasi: typecheck + build lulus (3 route baharu). Smoke teras pada DB
+  sebenar (read-only, tanpa muat naik): 39 jadual, 21,793 baris → 672.8 KB ZIP
+  dalam 2.3s (jauh di bawah had GAS 8MB). Smoke UI penuh perlu log masuk Admin.
+- BELUM disediakan pengguna: set `CRON_SECRET` dalam .env.local + Vercel env,
+  pastikan GAS dikonfigurasi. Pemulihan (restore) belum ada skrip — import
+  manual ikut susunan FK.

@@ -22,6 +22,13 @@ export async function requireKandunganAccess(): Promise<SessionUser> {
   return user;
 }
 
+/** Tindakan sensitif seluruh sistem (cth. sandaran pangkalan data) — Admin sahaja. */
+export async function requireAdmin(): Promise<StaffUser> {
+  const user = await requireUser();
+  if (user.peranan !== "Admin") redirect("/admin");
+  return user;
+}
+
 /**
  * Tempahan (admin). PKG_Admin hanya boleh urus PKG sendiri;
  * Admin/Pegawai boleh urus semua PKG.
