@@ -90,7 +90,7 @@ export default function BottomTabBar() {
         </div>
       ) : null}
 
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t hairline bg-white pb-[env(safe-area-inset-bottom)]">
+      <nav className="fixed inset-x-0 bottom-0 z-40 border-t hairline bg-white pb-[env(safe-area-inset-bottom)] transform-gpu">
         <div className="grid grid-cols-5">
           {PUBLIC_MOBILE_TABS.map((tab) => {
             const active = isPublicNavActive(pathname, tab);

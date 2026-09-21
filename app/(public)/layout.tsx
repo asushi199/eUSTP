@@ -6,13 +6,13 @@ import { AmbientScene } from "@/components/home/AmbientScene";
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="portal-public-shell flex min-h-screen flex-col overflow-x-clip">
+    <div className="portal-public-shell flex min-h-screen flex-col">
       <AmbientScene />
       <div className="flex min-h-0 flex-1">
         <PublicSidebar />
         <div className="flex min-w-0 flex-1 flex-col">
           <TopNav />
-          <main className="flex-1 overflow-x-clip">{children}</main>
+          <main className="min-w-0 flex-1">{children}</main>
         </div>
       </div>
       <SiteFooter />

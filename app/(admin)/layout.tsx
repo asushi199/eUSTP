@@ -14,7 +14,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <div className="flex min-h-screen flex-col bg-cloud">
         <AdminSidebar showContent={showContent} />
         <div className="flex min-h-screen flex-1 flex-col lg:pl-64 print:pl-0">
-          <header className="sticky top-0 z-40 h-16 border-b hairline bg-white/88 backdrop-blur-md no-print">
+          <header className="sticky top-0 z-40 h-16 border-b hairline bg-white no-print lg:bg-white/88 lg:backdrop-blur-md">
             <div className="flex h-full items-center justify-between px-4 sm:px-8">
               <div className="flex min-w-0 items-center gap-3 lg:hidden">
                 <BrandWordmark href="/admin" />

@@ -1,5 +1,15 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-21 — Kelip scroll pada skrin dalam lipat
+
+- Magic V5: kelip hanya semasa scroll bawah — toolbar pelayar menguncup,
+  `overflow-x: clip` jadi scrollport kedua, `backdrop-blur` sticky + blob
+  `filter: blur(80px)` dikomposit semula setiap frame. Bukan isu breakpoint.
+- `overflow-x: hidden` pada body sahaja; buang clip pada html/shell/main.
+- Ambient `height: 100lvh` (stabil). Blur/animasi dimatikan di ≤1023px /
+  `hover: none`. Satu lapisan AmbientScene (buang overlay homepage kedua).
+- TopNav/admin header: `backdrop-blur` hanya `lg`. Tab bawah `transform-gpu`.
+
 ## 2026-09-21 — Chrome desktop 1024px (lipat Magic V5)
 
 - Honor Magic V5 skrin dalam 2172×2352 @ ~3x ≈ 724–784 CSS px, tepat di tepi

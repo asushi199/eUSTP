@@ -3,7 +3,6 @@ import { HOME_MODULES } from "@/lib/home-modules";
 import { getAnalisisHomeSummary } from "@/lib/analisis/summary";
 import { getDpdSummary } from "@/lib/stats/dpd";
 import { getPssSummary } from "@/lib/stats/pss";
-import { HomeAmbientScene } from "@/components/home/HomeAmbientScene";
 import HomeAnalisisBand from "@/components/home/HomeAnalisisBand";
 import { HomeWelcomeBanner } from "@/components/home/HomeWelcomeBanner";
 import { HomeModuleIcon } from "@/components/home/HomeModuleIcon";
@@ -78,8 +77,6 @@ export default async function HomePage() {
 
   return (
     <>
-      <HomeAmbientScene />
-
       <HomeWelcomeBanner />
 
       <section

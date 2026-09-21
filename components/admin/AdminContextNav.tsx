@@ -54,7 +54,7 @@ export function AdminMobileNav() {
   return (
     <nav
       aria-label="Navigasi admin"
-      className="fixed inset-x-0 bottom-0 z-40 border-t hairline bg-white pb-[env(safe-area-inset-bottom)] lg:hidden no-print"
+      className="fixed inset-x-0 bottom-0 z-40 border-t hairline bg-white pb-[env(safe-area-inset-bottom)] transform-gpu lg:hidden no-print"
     >
       <div
         className="grid"

@@ -5,7 +5,7 @@ import PwaInstallButton from "./PwaInstallButton";
 /** nav-bar-top: putih 64px. Desktop: logo dalam bar sisi. */
 export default function TopNav() {
   return (
-    <header className="sticky top-0 z-40 h-16 border-b hairline bg-white/88 backdrop-blur-md">
+    <header className="sticky top-0 z-40 h-16 border-b hairline bg-white lg:bg-white/88 lg:backdrop-blur-md">
       <div className="flex h-full items-center justify-between px-4 sm:px-8">
         <BrandWordmark className="lg:hidden" />
         <div className="ml-auto flex items-center gap-2">

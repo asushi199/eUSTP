@@ -5,7 +5,6 @@
 /* hp design language: kanvas putih, dakwat hampir-hitam, biru elektrik sebagai isyarat tunggal. */
 @layer base {
   html {
-    overflow-x: clip;
     max-width: 100%;
   }
 
@@ -16,7 +15,9 @@
   }
 
   body {
-    overflow-x: clip;
+    /* hidden, bukan clip — clip pada html/body boleh jadi scrollport kedua
+       dan menyebabkan sticky/fixed kelip bila toolbar pelayar menguncup. */
+    overflow-x: hidden;
     background-color: var(--portal-canvas, #f4f8fb);
   }
 
@@ -135,7 +136,6 @@
 .portal-public-shell {
   width: 100%;
   max-width: 100%;
-  overflow-x: clip;
 }
 
 .portal-sidebar {
@@ -290,11 +290,17 @@
 
 .portal-ambient {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
   z-index: -1;
+  width: 100%;
+  /* lvh = viewport besar (toolbar tersembunyi) — tidak berubah semasa scroll. */
+  height: 100vh;
+  height: 100lvh;
   overflow: hidden;
   background: var(--portal-canvas);
   pointer-events: none;
+  contain: paint;
 }
 
 .portal-ambient-mesh {
@@ -771,6 +777,30 @@
   }
 }
 
+/* Skrin sentuh / lipat: elak blur+animasi full-screen yang dikomposit semula
+   setiap frame bila toolbar Chrome/MagicOS menguncup semasa scroll. */
+@media (hover: none), (max-width: 1023px) {
+  .portal-ambient-mesh,
+  .portal-ambient-blob {
+    animation: none;
+    filter: none;
+  }
+
+  .portal-ambient-blob {
+    display: none;
+  }
+
+  .portal-ambient-mesh {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .portal-pointer-glow {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .portal-ambient-mesh,
   .portal-ambient-blob,
@@ -785,6 +815,11 @@
   .portal-hero-visual,
   .portal-page-enter {
     animation: none !important;
+  }
+
+  .portal-ambient-mesh,
+  .portal-ambient-blob {
+    filter: none !important;
   }
 
   .portal-pointer-glow {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 type AmbientSceneProps = {
   /** Pointer-follow glow — homepage only */
@@ -8,8 +9,11 @@ type AmbientSceneProps = {
 };
 
 export function AmbientScene({ interactive = false }: AmbientSceneProps) {
+  const pathname = usePathname();
+  const isInteractive = interactive || pathname === "/";
+
   useEffect(() => {
-    if (!interactive) return;
+    if (!isInteractive) return;
 
     const canTrackPointer = window.matchMedia(
       "(pointer: fine) and (prefers-reduced-motion: no-preference)",
@@ -31,14 +35,14 @@ export function AmbientScene({ interactive = false }: AmbientSceneProps) {
     }
 
     return () => window.removeEventListener("pointermove", updatePointer);
-  }, [interactive]);
+  }, [isInteractive]);
 
   return (
     <div className="portal-ambient" aria-hidden="true">
       <div className="portal-ambient-mesh" />
       <div className="portal-ambient-blob portal-ambient-blob-one" />
       <div className="portal-ambient-blob portal-ambient-blob-two" />
-      {interactive ? <div className="portal-pointer-glow" /> : null}
+      {isInteractive ? <div className="portal-pointer-glow" /> : null}
     </div>
   );
 }
