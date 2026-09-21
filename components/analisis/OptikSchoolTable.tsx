@@ -8,6 +8,37 @@ function formatPct(n: number): string {
   return `${n.toLocaleString("ms-MY", { maximumFractionDigits: 2 })}%`;
 }
 
+function SchoolName({
+  row,
+  onSelectSchool,
+}: {
+  row: OptikSchoolPublicRow;
+  onSelectSchool?: (row: OptikSchoolPublicRow) => void;
+}) {
+  const className = "block w-full text-left font-medium leading-snug text-ink hover:underline";
+  if (onSelectSchool) {
+    return (
+      <button type="button" className={className} onClick={() => onSelectSchool(row)}>
+        {row.schoolName}
+      </button>
+    );
+  }
+  return (
+    <Link href={`/analisis/ai-tools/${row.schoolCode}`} className={className}>
+      {row.schoolName}
+    </Link>
+  );
+}
+
+function PlcBadge({ status }: { status: string }) {
+  return (
+    <span className="status-badge shrink-0">
+      <span className={`status-dot ${status === "Selesai" ? "bg-primary" : "bg-graphite"}`} />
+      {status}
+    </span>
+  );
+}
+
 export default function OptikSchoolTable({
   schools,
   onSelectSchool,
@@ -62,7 +93,27 @@ export default function OptikSchoolTable({
         </div>
       </div>
       <p className="mt-3 text-xs text-graphite">{filtered.length} sekolah dipaparkan</p>
-      <div className="card mt-3 overflow-x-auto">
+
+      <ul className="mt-3 space-y-3 sm:hidden">
+        {filtered.length === 0 ? (
+          <li className="card p-6 text-center text-sm text-graphite">Tiada sekolah sepadan.</li>
+        ) : (
+          filtered.map((row) => (
+            <li key={row.schoolCode} className="card p-4">
+              <SchoolName row={row} onSelectSchool={onSelectSchool} />
+              <p className="mt-0.5 text-xs text-graphite">{row.schoolCode}</p>
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-fog pt-3 text-sm">
+                <p className="tabular-nums text-graphite">
+                  {row.selesaiBil}/{row.totalBil} · {formatPct(row.pctAi)}
+                </p>
+                <PlcBadge status={row.plcStatus} />
+              </div>
+            </li>
+          ))
+        )}
+      </ul>
+
+      <div className="card mt-3 hidden overflow-x-auto sm:block">
         <table className="w-full min-w-[36rem] text-left text-sm">
           <thead>
             <tr className="border-b border-fog text-[11px] font-semibold uppercase tracking-[0.6px] text-steel">
@@ -76,35 +127,15 @@ export default function OptikSchoolTable({
           <tbody>
             {filtered.map((row) => (
               <tr key={row.schoolCode} className="border-b border-fog/60 last:border-0">
-                <td className="px-4 py-3">
-                  {onSelectSchool ? (
-                    <button
-                      type="button"
-                      className="font-medium leading-snug text-ink hover:underline"
-                      onClick={() => onSelectSchool(row)}
-                    >
-                      {row.schoolName}
-                    </button>
-                  ) : (
-                    <Link
-                      href={`/analisis/ai-tools/${row.schoolCode}`}
-                      className="font-medium leading-snug text-ink hover:underline"
-                    >
-                      {row.schoolName}
-                    </Link>
-                  )}
+                <td className="min-w-[12rem] px-4 py-3">
+                  <SchoolName row={row} onSelectSchool={onSelectSchool} />
                   <p className="mt-0.5 text-xs text-graphite">{row.schoolCode}</p>
                 </td>
-                <td className="px-4 py-3 text-right tabular-nums">{row.selesaiBil}</td>
-                <td className="px-4 py-3 text-right tabular-nums">{row.totalBil}</td>
-                <td className="px-4 py-3 text-right tabular-nums">{formatPct(row.pctAi)}</td>
+                <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">{row.selesaiBil}</td>
+                <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">{row.totalBil}</td>
+                <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">{formatPct(row.pctAi)}</td>
                 <td className="px-4 py-3">
-                  <span className="status-badge">
-                    <span
-                      className={`status-dot ${row.plcStatus === "Selesai" ? "bg-primary" : "bg-graphite"}`}
-                    />
-                    {row.plcStatus}
-                  </span>
+                  <PlcBadge status={row.plcStatus} />
                 </td>
               </tr>
             ))}
