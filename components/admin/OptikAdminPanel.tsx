@@ -91,13 +91,7 @@ export default async function OptikAdminPanel({
         </div>
       </section>
 
-      <section className="mt-8">
-        <h2 className="text-lg font-semibold">Arkib</h2>
-        <p className="mt-1 text-sm text-graphite">
-          Muat turun CSV, pulihkan paparan lama, atau buang titik daripada carta.
-        </p>
-        <OptikArkibTable snapshots={snapshots} />
-      </section>
+      <OptikArkibTable snapshots={snapshots} />
     </>
   );
 }

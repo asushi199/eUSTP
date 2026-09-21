@@ -1,5 +1,21 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-21 — CoE Analytics: Khidmat Bantu, Pinjaman Aset, Tempahan PKG
+
+- Tiga modul perkhidmatan ditambah pada CoE Analytics (bukan editor admin).
+  Nombor dikira terus dari jadual permohonan (`approved` / diluluskan).
+- Halaman utama: baris pertama kekal 5 indikator USTP; baris kedua 3 kad
+  perkhidmatan. Modal sama, dengan penapis tahun.
+- `/analisis` (staf): sticky nav + seksyen `#khidmat-bantu` `#pinjaman-aset`
+  `#tempahan-pkg`, penapis `?tahun=`. Tiada tab baharu di `/admin/analisis`.
+- Khidmat Bantu: diluluskan, bulan ini, sekolah terlibat; carta jenis
+  perkhidmatan, jenis pemohon, trend bulanan.
+- Pinjaman Aset: permohonan diluluskan, unit diserahkan, sudah dipulangkan;
+  carta PKG, jenis peralatan (top 8), trend. Tiada inventori/pending/lewat.
+- Tempahan PKG: aktiviti (`coalesce(group_id, id)`), hari penggunaan;
+  carta PKG, pagi/petang/sepenuh hari, trend.
+
+
 ## 2026-09-21 — CoE Analytics AI Tools: CSV snapshot + arkib
 
 - AI Tools tidak lagi diisi nombor KV satu persatu. Pentadbir muat naik CSV
@@ -16,6 +32,8 @@
   Nama sekolah digabung dengan jadual `schools` (ABA1031 = SK PANGKALAN TLDM II).
 - Jadual baharu `analisis_optik_snapshots` + `analisis_optik_schools` (RLS).
   Skrip: `npm run db:import-optik`.
+- Arkib admin: tapis tahun (lalai tahun terbaru; pilihan Semua tahun).
+- Carta AI Tools: garis putus-putus KPI Kebangsaan (paksi 0–100%).
 
 
 ## 2026-09-21 — Kelip scroll pada skrin dalam lipat

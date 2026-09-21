@@ -18,6 +18,9 @@ export type HomeLineChart = {
   title: string;
   seriesName: string;
   data: { bulan: string; jumlah: number }[];
+  referenceY?: number | null;
+  referenceLabel?: string;
+  percent?: boolean;
 };
 
 export type HomeDelimaTrend = {
@@ -32,7 +35,15 @@ export type HomeKpiGroup = {
 };
 
 export type AnalisisHomeModule = {
-  id: "delima" | "dcs" | "ains" | "pensijilan" | "optik";
+  id:
+    | "delima"
+    | "dcs"
+    | "ains"
+    | "pensijilan"
+    | "optik"
+    | "khidmat-bantu"
+    | "pinjaman-aset"
+    | "tempahan-pkg";
   label: string;
   /** Nilai utama pada kad kecil halaman utama ("" jika belum ada data). */
   headlineValue: string;
@@ -201,6 +212,7 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
   const optikSelesaiBil = optikView.current?.selesaiBil ?? metricNum(optik.metrics, "selesai_bil");
   const optikBelumPct = optikView.current?.belumPct ?? metricNum(optik.metrics, "belum_pct");
   const optikBelumBil = optikView.current?.belumBil ?? null;
+  const optikKpi = optikKpiValue(optik.metrics);
   const optikModule: AnalisisHomeModule = {
     id: "optik",
     label: "AI Tools (OPTIK)",
@@ -210,13 +222,13 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
       { label: "Selesai", value: pct(optikSelesai) },
       { label: "Bil. Selesai", value: bil(optikSelesaiBil) },
       { label: "Belum Selesai", value: pct(optikBelumPct) },
-      { label: "KPI Kebangsaan", value: pct(optikKpiValue(optik.metrics)) },
+      { label: "KPI Kebangsaan", value: pct(optikKpi) },
     ],
     tileGroups: [
       {
         title: "KPI Kebangsaan",
         align: "center",
-        stats: [{ label: "Sasaran", value: pct(optikKpiValue(optik.metrics)) }],
+        stats: [{ label: "Sasaran", value: pct(optikKpi) }],
       },
       {
         title: "Selesai",
@@ -238,6 +250,9 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
       title: "Perkembangan Penggunaan AI Tools (%)",
       seriesName: "%",
       data: optikView.trend,
+      percent: true,
+      referenceY: optikKpi,
+      referenceLabel: optikKpi != null ? `KPI Kebangsaan ${optikKpi}%` : undefined,
     },
     detailHref: "/analisis/ai-tools",
     detailLabel: "Lihat senarai sekolah",

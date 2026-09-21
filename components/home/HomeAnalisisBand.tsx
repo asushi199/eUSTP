@@ -5,7 +5,11 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import AnalisisKpiTiles from "@/components/analisis/AnalisisKpiTiles";
 import KpiGroups from "@/components/analisis/KpiGroups";
+import TahunSelect from "@/components/analisis/TahunSelect";
+import { loadPerkhidmatanAnalisis } from "@/lib/actions/analisis-perkhidmatan";
 import type { AnalisisHomeModule } from "@/lib/analisis/summary";
+
+const PERKHIDMATAN_IDS = new Set(["khidmat-bantu", "pinjaman-aset", "tempahan-pkg"]);
 
 /* Carta recharts dimuat malas — hanya diambil apabila modal dibuka. */
 const chartLoading = () => (
@@ -33,19 +37,82 @@ function moduleHasDetail(mod: AnalisisHomeModule): boolean {
   );
 }
 
+function ModuleCard({
+  mod,
+  onOpen,
+}: {
+  mod: AnalisisHomeModule;
+  onOpen: (id: AnalisisHomeModule["id"]) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onOpen(mod.id)}
+      className="card group p-4 text-left transition hover:-translate-y-0.5 hover:shadow-modal focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+      aria-haspopup="dialog"
+    >
+      <span className="flex items-center justify-between gap-2">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-graphite">
+          {mod.label}
+        </span>
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.8}
+          strokeLinecap="round"
+          className="h-3.5 w-3.5 shrink-0 text-steel transition group-hover:text-primary"
+          aria-hidden
+        >
+          <path d="M4 20V10M10 20V4M16 20v-8M22 20H2" />
+        </svg>
+      </span>
+      <span className="mt-2 block text-2xl font-semibold tabular-nums tracking-tight text-primary">
+        {mod.headlineValue || "—"}
+      </span>
+      <span className="mt-1 block text-xs leading-snug text-graphite">
+        {mod.headlineValue ? mod.headlineLabel : "Data belum tersedia"}
+      </span>
+    </button>
+  );
+}
+
 /**
- * Jalur "Analisis Semasa" halaman utama: satu kad kecil setiap modul
- * Analisis USTP; klik kad membuka modal dengan carta penuh modul itu.
+ * Jalur CoE Analytics halaman utama: baris indikator USTP + baris perkhidmatan.
+ * Klik kad membuka modal dengan carta penuh modul itu.
  */
-export default function HomeAnalisisBand({ modules }: { modules: AnalisisHomeModule[] }) {
+export default function HomeAnalisisBand({
+  indikator,
+  perkhidmatan,
+  years,
+  initialYear,
+}: {
+  indikator: AnalisisHomeModule[];
+  perkhidmatan: AnalisisHomeModule[] | null;
+  years: number[];
+  initialYear: number;
+}) {
   const [openId, setOpenId] = useState<AnalisisHomeModule["id"] | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [tahun, setTahun] = useState(initialYear);
+  const [perkData, setPerkData] = useState(perkhidmatan ?? []);
+  const [loadingYear, setLoadingYear] = useState(false);
   const closeRef = useRef<HTMLButtonElement>(null);
-  const active = modules.find((m) => m.id === openId) ?? null;
+  const active =
+    indikator.find((m) => m.id === openId) ?? perkData.find((m) => m.id === openId) ?? null;
+  const perkhidmatanOpen = openId != null && PERKHIDMATAN_IDS.has(openId);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    setPerkData(perkhidmatan ?? []);
+  }, [perkhidmatan]);
+
+  useEffect(() => {
+    setTahun(initialYear);
+  }, [initialYear]);
 
   useEffect(() => {
     if (!active) return;
@@ -61,42 +128,35 @@ export default function HomeAnalisisBand({ modules }: { modules: AnalisisHomeMod
     };
   }, [active]);
 
+  async function changeTahun(next: number) {
+    if (next === tahun) return;
+    setTahun(next);
+    setLoadingYear(true);
+    try {
+      setPerkData(await loadPerkhidmatanAnalisis(next));
+    } finally {
+      setLoadingYear(false);
+    }
+  }
+
   return (
     <>
       <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        {modules.map((mod) => (
-          <button
-            key={mod.id}
-            type="button"
-            onClick={() => setOpenId(mod.id)}
-            className="card group p-4 text-left transition hover:-translate-y-0.5 hover:shadow-modal focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
-            aria-haspopup="dialog"
-          >
-            <span className="flex items-center justify-between gap-2">
-              <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-graphite">
-                {mod.label}
-              </span>
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={1.8}
-                strokeLinecap="round"
-                className="h-3.5 w-3.5 shrink-0 text-steel transition group-hover:text-primary"
-                aria-hidden
-              >
-                <path d="M4 20V10M10 20V4M16 20v-8M22 20H2" />
-              </svg>
-            </span>
-            <span className="mt-2 block text-2xl font-semibold tabular-nums tracking-tight text-primary">
-              {mod.headlineValue || "—"}
-            </span>
-            <span className="mt-1 block text-xs leading-snug text-graphite">
-              {mod.headlineValue ? mod.headlineLabel : "Data belum tersedia"}
-            </span>
-          </button>
+        {indikator.map((mod) => (
+          <ModuleCard key={mod.id} mod={mod} onOpen={setOpenId} />
         ))}
       </div>
+      {perkhidmatan ? (
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          {perkData.map((mod) => (
+            <ModuleCard key={mod.id} mod={mod} onOpen={setOpenId} />
+          ))}
+        </div>
+      ) : (
+        <div className="card mt-3 p-4 text-sm text-graphite">
+          Analisis perkhidmatan tidak dapat dimuatkan buat masa ini.
+        </div>
+      )}
 
       {mounted && active
         ? createPortal(
@@ -126,29 +186,34 @@ export default function HomeAnalisisBand({ modules }: { modules: AnalisisHomeMod
                       </a>
                     ) : null}
                   </div>
-                  <button
-                    ref={closeRef}
-                    type="button"
-                    onClick={() => setOpenId(null)}
-                    aria-label="Tutup"
-                    className="relative z-10 -mr-1 -mt-1 rounded-md p-2 text-graphite hover:bg-cloud hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                      strokeLinecap="round"
-                      className="h-5 w-5"
-                      aria-hidden
+                  <div className="flex items-center gap-2">
+                    {perkhidmatanOpen ? (
+                      <TahunSelect year={tahun} years={years} onChange={changeTahun} />
+                    ) : null}
+                    <button
+                      ref={closeRef}
+                      type="button"
+                      onClick={() => setOpenId(null)}
+                      aria-label="Tutup"
+                      className="relative z-10 -mr-1 -mt-1 rounded-md p-2 text-graphite hover:bg-cloud hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
                     >
-                      <path d="M6 6l12 12M18 6L6 18" />
-                    </svg>
-                  </button>
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                        strokeLinecap="round"
+                        className="h-5 w-5"
+                        aria-hidden
+                      >
+                        <path d="M6 6l12 12M18 6L6 18" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
 
                 {moduleHasDetail(active) ? (
-                  <div className="mt-4 space-y-4">
+                  <div className={`mt-4 space-y-4 ${loadingYear ? "opacity-60" : ""}`}>
                     {active.note ? (
                       <p className="text-sm leading-relaxed text-graphite">{active.note}</p>
                     ) : null}
@@ -176,6 +241,9 @@ export default function HomeAnalisisBand({ modules }: { modules: AnalisisHomeMod
                         title={active.line.title}
                         data={active.line.data}
                         seriesName={active.line.seriesName}
+                        percent={active.line.percent}
+                        referenceY={active.line.referenceY}
+                        referenceLabel={active.line.referenceLabel}
                       />
                     ) : null}
                   </div>

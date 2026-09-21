@@ -1,8 +1,10 @@
 import { withDbTimeout } from "@/lib/db";
 import { HOME_MODULES } from "@/lib/home-modules";
+import { getPerkhidmatanHomeModules } from "@/lib/analisis/perkhidmatan";
 import { getAnalisisHomeSummary } from "@/lib/analisis/summary";
 import { getDpdSummary } from "@/lib/stats/dpd";
 import { getPssSummary } from "@/lib/stats/pss";
+import { currentStatsYear } from "@/lib/stats/year";
 import HomeAnalisisBand from "@/components/home/HomeAnalisisBand";
 import { HomeWelcomeBanner } from "@/components/home/HomeWelcomeBanner";
 import { HomeModuleIcon } from "@/components/home/HomeModuleIcon";
@@ -43,10 +45,18 @@ export default async function HomePage() {
    * papar angka palsu — papar notis "statistik tidak tersedia" secara jujur,
    * dan log ralat sebenar ke log Vercel untuk diagnosis.
    */
-  const [analisis, dpd, pss] = await Promise.all([
+  const statsYear = currentStatsYear();
+  const [analisis, perkhidmatan, dpd, pss] = await Promise.all([
     withDbTimeout(getAnalisisHomeSummary()).catch((e) => {
       console.error(
         "[home] getAnalisisHomeSummary gagal:",
+        e instanceof Error ? e.message : e,
+      );
+      return null;
+    }),
+    withDbTimeout(getPerkhidmatanHomeModules(statsYear)).catch((e) => {
+      console.error(
+        "[home] getPerkhidmatanHomeModules gagal:",
         e instanceof Error ? e.message : e,
       );
       return null;
@@ -89,7 +99,12 @@ export default async function HomePage() {
             CoE Analytics
           </h2>
           {analisis ? (
-            <HomeAnalisisBand modules={analisis} />
+            <HomeAnalisisBand
+              indikator={analisis}
+              perkhidmatan={perkhidmatan?.modules ?? null}
+              years={perkhidmatan?.years ?? [statsYear]}
+              initialYear={perkhidmatan?.year ?? statsYear}
+            />
           ) : (
             <div className="card mt-3 p-4 text-sm text-graphite">
               Analisis tidak dapat dimuatkan buat masa ini. Sila muat semula halaman

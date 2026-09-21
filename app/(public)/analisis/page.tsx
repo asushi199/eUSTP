@@ -5,22 +5,27 @@ import {
   metricNum,
   metricText,
 } from "@/lib/analisis/queries";
+import { getPerkhidmatanAnalisis, emptyPerkhidmatanAnalisis } from "@/lib/analisis/perkhidmatan";
 import { getOptikPublicView, optikKpiValue } from "@/lib/analisis/optik-queries";
 import AnalisisKpiTiles from "@/components/analisis/AnalisisKpiTiles";
+import AnalisisTahunSelect from "@/components/analisis/AnalisisTahunSelect";
 import KpiGroups from "@/components/analisis/KpiGroups";
 import DelimaTrendChart from "@/components/analisis/DelimaTrendChart";
 import PageHeader from "@/components/PageHeader";
 import PublicPageShell from "@/components/PublicPageShell";
 import MonthlyLineChart from "@/components/stats/MonthlyLineChart";
 import BreakdownBarChart from "@/components/stats/BreakdownBarChart";
+import StatKpiTiles from "@/components/stats/StatKpiTiles";
 import { getModuleAccent } from "@/lib/module-theme";
+import { currentStatsYear, clampStatsYear, parseStatsYear } from "@/lib/stats/year";
+import type { BreakdownPoint, MonthPoint, StatKpi } from "@/lib/stats/types";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Analisis USTP — NEXa Manjung",
   description:
-    "Analisis DELIMa, DCS, Program Ains, Pensijilan Digital dan AI Tools (OPTIK) daerah Manjung.",
+    "Analisis DELIMa, DCS, Program Ains, Pensijilan Digital, AI Tools, Khidmat Bantu, Pinjaman Aset dan Tempahan PKG daerah Manjung.",
 };
 
 const SECTIONS = [
@@ -31,11 +36,53 @@ const SECTIONS = [
   { id: "optik", label: "AI Tools (OPTIK)" },
 ];
 
+const PERKHIDMATAN_SECTIONS = [
+  { id: "khidmat-bantu", label: "Khidmat Bantu" },
+  { id: "pinjaman-aset", label: "Pinjaman Aset" },
+  { id: "tempahan-pkg", label: "Tempahan PKG" },
+];
+
 function pct(n: number | null): string {
   return n == null ? "" : `${n.toLocaleString("ms-MY")}%`;
 }
 function bil(n: number | null): string {
   return n == null ? "" : n.toLocaleString("ms-MY");
+}
+
+function PerkhidmatanBlock({
+  id,
+  title,
+  kpi,
+  bars,
+  line,
+}: {
+  id: string;
+  title: string;
+  kpi: StatKpi[];
+  bars: { title: string; seriesName: string; data: BreakdownPoint[] }[];
+  line: { title: string; seriesName: string; data: MonthPoint[] };
+}) {
+  return (
+    <section id={id} className="mt-12 scroll-mt-28">
+      <h2 className="text-xl font-semibold">{title}</h2>
+      <div className="mt-4">
+        <StatKpiTiles tiles={kpi} />
+      </div>
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+        {bars.map((bar) => (
+          <BreakdownBarChart
+            key={bar.title}
+            title={bar.title}
+            data={bar.data}
+            seriesName={bar.seriesName}
+          />
+        ))}
+      </div>
+      <div className="mt-4">
+        <MonthlyLineChart title={line.title} data={line.data} seriesName={line.seriesName} />
+      </div>
+    </section>
+  );
 }
 
 function SourceLink({ url, label }: { url: string; label: string }) {
@@ -52,14 +99,30 @@ function SourceLink({ url, label }: { url: string; label: string }) {
   );
 }
 
-export default async function AnalisisPage() {
-  const [delima, dcs, ains, pensijilan, optik] = await Promise.all([
+export default async function AnalisisPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tahun?: string }>;
+}) {
+  const sp = await searchParams;
+  const currentYear = currentStatsYear();
+  const yearHint = clampStatsYear(sp.tahun, currentYear);
+  const [delima, dcs, ains, pensijilan, optik, perkhidmatanRaw] = await Promise.all([
     getAnalisisData("delima"),
     getAnalisisData("dcs"),
     getAnalisisData("ains"),
     getAnalisisData("pensijilan"),
     getAnalisisData("optik"),
+    getPerkhidmatanAnalisis(yearHint).catch((e) => {
+      console.error("[analisis] perkhidmatan:", e instanceof Error ? e.message : e);
+      return emptyPerkhidmatanAnalisis(yearHint);
+    }),
   ]);
+  const tahun = parseStatsYear(sp.tahun, perkhidmatanRaw.years, currentYear);
+  const perkhidmatan =
+    tahun === perkhidmatanRaw.year
+      ? perkhidmatanRaw
+      : await getPerkhidmatanAnalisis(tahun);
   const optikView = await getOptikPublicView(optik.metrics);
 
   /* ---------- DELIMa ---------- */
@@ -123,6 +186,7 @@ export default async function AnalisisPage() {
 
   /* ---------- OPTIK ---------- */
   const optikSeries = optikView.trend;
+  const optikKpi = optikKpiValue(optik.metrics);
   const optikSelesaiPct = optikView.current?.selesaiPct ?? metricNum(optik.metrics, "selesai_pct");
   const optikSelesaiBil = optikView.current?.selesaiBil ?? metricNum(optik.metrics, "selesai_bil");
   const optikBelumPct = optikView.current?.belumPct ?? metricNum(optik.metrics, "belum_pct");
@@ -131,7 +195,7 @@ export default async function AnalisisPage() {
     {
       title: "KPI Kebangsaan",
       align: "center" as const,
-      stats: [{ label: "Sasaran", value: pct(optikKpiValue(optik.metrics)) }],
+      stats: [{ label: "Sasaran", value: pct(optikKpi) }],
     },
     {
       title: "Selesai",
@@ -157,14 +221,14 @@ export default async function AnalisisPage() {
         eyebrow="CoE Analytics"
         title="Analisis USTP"
         accent={accent}
-        description="Analisis data teknologi pendidikan daerah Manjung — dikemas kini oleh pentadbir USTP."
+        description="Analisis data teknologi pendidikan daerah Manjung."
       />
 
       <nav
-        className="hairline sticky top-16 z-10 mt-6 w-full overflow-x-auto border-b bg-white/90 py-2 backdrop-blur-sm"
+        className="hairline sticky top-16 z-10 mt-6 flex w-full items-center gap-3 border-b bg-white/90 py-2 backdrop-blur-sm"
         aria-label="Bahagian analisis"
       >
-        <ul className="flex gap-4 whitespace-nowrap text-sm">
+        <ul className="flex min-w-0 flex-1 gap-4 overflow-x-auto whitespace-nowrap text-sm">
           {SECTIONS.map((s) => (
             <li key={s.id}>
               <a href={`#${s.id}`} className="text-graphite hover:text-ink hover:underline">
@@ -172,7 +236,16 @@ export default async function AnalisisPage() {
               </a>
             </li>
           ))}
+          <li aria-hidden className="self-stretch border-l border-fog" />
+          {PERKHIDMATAN_SECTIONS.map((s) => (
+            <li key={s.id}>
+              <a href={`#${s.id}`} className="text-graphite hover:text-ink hover:underline">
+                {s.label}
+              </a>
+            </li>
+          ))}
         </ul>
+        <AnalisisTahunSelect year={tahun} years={perkhidmatan.years} />
       </nav>
 
       {/* ---------- DELIMa ---------- */}
@@ -280,6 +353,9 @@ export default async function AnalisisPage() {
             title="Perkembangan Penggunaan AI Tools (%)"
             data={optikSeries}
             seriesName="%"
+            percent
+            referenceY={optikKpi}
+            referenceLabel={optikKpi != null ? `KPI Kebangsaan ${optikKpi}%` : undefined}
           />
         </div>
         {metricText(optik.metrics, "footer_note") ? (
@@ -297,6 +373,73 @@ export default async function AnalisisPage() {
           label={metricText(optik.metrics, "source_label") || "Buka sumber OPTIK"}
         />
       </section>
+
+      <PerkhidmatanBlock
+        id="khidmat-bantu"
+        title="Khidmat Bantu"
+        kpi={perkhidmatan.khidmat.kpi}
+        bars={[
+          {
+            title: "Ikut jenis perkhidmatan",
+            seriesName: "Permohonan",
+            data: perkhidmatan.khidmat.byJenis,
+          },
+          {
+            title: "Ikut jenis pemohon",
+            seriesName: "Permohonan",
+            data: perkhidmatan.khidmat.byPemohon,
+          },
+        ]}
+        line={{
+          title: "Trend bulanan",
+          seriesName: "Permohonan",
+          data: perkhidmatan.khidmat.monthly,
+        }}
+      />
+      <PerkhidmatanBlock
+        id="pinjaman-aset"
+        title="Pinjaman Aset"
+        kpi={perkhidmatan.pinjaman.kpi}
+        bars={[
+          {
+            title: "Ikut PKG",
+            seriesName: "Permohonan",
+            data: perkhidmatan.pinjaman.byPkg,
+          },
+          {
+            title: "Ikut jenis peralatan",
+            seriesName: "Unit dimohon",
+            data: perkhidmatan.pinjaman.byJenis,
+          },
+        ]}
+        line={{
+          title: "Trend bulanan",
+          seriesName: "Permohonan",
+          data: perkhidmatan.pinjaman.monthly,
+        }}
+      />
+      <PerkhidmatanBlock
+        id="tempahan-pkg"
+        title="Tempahan PKG"
+        kpi={perkhidmatan.tempahan.kpi}
+        bars={[
+          {
+            title: "Ikut PKG",
+            seriesName: "Aktiviti",
+            data: perkhidmatan.tempahan.byPkg,
+          },
+          {
+            title: "Pagi · Petang",
+            seriesName: "Slot",
+            data: perkhidmatan.tempahan.bySlot,
+          },
+        ]}
+        line={{
+          title: "Trend bulanan",
+          seriesName: "Aktiviti",
+          data: perkhidmatan.tempahan.monthly,
+        }}
+      />
     </PublicPageShell>
   );
 }
