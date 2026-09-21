@@ -137,6 +137,16 @@ export async function getOptikPublicView(metrics: MetricMap): Promise<OptikPubli
   };
 }
 
+/** Halaman utama: KPI + carta sahaja, tanpa senarai 101 sekolah. */
+export async function getOptikHomeView(metrics: MetricMap): Promise<{
+  current: OptikSnapshotSummary | null;
+  trend: { bulan: string; jumlah: number }[];
+}> {
+  const snapshots = await listOptikSnapshots();
+  const current = snapshots.find((row) => row.isCurrent) ?? snapshots[0] ?? null;
+  return { current, trend: buildOptikTrend(metrics, snapshots) };
+}
+
 export function optikKpiYear(metrics: MetricMap): string {
   const year = metricText(metrics, "kpi_year");
   return /^\d{4}$/.test(year) ? year : String(new Date().getFullYear());

@@ -5,7 +5,7 @@ import {
   metricNum,
   metricText,
 } from "./queries";
-import { getOptikPublicView, optikKpiValue } from "./optik-queries";
+import { getOptikHomeView, optikKpiValue } from "./optik-queries";
 
 /** Bentuk data boleh-serialize untuk kad + modal analisis di halaman utama. */
 export type HomeBarChart = {
@@ -79,7 +79,7 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
     getAnalisisData("pensijilan"),
     getAnalisisData("optik"),
   ]);
-  const optikView = await getOptikPublicView(optik.metrics);
+  const optikView = await getOptikHomeView(optik.metrics);
 
   /* ---------- DELIMa ---------- */
   const kpiGuru = metricNum(delima.metrics, "kpi_guru");
