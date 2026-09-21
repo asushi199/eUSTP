@@ -17,6 +17,7 @@
     "db:backup-pgdump": "tsx scripts/pg-dump-backup.ts",
     "db:backup-pgdump:upload": "tsx scripts/pg-dump-backup.ts --upload",
     "db:import-tebus-buku": "tsx scripts/import-tebus-buku.ts",
+    "db:import-optik": "tsx scripts/import-optik-snapshots.ts",
     "telegram:set-webhook": "tsx scripts/setup-telegram-webhook.ts"
   },
   "dependencies": {
@@ -37,6 +38,7 @@
     "react-dom": "^19.0.0",
     "recharts": "^2.15.0",
     "unpdf": "^1.8.1",
+    "xlsx": "^0.18.5",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -53,8 +55,7 @@
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.14",
     "tsx": "^4.19.2",
-    "typescript": "^5.6.3",
-    "xlsx": "^0.18.5"
+    "typescript": "^5.6.3"
   },
   "allowScripts": {
     "esbuild": true,

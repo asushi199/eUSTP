@@ -120,6 +120,11 @@ export default function HomeAnalisisBand({ modules }: { modules: AnalisisHomeMod
                     <h3 id="analisis-modal-title" className="mt-1 text-xl font-semibold tracking-tight">
                       {active.label}
                     </h3>
+                    {active.detailHref ? (
+                      <a href={active.detailHref} className="link-blue mt-2 inline-block text-sm">
+                        {active.detailLabel || "Lihat selanjutnya"}
+                      </a>
+                    ) : null}
                   </div>
                   <button
                     ref={closeRef}

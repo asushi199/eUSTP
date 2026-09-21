@@ -1,13 +1,11 @@
 import "server-only";
 
 import {
-  deriveBelumBil,
   getAnalisisData,
   metricNum,
   metricText,
-  optikTovLabel,
-  optikTovValue,
 } from "./queries";
+import { getOptikPublicView, optikKpiValue } from "./optik-queries";
 
 /** Bentuk data boleh-serialize untuk kad + modal analisis di halaman utama. */
 export type HomeBarChart = {
@@ -46,6 +44,8 @@ export type AnalisisHomeModule = {
   bars: HomeBarChart[];
   line?: HomeLineChart;
   note?: string;
+  detailHref?: string;
+  detailLabel?: string;
 };
 
 function pct(n: number | null): string {
@@ -68,6 +68,7 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
     getAnalisisData("pensijilan"),
     getAnalisisData("optik"),
   ]);
+  const optikView = await getOptikPublicView(optik.metrics);
 
   /* ---------- DELIMa ---------- */
   const kpiGuru = metricNum(delima.metrics, "kpi_guru");
@@ -196,9 +197,10 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
   };
 
   /* ---------- OPTIK ---------- */
-  const optikSelesai = metricNum(optik.metrics, "selesai_pct");
-  const optikSelesaiBil = metricNum(optik.metrics, "selesai_bil");
-  const optikBelumPct = metricNum(optik.metrics, "belum_pct");
+  const optikSelesai = optikView.current?.selesaiPct ?? metricNum(optik.metrics, "selesai_pct");
+  const optikSelesaiBil = optikView.current?.selesaiBil ?? metricNum(optik.metrics, "selesai_bil");
+  const optikBelumPct = optikView.current?.belumPct ?? metricNum(optik.metrics, "belum_pct");
+  const optikBelumBil = optikView.current?.belumBil ?? null;
   const optikModule: AnalisisHomeModule = {
     id: "optik",
     label: "AI Tools (OPTIK)",
@@ -206,17 +208,15 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
     headlineLabel: "Selesai",
     tiles: [
       { label: "Selesai", value: pct(optikSelesai) },
-      { label: "Bil. Selesai", value: bil(metricNum(optik.metrics, "selesai_bil")) },
-      { label: "Belum Selesai", value: pct(metricNum(optik.metrics, "belum_pct")) },
-      { label: "KPI Kebangsaan", value: pct(metricNum(optik.metrics, "kpi_kebangsaan")) },
+      { label: "Bil. Selesai", value: bil(optikSelesaiBil) },
+      { label: "Belum Selesai", value: pct(optikBelumPct) },
+      { label: "KPI Kebangsaan", value: pct(optikKpiValue(optik.metrics)) },
     ],
     tileGroups: [
       {
         title: "KPI Kebangsaan",
         align: "center",
-        stats: [
-          { label: "Sasaran", value: pct(metricNum(optik.metrics, "kpi_kebangsaan")) },
-        ],
+        stats: [{ label: "Sasaran", value: pct(optikKpiValue(optik.metrics)) }],
       },
       {
         title: "Selesai",
@@ -229,10 +229,7 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
         title: "Belum Selesai",
         stats: [
           { label: "Peratus", value: pct(optikBelumPct) },
-          {
-            label: "Bil. Belum Selesai",
-            value: bil(deriveBelumBil(optikSelesaiBil, optikSelesai, optikBelumPct)),
-          },
+          { label: "Bil. Belum Selesai", value: bil(optikBelumBil) },
         ],
       },
     ],
@@ -240,13 +237,10 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
     line: {
       title: "Perkembangan Penggunaan AI Tools (%)",
       seriesName: "%",
-      data: [
-        { bulan: optikTovLabel(optik.metrics), jumlah: optikTovValue(optik.metrics) ?? 0 },
-        { bulan: "AR1 (Jul)", jumlah: metricNum(optik.metrics, "ar1_julai", "ar1") ?? 0 },
-        { bulan: "AR2 (Okt)", jumlah: metricNum(optik.metrics, "ar2_okt", "ar2") ?? 0 },
-        { bulan: "Selesai", jumlah: optikSelesai ?? 0 },
-      ].filter((p) => p.jumlah > 0),
+      data: optikView.trend,
     },
+    detailHref: "/analisis/ai-tools",
+    detailLabel: "Lihat senarai sekolah",
   };
 
   return [delimaModule, dcsModule, ainsModule, pensijilanModule, optikModule];

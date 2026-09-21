@@ -1,14 +1,14 @@
-key,value,,,
-kpi_kebangsaan,55,,,
-as_at,27-Nov-25,,,21-Jun-26
-selesai_pct,86.43,,,46.67
-selesai_bil,3179,,,1722
-belum_pct,13.57,,,53.33
-belum_bil,499,,,1968
-tov_year,2024,,,
-tov2024,63.43,,,86.43
-ar1_julai,45.29,,,
-ar2_okt,60.36,,,
-footer_note,AR2 (Okt) melebihi sasaran 55% berbanding AR1; titik akhir ialah snapshot setakat tarikh di atas.,,,
-source_url,http://datastudio.google.com/u/2/reporting/359ac402-270f-48a6-a426-65a678267c5a/page/p_n3ao8p5l0d,,,
-source_label,Buka sumber OPTIK / AI Tools,,,
+key,value
+kpi_kebangsaan,79
+kpi_year,2026
+as_at,21 Sep 2026
+selesai_pct,83.49
+selesai_bil,3059
+belum_pct,16.51
+belum_bil,605
+tov_year,2025
+tov,86.43
+tov2025,86.43
+footer_note,"Titik pertama ialah TOV 2025 (86.43%, setakat 27 Nov 2025). Titik seterusnya mengikut setiap muat naik CSV tahun ini."
+source_url,http://datastudio.google.com/u/2/reporting/359ac402-270f-48a6-a426-65a678267c5a/page/p_n3ao8p5l0d
+source_label,Buka sumber OPTIK / AI Tools

@@ -13,6 +13,9 @@ const { auth } = NextAuth(authConfig);
 const PROTECTED_PREFIXES = ["/admin", "/analisis"];
 
 function needsAuth(pathname: string): boolean {
+  if (pathname === "/analisis/ai-tools" || pathname.startsWith("/analisis/ai-tools/")) {
+    return false;
+  }
   return PROTECTED_PREFIXES.some(
     (p) => pathname === p || pathname.startsWith(`${p}/`),
   );

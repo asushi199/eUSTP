@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import {
-  deriveBelumBil,
   getAnalisisData,
   metricNum,
   metricText,
-  optikTovLabel,
-  optikTovValue,
 } from "@/lib/analisis/queries";
+import { getOptikPublicView, optikKpiValue } from "@/lib/analisis/optik-queries";
 import AnalisisKpiTiles from "@/components/analisis/AnalisisKpiTiles";
 import KpiGroups from "@/components/analisis/KpiGroups";
 import DelimaTrendChart from "@/components/analisis/DelimaTrendChart";
@@ -61,6 +60,7 @@ export default async function AnalisisPage() {
     getAnalisisData("pensijilan"),
     getAnalisisData("optik"),
   ]);
+  const optikView = await getOptikPublicView(optik.metrics);
 
   /* ---------- DELIMa ---------- */
   const kpiGuru = metricNum(delima.metrics, "kpi_guru");
@@ -122,20 +122,16 @@ export default async function AnalisisPage() {
     .map((b) => ({ label: b.label, jumlah: b.value }));
 
   /* ---------- OPTIK ---------- */
-  const optikSeries = [
-    { bulan: optikTovLabel(optik.metrics), jumlah: optikTovValue(optik.metrics) ?? 0 },
-    { bulan: "AR1 (Jul)", jumlah: metricNum(optik.metrics, "ar1_julai", "ar1") ?? 0 },
-    { bulan: "AR2 (Okt)", jumlah: metricNum(optik.metrics, "ar2_okt", "ar2") ?? 0 },
-    { bulan: "Selesai", jumlah: metricNum(optik.metrics, "selesai_pct") ?? 0 },
-  ].filter((p) => p.jumlah > 0);
-  const optikSelesaiPct = metricNum(optik.metrics, "selesai_pct");
-  const optikSelesaiBil = metricNum(optik.metrics, "selesai_bil");
-  const optikBelumPct = metricNum(optik.metrics, "belum_pct");
+  const optikSeries = optikView.trend;
+  const optikSelesaiPct = optikView.current?.selesaiPct ?? metricNum(optik.metrics, "selesai_pct");
+  const optikSelesaiBil = optikView.current?.selesaiBil ?? metricNum(optik.metrics, "selesai_bil");
+  const optikBelumPct = optikView.current?.belumPct ?? metricNum(optik.metrics, "belum_pct");
+  const optikBelumBil = optikView.current?.belumBil ?? null;
   const optikGroups = [
     {
       title: "KPI Kebangsaan",
       align: "center" as const,
-      stats: [{ label: "Sasaran", value: pct(metricNum(optik.metrics, "kpi_kebangsaan")) }],
+      stats: [{ label: "Sasaran", value: pct(optikKpiValue(optik.metrics)) }],
     },
     {
       title: "Selesai",
@@ -148,7 +144,7 @@ export default async function AnalisisPage() {
       title: "Belum Selesai",
       stats: [
         { label: "Peratus", value: pct(optikBelumPct) },
-        { label: "Bil. Belum Selesai", value: bil(deriveBelumBil(optikSelesaiBil, optikSelesaiPct, optikBelumPct)) },
+        { label: "Bil. Belum Selesai", value: bil(optikBelumBil) },
       ],
     },
   ];
@@ -291,6 +287,11 @@ export default async function AnalisisPage() {
             {metricText(optik.metrics, "footer_note")}
           </p>
         ) : null}
+        <p className="mt-4">
+          <Link href="/analisis/ai-tools" className="btn-outline btn-sm">
+            Lihat senarai sekolah
+          </Link>
+        </p>
         <SourceLink
           url={metricText(optik.metrics, "source_url")}
           label={metricText(optik.metrics, "source_label") || "Buka sumber OPTIK"}

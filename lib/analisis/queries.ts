@@ -74,7 +74,7 @@ export function metricText(metrics: MetricMap, ...keys: string[]): string {
   return "";
 }
 
-const DEFAULT_TOV_YEAR = "2024";
+const DEFAULT_TOV_YEAR = "2025";
 
 /** Tahun label TOV carta AI Tools. Pentadbir tetapkan kunci `tov_year` (cth. 2025). */
 export function optikTovYear(metrics: MetricMap): string {

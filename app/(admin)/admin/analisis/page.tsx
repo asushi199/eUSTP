@@ -13,6 +13,8 @@ import {
 } from "@/lib/actions/analisis";
 import ActionForm from "@/components/admin/ActionForm";
 import DeleteButton from "@/components/admin/DeleteButton";
+import OptikAdminPanel from "@/components/admin/OptikAdminPanel";
+import { formatInTimeZone } from "date-fns-tz";
 
 export const dynamic = "force-dynamic";
 
@@ -54,6 +56,9 @@ export default async function AdminAnalisisPage({
       .orderBy(asc(analisisBreakdown.kind), asc(analisisBreakdown.sort)),
   ]);
 
+  const today = formatInTimeZone(new Date(), "Asia/Kuala_Lumpur", "yyyy-MM-dd");
+  const optikMetrics = new Map(metrics.map((m) => [m.key.toLowerCase(), m.value]));
+
   return (
     <>
       <Link href="/admin" className="text-sm text-graphite hover:text-ink">
@@ -81,16 +86,13 @@ export default async function AdminAnalisisPage({
         ))}
       </nav>
 
+      {modul === "optik" ? (
+        <OptikAdminPanel metrics={optikMetrics} today={today} />
+      ) : (
+        <>
       {/* ---------- Metrik KV ---------- */}
       <section className="mt-6">
         <h2 className="text-lg font-semibold">Metrik (kunci → nilai)</h2>
-        {modul === "optik" ? (
-          <p className="mt-1 text-xs text-graphite">
-            Label titik pertama carta: kunci <code>tov_year</code> (cth. 2025) dipaparkan
-            sebagai &quot;TOV 2025&quot;. Nilai peratus kekal pada kunci <code>tov</code>{" "}
-            atau <code>tov2024</code>.
-          </p>
-        ) : null}
         <div className="card mt-3 divide-y divide-fog">
           {metrics.map((m) => (
             <div key={m.id} className="flex flex-wrap items-center gap-2 px-4 py-2">
@@ -221,6 +223,8 @@ export default async function AdminAnalisisPage({
           </div>
         </div>
       </section>
+        </>
+      )}
     </>
   );
 }

@@ -524,6 +524,61 @@ export const analisisBreakdown = pgTable(
   }),
 );
 
+/** Snapshot muat naik AI Tools — setiap fail jadi satu titik carta + arkib. */
+export const analisisOptikSnapshots = pgTable(
+  "analisis_optik_snapshots",
+  {
+    id: serial("id").primaryKey(),
+    capturedOn: date("captured_on").notNull(),
+    chartLabel: text("chart_label").notNull(),
+    sourceFilename: text("source_filename").notNull().default(""),
+    sourceFormat: text("source_format").notNull().default("school_table"),
+    rawCsv: text("raw_csv").notNull().default(""),
+    selesaiPct: doublePrecision("selesai_pct").notNull(),
+    selesaiBil: integer("selesai_bil").notNull(),
+    totalBil: integer("total_bil").notNull(),
+    belumPct: doublePrecision("belum_pct").notNull(),
+    belumBil: integer("belum_bil").notNull(),
+    sekolahSelesai: integer("sekolah_selesai").notNull(),
+    sekolahBelum: integer("sekolah_belum").notNull(),
+    sekolahCount: integer("sekolah_count").notNull(),
+    isCurrent: boolean("is_current").notNull().default(false),
+    includeChart: boolean("include_chart").notNull().default(true),
+    uploadedByUserId: integer("uploaded_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    capturedIdx: index("analisis_optik_snapshots_captured_idx").on(t.capturedOn, t.id),
+  }),
+);
+
+/** Baris sekolah dalam satu snapshot AI Tools. */
+export const analisisOptikSchools = pgTable(
+  "analisis_optik_schools",
+  {
+    id: serial("id").primaryKey(),
+    snapshotId: integer("snapshot_id")
+      .notNull()
+      .references(() => analisisOptikSnapshots.id, { onDelete: "cascade" }),
+    schoolCode: text("school_code").notNull(),
+    schoolName: text("school_name").notNull(),
+    selesaiBil: integer("selesai_bil").notNull(),
+    totalBil: integer("total_bil").notNull(),
+    pctAi: doublePrecision("pct_ai").notNull(),
+    plcStatus: text("plc_status").notNull(),
+    sort: integer("sort").notNull().default(0),
+  },
+  (t) => ({
+    snapshotIdx: index("analisis_optik_schools_snapshot_idx").on(t.snapshotId, t.sort),
+    snapshotCodeIdx: uniqueIndex("analisis_optik_schools_snapshot_code_idx").on(
+      t.snapshotId,
+      t.schoolCode,
+    ),
+  }),
+);
+
 /* ==================== Maklumat Asas ==================== */
 
 /** Pegawai USTP/PPD — dipapar di halaman Maklumat Asas. */

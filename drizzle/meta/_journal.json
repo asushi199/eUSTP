@@ -316,6 +316,13 @@
       "when": 1788932041281,
       "tag": "0044_minit_curai_end_date",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1789986007289,
+      "tag": "0045_melted_lady_deathstrike",
+      "breakpoints": true
     }
   ]
 }

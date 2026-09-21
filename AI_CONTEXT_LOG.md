@@ -1,5 +1,22 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-21 — CoE Analytics AI Tools: CSV snapshot + arkib
+
+- AI Tools tidak lagi diisi nombor KV satu persatu. Pentadbir muat naik CSV
+  paparan daerah (atau Excel senarai guru) di `/admin/analisis?modul=optik`.
+  Setiap muat naik jadi paparan semasa dan satu titik carta; fail lama kekal
+  arkib (muat turun / pulihkan / buang daripada carta).
+- KPI Kebangsaan 2026 = 79% (medan berasingan, boleh ditukar setiap tahun).
+  TOV carta = 86.43% (snapshot 27 Nov 2025 — nombor tamat kitaran 2025 yang
+  ada dalam sistem; bukan 90%+). AR1/AR2 lama diganti muat naik tahun ini:
+  Apr 2026 36.96% (Excel guru 20 Apr), Sep 2026 83.49% (CSV V4, 3059/3664).
+- Jadual sekolah awam `/analisis/ai-tools` (101 sekolah, carian + tapis PLC).
+  Status PLC ikut lajur CSV; Excel guru diagregat, Selesai jika ≥80%.
+  Nama sekolah digabung dengan jadual `schools` (ABA1031 = SK PANGKALAN TLDM II).
+- Jadual baharu `analisis_optik_snapshots` + `analisis_optik_schools` (RLS).
+  Skrip: `npm run db:import-optik`.
+
+
 ## 2026-09-21 — Kelip scroll pada skrin dalam lipat
 
 - Magic V5: kelip hanya semasa scroll bawah — toolbar pelayar menguncup,
@@ -1727,3 +1744,33 @@ Corak berselang = instance sihat vs beracun.
   + `npm run db:backup-pgdump` → `backups/pgdump/` (gitignore).
 - Admin `/admin/backup`: seksyen `BackupPgDumpSection` (arahan BM).
 - `.env.local.example`: `PGDUMP_DATABASE_URL` (Direct 5432).
+
+### 2026-09-21 — Semak baiki kelip semasa scroll pada skrin lipat (Magic V5)
+- Aduan: pada Honor Magic V5 (skrin dalam dibuka) NEXa kelip-kelip / seolah
+  refresh semasa scroll ke bawah; skrin luar (lipat) & telefon lain OK.
+  Bukan kerosakan telefon — isu adaptasi skrin lipat yang dicetuskan kod kita.
+- Punca disahkan (kombinasi, hanya lipat-dibuka yang kena semua): (1) unit
+  `dvh`/`vh` pada elemen full-screen berayun bila toolbar pelayar menguncup
+  semasa scroll → relayout/repaint; (2) blur+animasi ambient full-screen
+  dikomposit semula tiap frame — halaman utama dahulu render DUA lapisan
+  ambient (`HomeAmbientScene` + `AmbientScene`); (3) `backdrop-blur` pada
+  header sticky sampel semula latar tiap frame; (4) lebar lipat-dibuka
+  ≈724–784 CSS px duduk tepat di sempadan md(768) → sidebar/tab bawah
+  berulang-alik.
+- Pembetulan (commit b3228d4 + 96a8c12) disahkan menyasar punca:
+  sidebar `100dvh`→`100svh`, ambient `fixed`+`100lvh`; matikan
+  `filter`/`animation` + sorok blob & pointer-glow pada `(hover:none),(max-width:1023)`;
+  `contain: paint`; buang lapisan ambient pendua; gate `backdrop-blur` header
+  ke ≥lg (di bawah 1024 putih tepu); breakpoint nav md(768)→lg(1024);
+  `manifest` orientation `any`.
+- Verifikasi (Browser pane, lebar dipaksa 776px): ambient 1 lapisan sahaja,
+  tinggi 1100px (=lvh, tak berubah), mesh/blob `filter:none`+`animation:none`,
+  header `backdrop-filter:none` latar putih tepu, sidebar `display:none`
+  (satu susun atur mobile), horizontal overflow = 0, tiada elemen超宽.
+  Julat 724–1023px seluruhnya di bawah 1024 → tiada lompat susun atur.
+  Tiada monitor reload/resize/orientation dalam kod (bukan reload sebenar,
+  hanya repaint). 404 dev (`main-app.js`/`app-pages-internals.js`) = artifak
+  dev server sementara, tiada kaitan.
+- BELUM disahkan: kelip sebenar TIDAK boleh dihasilkan semula dalam emulator
+  (toolbar pelayar tak menguncup). Perlu ujian mesin sebenar Magic V5 (scroll
+  semula), atau `chrome://inspect` paint-flashing untuk bukti muktamad.

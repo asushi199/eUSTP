@@ -92,7 +92,7 @@ export default async function AdminOverviewPage() {
       {
         href: "/admin/analisis",
         title: "CoE Analytics",
-        description: "Kemas kini nombor DELIMa, DCS, Ains, Pensijilan dan AI Tools.",
+        description: "Kemas kini nombor DELIMa, DCS, Ains, Pensijilan dan muat naik CSV AI Tools.",
         accent: getModuleAccent("/analisis"),
       },
       {
