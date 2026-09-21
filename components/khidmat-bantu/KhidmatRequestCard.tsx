@@ -26,7 +26,8 @@ const STATUS_DOT: Record<string, string> = {
 /**
  * Kad ringkas satu permohonan. `bare` guna sempadan nipis (untuk item dalam
  * senarai/kalendar terkumpul); default penuh `.card` (untuk gilir tindakan).
- * Butang tindakan: lulus/tolak semasa pending; WhatsApp pemohon selepas keputusan.
+ * Butang tindakan: lulus/tolak semasa pending; Ubah/Padam kekal selepas lulus;
+ * WhatsApp pemohon selepas keputusan.
  */
 export default function KhidmatRequestCard({
   row,
@@ -38,6 +39,7 @@ export default function KhidmatRequestCard({
   showDate?: boolean;
 }) {
   const date = getServiceDate(row);
+  const title = getServiceTitle(row);
   const surat = getSuratPermohonan(row);
   const suratUrl = surat ? driveViewUrl(surat.storagePath) : null;
   const meta = [
@@ -55,7 +57,7 @@ export default function KhidmatRequestCard({
           <p className="text-xs text-graphite">
             {getServiceTypeLabel(row.serviceType)} · {getApplicantTypeLabel(row.applicantType)}
           </p>
-          <p className="mt-0.5 font-semibold leading-snug">{getServiceTitle(row)}</p>
+          <p className="mt-0.5 font-semibold leading-snug">{title}</p>
         </div>
         <span className="status-badge shrink-0">
           <span className={cn("status-dot", STATUS_DOT[row.status] ?? "bg-graphite")} />
@@ -81,24 +83,25 @@ export default function KhidmatRequestCard({
         </p>
       )}
 
-      {(row.status === "pending" ||
-        row.status === "approved" ||
-        row.status === "rejected") && (
-        <div className="mt-3">
-          <AdminKhidmatActions
-            requestId={row.id}
-            status={row.status}
-            applicantPhone={row.contact}
-            whatsappDetails={{
-              applicantName: row.applicantName,
-              orgName: row.orgName,
-              serviceLabel: getServiceTypeLabel(row.serviceType),
-              title: getServiceTitle(row),
-              date: date ? formatMalayDate(date) : "—",
-            }}
-          />
-        </div>
-      )}
+      <div className="mt-3">
+        <AdminKhidmatActions
+          requestId={row.id}
+          status={row.status}
+          applicantPhone={row.contact}
+          serviceType={row.serviceType}
+          title={title}
+          activityDate={date ?? row.activityDate ?? ""}
+          activityTime={getServiceTime(row)}
+          lokasi={getServiceLokasi(row)}
+          whatsappDetails={{
+            applicantName: row.applicantName,
+            orgName: row.orgName,
+            serviceLabel: getServiceTypeLabel(row.serviceType),
+            title,
+            date: date ? formatMalayDate(date) : "—",
+          }}
+        />
+      </div>
     </div>
   );
 }

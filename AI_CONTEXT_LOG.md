@@ -1,5 +1,24 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-21 — Chrome desktop 1024px (lipat Magic V5)
+
+- Honor Magic V5 skrin dalam 2172×2352 @ ~3x ≈ 724–784 CSS px, tepat di tepi
+  breakpoint `md` (768px). Sidebar + tab bawah berulang-alik = "jump/refresh".
+  Skrin luar (~353 CSS px) dan telefon biasa tidak terjejas.
+- Chrome shell (sidebar, BottomTabBar, footer margin, TopNav wordmark, admin
+  `pl-64`) kini `lg` / 1024px. Manifest PWA `orientation: any` (bukan
+  `portrait-primary`). Sidebar awam guna `100svh` bukan `100dvh`.
+
+## 2026-09-21 — Admin Khidmat Bantu: ubah & padam selepas lulus
+
+- Permohonan yang sudah `approved` (dan `pending`) boleh diubah: jenis
+  perkhidmatan, tajuk, tarikh, masa, lokasi. Surat permohonan dikekalkan.
+- Admin boleh padam rekod pada mana-mana status; surat di Drive dibuang
+  secara best-effort. Corak sama seperti tempahan (Ubah / Padam).
+- Semak status pemohon (`/khidmat-bantu/semak`) terus baca DB — tiada
+  cache khas.
+
+
 ## 2026-09-21 — Kemas kini snapshot tebus baucar buku (PPD Manjung)
 
 - Import semula `tebus_buku_pelajar` daripada CSV JPN baharu
