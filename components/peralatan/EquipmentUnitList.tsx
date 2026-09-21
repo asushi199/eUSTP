@@ -151,6 +151,7 @@ export default function EquipmentUnitList({
             </button>
             <Link
               href={`/admin/peralatan/${pkgId}/unit/senarai?jenis=${selectedTypeId}`}
+              scroll={false}
               className="btn-outline-ink btn-sm"
             >
               Set semula
@@ -264,7 +265,11 @@ export default function EquipmentUnitList({
 
             {!isSelected ? (
               <div className="px-5 py-4">
-                <Link href={listHref(card.id)} className="btn-outline-ink btn-sm">
+                <Link
+                  href={listHref(card.id)}
+                  scroll={false}
+                  className="btn-outline-ink btn-sm"
+                >
                   Lihat {card.totalUnits.toLocaleString("ms-MY")} unit
                 </Link>
               </div>
@@ -540,6 +545,7 @@ export default function EquipmentUnitList({
                     {page > 1 ? (
                       <Link
                         href={listHref(card.id, page - 1)}
+                        scroll={false}
                         className="btn-outline-ink btn-sm"
                       >
                         Sebelum
@@ -553,6 +559,7 @@ export default function EquipmentUnitList({
                     {page < totalPages ? (
                       <Link
                         href={listHref(card.id, page + 1)}
+                        scroll={false}
                         className="btn-outline-ink btn-sm"
                       >
                         Seterusnya
