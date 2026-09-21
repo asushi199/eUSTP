@@ -8,7 +8,13 @@ function formatPct(n: number): string {
   return `${n.toLocaleString("ms-MY", { maximumFractionDigits: 2 })}%`;
 }
 
-export default function OptikSchoolTable({ schools }: { schools: OptikSchoolPublicRow[] }) {
+export default function OptikSchoolTable({
+  schools,
+  onSelectSchool,
+}: {
+  schools: OptikSchoolPublicRow[];
+  onSelectSchool?: (row: OptikSchoolPublicRow) => void;
+}) {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<"all" | "Selesai" | "Belum">("all");
 
@@ -71,12 +77,22 @@ export default function OptikSchoolTable({ schools }: { schools: OptikSchoolPubl
             {filtered.map((row) => (
               <tr key={row.schoolCode} className="border-b border-fog/60 last:border-0">
                 <td className="px-4 py-3">
-                  <Link
-                    href={`/analisis/ai-tools/${row.schoolCode}`}
-                    className="font-medium leading-snug text-ink hover:underline"
-                  >
-                    {row.schoolName}
-                  </Link>
+                  {onSelectSchool ? (
+                    <button
+                      type="button"
+                      className="font-medium leading-snug text-ink hover:underline"
+                      onClick={() => onSelectSchool(row)}
+                    >
+                      {row.schoolName}
+                    </button>
+                  ) : (
+                    <Link
+                      href={`/analisis/ai-tools/${row.schoolCode}`}
+                      className="font-medium leading-snug text-ink hover:underline"
+                    >
+                      {row.schoolName}
+                    </Link>
+                  )}
                   <p className="mt-0.5 text-xs text-graphite">{row.schoolCode}</p>
                 </td>
                 <td className="px-4 py-3 text-right tabular-nums">{row.selesaiBil}</td>

@@ -22,8 +22,7 @@ export default function OptikTeacherTable({ teachers }: { teachers: OptikTeacher
   if (teachers.length === 0) {
     return (
       <p className="mt-6 text-sm text-graphite">
-        Snapshot ini tiada senarai guru. Muat naik CSV guru (Nama + Status PLC AI) untuk
-        melihat siapa yang sudah selesai.
+        Senarai guru belum tersedia untuk sekolah ini.
       </p>
     );
   }

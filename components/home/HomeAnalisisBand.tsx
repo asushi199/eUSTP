@@ -8,6 +8,7 @@ import KpiGroups from "@/components/analisis/KpiGroups";
 import TahunSelect from "@/components/analisis/TahunSelect";
 import { loadPerkhidmatanAnalisis } from "@/lib/actions/analisis-perkhidmatan";
 import type { AnalisisHomeModule } from "@/lib/analisis/summary";
+import OptikExplore, { type OptikExploreLayer } from "@/components/analisis/OptikExplore";
 
 const PERKHIDMATAN_IDS = new Set(["khidmat-bantu", "pinjaman-aset", "tempahan-pkg"]);
 
@@ -27,6 +28,58 @@ const MonthlyLineChart = dynamic(() => import("@/components/stats/MonthlyLineCha
   ssr: false,
   loading: chartLoading,
 });
+
+function AnalisisModuleBody({
+  active,
+  loadingYear,
+}: {
+  active: AnalisisHomeModule;
+  loadingYear: boolean;
+}) {
+  if (!moduleHasDetail(active)) {
+    return (
+      <p className="mt-4 text-sm text-graphite">
+        Data modul ini belum tersedia. Sila semak semula kemudian.
+      </p>
+    );
+  }
+  return (
+    <div className={`mt-4 space-y-4 ${loadingYear ? "opacity-60" : ""}`}>
+      {active.note ? (
+        <p className="text-sm leading-relaxed text-graphite">{active.note}</p>
+      ) : null}
+      {active.tileGroups ? (
+        <KpiGroups groups={active.tileGroups} />
+      ) : (
+        <AnalisisKpiTiles tiles={active.tiles} />
+      )}
+      {active.delimaTrend && active.delimaTrend.points.length > 0 ? (
+        <DelimaTrendChart
+          data={active.delimaTrend.points}
+          kpiGuru={active.delimaTrend.kpiGuru}
+        />
+      ) : null}
+      {active.bars.map((bar) => (
+        <BreakdownBarChart
+          key={bar.title}
+          title={bar.title}
+          data={bar.data}
+          seriesName={bar.seriesName}
+        />
+      ))}
+      {active.line ? (
+        <MonthlyLineChart
+          title={active.line.title}
+          data={active.line.data}
+          seriesName={active.line.seriesName}
+          percent={active.line.percent}
+          referenceY={active.line.referenceY}
+          referenceLabel={active.line.referenceLabel}
+        />
+      ) : null}
+    </div>
+  );
+}
 
 function moduleHasDetail(mod: AnalisisHomeModule): boolean {
   return (
@@ -95,8 +148,11 @@ export default function HomeAnalisisBand({
   const [openId, setOpenId] = useState<AnalisisHomeModule["id"] | null>(null);
   const [mounted, setMounted] = useState(false);
   const [tahun, setTahun] = useState(initialYear);
+  const [yearOptions, setYearOptions] = useState(years);
   const [perkData, setPerkData] = useState(perkhidmatan ?? []);
+  const [chartsYear, setChartsYear] = useState<number | null>(null);
   const [loadingYear, setLoadingYear] = useState(false);
+  const [optikLayer, setOptikLayer] = useState<OptikExploreLayer>("overview");
   const closeRef = useRef<HTMLButtonElement>(null);
   const active =
     indikator.find((m) => m.id === openId) ?? perkData.find((m) => m.id === openId) ?? null;
@@ -108,11 +164,20 @@ export default function HomeAnalisisBand({
 
   useEffect(() => {
     setPerkData(perkhidmatan ?? []);
+    setChartsYear(null);
   }, [perkhidmatan]);
 
   useEffect(() => {
     setTahun(initialYear);
   }, [initialYear]);
+
+  useEffect(() => {
+    if (openId !== "optik") setOptikLayer("overview");
+  }, [openId]);
+
+  useEffect(() => {
+    setYearOptions(years);
+  }, [years]);
 
   useEffect(() => {
     if (!active) return;
@@ -128,15 +193,29 @@ export default function HomeAnalisisBand({
     };
   }, [active]);
 
-  async function changeTahun(next: number) {
-    if (next === tahun) return;
-    setTahun(next);
+  async function loadPerk(next: number) {
     setLoadingYear(true);
     try {
-      setPerkData(await loadPerkhidmatanAnalisis(next));
+      const result = await loadPerkhidmatanAnalisis(next);
+      setPerkData(result.modules);
+      setYearOptions(result.years);
+      setChartsYear(next);
     } finally {
       setLoadingYear(false);
     }
+  }
+
+  function openModule(id: AnalisisHomeModule["id"]) {
+    setOpenId(id);
+    if (PERKHIDMATAN_IDS.has(id) && chartsYear !== tahun) {
+      void loadPerk(tahun);
+    }
+  }
+
+  async function changeTahun(next: number) {
+    if (next === tahun && chartsYear === next) return;
+    setTahun(next);
+    await loadPerk(next);
   }
 
   return (
@@ -151,7 +230,7 @@ export default function HomeAnalisisBand({
       {perkhidmatan ? (
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {perkData.map((mod) => (
-            <ModuleCard key={mod.id} mod={mod} onOpen={setOpenId} />
+            <ModuleCard key={mod.id} mod={mod} onOpen={openModule} />
           ))}
         </div>
       ) : (
@@ -171,7 +250,9 @@ export default function HomeAnalisisBand({
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="analisis-modal-title"
-                className="relative z-[71] max-h-[88vh] w-full max-w-2xl overflow-y-auto rounded-t-2xl bg-white p-5 shadow-modal sm:rounded-2xl sm:p-6"
+                className={`relative z-[71] max-h-[88vh] w-full overflow-y-auto rounded-t-2xl bg-white p-5 shadow-modal sm:rounded-2xl sm:p-6 ${
+                  openId === "optik" && optikLayer !== "overview" ? "max-w-4xl" : "max-w-2xl"
+                }`}
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="relative z-10 flex items-start justify-between gap-4">
@@ -182,15 +263,10 @@ export default function HomeAnalisisBand({
                     <h3 id="analisis-modal-title" className="mt-1 text-xl font-semibold tracking-tight">
                       {active.label}
                     </h3>
-                    {active.detailHref ? (
-                      <a href={active.detailHref} className="link-blue mt-2 inline-block text-sm">
-                        {active.detailLabel || "Lihat selanjutnya"}
-                      </a>
-                    ) : null}
                   </div>
                   <div className="flex items-center gap-2">
                     {perkhidmatanOpen ? (
-                      <TahunSelect year={tahun} years={years} onChange={changeTahun} />
+                      <TahunSelect year={tahun} years={yearOptions} onChange={changeTahun} />
                     ) : null}
                     <button
                       ref={closeRef}
@@ -214,45 +290,15 @@ export default function HomeAnalisisBand({
                   </div>
                 </div>
 
-                {moduleHasDetail(active) ? (
-                  <div className={`mt-4 space-y-4 ${loadingYear ? "opacity-60" : ""}`}>
-                    {active.note ? (
-                      <p className="text-sm leading-relaxed text-graphite">{active.note}</p>
-                    ) : null}
-                    {active.tileGroups ? (
-                      <KpiGroups groups={active.tileGroups} />
-                    ) : (
-                      <AnalisisKpiTiles tiles={active.tiles} />
-                    )}
-                    {active.delimaTrend && active.delimaTrend.points.length > 0 ? (
-                      <DelimaTrendChart
-                        data={active.delimaTrend.points}
-                        kpiGuru={active.delimaTrend.kpiGuru}
-                      />
-                    ) : null}
-                    {active.bars.map((bar) => (
-                      <BreakdownBarChart
-                        key={bar.title}
-                        title={bar.title}
-                        data={bar.data}
-                        seriesName={bar.seriesName}
-                      />
-                    ))}
-                    {active.line ? (
-                      <MonthlyLineChart
-                        title={active.line.title}
-                        data={active.line.data}
-                        seriesName={active.line.seriesName}
-                        percent={active.line.percent}
-                        referenceY={active.line.referenceY}
-                        referenceLabel={active.line.referenceLabel}
-                      />
-                    ) : null}
-                  </div>
+                {perkhidmatanOpen && loadingYear ? (
+                  <p className="mt-4 text-sm text-graphite">Memuatkan carta…</p>
+                ) : null}
+                {active.id === "optik" ? (
+                  <OptikExplore key={openId} onLayerChange={setOptikLayer}>
+                    <AnalisisModuleBody active={active} loadingYear={loadingYear} />
+                  </OptikExplore>
                 ) : (
-                  <p className="mt-4 text-sm text-graphite">
-                    Data modul ini belum tersedia. Sila semak semula kemudian.
-                  </p>
+                  <AnalisisModuleBody active={active} loadingYear={loadingYear} />
                 )}
               </div>
             </div>,

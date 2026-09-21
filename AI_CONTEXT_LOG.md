@@ -1,5 +1,12 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-21 — AI Tools: senarai sekolah/guru dalam modal awam
+
+- Klik sekolah atau guru tidak lagi buka halaman penuh `/analisis/ai-tools`
+  (nampak seperti backend; pautan balik ke `/analisis` kena log masuk).
+- Aliran awam: modal CoE Analytics → senarai sekolah → senarai guru, semua
+  dalam popup yang boleh ditutup. Tiada e-mel.
+
 ## 2026-09-21 — CoE Analytics: Khidmat Bantu, Pinjaman Aset, Tempahan PKG
 
 - Tiga modul perkhidmatan ditambah pada CoE Analytics (bukan editor admin).

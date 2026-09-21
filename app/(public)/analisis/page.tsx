@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import {
   getAnalisisData,
   metricNum,
   metricText,
 } from "@/lib/analisis/queries";
 import { getPerkhidmatanAnalisis, emptyPerkhidmatanAnalisis } from "@/lib/analisis/perkhidmatan";
-import { getOptikPublicView, optikKpiValue } from "@/lib/analisis/optik-queries";
+import { getOptikPublicView, optikKpiValue, applySchoolDirectoryNames } from "@/lib/analisis/optik-queries";
+import OptikExplore from "@/components/analisis/OptikExplore";
 import AnalisisKpiTiles from "@/components/analisis/AnalisisKpiTiles";
 import AnalisisTahunSelect from "@/components/analisis/AnalisisTahunSelect";
 import KpiGroups from "@/components/analisis/KpiGroups";
@@ -107,17 +107,15 @@ export default async function AnalisisPage({
   const sp = await searchParams;
   const currentYear = currentStatsYear();
   const yearHint = clampStatsYear(sp.tahun, currentYear);
-  const [delima, dcs, ains, pensijilan, optik, perkhidmatanRaw] = await Promise.all([
-    getAnalisisData("delima"),
-    getAnalisisData("dcs"),
-    getAnalisisData("ains"),
-    getAnalisisData("pensijilan"),
-    getAnalisisData("optik"),
-    getPerkhidmatanAnalisis(yearHint).catch((e) => {
-      console.error("[analisis] perkhidmatan:", e instanceof Error ? e.message : e);
-      return emptyPerkhidmatanAnalisis(yearHint);
-    }),
-  ]);
+  const delima = await getAnalisisData("delima");
+  const dcs = await getAnalisisData("dcs");
+  const ains = await getAnalisisData("ains");
+  const pensijilan = await getAnalisisData("pensijilan");
+  const optik = await getAnalisisData("optik");
+  const perkhidmatanRaw = await getPerkhidmatanAnalisis(yearHint).catch((e) => {
+    console.error("[analisis] perkhidmatan:", e instanceof Error ? e.message : e);
+    return emptyPerkhidmatanAnalisis(yearHint);
+  });
   const tahun = parseStatsYear(sp.tahun, perkhidmatanRaw.years, currentYear);
   const perkhidmatan =
     tahun === perkhidmatanRaw.year
@@ -187,6 +185,10 @@ export default async function AnalisisPage({
   /* ---------- OPTIK ---------- */
   const optikSeries = optikView.trend;
   const optikKpi = optikKpiValue(optik.metrics);
+  const optikSchools = await applySchoolDirectoryNames(optikView.schools);
+  const optikSchoolSummary = optikView.current
+    ? `${optikView.current.selesaiPct.toLocaleString("ms-MY", { maximumFractionDigits: 2 })}% selesai (${optikView.current.selesaiBil.toLocaleString("ms-MY")} / ${optikView.current.totalBil.toLocaleString("ms-MY")} guru) · ${optikView.current.sekolahSelesai} sekolah selesai, ${optikView.current.sekolahBelum} belum · ${optikView.current.chartLabel}.`
+    : null;
   const optikSelesaiPct = optikView.current?.selesaiPct ?? metricNum(optik.metrics, "selesai_pct");
   const optikSelesaiBil = optikView.current?.selesaiBil ?? metricNum(optik.metrics, "selesai_bil");
   const optikBelumPct = optikView.current?.belumPct ?? metricNum(optik.metrics, "belum_pct");
@@ -345,6 +347,7 @@ export default async function AnalisisPage({
             Setakat {metricText(optik.metrics, "as_at")}
           </p>
         ) : null}
+        <OptikExplore schools={optikSchools} summary={optikSchoolSummary}>
         <div className="mt-4">
           <KpiGroups groups={optikGroups} />
         </div>
@@ -363,15 +366,11 @@ export default async function AnalisisPage({
             {metricText(optik.metrics, "footer_note")}
           </p>
         ) : null}
-        <p className="mt-4">
-          <Link href="/analisis/ai-tools" className="btn-outline btn-sm">
-            Lihat senarai sekolah
-          </Link>
-        </p>
         <SourceLink
           url={metricText(optik.metrics, "source_url")}
           label={metricText(optik.metrics, "source_label") || "Buka sumber OPTIK"}
         />
+        </OptikExplore>
       </section>
 
       <PerkhidmatanBlock

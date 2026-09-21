@@ -55,8 +55,6 @@ export type AnalisisHomeModule = {
   bars: HomeBarChart[];
   line?: HomeLineChart;
   note?: string;
-  detailHref?: string;
-  detailLabel?: string;
 };
 
 function pct(n: number | null): string {
@@ -72,13 +70,11 @@ function bil(n: number | null): string {
  * berubah di sana, kemas kini di sini juga.
  */
 export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
-  const [delima, dcs, ains, pensijilan, optik] = await Promise.all([
-    getAnalisisData("delima"),
-    getAnalisisData("dcs"),
-    getAnalisisData("ains"),
-    getAnalisisData("pensijilan"),
-    getAnalisisData("optik"),
-  ]);
+  const delima = await getAnalisisData("delima");
+  const dcs = await getAnalisisData("dcs");
+  const ains = await getAnalisisData("ains");
+  const pensijilan = await getAnalisisData("pensijilan");
+  const optik = await getAnalisisData("optik");
   const optikView = await getOptikHomeView(optik.metrics);
 
   /* ---------- DELIMa ---------- */
@@ -254,8 +250,6 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
       referenceY: optikKpi,
       referenceLabel: optikKpi != null ? `KPI Kebangsaan ${optikKpi}%` : undefined,
     },
-    detailHref: "/analisis/ai-tools",
-    detailLabel: "Lihat senarai sekolah",
   };
 
   return [delimaModule, dcsModule, ainsModule, pensijilanModule, optikModule];
