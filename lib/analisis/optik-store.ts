@@ -4,6 +4,7 @@ import {
   analisisMetrics,
   analisisOptikSchools,
   analisisOptikSnapshots,
+  analisisOptikTeachers,
 } from "@/lib/schema";
 import type { OptikParseResult } from "@/lib/analisis/optik-parse";
 
@@ -59,6 +60,15 @@ export async function insertOptikSnapshot(input: {
   makeCurrent: boolean;
 }): Promise<number> {
   return db.transaction(async (tx) => {
+    const sameDate = await tx
+      .select({ id: analisisOptikSnapshots.id })
+      .from(analisisOptikSnapshots)
+      .where(eq(analisisOptikSnapshots.capturedOn, input.capturedOn));
+    if (sameDate.length > 0) {
+      await tx
+        .delete(analisisOptikSnapshots)
+        .where(eq(analisisOptikSnapshots.capturedOn, input.capturedOn));
+    }
     if (input.makeCurrent) {
       await tx
         .update(analisisOptikSnapshots)
@@ -99,6 +109,18 @@ export async function insertOptikSnapshot(input: {
         sort: index,
       })),
     );
+    if (input.parsed.teachers.length > 0) {
+      await tx.insert(analisisOptikTeachers).values(
+        input.parsed.teachers.map((row, index) => ({
+          snapshotId: snap.id,
+          schoolCode: row.schoolCode,
+          name: row.name,
+          email: row.email,
+          plcStatus: row.plcStatus,
+          sort: index,
+        })),
+      );
+    }
     return snap.id;
   });
 }

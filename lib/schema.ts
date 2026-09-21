@@ -579,6 +579,29 @@ export const analisisOptikSchools = pgTable(
   }),
 );
 
+/** Baris guru dalam satu snapshot AI Tools (daripada CSV senarai guru). */
+export const analisisOptikTeachers = pgTable(
+  "analisis_optik_teachers",
+  {
+    id: serial("id").primaryKey(),
+    snapshotId: integer("snapshot_id")
+      .notNull()
+      .references(() => analisisOptikSnapshots.id, { onDelete: "cascade" }),
+    schoolCode: text("school_code").notNull(),
+    name: text("name").notNull(),
+    email: text("email").notNull().default(""),
+    plcStatus: text("plc_status").notNull(),
+    sort: integer("sort").notNull().default(0),
+  },
+  (t) => ({
+    snapshotSchoolIdx: index("analisis_optik_teachers_snapshot_school_idx").on(
+      t.snapshotId,
+      t.schoolCode,
+      t.sort,
+    ),
+  }),
+);
+
 /* ==================== Maklumat Asas ==================== */
 
 /** Pegawai USTP/PPD — dipapar di halaman Maklumat Asas. */

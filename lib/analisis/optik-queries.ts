@@ -1,10 +1,11 @@
 import "server-only";
 
-import { asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
   analisisOptikSchools,
   analisisOptikSnapshots,
+  analisisOptikTeachers,
   schools as schoolTable,
 } from "@/lib/schema";
 import {
@@ -15,9 +16,13 @@ import {
   type MetricMap,
 } from "@/lib/analisis/queries";
 import { roundPct } from "@/lib/analisis/optik-parse";
-import type { OptikSchoolPublicRow, OptikSnapshotSummary } from "@/lib/analisis/optik-types";
+import type {
+  OptikSchoolPublicRow,
+  OptikSnapshotSummary,
+  OptikTeacherPublicRow,
+} from "@/lib/analisis/optik-types";
 
-export type { OptikSchoolPublicRow, OptikSnapshotSummary };
+export type { OptikSchoolPublicRow, OptikSnapshotSummary, OptikTeacherPublicRow };
 
 export type OptikPublicView = {
   metrics: MetricMap;
@@ -153,4 +158,62 @@ export async function applySchoolDirectoryNames(
     ...row,
     schoolName: names.get(row.schoolCode) ?? row.schoolName,
   }));
+}
+
+export async function getOptikSchoolDetail(schoolCode: string): Promise<{
+  school: OptikSchoolPublicRow | null;
+  teachers: OptikTeacherPublicRow[];
+  snapshotLabel: string;
+} | null> {
+  const current = await getCurrentOptikSnapshot();
+  if (!current) return null;
+  const code = schoolCode.trim().toUpperCase();
+  const [match] = await db
+    .select()
+    .from(analisisOptikSchools)
+    .where(
+      and(
+        eq(analisisOptikSchools.snapshotId, current.id),
+        eq(analisisOptikSchools.schoolCode, code),
+      ),
+    )
+    .limit(1);
+  if (!match) {
+    return { school: null, teachers: [], snapshotLabel: current.chartLabel };
+  }
+  const [named] = await applySchoolDirectoryNames([
+    {
+      schoolCode: match.schoolCode,
+      schoolName: match.schoolName,
+      selesaiBil: match.selesaiBil,
+      totalBil: match.totalBil,
+      pctAi: match.pctAi,
+      plcStatus: match.plcStatus,
+    },
+  ]);
+  const teachers = await db
+    .select({
+      name: analisisOptikTeachers.name,
+      plcStatus: analisisOptikTeachers.plcStatus,
+    })
+    .from(analisisOptikTeachers)
+    .where(
+      and(
+        eq(analisisOptikTeachers.snapshotId, current.id),
+        eq(analisisOptikTeachers.schoolCode, code),
+      ),
+    )
+    .orderBy(asc(analisisOptikTeachers.sort));
+  return {
+    school: named ?? {
+      schoolCode: match.schoolCode,
+      schoolName: match.schoolName,
+      selesaiBil: match.selesaiBil,
+      totalBil: match.totalBil,
+      pctAi: match.pctAi,
+      plcStatus: match.plcStatus,
+    },
+    teachers,
+    snapshotLabel: current.chartLabel,
+  };
 }

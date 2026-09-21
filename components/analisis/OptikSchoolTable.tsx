@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import type { OptikSchoolPublicRow } from "@/lib/analisis/optik-types";
 
 function formatPct(n: number): string {
@@ -70,7 +71,12 @@ export default function OptikSchoolTable({ schools }: { schools: OptikSchoolPubl
             {filtered.map((row) => (
               <tr key={row.schoolCode} className="border-b border-fog/60 last:border-0">
                 <td className="px-4 py-3">
-                  <p className="font-medium leading-snug">{row.schoolName}</p>
+                  <Link
+                    href={`/analisis/ai-tools/${row.schoolCode}`}
+                    className="font-medium leading-snug text-ink hover:underline"
+                  >
+                    {row.schoolName}
+                  </Link>
                   <p className="mt-0.5 text-xs text-graphite">{row.schoolCode}</p>
                 </td>
                 <td className="px-4 py-3 text-right tabular-nums">{row.selesaiBil}</td>

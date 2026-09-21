@@ -39,7 +39,9 @@ export default function OptikCsvUploadForm({ today }: { today: string }) {
           className="input"
         />
         <p className="mt-1 text-xs text-graphite">
-          CSV paparan daerah (Sekolah, ✓, ∑, % AI, PLC) atau Excel senarai guru.
+          Utamakan CSV senarai guru (PPD, Sekolah, Nama, Email, Status PLC AI) — sekolah
+          dijumlah automatik dan nama guru boleh diklik. CSV paparan daerah (✓ / ∑) juga
+          diterima, tetapi tiada senarai guru.
         </p>
       </div>
       <div>

@@ -4,6 +4,7 @@ import { join } from "node:path";
 import {
   parseOptikCsvText,
   parseOptikSpreadsheetBuffer,
+  serializeOptikSchoolsCsv,
 } from "../lib/analisis/optik-parse";
 
 /**
@@ -18,11 +19,11 @@ const DATA_DIR = join(__dirname, "data");
 const APRIL_XLSX =
   "c:\\Users\\asush.DESKTOP-5RJ4CT5\\Downloads\\38833FF26BA1D.UnigramPreview_g9c9v27vpyspw!App\\Analisis PLC AI Tools Daerah Manjung_ 20 April 2026.xlsx";
 const CURRENT_CSV_DOWNLOAD =
+  "c:\\Users\\asush.DESKTOP-5RJ4CT5\\Downloads\\Analisis PLC AI Tools Negeri Perak_Paparan Daerah V4_Table (1).csv";
+const CURRENT_CSV_FALLBACK =
   "c:\\Users\\asush.DESKTOP-5RJ4CT5\\Downloads\\Analisis PLC AI Tools Negeri Perak_Paparan Daerah V4_Table.csv";
 
 async function main() {
-  const { db } = await import("../lib/db");
-  const { analisisOptikSnapshots } = await import("../lib/schema");
   const { insertOptikSnapshot, syncOptikCurrentMetrics, upsertOptikMetric } =
     await import("../lib/analisis/optik-store");
 
@@ -32,11 +33,15 @@ async function main() {
   const aprilParsed = existsSync(APRIL_XLSX)
     ? parseOptikSpreadsheetBuffer(readFileSync(APRIL_XLSX))
     : parseOptikCsvText(readFileSync(aprilCsvPath, "utf8"));
-  writeFileSync(aprilCsvPath, aprilParsed.csv, "utf8");
+  writeFileSync(aprilCsvPath, serializeOptikSchoolsCsv(aprilParsed.schools), "utf8");
 
-  const currentSource = existsSync(CURRENT_CSV_DOWNLOAD) ? CURRENT_CSV_DOWNLOAD : currentCsvPath;
+  const currentSource = existsSync(CURRENT_CSV_DOWNLOAD)
+    ? CURRENT_CSV_DOWNLOAD
+    : existsSync(CURRENT_CSV_FALLBACK)
+      ? CURRENT_CSV_FALLBACK
+      : currentCsvPath;
   const currentParsed = parseOptikCsvText(readFileSync(currentSource, "utf8"));
-  writeFileSync(currentCsvPath, currentParsed.csv, "utf8");
+  writeFileSync(currentCsvPath, serializeOptikSchoolsCsv(currentParsed.schools), "utf8");
 
   await upsertOptikMetric("kpi_year", "2026");
   await upsertOptikMetric("kpi_kebangsaan", "79");
@@ -53,42 +58,30 @@ async function main() {
   );
   await upsertOptikMetric("source_label", "Buka sumber OPTIK / AI Tools");
 
-  const existing = await db.select().from(analisisOptikSnapshots);
-  const hasApril = existing.some((row) => String(row.capturedOn).slice(0, 10) === "2026-04-20");
-  const hasCurrent = existing.some((row) => String(row.capturedOn).slice(0, 10) === "2026-09-21");
+  await insertOptikSnapshot({
+    parsed: aprilParsed,
+    capturedOn: "2026-04-20",
+    chartLabel: "Apr 2026",
+    filename: "Analisis PLC AI Tools Daerah Manjung_ 20 April 2026.xlsx",
+    userId: null,
+    makeCurrent: false,
+  });
+  console.log(
+    `Apr 2026: ${aprilParsed.selesaiPct}% (${aprilParsed.selesaiBil}/${aprilParsed.totalBil}) guru=${aprilParsed.teachers.length}`,
+  );
 
-  if (!hasApril) {
-    await insertOptikSnapshot({
-      parsed: aprilParsed,
-      capturedOn: "2026-04-20",
-      chartLabel: "Apr 2026",
-      filename: "Analisis PLC AI Tools Daerah Manjung_ 20 April 2026.xlsx",
-      userId: null,
-      makeCurrent: false,
-    });
-    console.log(
-      `Apr 2026: ${aprilParsed.selesaiPct}% (${aprilParsed.selesaiBil}/${aprilParsed.totalBil})`,
-    );
-  } else {
-    console.log("Apr 2026 sudah wujud — dilangkau");
-  }
-
-  if (!hasCurrent) {
-    await insertOptikSnapshot({
-      parsed: currentParsed,
-      capturedOn: "2026-09-21",
-      chartLabel: "Sep 2026",
-      filename: "Analisis PLC AI Tools Negeri Perak_Paparan Daerah V4_Table.csv",
-      userId: null,
-      makeCurrent: true,
-    });
-    await syncOptikCurrentMetrics("2026-09-21", currentParsed);
-    console.log(
-      `Sep 2026: ${currentParsed.selesaiPct}% (${currentParsed.selesaiBil}/${currentParsed.totalBil})`,
-    );
-  } else {
-    console.log("Sep 2026 sudah wujud — dilangkau");
-  }
+  await insertOptikSnapshot({
+    parsed: currentParsed,
+    capturedOn: "2026-09-21",
+    chartLabel: "Sep 2026",
+    filename: "Analisis PLC AI Tools Negeri Perak_Paparan Daerah V4_Table (1).csv",
+    userId: null,
+    makeCurrent: true,
+  });
+  await syncOptikCurrentMetrics("2026-09-21", currentParsed);
+  console.log(
+    `Sep 2026: ${currentParsed.selesaiPct}% (${currentParsed.selesaiBil}/${currentParsed.totalBil}) guru=${currentParsed.teachers.length}`,
+  );
 
   console.log("Import AI Tools selesai.");
   process.exit(0);

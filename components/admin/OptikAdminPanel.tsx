@@ -82,8 +82,9 @@ export default async function OptikAdminPanel({
       <section className="card mt-6 p-4">
         <h2 className="text-lg font-semibold">Muat naik CSV</h2>
         <p className="mt-1 text-sm text-graphite">
-          Setiap muat naik menjadi paparan semasa dan menambah satu titik pada carta. Snapshot
-          lama kekal dalam arkib.
+        Setiap muat naik menjadi paparan semasa dan menambah satu titik pada carta. Snapshot
+        lama kekal dalam arkib. Fail guru (Nama + Status) membolehkan klik sekolah untuk
+        lihat siapa yang belum selesai.
         </p>
         <div className="mt-4">
           <OptikCsvUploadForm today={today} />

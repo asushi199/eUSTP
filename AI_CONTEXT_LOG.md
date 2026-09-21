@@ -11,7 +11,8 @@
   ada dalam sistem; bukan 90%+). AR1/AR2 lama diganti muat naik tahun ini:
   Apr 2026 36.96% (Excel guru 20 Apr), Sep 2026 83.49% (CSV V4, 3059/3664).
 - Jadual sekolah awam `/analisis/ai-tools` (101 sekolah, carian + tapis PLC).
-  Status PLC ikut lajur CSV; Excel guru diagregat, Selesai jika ≥80%.
+  Klik sekolah buka senarai guru (nama + status; e-mel tidak dipaparkan).
+  Status PLC ikut lajur CSV; Excel/CSV guru diagregat, Selesai jika ≥80%.
   Nama sekolah digabung dengan jadual `schools` (ABA1031 = SK PANGKALAN TLDM II).
 - Jadual baharu `analisis_optik_snapshots` + `analisis_optik_schools` (RLS).
   Skrip: `npm run db:import-optik`.

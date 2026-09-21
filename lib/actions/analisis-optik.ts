@@ -18,6 +18,7 @@ function revalidateOptik() {
   revalidatePath("/admin/analisis");
   revalidatePath("/analisis");
   revalidatePath("/analisis/ai-tools");
+  revalidatePath("/analisis/ai-tools", "layout");
   revalidatePath("/");
 }
 

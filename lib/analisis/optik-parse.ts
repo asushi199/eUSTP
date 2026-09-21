@@ -14,9 +14,17 @@ export type OptikSchoolRow = {
   plcStatus: OptikPlcStatus;
 };
 
+export type OptikTeacherRow = {
+  schoolCode: string;
+  name: string;
+  email: string;
+  plcStatus: OptikPlcStatus;
+};
+
 export type OptikParseResult = {
   format: OptikSourceFormat;
   schools: OptikSchoolRow[];
+  teachers: OptikTeacherRow[];
   selesaiBil: number;
   totalBil: number;
   selesaiPct: number;
@@ -195,7 +203,27 @@ export function serializeOptikSchoolsCsv(schools: OptikSchoolRow[]): string {
   return `${lines.join("\n")}\n`;
 }
 
-function finalizeSchools(schools: OptikSchoolRow[], format: OptikSourceFormat): OptikParseResult {
+export function serializeOptikTeachersCsv(
+  teachers: OptikTeacherRow[],
+  schoolNames: Map<string, string>,
+): string {
+  const lines = ["PPD,Sekolah,Nama,Email DELIMA,Status PLC AI"];
+  for (const row of teachers) {
+    const schoolName = schoolNames.get(row.schoolCode) ?? row.schoolCode;
+    const sekolah = `${row.schoolCode}-${schoolName}`;
+    const status = row.plcStatus === "Selesai" ? "Selesai" : "Belum Selesai";
+    lines.push(
+      ["MANJUNG", csvCell(sekolah), csvCell(row.name), csvCell(row.email), csvCell(status)].join(","),
+    );
+  }
+  return `${lines.join("\n")}\n`;
+}
+
+function finalizeSchools(
+  schools: OptikSchoolRow[],
+  format: OptikSourceFormat,
+  teachers: OptikTeacherRow[] = [],
+): OptikParseResult {
   if (schools.length === 0) {
     throw new Error("Fail tidak mengandungi baris sekolah yang sah.");
   }
@@ -211,9 +239,16 @@ function finalizeSchools(schools: OptikSchoolRow[], format: OptikSourceFormat): 
   const belumPct = roundPct((100 * belumBil) / totalBil);
   const sekolahSelesai = sorted.filter((row) => row.plcStatus === "Selesai").length;
   const sekolahBelum = sorted.length - sekolahSelesai;
+  const names = new Map(sorted.map((row) => [row.schoolCode, row.schoolName]));
+  const teacherRows = [...teachers].sort((a, b) => {
+    if (a.schoolCode !== b.schoolCode) return a.schoolCode.localeCompare(b.schoolCode);
+    if (a.plcStatus !== b.plcStatus) return a.plcStatus === "Belum" ? -1 : 1;
+    return a.name.localeCompare(b.name, "ms");
+  });
   return {
     format,
     schools: sorted,
+    teachers: teacherRows,
     selesaiBil,
     totalBil,
     selesaiPct,
@@ -221,7 +256,10 @@ function finalizeSchools(schools: OptikSchoolRow[], format: OptikSourceFormat): 
     belumPct,
     sekolahSelesai,
     sekolahBelum,
-    csv: serializeOptikSchoolsCsv(sorted),
+    csv:
+      teacherRows.length > 0
+        ? serializeOptikTeachersCsv(teacherRows, names)
+        : serializeOptikSchoolsCsv(sorted),
   };
 }
 
@@ -278,15 +316,28 @@ function parseTeacherList(matrix: string[][]): OptikParseResult {
   const headers = (matrix[0] ?? []).map(headerKey);
   const schoolIdx = headers.indexOf("school");
   const statusIdx = headers.findIndex((h) => h === "status" || h === "plc");
+  const nameIdx = headers.indexOf("nama");
+  const emailIdx = headers.indexOf("email");
   if (schoolIdx < 0 || statusIdx < 0) {
     throw new Error("Excel senarai guru perlu lajur Sekolah dan Status PLC AI.");
   }
   const byCode = new Map<string, { name: string; done: number; total: number }>();
+  const teachers: OptikTeacherRow[] = [];
   for (const row of matrix.slice(1)) {
     const parsed = parseSchoolField(String(row[schoolIdx] ?? ""));
     if (!parsed) continue;
     const status = normalizePlcStatus(String(row[statusIdx] ?? ""));
     if (!status) continue;
+    const guruName = nameIdx >= 0 ? String(row[nameIdx] ?? "").trim() : "";
+    const email = emailIdx >= 0 ? String(row[emailIdx] ?? "").trim() : "";
+    if (guruName || email) {
+      teachers.push({
+        schoolCode: parsed.code,
+        name: guruName || email,
+        email,
+        plcStatus: status,
+      });
+    }
     const cur = byCode.get(parsed.code) ?? { name: parsed.name, done: 0, total: 0 };
     cur.total += 1;
     if (status === "Selesai") cur.done += 1;
@@ -304,7 +355,7 @@ function parseTeacherList(matrix: string[][]): OptikParseResult {
       plcStatus: plcStatusFromPct(pctAi),
     };
   });
-  return finalizeSchools(schools, "teacher_list");
+  return finalizeSchools(schools, "teacher_list", teachers);
 }
 
 function detectAndParseMatrix(matrix: string[][]): OptikParseResult {

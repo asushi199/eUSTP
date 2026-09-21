@@ -7,6 +7,11 @@ export type OptikSchoolPublicRow = {
   plcStatus: string;
 };
 
+export type OptikTeacherPublicRow = {
+  name: string;
+  plcStatus: string;
+};
+
 export type OptikSnapshotSummary = {
   id: number;
   capturedOn: string;

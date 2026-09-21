@@ -56,11 +56,20 @@ test("aggregates teacher lists and derives school PLC at 80%", () => {
   assert.equal(result.totalBil, 7);
 });
 
+test("keeps teacher names and status from a guru CSV", () => {
+  const result = parseOptikCsvText(TEACHER_CSV);
+  assert.equal(result.teachers.length, 7);
+  const dendang = result.teachers.filter((row) => row.schoolCode === "ABA1001");
+  assert.equal(dendang.length, 2);
+  assert.equal(dendang.some((row) => row.name === "SITI" && row.plcStatus === "Belum"), true);
+});
+
 test("round-trips school rows to Looker-style CSV", () => {
   const parsed = parseOptikCsvText(SCHOOL_CSV);
   const again = parseOptikCsvText(serializeOptikSchoolsCsv(parsed.schools));
   assert.equal(again.schools.length, parsed.schools.length);
   assert.equal(again.selesaiBil, parsed.selesaiBil);
+  assert.equal(again.teachers.length, 0);
 });
 
 test("parses school codes and Malay chart labels", () => {
