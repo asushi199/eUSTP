@@ -13,24 +13,20 @@ function setSecret(name: string, value: string) {
   console.log(`OK ${name}`);
 }
 
-/** Direct 5432 daripada DATABASE_URL pooler jika PGDUMP_DATABASE_URL tiada. */
-function pgdumpUrl(): string {
-  const direct = process.env.PGDUMP_DATABASE_URL?.trim();
-  if (direct) return normalizeDatabaseUrl(direct);
-
+function poolerSessionPgDumpUrl(): string {
   const url = normalizeDatabaseUrl(process.env.DATABASE_URL);
   const u = new URL(url);
-  const ref = u.username.startsWith("postgres.") ? u.username.slice("postgres.".length) : u.username;
-  if (!ref || ref === u.username) {
-    throw new Error(
-      "Tetapkan PGDUMP_DATABASE_URL dalam .env.local (Direct db.xxx.supabase.co:5432)",
-    );
+  if (!u.hostname.includes("pooler.supabase.com")) {
+    throw new Error("DATABASE_URL mesti pooler Supabase untuk derive PGDUMP session :5432");
   }
-  u.username = "postgres";
-  u.hostname = `db.${ref}.supabase.co`;
   u.port = "5432";
-  u.search = "";
+  u.searchParams.delete("pgbouncer");
   return u.toString();
+}
+
+/** Direct 5432 daripada DATABASE_URL pooler jika PGDUMP_DATABASE_URL tiada. */
+function pgdumpUrl(): string {
+  return poolerSessionPgDumpUrl();
 }
 
 function main() {
