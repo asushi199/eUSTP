@@ -142,7 +142,10 @@
   display: none;
 }
 
-@media (min-width: 768px) {
+/* Chrome desktop = 1024px (Tailwind lg), bukan 768px. Skrin dalam lipat
+   (cth. Honor Magic V5 2172×2352 @ ~3x ≈ 724–784 CSS px) berada di tepi
+   md dan menyebabkan sidebar/tab bawah berulang-alik. */
+@media (min-width: 1024px) {
   .portal-sidebar {
     position: fixed;
     inset: 0 auto 0 0;
@@ -156,16 +159,17 @@
     box-shadow: 1px 0 0 rgba(15, 61, 92, 0.06);
   }
 
-  /* Halaman awam: sidebar dalam aliran dokumen supaya footer boleh merentangi lebar penuh. */
+  /* Halaman awam: sidebar dalam aliran dokumen supaya footer boleh merentangi lebar penuh.
+     100svh (bukan dvh) elak ketinggian berayun bila chrome pelayar muncul/hilang. */
   .portal-public-shell .portal-sidebar {
     position: sticky;
     inset: auto;
     top: 0;
     align-self: flex-start;
     flex-shrink: 0;
-    height: 100vh;
-    height: 100dvh;
+    height: 100svh;
     max-height: 100%;
+    overflow: hidden;
   }
 
   .portal-sidebar::before {

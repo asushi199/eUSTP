@@ -2,7 +2,7 @@
 export default function SiteFooter() {
   return (
     <footer
-      className="mt-auto mb-[calc(3.5rem+env(safe-area-inset-bottom))] text-white no-print md:mb-0"
+      className="mt-auto mb-[calc(3.5rem+env(safe-area-inset-bottom))] text-white no-print lg:mb-0"
       style={{ backgroundColor: "var(--portal-footer, #0f3d5c)" }}
     >
       <div className="mx-auto max-w-6xl px-4 py-3 leading-snug sm:px-8">

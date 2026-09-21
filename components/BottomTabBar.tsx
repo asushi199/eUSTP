@@ -47,7 +47,7 @@ export default function BottomTabBar() {
   }, [moreOpen]);
 
   return (
-    <div className="md:hidden no-print">
+    <div className="lg:hidden no-print">
       {moreOpen ? (
         <div className="fixed inset-0 z-40">
           <button

@@ -7,7 +7,7 @@ export default function TopNav() {
   return (
     <header className="sticky top-0 z-40 h-16 border-b hairline bg-white/88 backdrop-blur-md">
       <div className="flex h-full items-center justify-between px-4 sm:px-8">
-        <BrandWordmark className="md:hidden" />
+        <BrandWordmark className="lg:hidden" />
         <div className="ml-auto flex items-center gap-2">
           <PwaInstallButton variant="nav-link" className="pwa-topnav" />
           <Link
