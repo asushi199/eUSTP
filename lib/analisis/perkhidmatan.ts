@@ -4,18 +4,21 @@ import type { AnalisisHomeModule } from "@/lib/analisis/summary";
 import {
   emptyKhidmatAnalisis,
   getKhidmatAnalisis,
+  getKhidmatKpi,
   minKhidmatYear,
   type KhidmatAnalisis,
 } from "@/lib/stats/khidmat-bantu";
 import {
   emptyPinjamanAnalisis,
   getPinjamanAnalisis,
+  getPinjamanKpi,
   minPinjamanYear,
   type PinjamanAnalisis,
 } from "@/lib/stats/pinjaman";
 import {
   emptyTempahanAnalisis,
   getTempahanAnalisis,
+  getTempahanKpi,
   minTempahanYear,
   type TempahanAnalisis,
 } from "@/lib/stats/tempahan";
@@ -79,11 +82,11 @@ function toModule(
 
 export async function listPerkhidmatanYears(): Promise<number[]> {
   const current = currentStatsYear();
-  const mins = await Promise.all([
-    minKhidmatYear().catch(() => null),
-    minPinjamanYear().catch(() => null),
-    minTempahanYear().catch(() => null),
-  ]);
+  const mins = [
+    await minKhidmatYear().catch(() => null),
+    await minPinjamanYear().catch(() => null),
+    await minTempahanYear().catch(() => null),
+  ];
   const found = mins.filter((n): n is number => n != null && Number.isFinite(n));
   return yearRange(found.length ? Math.min(...found) : current, current);
 }
@@ -174,9 +177,45 @@ export function perkhidmatanToHomeModules(
   ];
 }
 
+function kpiHomeModule(
+  id: PerkhidmatanId,
+  label: string,
+  headlineLabel: string,
+  kpi: StatKpi[],
+): AnalisisHomeModule {
+  return {
+    id,
+    label,
+    headlineValue: kpi[0] ? bil(kpi[0].value) : "0",
+    headlineLabel,
+    tiles: tilesOf(kpi),
+    bars: [],
+  };
+}
+
+/** Halaman utama: KPI sahaja. Carta penuh dimuat bila modal dibuka. */
 export async function getPerkhidmatanHomeModules(
   year: number,
 ): Promise<{ modules: AnalisisHomeModule[]; years: number[]; year: number }> {
-  const data = await getPerkhidmatanAnalisis(year);
-  return { modules: perkhidmatanToHomeModules(data), years: data.years, year: data.year };
+  const khidmat = await getKhidmatKpi(year).catch((e) => {
+    console.error("[perkhidmatan] khidmat kpi:", e instanceof Error ? e.message : e);
+    return emptyKhidmatAnalisis(year).kpi;
+  });
+  const pinjaman = await getPinjamanKpi(year).catch((e) => {
+    console.error("[perkhidmatan] pinjaman kpi:", e instanceof Error ? e.message : e);
+    return emptyPinjamanAnalisis().kpi;
+  });
+  const tempahan = await getTempahanKpi(year).catch((e) => {
+    console.error("[perkhidmatan] tempahan kpi:", e instanceof Error ? e.message : e);
+    return emptyTempahanAnalisis().kpi;
+  });
+  return {
+    year,
+    years: [year],
+    modules: [
+      kpiHomeModule("khidmat-bantu", "Khidmat Bantu", "Diluluskan", khidmat),
+      kpiHomeModule("pinjaman-aset", "Pinjaman Aset", "Permohonan diluluskan", pinjaman),
+      kpiHomeModule("tempahan-pkg", "Tempahan PKG", "Aktiviti diluluskan", tempahan),
+    ],
+  };
 }

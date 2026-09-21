@@ -46,14 +46,14 @@ export default async function HomePage() {
    * dan log ralat sebenar ke log Vercel untuk diagnosis.
    */
   const statsYear = currentStatsYear();
-  const analisis = await withDbTimeout(getAnalisisHomeSummary(), 15000).catch((e) => {
+  const analisis = await getAnalisisHomeSummary().catch((e) => {
     console.error(
       "[home] getAnalisisHomeSummary gagal:",
       e instanceof Error ? e.message : e,
     );
     return null;
   });
-  const perkhidmatan = await withDbTimeout(getPerkhidmatanHomeModules(statsYear), 12000).catch((e) => {
+  const perkhidmatan = await getPerkhidmatanHomeModules(statsYear).catch((e) => {
     console.error(
       "[home] getPerkhidmatanHomeModules gagal:",
       e instanceof Error ? e.message : e,

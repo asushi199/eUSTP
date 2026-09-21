@@ -7,6 +7,18 @@
 - Aliran awam: modal CoE Analytics → senarai sekolah → senarai guru, semua
   dalam popup yang boleh ditutup. Tiada e-mel.
 
+## 2026-09-21 — CoE Analytics: statement timeout 57014 / EOF 08006
+
+- Halaman utama terlalu banyak query selari pada pool serverless 3 sambungan.
+  `withDbTimeout` (Promise.race) meninggalkan statement Postgres tergantung —
+  log Supabase `57014 canceling statement due to statement timeout` +
+  `08006 unexpected EOF on client connection with an open transaction`.
+- Kesan: 5 kad indikator hilang (getAnalisisHomeSummary timeout) manakala 3
+  kad perkhidmatan kadang muncul.
+- Pembetulan: homepage perkhidmatan KPI sahaja; carta penuh dimuat bila modal
+  dibuka. Query berturutan. Penapis tahun guna julat tarikh (bukan
+  `extract(year)`). Tiada migrasi.
+
 ## 2026-09-21 — CoE Analytics: Khidmat Bantu, Pinjaman Aset, Tempahan PKG
 
 - Tiga modul perkhidmatan ditambah pada CoE Analytics (bukan editor admin).

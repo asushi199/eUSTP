@@ -27,19 +27,20 @@ export type AnalisisData = {
 
 /** Semua data satu modul (metrik KV + siri bulanan + pecahan). */
 export async function getAnalisisData(modul: AnalisisModul): Promise<AnalisisData> {
-  const [metricRows, monthlyRows, breakdownRows] = await Promise.all([
-    db.select().from(analisisMetrics).where(eq(analisisMetrics.modul, modul)),
-    db
-      .select()
-      .from(analisisMonthly)
-      .where(eq(analisisMonthly.modul, modul))
-      .orderBy(asc(analisisMonthly.sort)),
-    db
-      .select()
-      .from(analisisBreakdown)
-      .where(eq(analisisBreakdown.modul, modul))
-      .orderBy(asc(analisisBreakdown.sort)),
-  ]);
+  const metricRows = await db
+    .select()
+    .from(analisisMetrics)
+    .where(eq(analisisMetrics.modul, modul));
+  const monthlyRows = await db
+    .select()
+    .from(analisisMonthly)
+    .where(eq(analisisMonthly.modul, modul))
+    .orderBy(asc(analisisMonthly.sort));
+  const breakdownRows = await db
+    .select()
+    .from(analisisBreakdown)
+    .where(eq(analisisBreakdown.modul, modul))
+    .orderBy(asc(analisisBreakdown.sort));
 
   return {
     metrics: new Map(metricRows.map((r) => [r.key.toLowerCase(), r.value])),
