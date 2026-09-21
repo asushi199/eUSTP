@@ -10,6 +10,7 @@ secrets/
 .npm-cache/
 .pnpm-store/
 tmp/
+backups/
 
 # CodeGraph local index (per-machine, auto-generated)
 .codegraph/

@@ -1,5 +1,6 @@
 import { formatInTimeZone } from "date-fns-tz";
 import BackupPanel from "@/components/admin/BackupPanel";
+import BackupPgDumpSection from "@/components/admin/BackupPgDumpSection";
 import { readLastBackup } from "@/lib/backup/store";
 import { isGasStorageConfigured } from "@/lib/gas-upload";
 import { requireAdmin } from "@/lib/rbac";
@@ -44,8 +45,8 @@ export default async function AdminBackupPage() {
     <>
       <h1 className="text-2xl font-semibold tracking-tight">Sandaran Data</h1>
       <p className="mt-1 text-sm text-graphite">
-        Sandaran logik pangkalan data (Supabase Postgres) — semua jadual dieksport
-        sebagai JSON dan dimampatkan ke ZIP. Kandungan sensitif; simpan dengan selamat.
+        Dua lapisan: sandaran logik harian (JSON/ZIP) dan sandaran SQL penuh bulanan (
+        <code className="text-ink">pg_dump</code>). Kandungan sensitif; simpan dengan selamat.
       </p>
 
       <BackupPanel
@@ -54,6 +55,8 @@ export default async function AdminBackupPage() {
         scheduleText="Dijadualkan setiap hari pada kira-kira 2:00 pagi (waktu Malaysia) dan dimuat naik ke Google Drive."
         last={last}
       />
+
+      <BackupPgDumpSection />
     </>
   );
 }

@@ -1692,3 +1692,9 @@ Corak berselang = instance sihat vs beracun.
 - BELUM disediakan pengguna: set `CRON_SECRET` dalam .env.local + Vercel env,
   pastikan GAS dikonfigurasi. Pemulihan (restore) belum ada skrip — import
   manual ikut susunan FK.
+
+### 2026-09-21 — Sandaran dwi-lapisan (JSON harian + pg_dump bulanan)
+- Kekalkan sandaran logik harian (ZIP/Drive/cron). Tambah `scripts/pg-dump-backup.ts`
+  + `npm run db:backup-pgdump` → `backups/pgdump/` (gitignore).
+- Admin `/admin/backup`: seksyen `BackupPgDumpSection` (arahan BM).
+- `.env.local.example`: `PGDUMP_DATABASE_URL` (Direct 5432).
