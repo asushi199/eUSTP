@@ -147,6 +147,8 @@ export async function getOptikHomeView(metrics: MetricMap): Promise<{
   return { current, trend: buildOptikTrend(metrics, snapshots) };
 }
 
+export type OptikKpiPoint = { year: string; value: number };
+
 export function optikKpiYear(metrics: MetricMap): string {
   const year = metricText(metrics, "kpi_year");
   return /^\d{4}$/.test(year) ? year : String(new Date().getFullYear());
@@ -154,6 +156,51 @@ export function optikKpiYear(metrics: MetricMap): string {
 
 export function optikKpiValue(metrics: MetricMap): number | null {
   return metricNum(metrics, "kpi_kebangsaan", "kpi");
+}
+
+export function optikKpiDisplayMode(metrics: MetricMap): "one" | "both" {
+  const raw = metricText(metrics, "kpi_display").toLowerCase();
+  return raw === "one" ? "one" : "both";
+}
+
+export function optikKpiPrevious(metrics: MetricMap): OptikKpiPoint | null {
+  const year = metricText(metrics, "kpi_prev_year");
+  const value = metricNum(metrics, "kpi_prev_value");
+  if (!/^\d{4}$/.test(year) || value == null) return null;
+  return { year, value };
+}
+
+export function optikKpiCurrent(metrics: MetricMap): OptikKpiPoint | null {
+  const value = optikKpiValue(metrics);
+  if (value == null) return null;
+  return { year: optikKpiYear(metrics), value };
+}
+
+/** Tahun KPI yang dipaparkan di kad dan garis carta. */
+export function optikKpiPoints(metrics: MetricMap): OptikKpiPoint[] {
+  const current = optikKpiCurrent(metrics);
+  const prev = optikKpiPrevious(metrics);
+  const rows =
+    optikKpiDisplayMode(metrics) === "both" && prev
+      ? [prev, current]
+      : [current];
+  return rows
+    .filter((row): row is OptikKpiPoint => row != null)
+    .sort((a, b) => a.year.localeCompare(b.year));
+}
+
+export function optikKpiGroupStats(metrics: MetricMap): { label: string; value: string }[] {
+  return optikKpiPoints(metrics).map((row) => ({
+    label: row.year,
+    value: `${row.value.toLocaleString("ms-MY")}%`,
+  }));
+}
+
+export function optikKpiReferenceLines(metrics: MetricMap): { y: number; label: string }[] {
+  return optikKpiPoints(metrics).map((row) => ({
+    y: row.value,
+    label: `KPI ${row.year} ${row.value}%`,
+  }));
 }
 
 export async function applySchoolDirectoryNames(

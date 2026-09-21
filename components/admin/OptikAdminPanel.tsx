@@ -4,6 +4,8 @@ import OptikCsvUploadForm from "@/components/admin/OptikCsvUploadForm";
 import { saveOptikKpi, saveOptikTov } from "@/lib/actions/analisis-optik";
 import {
   listOptikSnapshots,
+  optikKpiDisplayMode,
+  optikKpiPrevious,
   optikKpiValue,
   optikKpiYear,
 } from "@/lib/analisis/optik-queries";
@@ -19,6 +21,10 @@ export default async function OptikAdminPanel({
   const snapshots = await listOptikSnapshots();
   const kpiYear = optikKpiYear(metrics);
   const kpiValue = optikKpiValue(metrics) ?? 79;
+  const kpiPrev = optikKpiPrevious(metrics);
+  const kpiPrevYear = kpiPrev?.year ?? "2025";
+  const kpiPrevValue = kpiPrev?.value ?? 55;
+  const kpiDisplay = optikKpiDisplayMode(metrics);
   const tovYear = optikTovYear(metrics);
   const tovValue = optikTovValue(metrics) ?? 86.43;
 
@@ -28,18 +34,52 @@ export default async function OptikAdminPanel({
         <div className="card p-4">
           <h2 className="text-lg font-semibold">KPI Kebangsaan</h2>
           <p className="mt-1 text-xs text-graphite">
-            Sasaran tahun semasa — boleh ditukar setiap tahun tanpa muat naik CSV.
+            Boleh papar satu tahun atau dua tahun. Carta memakai garis sasaran mengikut
+            tahun yang dipaparkan.
           </p>
           <ActionForm action={saveOptikKpi} className="mt-3 grid gap-3 sm:grid-cols-2" submitLabel="Simpan KPI">
+            <div className="sm:col-span-2">
+              <label className="label" htmlFor="kpi-display">
+                Paparan
+              </label>
+              <select id="kpi-display" name="kpiDisplay" defaultValue={kpiDisplay} className="input">
+                <option value="both">Kedua-dua tahun</option>
+                <option value="one">Satu tahun (tahun semasa)</option>
+              </select>
+            </div>
+            <div>
+              <label className="label" htmlFor="kpi-prev-year">
+                Tahun terdahulu
+              </label>
+              <input
+                id="kpi-prev-year"
+                name="kpiPrevYear"
+                defaultValue={kpiPrevYear}
+                className="input"
+                placeholder="cth. 2025"
+              />
+            </div>
+            <div>
+              <label className="label" htmlFor="kpi-prev-value">
+                Sasaran terdahulu (%)
+              </label>
+              <input
+                id="kpi-prev-value"
+                name="kpiPrevValue"
+                defaultValue={kpiPrevValue}
+                className="input"
+                placeholder="cth. 55"
+              />
+            </div>
             <div>
               <label className="label" htmlFor="kpi-year">
-                Tahun
+                Tahun semasa
               </label>
               <input id="kpi-year" name="kpiYear" defaultValue={kpiYear} className="input" required />
             </div>
             <div>
               <label className="label" htmlFor="kpi-value">
-                Sasaran (%)
+                Sasaran semasa (%)
               </label>
               <input
                 id="kpi-value"

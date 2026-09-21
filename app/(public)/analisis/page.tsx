@@ -5,7 +5,7 @@ import {
   metricText,
 } from "@/lib/analisis/queries";
 import { getPerkhidmatanAnalisis, emptyPerkhidmatanAnalisis } from "@/lib/analisis/perkhidmatan";
-import { getOptikPublicView, optikKpiValue, applySchoolDirectoryNames } from "@/lib/analisis/optik-queries";
+import { getOptikPublicView, optikKpiGroupStats, optikKpiReferenceLines, applySchoolDirectoryNames } from "@/lib/analisis/optik-queries";
 import OptikExplore from "@/components/analisis/OptikExplore";
 import AnalisisKpiTiles from "@/components/analisis/AnalisisKpiTiles";
 import AnalisisTahunSelect from "@/components/analisis/AnalisisTahunSelect";
@@ -184,7 +184,8 @@ export default async function AnalisisPage({
 
   /* ---------- OPTIK ---------- */
   const optikSeries = optikView.trend;
-  const optikKpi = optikKpiValue(optik.metrics);
+  const optikKpiStats = optikKpiGroupStats(optik.metrics);
+  const optikKpiLines = optikKpiReferenceLines(optik.metrics);
   const optikSchools = await applySchoolDirectoryNames(optikView.schools);
   const optikSchoolSummary = optikView.current
     ? `${optikView.current.selesaiPct.toLocaleString("ms-MY", { maximumFractionDigits: 2 })}% selesai (${optikView.current.selesaiBil.toLocaleString("ms-MY")} / ${optikView.current.totalBil.toLocaleString("ms-MY")} guru) · ${optikView.current.sekolahSelesai} sekolah selesai, ${optikView.current.sekolahBelum} belum · ${optikView.current.chartLabel}.`
@@ -197,7 +198,7 @@ export default async function AnalisisPage({
     {
       title: "KPI Kebangsaan",
       align: "center" as const,
-      stats: [{ label: "Sasaran", value: pct(optikKpi) }],
+      stats: optikKpiStats.length > 0 ? optikKpiStats : [{ label: "Sasaran", value: "" }],
     },
     {
       title: "Selesai",
@@ -357,8 +358,7 @@ export default async function AnalisisPage({
             data={optikSeries}
             seriesName="%"
             percent
-            referenceY={optikKpi}
-            referenceLabel={optikKpi != null ? `KPI Kebangsaan ${optikKpi}%` : undefined}
+            referenceLines={optikKpiLines}
           />
         </div>
         {metricText(optik.metrics, "footer_note") ? (

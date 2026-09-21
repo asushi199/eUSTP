@@ -1,5 +1,10 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-21 — AI Tools: KPI Kebangsaan dua tahun
+
+- Kad KPI boleh papar 2025 55% dan 2026 79% (atau satu tahun). Pentadbir
+  tetapkan di `/admin/analisis?modul=optik`, termasuk pilihan paparan.
+
 ## 2026-09-21 — AI Tools: senarai sekolah/guru dalam modal awam
 
 - Klik sekolah atau guru tidak lagi buka halaman penuh `/analisis/ai-tools`

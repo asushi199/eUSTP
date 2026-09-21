@@ -37,11 +37,27 @@ export async function saveOptikKpi(
   await requireKandunganAccess();
   const year = String(formData.get("kpiYear") ?? "").trim();
   const value = numOrNull(formData.get("kpiValue"));
+  const prevYear = String(formData.get("kpiPrevYear") ?? "").trim();
+  const prevValue = numOrNull(formData.get("kpiPrevValue"));
+  const displayRaw = String(formData.get("kpiDisplay") ?? "both").trim().toLowerCase();
+  const display = displayRaw === "one" ? "one" : "both";
   if (!/^\d{4}$/.test(year) || value == null || value < 0 || value > 100) {
-    return { ok: false, error: "Tahun atau sasaran KPI tidak sah" };
+    return { ok: false, error: "Tahun atau sasaran KPI semasa tidak sah" };
+  }
+  if (prevYear && !/^\d{4}$/.test(prevYear)) {
+    return { ok: false, error: "Tahun KPI terdahulu tidak sah" };
+  }
+  if (prevValue != null && (prevValue < 0 || prevValue > 100)) {
+    return { ok: false, error: "Sasaran KPI terdahulu tidak sah" };
+  }
+  if ((prevYear && prevValue == null) || (!prevYear && prevValue != null)) {
+    return { ok: false, error: "Isi kedua-dua tahun dan sasaran KPI terdahulu, atau kosongkan kedua-duanya." };
   }
   await upsertOptikMetric("kpi_year", year);
   await upsertOptikMetric("kpi_kebangsaan", String(value));
+  await upsertOptikMetric("kpi_prev_year", prevYear);
+  await upsertOptikMetric("kpi_prev_value", prevValue == null ? "" : String(prevValue));
+  await upsertOptikMetric("kpi_display", display);
   revalidateOptik();
   return { ok: true };
 }

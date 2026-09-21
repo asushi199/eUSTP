@@ -75,6 +75,7 @@ function AnalisisModuleBody({
           percent={active.line.percent}
           referenceY={active.line.referenceY}
           referenceLabel={active.line.referenceLabel}
+          referenceLines={active.line.referenceLines}
         />
       ) : null}
     </div>

@@ -45,6 +45,9 @@ async function main() {
 
   await upsertOptikMetric("kpi_year", "2026");
   await upsertOptikMetric("kpi_kebangsaan", "79");
+  await upsertOptikMetric("kpi_prev_year", "2025");
+  await upsertOptikMetric("kpi_prev_value", "55");
+  await upsertOptikMetric("kpi_display", "both");
   await upsertOptikMetric("tov_year", "2025");
   await upsertOptikMetric("tov", "86.43");
   await upsertOptikMetric("tov2025", "86.43");

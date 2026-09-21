@@ -5,7 +5,7 @@ import {
   metricNum,
   metricText,
 } from "./queries";
-import { getOptikHomeView, optikKpiValue } from "./optik-queries";
+import { getOptikHomeView, optikKpiGroupStats, optikKpiReferenceLines } from "./optik-queries";
 
 /** Bentuk data boleh-serialize untuk kad + modal analisis di halaman utama. */
 export type HomeBarChart = {
@@ -20,6 +20,7 @@ export type HomeLineChart = {
   data: { bulan: string; jumlah: number }[];
   referenceY?: number | null;
   referenceLabel?: string;
+  referenceLines?: { y: number; label: string }[];
   percent?: boolean;
 };
 
@@ -208,7 +209,8 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
   const optikSelesaiBil = optikView.current?.selesaiBil ?? metricNum(optik.metrics, "selesai_bil");
   const optikBelumPct = optikView.current?.belumPct ?? metricNum(optik.metrics, "belum_pct");
   const optikBelumBil = optikView.current?.belumBil ?? null;
-  const optikKpi = optikKpiValue(optik.metrics);
+  const optikKpiStats = optikKpiGroupStats(optik.metrics);
+  const optikKpiLines = optikKpiReferenceLines(optik.metrics);
   const optikModule: AnalisisHomeModule = {
     id: "optik",
     label: "AI Tools (OPTIK)",
@@ -218,13 +220,13 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
       { label: "Selesai", value: pct(optikSelesai) },
       { label: "Bil. Selesai", value: bil(optikSelesaiBil) },
       { label: "Belum Selesai", value: pct(optikBelumPct) },
-      { label: "KPI Kebangsaan", value: pct(optikKpi) },
+      ...optikKpiStats.map((row) => ({ label: `KPI ${row.label}`, value: row.value })),
     ],
     tileGroups: [
       {
         title: "KPI Kebangsaan",
-        align: "center",
-        stats: [{ label: "Sasaran", value: pct(optikKpi) }],
+        align: "center" as const,
+        stats: optikKpiStats.length > 0 ? optikKpiStats : [{ label: "Sasaran", value: "" }],
       },
       {
         title: "Selesai",
@@ -247,8 +249,9 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
       seriesName: "%",
       data: optikView.trend,
       percent: true,
-      referenceY: optikKpi,
-      referenceLabel: optikKpi != null ? `KPI Kebangsaan ${optikKpi}%` : undefined,
+      referenceY: optikKpiLines[optikKpiLines.length - 1]?.y ?? null,
+      referenceLabel: optikKpiLines[optikKpiLines.length - 1]?.label,
+      referenceLines: optikKpiLines,
     },
   };
 

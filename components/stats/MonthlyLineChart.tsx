@@ -19,6 +19,7 @@ export default function MonthlyLineChart({
   seriesName = "Laporan",
   referenceY,
   referenceLabel,
+  referenceLines,
   percent = false,
 }: {
   title: string;
@@ -27,13 +28,20 @@ export default function MonthlyLineChart({
   /** Garis mendatar sasaran (cth. KPI Kebangsaan). */
   referenceY?: number | null;
   referenceLabel?: string;
+  referenceLines?: { y: number; label: string }[];
   percent?: boolean;
 }) {
+  const lines =
+    referenceLines && referenceLines.length > 0
+      ? referenceLines
+      : referenceY != null
+        ? [{ y: referenceY, label: referenceLabel ?? `KPI ${referenceY}%` }]
+        : [];
   if (data.length === 0 || data.every((d) => d.jumlah === 0)) return null;
   return (
     <div className="card p-5">
       <p className="font-semibold">{title}</p>
-      <div className={`mt-3 ${referenceY != null ? "h-64" : "h-56"}`}>
+      <div className={`mt-3 ${lines.length > 0 ? "h-64" : "h-56"}`}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={data}
@@ -56,20 +64,21 @@ export default function MonthlyLineChart({
                   : undefined
               }
             />
-            {referenceY != null ? (
+            {lines.map((line, index) => (
               <ReferenceLine
-                y={referenceY}
+                key={`${line.y}-${line.label}`}
+                y={line.y}
                 stroke="#636363"
                 strokeDasharray="6 4"
                 ifOverflow="extendDomain"
                 label={{
-                  value: referenceLabel ?? `KPI ${referenceY}%`,
+                  value: line.label,
                   fontSize: 10,
                   fill: "#636363",
-                  position: "insideBottomLeft",
+                  position: index === 0 ? "insideTopLeft" : "insideBottomLeft",
                 }}
               />
-            ) : null}
+            ))}
             <Line
               type="monotone"
               dataKey="jumlah"
