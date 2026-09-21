@@ -78,6 +78,13 @@
   .input {
     @apply box-border block h-11 w-full min-w-0 max-w-full rounded-md border border-steel bg-white px-4 text-[15px] text-ink placeholder-graphite/70 focus:border-ink focus:outline-none focus:ring-1 focus:ring-ink;
   }
+  /* Butang native "Choose File" dalam kotak h-11 — jajar tengah menegak. */
+  .input[type="file"] {
+    @apply py-0 pl-0 pr-3 text-sm leading-[2.75rem] text-graphite;
+  }
+  .input[type="file"]::file-selector-button {
+    @apply mr-3 h-11 cursor-pointer border-0 border-r border-fog bg-cloud px-4 text-sm font-medium text-ink;
+  }
   .textarea {
     @apply block w-full rounded-md border border-steel bg-white px-4 py-3 text-[15px] text-ink placeholder-graphite/70 focus:border-ink focus:outline-none focus:ring-1 focus:ring-ink;
   }
