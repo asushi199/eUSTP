@@ -11,7 +11,20 @@ const PAGE_WIDTH = 595.28;
 const PAGE_HEIGHT = 841.89;
 const MARGIN = 42;
 const ROWS_PER_PAGE = 6;
+const TABLE_TOP = 686;
+const HEADER_HEIGHT = 42;
+const ROW_HEIGHT = 32;
+const GRID_LINE = 0.55;
+const COLUMN_WIDTHS = [28, 164, 94, 101, 58, 66] as const;
+const CATATAN_LEFT =
+  MARGIN + COLUMN_WIDTHS[0] + COLUMN_WIDTHS[1] + COLUMN_WIDTHS[2] + COLUMN_WIDTHS[3] + COLUMN_WIDTHS[4];
+const CATATAN_WIDTH = COLUMN_WIDTHS[5];
+const DATA_TOP_Y = TABLE_TOP - HEADER_HEIGHT;
+const NOTE_LINE_HEIGHT = 6.4;
+const NOTE_VERTICAL_PADDING = 7;
+const NOTE_SIZE = 5.2;
 const BLACK = rgb(0, 0, 0);
+const WHITE = rgb(1, 1, 1);
 
 function safePdfText(value: string): string {
   return value
@@ -76,6 +89,108 @@ function fitText(font: PDFFont, value: string, width: number, size: number) {
   return { text: `${shortened}...`, size: fittedSize };
 }
 
+function wrapPdfText(
+  font: PDFFont,
+  value: string,
+  maxWidth: number,
+  size: number,
+) {
+  const words = safePdfText(value).split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let line = "";
+
+  for (const word of words) {
+    const next = line ? `${line} ${word}` : word;
+    if (font.widthOfTextAtSize(next, size) <= maxWidth) {
+      line = next;
+      continue;
+    }
+    if (line) lines.push(line);
+
+    let remainder = word;
+    while (font.widthOfTextAtSize(remainder, size) > maxWidth) {
+      let end = remainder.length - 1;
+      while (
+        end > 1 &&
+        font.widthOfTextAtSize(remainder.slice(0, end), size) > maxWidth
+      ) {
+        end -= 1;
+      }
+      lines.push(remainder.slice(0, end));
+      remainder = remainder.slice(end);
+    }
+    line = remainder;
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+export function getTransferNoteBoxHeight(
+  lineCount: number,
+  unitCount = 1,
+): number {
+  const requiredHeight =
+    Math.max(1, lineCount) * NOTE_LINE_HEIGHT + NOTE_VERTICAL_PADDING;
+  const rowCount = Math.min(
+    ROWS_PER_PAGE,
+    Math.max(unitCount, 1, Math.ceil(requiredHeight / ROW_HEIGHT)),
+  );
+  return Number((rowCount * ROW_HEIGHT).toFixed(2));
+}
+
+export function getTransferNoteBox(lineCount: number, unitCount = 1) {
+  const rowSpanHeight = getTransferNoteBoxHeight(lineCount, unitCount);
+  return {
+    left: Number((CATATAN_LEFT + GRID_LINE).toFixed(2)),
+    y: Number((DATA_TOP_Y - rowSpanHeight + GRID_LINE).toFixed(2)),
+    width: Number((CATATAN_WIDTH - GRID_LINE * 2).toFixed(2)),
+    height: Number((rowSpanHeight - GRID_LINE * 2).toFixed(2)),
+  };
+}
+
+function drawTransferNote(
+  page: PDFPage,
+  font: PDFFont,
+  value: string,
+  unitCount: number,
+) {
+  if (!value) return;
+
+  const lines = wrapPdfText(font, value, CATATAN_WIDTH - GRID_LINE * 2 - 4, NOTE_SIZE);
+  const box = getTransferNoteBox(lines.length, unitCount);
+  page.drawRectangle({
+    x: box.left,
+    y: box.y,
+    width: box.width,
+    height: box.height,
+    color: WHITE,
+  });
+
+  const maxLines = Math.floor(
+    (box.height - NOTE_VERTICAL_PADDING + 1) / NOTE_LINE_HEIGHT,
+  );
+  const visibleLines = lines.slice(0, maxLines);
+  if (lines.length > maxLines && visibleLines.length > 0) {
+    const last = visibleLines.length - 1;
+    visibleLines[last] = fitText(
+      font,
+      `${visibleLines[last]}...`,
+      box.width - 4,
+      NOTE_SIZE,
+    ).text;
+  }
+
+  visibleLines.forEach((line, index) => {
+    page.drawText(line, {
+      x: box.left + 2,
+      y: DATA_TOP_Y - 4 - NOTE_SIZE - index * NOTE_LINE_HEIGHT,
+      size: NOTE_SIZE,
+      font,
+      color: BLACK,
+    });
+  });
+}
+
 function drawText(
   page: PDFPage,
   font: PDFFont,
@@ -117,10 +232,10 @@ function drawAssetTable(
   pageIndex: number,
 ) {
   const left = MARGIN;
-  const top = 686;
-  const widths = [28, 164, 94, 101, 58, 66];
-  const headerHeight = 42;
-  const rowHeight = 32;
+  const top = TABLE_TOP;
+  const widths = [...COLUMN_WIDTHS];
+  const headerHeight = HEADER_HEIGHT;
+  const rowHeight = ROW_HEIGHT;
   const totalWidth = widths.reduce((sum, width) => sum + width, 0);
   const tableBottom = top - headerHeight - ROWS_PER_PAGE * rowHeight;
   drawLine(page, left, top, left + totalWidth, top);
@@ -158,7 +273,7 @@ function drawAssetTable(
       unit.governmentAssetNo,
       unit.serialNo,
       assetAge(unit, data.movedAt),
-      data.notes,
+      "",
     ];
     values.forEach((value, valueIndex) => {
       drawText(
@@ -229,6 +344,7 @@ export async function generateKewPa17Pdf(
     const page = pdf.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
     drawHeader(page, font, data);
     drawAssetTable(page, font, data, units, pageIndex);
+    if (pageIndex === 0) drawTransferNote(page, font, data.notes, units.length);
     if (pageIndex === chunks.length - 1) drawSignatures(page, font, data);
   });
 
