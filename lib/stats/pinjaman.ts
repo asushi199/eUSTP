@@ -106,11 +106,9 @@ export async function getPinjamanAnalisis(year: number): Promise<PinjamanAnalisi
       db
         .select({
           bulan: sql<number>`extract(month from timezone('Asia/Kuala_Lumpur', ${equipmentLoanRequests.approvedAt}))::int`,
-          jumlah: sql<number>`count(*)::int`,
         })
         .from(equipmentLoanRequests)
-        .where(diluluskanWhere)
-        .groupBy(sql`1`),
+        .where(diluluskanWhere),
       db
         .select({ id: pkgs.id, name: pkgs.name })
         .from(pkgs)
@@ -118,6 +116,11 @@ export async function getPinjamanAnalisis(year: number): Promise<PinjamanAnalisi
     ]);
 
   const pkgCount = new Map(pkgRows.map((r) => [r.pkgId, r.jumlah]));
+  const monthMap = new Map<number, number>();
+  for (const row of monthRows) {
+    if (row.bulan == null) continue;
+    monthMap.set(row.bulan, (monthMap.get(row.bulan) ?? 0) + 1);
+  }
 
   return {
     kpi: [
@@ -132,7 +135,7 @@ export async function getPinjamanAnalisis(year: number): Promise<PinjamanAnalisi
     byJenis: jenisRows
       .filter((r) => r.jumlah > 0)
       .map((r) => ({ label: r.name, jumlah: r.jumlah })),
-    monthly: fillMonths(new Map(monthRows.map((r) => [r.bulan, r.jumlah]))),
+    monthly: fillMonths(monthMap),
   };
 }
 

@@ -8,7 +8,7 @@ import {
   SERVICE_TYPES,
   getApplicantTypeLabel,
 } from "@/lib/khidmat-bantu/config";
-import { currentStatsYear, fillMonths, STATS_TZ } from "./year";
+import { currentStatsYear, fillMonths } from "./year";
 import type { BreakdownPoint, MonthPoint, StatKpi } from "./types";
 
 /**
@@ -17,7 +17,7 @@ import type { BreakdownPoint, MonthPoint, StatKpi } from "./types";
  */
 const eventDate = sql`coalesce(
   ${khidmatBantuRequests.activityDate},
-  (timezone(${STATS_TZ}, ${khidmatBantuRequests.approvedAt}))::date
+  (timezone('Asia/Kuala_Lumpur', ${khidmatBantuRequests.approvedAt}))::date
 )`;
 
 function yearCond(year: number) {
@@ -58,9 +58,9 @@ export async function getKhidmatAnalisis(year: number): Promise<KhidmatAnalisis>
       diluluskan: sql<number>`count(*)::int`,
       bulanIni: sql<number>`count(*) filter (
         where extract(month from ${eventDate})
-          = extract(month from timezone(${STATS_TZ}, now()))
+          = extract(month from timezone('Asia/Kuala_Lumpur', now()))
           and extract(year from ${eventDate})
-          = extract(year from timezone(${STATS_TZ}, now()))
+          = extract(year from timezone('Asia/Kuala_Lumpur', now()))
       )::int`,
       sekolah: sql<number>`count(distinct ${khidmatBantuRequests.schoolCode})
         filter (where ${khidmatBantuRequests.schoolCode} is not null)::int`,
@@ -88,11 +88,9 @@ export async function getKhidmatAnalisis(year: number): Promise<KhidmatAnalisis>
     db
       .select({
         bulan: sql<number>`extract(month from ${eventDate})::int`,
-        jumlah: sql<number>`count(*)::int`,
       })
       .from(khidmatBantuRequests)
-      .where(whereYear)
-      .groupBy(sql`1`),
+      .where(whereYear),
   ]);
 
   const jenisMap = new Map<string, number>();
@@ -102,6 +100,11 @@ export async function getKhidmatAnalisis(year: number): Promise<KhidmatAnalisis>
   }
 
   const pemohonMap = new Map(pemohonRows.map((r) => [r.jenis, r.jumlah]));
+  const monthMap = new Map<number, number>();
+  for (const row of monthRows) {
+    if (row.bulan == null) continue;
+    monthMap.set(row.bulan, (monthMap.get(row.bulan) ?? 0) + 1);
+  }
 
   const kpi: StatKpi[] = [{ label: "Diluluskan", value: kpiRow?.diluluskan ?? 0 }];
   if (year === currentStatsYear()) {
@@ -119,7 +122,7 @@ export async function getKhidmatAnalisis(year: number): Promise<KhidmatAnalisis>
       label: getApplicantTypeLabel(a.id),
       jumlah: pemohonMap.get(a.id) ?? 0,
     })),
-    monthly: fillMonths(new Map(monthRows.map((r) => [r.bulan, r.jumlah]))),
+    monthly: fillMonths(monthMap),
   };
 }
 
