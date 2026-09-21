@@ -59,13 +59,23 @@ const MONTH_TOKENS: Record<string, number> = {
   dis: 12, dec: 12, disember: 12, december: 12,
 };
 
-// Kesan tarikh snapshot dari nama fail, cth. "26Ogos2026" atau "7 Sept 2026".
+// Kesan tarikh snapshot dari nama fail, cth. "26Ogos2026", "7 Sept 2026",
+// atau "(21092026)" (DDMMYYYY).
 function parseSourcedAt(filePath: string): string {
   const compact = /(\d{1,2})\s*([A-Za-z]+)\s*(\d{4})/.exec(filePath);
   if (compact) {
     const month = MONTH_TOKENS[compact[2].toLowerCase()];
     if (month) {
       return `${compact[3]}-${String(month).padStart(2, "0")}-${compact[1].padStart(2, "0")}`;
+    }
+  }
+  const ddmmyyyy = /\((\d{2})(\d{2})(\d{4})\)/.exec(filePath);
+  if (ddmmyyyy) {
+    const [, day, month, year] = ddmmyyyy;
+    const m = Number(month);
+    const d = Number(day);
+    if (m >= 1 && m <= 12 && d >= 1 && d <= 31) {
+      return `${year}-${month}-${day}`;
     }
   }
   const now = new Date();

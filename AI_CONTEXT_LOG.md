@@ -1,5 +1,19 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-21 — Kemas kini snapshot tebus baucar buku (PPD Manjung)
+
+- Import semula `tebus_buku_pelajar` daripada CSV JPN baharu
+  (`Murid_Butiran Tebus_Guna_Table (21092026).csv`).
+  Skrip menapis `PPD MANJUNG` sahaja (21 sekolah menengah).
+- Snapshot: 21 September 2026. 17,495 pelajar; 14,346 sudah tebus; 13,095
+  sudah guna. (Snapshot 14 Sep: 17,659 pelajar; tebus 12,992, guna 11,760.)
+- Halaman `laporan/tebus-buku` force-dynamic — data terus dari DB,
+  tiada redeploy. Disahkan di produksi: tarikh "21 September 2026"
+  dan senarai 21 sekolah.
+- `parseSourcedAt` kini kenal corak `(21092026)` (DDMMYYYY) pada nama fail.
+- CSV mentah mengandungi nama & emel pelajar — TIDAK dikomit.
+- Kemas kini: `npm run db:import-tebus-buku -- <fail.csv>`.
+
 ## 2026-09-14 — Batal permohonan pinjaman peralatan sebelum serahan
 
 - Admin boleh **Batal permohonan** selagi status `pending` atau `approved`.
