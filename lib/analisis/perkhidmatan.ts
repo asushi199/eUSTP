@@ -99,21 +99,20 @@ export function emptyPerkhidmatanAnalisis(year: number): PerkhidmatanAnalisis {
 }
 
 export async function getPerkhidmatanAnalisis(year: number): Promise<PerkhidmatanAnalisis> {
-  const [years, khidmat, pinjaman, tempahan] = await Promise.all([
-    listPerkhidmatanYears(),
-    getKhidmatAnalisis(year).catch((e) => {
-      console.error("[perkhidmatan] khidmat:", e instanceof Error ? e.message : e);
-      return emptyKhidmatAnalisis(year);
-    }),
-    getPinjamanAnalisis(year).catch((e) => {
-      console.error("[perkhidmatan] pinjaman:", e instanceof Error ? e.message : e);
-      return emptyPinjamanAnalisis();
-    }),
-    getTempahanAnalisis(year).catch((e) => {
-      console.error("[perkhidmatan] tempahan:", e instanceof Error ? e.message : e);
-      return emptyTempahanAnalisis();
-    }),
-  ]);
+  /* Berturutan: serverless hanya 3 sambungan; jangan bersaing dengan DELIMa/DCS. */
+  const years = await listPerkhidmatanYears().catch(() => [year]);
+  const khidmat = await getKhidmatAnalisis(year).catch((e) => {
+    console.error("[perkhidmatan] khidmat:", e instanceof Error ? e.message : e);
+    return emptyKhidmatAnalisis(year);
+  });
+  const pinjaman = await getPinjamanAnalisis(year).catch((e) => {
+    console.error("[perkhidmatan] pinjaman:", e instanceof Error ? e.message : e);
+    return emptyPinjamanAnalisis();
+  });
+  const tempahan = await getTempahanAnalisis(year).catch((e) => {
+    console.error("[perkhidmatan] tempahan:", e instanceof Error ? e.message : e);
+    return emptyTempahanAnalisis();
+  });
   return { year, years, khidmat, pinjaman, tempahan };
 }
 

@@ -141,11 +141,13 @@ export default function HomeAnalisisBand({
 
   return (
     <>
-      <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        {indikator.map((mod) => (
-          <ModuleCard key={mod.id} mod={mod} onOpen={setOpenId} />
-        ))}
-      </div>
+      {indikator.length > 0 ? (
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          {indikator.map((mod) => (
+            <ModuleCard key={mod.id} mod={mod} onOpen={setOpenId} />
+          ))}
+        </div>
+      ) : null}
       {perkhidmatan ? (
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {perkData.map((mod) => (

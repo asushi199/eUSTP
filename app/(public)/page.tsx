@@ -46,21 +46,21 @@ export default async function HomePage() {
    * dan log ralat sebenar ke log Vercel untuk diagnosis.
    */
   const statsYear = currentStatsYear();
-  const [analisis, perkhidmatan, dpd, pss] = await Promise.all([
-    withDbTimeout(getAnalisisHomeSummary()).catch((e) => {
-      console.error(
-        "[home] getAnalisisHomeSummary gagal:",
-        e instanceof Error ? e.message : e,
-      );
-      return null;
-    }),
-    withDbTimeout(getPerkhidmatanHomeModules(statsYear)).catch((e) => {
-      console.error(
-        "[home] getPerkhidmatanHomeModules gagal:",
-        e instanceof Error ? e.message : e,
-      );
-      return null;
-    }),
+  const analisis = await withDbTimeout(getAnalisisHomeSummary()).catch((e) => {
+    console.error(
+      "[home] getAnalisisHomeSummary gagal:",
+      e instanceof Error ? e.message : e,
+    );
+    return null;
+  });
+  const perkhidmatan = await withDbTimeout(getPerkhidmatanHomeModules(statsYear), 12000).catch((e) => {
+    console.error(
+      "[home] getPerkhidmatanHomeModules gagal:",
+      e instanceof Error ? e.message : e,
+    );
+    return null;
+  });
+  const [dpd, pss] = await Promise.all([
     SHOW_LAPORAN_TILES
       ? withDbTimeout(getDpdSummary()).catch((e) => {
           console.error("[home] getDpdSummary gagal:", e instanceof Error ? e.message : e);
@@ -98,9 +98,9 @@ export default async function HomePage() {
             <span className="h-0.5 w-7 shrink-0 rounded bg-primary" aria-hidden />
             CoE Analytics
           </h2>
-          {analisis ? (
+          {analisis || perkhidmatan ? (
             <HomeAnalisisBand
-              indikator={analisis}
+              indikator={analisis ?? []}
               perkhidmatan={perkhidmatan?.modules ?? null}
               years={perkhidmatan?.years ?? [statsYear]}
               initialYear={perkhidmatan?.year ?? statsYear}
