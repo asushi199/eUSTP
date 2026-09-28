@@ -86,7 +86,7 @@ export default async function AdminOverviewPage() {
       {
         href: "/admin/pelaporan",
         title: "CoE Reports",
-        description: "Semak laporan DPD, PSS dan Akhbar daerah Manjung.",
+        description: "Semak laporan DPD, PSS dan Akhbar, serta muat naik CSV Tebus Buku.",
         accent: LAPORAN_HUB.accent,
       },
       {

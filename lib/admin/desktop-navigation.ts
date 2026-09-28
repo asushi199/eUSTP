@@ -12,6 +12,7 @@ export const ADMIN_PAPAN_NESTED_PATHS = [
   "/admin/direktori",
   "/admin/pegawai",
   "/admin/pelaporan",
+  "/admin/tebus-buku",
   "/admin/laporan-dpd",
   "/admin/laporan-pss",
   "/admin/laporan-akhbar",

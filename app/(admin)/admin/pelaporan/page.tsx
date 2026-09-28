@@ -22,6 +22,11 @@ const CARDS: AdminCard[] = [
     title: "Laporan Akhbar",
     description: "Tinjauan Langganan Akhbar 2026 — termasuk data 2024–2025, semakan PPD & eksport Excel JPN.",
   },
+  {
+    href: "/admin/tebus-buku",
+    title: "Tebus Buku",
+    description: "Muat naik CSV JPN setiap minggu untuk kemas kini status tebus dan guna.",
+  },
 ];
 
 export default async function AdminPelaporanPage() {

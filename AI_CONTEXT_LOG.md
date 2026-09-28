@@ -1,5 +1,20 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-09-28 — Tebus Buku: muat naik CSV mingguan + snapshot 28 Sept
+
+- Import semula `tebus_buku_pelajar` daripada CSV JPN
+  (`Dashboard Operasi Bahagian_Butiran Tebus_Guna_Table (Murid).csv`).
+  Hanya `PPD MANJUNG`: 17,498 pelajar, 21 sekolah menengah, sudah tebus
+  15,729, sudah guna 14,852. Tarikh data 28 September 2026.
+  (21 Sept: 17,495 pelajar; tebus 14,346; guna 13,095.)
+- Pentadbir / Pegawai boleh muat naik sendiri di `/admin/tebus-buku`
+  (kad Tebus Buku di CoE Reports). Fail penuh negeri dibaca di pelayar;
+  hanya baris PPD MANJUNG dihantar (fail asal ~25MB melebihi had muat naik).
+  Data lama diganti dalam satu transaksi. CSV mentah tidak dikomit.
+- Skrip CLI kekal: `npm run db:import-tebus-buku -- <fail.csv>`.
+  Nama fail tanpa tarikh (cth. `(Murid)`) guna tarikh hari ini (waktu KL);
+  corak `26Ogos2026` dan `(21092026)` masih dikesan.
+
 ## 2026-09-21 — AI Tools: KPI Kebangsaan dua tahun
 
 - Kad KPI boleh papar 2025 55% dan 2026 79% (atau satu tahun). Pentadbir
