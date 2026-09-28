@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import PageHeader from "@/components/PageHeader";
 import PublicPageShell from "@/components/PublicPageShell";
 import StudentLookup from "@/components/tebus-buku/StudentLookup";
+import TebusProgress from "@/components/tebus-buku/TebusProgress";
 import { withDbTimeout } from "@/lib/db";
 import {
   formatCount,
@@ -68,6 +69,12 @@ export default async function TebusBukuSchoolPage({ params }: Props) {
       <p className="mt-4 text-sm text-graphite">
         {tebus} / {total} sudah tebus · {guna} sudah guna
       </p>
+      <TebusProgress
+        className="mt-3"
+        total={page.school.total}
+        tebusCount={page.school.tebusCount}
+        gunaCount={page.school.gunaCount}
+      />
       <StudentLookup
         schoolCode={page.school.code}
         schoolName={page.school.name}

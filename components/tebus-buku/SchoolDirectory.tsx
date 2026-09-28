@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import TebusProgress from "@/components/tebus-buku/TebusProgress";
 import { formatCount, shortSchoolName } from "@/lib/tebus-buku/format";
 import type { TebusBukuSchool } from "@/lib/tebus-buku/types";
 
@@ -49,14 +50,19 @@ export default function SchoolDirectory({ schools }: { schools: TebusBukuSchool[
       {items.length === 0 ? (
         <p className="mt-6 text-sm text-graphite">Tiada sekolah yang sepadan.</p>
       ) : (
-        <ul className="mt-5 divide-y divide-fog/80 rounded-xl border border-fog/70 bg-white">
+        <>
+        <p className="mt-5 text-xs leading-relaxed text-graphite">
+          Selesai = sudah tebus dan guna. Belum guna = sudah tebus, belum guna. Belum tebus =
+          belum tebus dan belum guna.
+        </p>
+        <ul className="mt-3 divide-y divide-fog/80 rounded-xl border border-fog/70 bg-white">
           {items.map((school) => (
             <li key={school.code}>
               <Link
                 href={`/laporan/tebus-buku/${school.code}`}
                 className="flex items-start justify-between gap-4 px-4 py-3.5 transition hover:bg-cloud/70"
               >
-                <span className="min-w-0">
+                <span className="min-w-0 flex-1">
                   <span className="block font-semibold text-ink">
                     {shortSchoolName(school.name)}
                   </span>
@@ -64,6 +70,12 @@ export default function SchoolDirectory({ schools }: { schools: TebusBukuSchool[
                     {school.code} · {formatCount(school.tebusCount)}/{formatCount(school.total)}{" "}
                     tebus · {formatCount(school.gunaCount)} guna
                   </span>
+                  <TebusProgress
+                    className="mt-2"
+                    total={school.total}
+                    tebusCount={school.tebusCount}
+                    gunaCount={school.gunaCount}
+                  />
                 </span>
                 <svg
                   viewBox="0 0 24 24"
@@ -81,6 +93,7 @@ export default function SchoolDirectory({ schools }: { schools: TebusBukuSchool[
             </li>
           ))}
         </ul>
+        </>
       )}
     </>
   );
