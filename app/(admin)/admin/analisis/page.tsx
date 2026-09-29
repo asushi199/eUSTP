@@ -200,7 +200,35 @@ export default async function AdminAnalisisPage({
         </section>
       ) : null}
 
-      {/* ---------- Metrik KV ---------- */}
+      {/* ---------- Sasaran KPI DELIMa ---------- */}
+      {modul === "delima" ? (
+        <section className="mt-8">
+          <h2 className="text-lg font-semibold">Sasaran KPI</h2>
+          <p className="mt-1 text-sm text-graphite">
+            Sasaran peratus aktif untuk garis KPI carta dan kad DELIMa.
+          </p>
+          <div className="card mt-3 space-y-3 px-4 py-3">
+            {(
+              [
+                ["kpi_guru", "Sasaran KPI Guru (%)"],
+                ["kpi_murid", "Sasaran KPI Murid (%)"],
+              ] as const
+            ).map(([key, label]) => (
+              <ActionForm key={key} action={saveMetric} className="flex flex-wrap items-center gap-2">
+                <input type="hidden" name="modul" value={modul} />
+                <input type="hidden" name="key" value={key} />
+                <span className="w-56 shrink-0 text-sm">{label}</span>
+                <input
+                  name="value"
+                  defaultValue={optikMetrics.get(key) ?? ""}
+                  className="input w-32"
+                  inputMode="decimal"
+                />
+              </ActionForm>
+            ))}
+          </div>
+        </section>
+      ) : (
       <section className="mt-6">
         <h2 className="text-lg font-semibold">Metrik (kunci → nilai)</h2>
         <div className="card mt-3 divide-y divide-fog">
@@ -231,6 +259,7 @@ export default async function AdminAnalisisPage({
           </div>
         </div>
       </section>
+      )}
 
       {/* ---------- Pecahan kategori ---------- */}
       {modul !== "delima" ? (
