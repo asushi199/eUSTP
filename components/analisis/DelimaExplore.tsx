@@ -1,0 +1,385 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import KpiGroups from "@/components/analisis/KpiGroups";
+import {
+  loadDelimaSchoolDetail,
+  loadDelimaSchools,
+} from "@/lib/actions/delima-public";
+import type {
+  DelimaSchoolDetail,
+  DelimaSchoolList,
+  DelimaSchoolPop,
+  DelimaSchoolRow,
+} from "@/lib/analisis/delima-live";
+
+export type DelimaExploreLayer = "overview" | "schools" | "school";
+
+const num = (n: number) => n.toLocaleString("ms-MY");
+const pct = (n: number) => `${n.toLocaleString("ms-MY", { maximumFractionDigits: 1 })}%`;
+
+function TahapBadge({ pop }: { pop: DelimaSchoolPop | null }) {
+  if (!pop) return <span className="text-xs text-graphite">—</span>;
+  return (
+    <span className="status-badge shrink-0">
+      <span className={`status-dot ${pop.tahap === "Tinggi" ? "bg-primary" : "bg-graphite"}`} />
+      {pop.tahap}
+    </span>
+  );
+}
+
+function PopCell({ pop }: { pop: DelimaSchoolPop | null }) {
+  if (!pop) return <span className="text-graphite">—</span>;
+  return (
+    <>
+      <span className="font-medium">{pct(pop.peratus)}</span>
+      <span className="ml-1 text-xs text-graphite">
+        {num(pop.aktif)}/{num(pop.jumlah)}
+      </span>
+    </>
+  );
+}
+
+type Kumpulan = "guru" | "murid";
+type Sort = "nama" | "peratus";
+type Tahap = "all" | "Tinggi" | "Sederhana" | "Rendah";
+
+function SchoolTable({
+  schools,
+  onSelect,
+}: {
+  schools: DelimaSchoolRow[];
+  onSelect: (row: DelimaSchoolRow) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const [tahap, setTahap] = useState<Tahap>("all");
+  const [sort, setSort] = useState<Sort>("nama");
+  const [kump, setKump] = useState<Kumpulan>("guru");
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const rows = schools.filter((r) => {
+      if (tahap !== "all" && r[kump]?.tahap !== tahap) return false;
+      return !q || `${r.kod} ${r.nama}`.toLowerCase().includes(q);
+    });
+    if (sort === "nama") return rows;
+    return [...rows].sort((a, b) => (a[kump]?.peratus ?? -1) - (b[kump]?.peratus ?? -1));
+  }, [kump, query, schools, sort, tahap]);
+
+  const count = (t: Exclude<Tahap, "all">) =>
+    schools.filter((r) => r[kump]?.tahap === t).length;
+
+  return (
+    <div>
+      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_8rem_10rem_11rem] sm:items-end">
+        <div>
+          <label className="label" htmlFor="delima-carian">
+            Cari sekolah
+          </label>
+          <input
+            id="delima-carian"
+            className="input"
+            placeholder="Kod atau nama sekolah"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </div>
+        <div>
+          <label className="label" htmlFor="delima-kump">
+            Kumpulan
+          </label>
+          <select
+            id="delima-kump"
+            className="input"
+            value={kump}
+            onChange={(e) => setKump(e.target.value as Kumpulan)}
+          >
+            <option value="guru">Guru</option>
+            <option value="murid">Murid</option>
+          </select>
+        </div>
+        <div>
+          <label className="label" htmlFor="delima-tahap">
+            Tahap aktif
+          </label>
+          <select
+            id="delima-tahap"
+            className="input"
+            value={tahap}
+            onChange={(e) => setTahap(e.target.value as Tahap)}
+          >
+            <option value="all">Semua ({schools.length})</option>
+            <option value="Tinggi">Tinggi ({count("Tinggi")})</option>
+            <option value="Sederhana">Sederhana ({count("Sederhana")})</option>
+            <option value="Rendah">Rendah ({count("Rendah")})</option>
+          </select>
+        </div>
+        <div>
+          <label className="label" htmlFor="delima-susun">
+            Susun
+          </label>
+          <select
+            id="delima-susun"
+            className="input"
+            value={sort}
+            onChange={(e) => setSort(e.target.value as Sort)}
+          >
+            <option value="nama">Nama</option>
+            <option value="peratus">% aktif (rendah → tinggi)</option>
+          </select>
+        </div>
+      </div>
+      <p className="mt-3 text-xs text-graphite">{filtered.length} sekolah dipaparkan</p>
+
+      <ul className="mt-3 space-y-3 sm:hidden">
+        {filtered.length === 0 ? (
+          <li className="card p-6 text-center text-sm text-graphite">Tiada sekolah sepadan.</li>
+        ) : (
+          filtered.map((row) => (
+            <li key={row.kod} className="card p-4">
+              <button
+                type="button"
+                className="block w-full text-left font-medium leading-snug text-ink hover:underline"
+                onClick={() => onSelect(row)}
+              >
+                {row.nama}
+              </button>
+              <p className="mt-0.5 text-xs text-graphite">{row.kod}</p>
+              <dl className="mt-3 space-y-2 border-t border-fog pt-3 text-sm tabular-nums">
+                <div className="flex items-center justify-between gap-2">
+                  <dt className="text-graphite">Guru</dt>
+                  <dd className="flex items-center gap-2">
+                    <PopCell pop={row.guru} />
+                    <TahapBadge pop={row.guru} />
+                  </dd>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <dt className="text-graphite">Murid</dt>
+                  <dd className="flex items-center gap-2">
+                    <PopCell pop={row.murid} />
+                    <TahapBadge pop={row.murid} />
+                  </dd>
+                </div>
+              </dl>
+            </li>
+          ))
+        )}
+      </ul>
+
+      <div className="card mt-3 hidden overflow-x-auto sm:block">
+        <table className="w-full min-w-[40rem] text-left text-sm">
+          <thead>
+            <tr className="border-b border-fog text-[11px] font-semibold uppercase tracking-[0.6px] text-steel">
+              <th className="px-4 py-3">Sekolah</th>
+              <th className="px-4 py-3">Guru aktif</th>
+              <th className="px-4 py-3">Murid aktif</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((row) => (
+              <tr key={row.kod} className="border-b border-fog/60 last:border-0">
+                <td className="min-w-[12rem] px-4 py-3">
+                  <button
+                    type="button"
+                    className="block w-full text-left font-medium leading-snug text-ink hover:underline"
+                    onClick={() => onSelect(row)}
+                  >
+                    {row.nama}
+                  </button>
+                  <p className="mt-0.5 text-xs text-graphite">{row.kod}</p>
+                </td>
+                <td className="whitespace-nowrap px-4 py-3 tabular-nums">
+                  <div className="flex items-center gap-2">
+                    <PopCell pop={row.guru} />
+                    <TahapBadge pop={row.guru} />
+                  </div>
+                </td>
+                <td className="whitespace-nowrap px-4 py-3 tabular-nums">
+                  <div className="flex items-center gap-2">
+                    <PopCell pop={row.murid} />
+                    <TahapBadge pop={row.murid} />
+                  </div>
+                </td>
+              </tr>
+            ))}
+            {filtered.length === 0 ? (
+              <tr>
+                <td colSpan={3} className="px-4 py-8 text-center text-sm text-graphite">
+                  Tiada sekolah sepadan.
+                </td>
+              </tr>
+            ) : null}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function SchoolDetail({ detail }: { detail: DelimaSchoolDetail }) {
+  const { school, kadMurid } = detail;
+  const groups = [
+    school.guru
+      ? {
+          title: "Guru",
+          stats: [
+            { label: "Aktif", value: pct(school.guru.peratus) },
+            { label: "Bil. aktif", value: `${num(school.guru.aktif)} / ${num(school.guru.jumlah)}` },
+            { label: "Tahap", value: school.guru.tahap },
+          ],
+        }
+      : null,
+    school.murid
+      ? {
+          title: "Murid",
+          stats: [
+            { label: "Aktif", value: pct(school.murid.peratus) },
+            { label: "Bil. aktif", value: `${num(school.murid.aktif)} / ${num(school.murid.jumlah)}` },
+            { label: "Tahap", value: school.murid.tahap },
+          ],
+        }
+      : null,
+    kadMurid
+      ? {
+          title: `Aktif Murid · Sasaran ${kadMurid.sasaran ?? "—"}%`,
+          wide: true,
+          stats: [
+            { label: kadMurid.capai ? "Capai" : "Belum capai", value: pct(kadMurid.peratus) },
+            { label: "Bil. aktif", value: `${num(kadMurid.aktif)} / ${num(kadMurid.jumlah)}` },
+            { label: "Kemas kini", value: kadMurid.kemasKini },
+          ],
+        }
+      : null,
+  ].filter((g): g is NonNullable<typeof g> => g != null);
+
+  return (
+    <>
+      <h3 className="mt-3 text-lg font-semibold tracking-tight">{school.nama}</h3>
+      <p className="mt-1 text-sm text-graphite">
+        {school.kod} · DELIMa 2.0 · {detail.tempoh}
+      </p>
+      <div className="mt-4">
+        <KpiGroups groups={groups} />
+      </div>
+      <p className="mt-3 text-xs text-graphite">
+        Sumber hanya menyediakan bilangan pengguna aktif setiap sekolah; senarai nama guru atau murid
+        tidak dipaparkan.
+      </p>
+    </>
+  );
+}
+
+/**
+ * Terokai DELIMa dalam kad (sama corak dengan OptikExplore):
+ * ringkasan → senarai sekolah → butiran sekolah, semuanya tanpa keluar halaman.
+ */
+export default function DelimaExplore({
+  children,
+  onLayerChange,
+}: {
+  children?: React.ReactNode;
+  onLayerChange?: (layer: DelimaExploreLayer) => void;
+}) {
+  const [layer, setLayer] = useState<DelimaExploreLayer>("overview");
+  const [list, setList] = useState<DelimaSchoolList | null>(null);
+  const [detail, setDetail] = useState<DelimaSchoolDetail | null>(null);
+  const [loadingList, setLoadingList] = useState(false);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  function go(next: DelimaExploreLayer) {
+    setLayer(next);
+    onLayerChange?.(next);
+  }
+
+  async function openSchools() {
+    go("schools");
+    if (list) return;
+    setLoadingList(true);
+    setError(null);
+    try {
+      const data = await loadDelimaSchools();
+      if (data) setList(data);
+      else setError("Senarai sekolah tidak dapat dimuatkan daripada sumber DELIMa.");
+    } catch {
+      setError("Senarai sekolah tidak dapat dimuatkan.");
+    } finally {
+      setLoadingList(false);
+    }
+  }
+
+  async function openSchool(row: DelimaSchoolRow) {
+    go("school");
+    setDetail(null);
+    setLoadingDetail(true);
+    setError(null);
+    try {
+      const data = await loadDelimaSchoolDetail(row.kod);
+      if (data) setDetail(data);
+      else setError("Butiran sekolah tidak dapat dimuatkan.");
+    } catch {
+      setError("Butiran sekolah tidak dapat dimuatkan.");
+    } finally {
+      setLoadingDetail(false);
+    }
+  }
+
+  if (layer === "school") {
+    return (
+      <div className="mt-4">
+        <button
+          type="button"
+          className="text-sm text-graphite hover:text-ink"
+          onClick={() => {
+            setError(null);
+            go("schools");
+          }}
+        >
+          ← Senarai sekolah
+        </button>
+        {detail ? (
+          <SchoolDetail detail={detail} />
+        ) : loadingDetail ? (
+          <p className="mt-4 text-sm text-graphite">Memuatkan butiran sekolah…</p>
+        ) : (
+          <p className="mt-4 text-sm text-graphite">{error ?? "Tiada data."}</p>
+        )}
+      </div>
+    );
+  }
+
+  if (layer === "schools") {
+    return (
+      <div className="mt-4">
+        <button type="button" className="text-sm text-graphite hover:text-ink" onClick={() => go("overview")}>
+          ← Carta
+        </button>
+        <h3 className="mt-3 text-lg font-semibold tracking-tight">DELIMa mengikut sekolah</h3>
+        {list ? (
+          <p className="mt-1 text-sm text-graphite">
+            {list.schools.length} sekolah · DELIMa 2.0 · {list.tempoh}
+          </p>
+        ) : null}
+        {error ? <p className="mt-3 text-sm text-graphite">{error}</p> : null}
+        {loadingList && !list ? (
+          <p className="mt-4 text-sm text-graphite">Memuatkan senarai sekolah…</p>
+        ) : list ? (
+          <div className="mt-4">
+            <SchoolTable schools={list.schools} onSelect={(row) => void openSchool(row)} />
+          </div>
+        ) : null}
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {children}
+      <p className="mt-4">
+        <button type="button" className="btn-outline btn-sm" onClick={() => void openSchools()}>
+          Lihat senarai sekolah
+        </button>
+      </p>
+    </>
+  );
+}

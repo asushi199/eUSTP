@@ -8,6 +8,7 @@ import KpiGroups from "@/components/analisis/KpiGroups";
 import TahunSelect from "@/components/analisis/TahunSelect";
 import { loadPerkhidmatanAnalisis } from "@/lib/actions/analisis-perkhidmatan";
 import type { AnalisisHomeModule } from "@/lib/analisis/summary";
+import DelimaExplore, { type DelimaExploreLayer } from "@/components/analisis/DelimaExplore";
 import OptikExplore, { type OptikExploreLayer } from "@/components/analisis/OptikExplore";
 
 const PERKHIDMATAN_IDS = new Set(["khidmat-bantu", "pinjaman-aset", "tempahan-pkg"]);
@@ -154,6 +155,7 @@ export default function HomeAnalisisBand({
   const [chartsYear, setChartsYear] = useState<number | null>(null);
   const [loadingYear, setLoadingYear] = useState(false);
   const [optikLayer, setOptikLayer] = useState<OptikExploreLayer>("overview");
+  const [delimaLayer, setDelimaLayer] = useState<DelimaExploreLayer>("overview");
   const closeRef = useRef<HTMLButtonElement>(null);
   const active =
     indikator.find((m) => m.id === openId) ?? perkData.find((m) => m.id === openId) ?? null;
@@ -174,6 +176,7 @@ export default function HomeAnalisisBand({
 
   useEffect(() => {
     if (openId !== "optik") setOptikLayer("overview");
+    if (openId !== "delima") setDelimaLayer("overview");
   }, [openId]);
 
   useEffect(() => {
@@ -252,7 +255,10 @@ export default function HomeAnalisisBand({
                 aria-modal="true"
                 aria-labelledby="analisis-modal-title"
                 className={`relative z-[71] max-h-[88vh] w-full overflow-y-auto rounded-t-2xl bg-white p-5 shadow-modal sm:rounded-2xl sm:p-6 ${
-                  openId === "optik" && optikLayer !== "overview" ? "max-w-4xl" : "max-w-2xl"
+                  (openId === "optik" && optikLayer !== "overview") ||
+                  (openId === "delima" && delimaLayer !== "overview")
+                    ? "max-w-4xl"
+                    : "max-w-2xl"
                 }`}
                 onClick={(e) => e.stopPropagation()}
               >
@@ -298,6 +304,10 @@ export default function HomeAnalisisBand({
                   <OptikExplore key={openId} onLayerChange={setOptikLayer}>
                     <AnalisisModuleBody active={active} loadingYear={loadingYear} />
                   </OptikExplore>
+                ) : active.id === "delima" && active.delimaLive ? (
+                  <DelimaExplore key={openId} onLayerChange={setDelimaLayer}>
+                    <AnalisisModuleBody active={active} loadingYear={loadingYear} />
+                  </DelimaExplore>
                 ) : (
                   <AnalisisModuleBody active={active} loadingYear={loadingYear} />
                 )}

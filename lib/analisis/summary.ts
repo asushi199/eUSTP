@@ -30,6 +30,7 @@ export type HomeDelimaTrend = {
 };
 
 export type HomeKpiGroup = {
+  wide?: boolean;
   title: string;
   stats: { label: string; value: string }[];
   align?: "left" | "center";
@@ -53,6 +54,8 @@ export type AnalisisHomeModule = {
   /** Kumpulan KPI ikut kategori (guru/murid, status/sasaran) — dipaparkan gantian `tiles` bila ada. */
   tileGroups?: HomeKpiGroup[];
   delimaTrend?: HomeDelimaTrend;
+  /** DELIMa: data langsung tersedia → boleh terokai senarai sekolah dalam kad. */
+  delimaLive?: boolean;
   bars: HomeBarChart[];
   line?: HomeLineChart;
   note?: string;
@@ -80,12 +83,15 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
 
   /* ---------- DELIMa ---------- */
   const kpiGuru = metricNum(delima.metrics, "kpi_guru");
-  const avgGuru = metricNum(delima.metrics, "avg_dis_guru");
+  const live = delima.live;
+  const avgGuru = live ? live.guru.peratus : metricNum(delima.metrics, "avg_dis_guru");
+  const avgMurid = live ? live.murid.peratus : metricNum(delima.metrics, "avg_dis_murid");
+  const avgLabel = live ? "Guru Aktif (langsung)" : "Purata Guru Aktif (Dis)";
   const delimaModule: AnalisisHomeModule = {
     id: "delima",
     label: "DELIMa",
     headlineValue: pct(avgGuru),
-    headlineLabel: "Purata Guru Aktif (Dis)",
+    headlineLabel: avgLabel,
     tiles: [
       { label: "Bil. Sekolah", value: bil(metricNum(delima.metrics, "bil_sekolah", "schools")) },
       { label: "Khidmat Bantu (kali)", value: bil(metricNum(delima.metrics, "khidmat_bantu_kali")) },
@@ -93,8 +99,8 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
         label: "Khidmat Bantu (sekolah)",
         value: bil(metricNum(delima.metrics, "khidmat_bantu_sekolah")),
       },
-      { label: "Purata Guru Aktif (Dis)", value: pct(avgGuru) },
-      { label: "Purata Murid Aktif (Dis)", value: pct(metricNum(delima.metrics, "avg_dis_murid")) },
+      { label: avgLabel, value: pct(avgGuru) },
+      { label: live ? "Murid Aktif (langsung)" : "Purata Murid Aktif (Dis)", value: pct(avgMurid) },
       { label: "Sasaran KPI Guru", value: pct(kpiGuru) },
       { label: "Sasaran KPI Murid", value: pct(metricNum(delima.metrics, "kpi_murid")) },
     ],
@@ -116,17 +122,35 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
       {
         title: "Guru",
         stats: [
-          { label: "Purata Aktif (Dis)", value: pct(avgGuru) },
+          { label: live ? "Aktif (langsung)" : "Purata Aktif (Dis)", value: pct(avgGuru) },
           { label: "Sasaran KPI", value: pct(kpiGuru) },
         ],
       },
       {
         title: "Murid",
         stats: [
-          { label: "Purata Aktif (Dis)", value: pct(metricNum(delima.metrics, "avg_dis_murid")) },
+          { label: live ? "Aktif (langsung)" : "Purata Aktif (Dis)", value: pct(avgMurid) },
           { label: "Sasaran KPI", value: pct(metricNum(delima.metrics, "kpi_murid")) },
         ],
       },
+      ...(live?.kadMurid
+        ? [
+            {
+              title: `Aktif Murid · Sasaran ${live.kadMurid.sasaran ?? "—"}%`,
+            wide: true,
+              stats: [
+                {
+                  label: live.kadMurid.capai ? "Capai" : "Belum capai",
+                  value: pct(live.kadMurid.peratus),
+                },
+                {
+                  label: "Bil. aktif",
+                  value: `${bil(live.kadMurid.aktif)} / ${bil(live.kadMurid.jumlah)}`,
+                },
+              ],
+            },
+          ]
+        : []),
     ],
     delimaTrend: {
       points: delima.monthly
@@ -134,7 +158,9 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
         .map((r) => ({ bulan: r.chartLabel || r.monthLabel, guru: r.guruPct, murid: r.muridPct })),
       kpiGuru,
     },
+    delimaLive: live != null,
     bars: [],
+    note: live ? `Data langsung DELIMa Perak (${live.tempoh}).` : undefined,
   };
 
   /* ---------- DCS ---------- */

@@ -7,6 +7,7 @@ import {
 import { getPerkhidmatanAnalisis, emptyPerkhidmatanAnalisis } from "@/lib/analisis/perkhidmatan";
 import { getOptikPublicView, optikKpiGroupStats, optikKpiReferenceLines, applySchoolDirectoryNames } from "@/lib/analisis/optik-queries";
 import OptikExplore from "@/components/analisis/OptikExplore";
+import DelimaExplore from "@/components/analisis/DelimaExplore";
 import AnalisisKpiTiles from "@/components/analisis/AnalisisKpiTiles";
 import AnalisisTahunSelect from "@/components/analisis/AnalisisTahunSelect";
 import KpiGroups from "@/components/analisis/KpiGroups";
@@ -125,6 +126,7 @@ export default async function AnalisisPage({
 
   /* ---------- DELIMa ---------- */
   const kpiGuru = metricNum(delima.metrics, "kpi_guru");
+  const live = delima.live;
   const delimaPoints = delima.monthly
     .filter((r) => r.includeChart)
     .map((r) => ({ bulan: r.chartLabel || r.monthLabel, guru: r.guruPct, murid: r.muridPct }));
@@ -143,17 +145,42 @@ export default async function AnalisisPage({
     {
       title: "Guru",
       stats: [
-        { label: "Purata Aktif (Dis)", value: pct(metricNum(delima.metrics, "avg_dis_guru")) },
+        ...(live
+          ? [
+              { label: "Aktif (langsung)", value: pct(live.guru.peratus) },
+              { label: "Bil. Aktif", value: `${bil(live.guru.aktif)} / ${bil(live.guru.jumlah)}` },
+            ]
+          : [{ label: "Purata Aktif (Dis)", value: pct(metricNum(delima.metrics, "avg_dis_guru")) }]),
         { label: "Sasaran KPI", value: pct(kpiGuru) },
       ],
     },
     {
       title: "Murid",
       stats: [
-        { label: "Purata Aktif (Dis)", value: pct(metricNum(delima.metrics, "avg_dis_murid")) },
+        ...(live
+          ? [
+              { label: "Aktif (langsung)", value: pct(live.murid.peratus) },
+              { label: "Bil. Aktif", value: `${bil(live.murid.aktif)} / ${bil(live.murid.jumlah)}` },
+            ]
+          : [{ label: "Purata Aktif (Dis)", value: pct(metricNum(delima.metrics, "avg_dis_murid")) }]),
         { label: "Sasaran KPI", value: pct(metricNum(delima.metrics, "kpi_murid")) },
       ],
     },
+    ...(live?.kadMurid
+      ? [
+          {
+            title: `Aktif Murid · Sasaran ${live.kadMurid.sasaran ?? "—"}%`,
+            wide: true,
+            stats: [
+              { label: live.kadMurid.capai ? "Capai" : "Belum capai", value: pct(live.kadMurid.peratus) },
+              {
+                label: "Bil. aktif",
+                value: `${bil(live.kadMurid.aktif)} / ${bil(live.kadMurid.jumlah)}`,
+              },
+            ],
+          },
+        ]
+      : []),
   ];
 
   /* ---------- DCS ---------- */
@@ -259,6 +286,8 @@ export default async function AnalisisPage({
             {metricText(delima.metrics, "intro")}
           </p>
         ) : null}
+        {live ? (
+        <DelimaExplore>
         <div className="mt-4">
           <KpiGroups groups={delimaGroups} />
         </div>
@@ -266,6 +295,18 @@ export default async function AnalisisPage({
           <DelimaTrendChart data={delimaPoints} kpiGuru={kpiGuru} />
         </div>
         <SourceLink url={metricText(delima.metrics, "source_url")} label="Buka sumber DELIMa" />
+        </DelimaExplore>
+        ) : (
+          <>
+        <div className="mt-4">
+          <KpiGroups groups={delimaGroups} />
+        </div>
+        <div className="mt-4">
+          <DelimaTrendChart data={delimaPoints} kpiGuru={kpiGuru} />
+        </div>
+        <SourceLink url={metricText(delima.metrics, "source_url")} label="Buka sumber DELIMa" />
+          </>
+        )}
       </section>
 
       {/* ---------- DCS ---------- */}
