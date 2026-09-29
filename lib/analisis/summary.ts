@@ -88,7 +88,7 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
   const live = delima.live;
   const avgGuru = live ? live.guru.peratus : metricNum(delima.metrics, "avg_dis_guru");
   const avgMurid = live ? live.murid.peratus : metricNum(delima.metrics, "avg_dis_murid");
-  const avgLabel = live ? "Guru Aktif (langsung)" : "Purata Guru Aktif (Dis)";
+  const avgLabel = live ? "Guru Aktif (DELIMa 2.0)" : "Purata Guru Aktif (Dis)";
   const delimaModule: AnalisisHomeModule = {
     id: "delima",
     label: "DELIMa",
@@ -97,7 +97,7 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
     tiles: [
       { label: "Bil. Sekolah", value: bil(metricNum(delima.metrics, "bil_sekolah", "schools")) },
       { label: avgLabel, value: pct(avgGuru) },
-      { label: live ? "Murid Aktif (langsung)" : "Purata Murid Aktif (Dis)", value: pct(avgMurid) },
+      { label: live ? "Murid Aktif (DELIMa 2.0)" : "Purata Murid Aktif (Dis)", value: pct(avgMurid) },
       { label: "Sasaran KPI Guru", value: pct(kpiGuru) },
       { label: "Sasaran KPI Murid", value: pct(metricNum(delima.metrics, "kpi_murid")) },
     ],
@@ -111,21 +111,21 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
       {
         title: "Guru",
         stats: [
-          { label: live ? "Aktif (langsung)" : "Purata Aktif (Dis)", value: pct(avgGuru) },
+          { label: live ? "Aktif · DELIMa 2.0" : "Purata Aktif (Dis)", value: pct(avgGuru) },
           { label: "Sasaran KPI", value: pct(kpiGuru) },
         ],
       },
       {
         title: "Murid",
         stats: [
-          { label: live ? "Aktif (langsung)" : "Purata Aktif (Dis)", value: pct(avgMurid) },
+          { label: live ? "Aktif · DELIMa 2.0" : "Purata Aktif (Dis)", value: pct(avgMurid) },
           { label: "Sasaran KPI", value: pct(metricNum(delima.metrics, "kpi_murid")) },
         ],
       },
       ...(live?.kadMurid
         ? [
             {
-              title: `Aktif Murid · Sasaran ${live.kadMurid.sasaran ?? "—"}%`,
+              title: `Jumlah Aktif Murid · DELIMa 2.0 + 3.0 · Sasaran ${live.kadMurid.sasaran ?? "—"}%`,
             wide: true,
               stats: [
                 {
@@ -147,7 +147,9 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
     },
     delimaLive: live != null,
     bars: delimaTaburan(delima.liveSchools),
-    note: live ? `Data langsung DELIMa Perak (${live.tempoh}).` : undefined,
+    note: live
+      ? `Data langsung DELIMa Perak (${live.tempoh}). Angka guru dan murid ialah DELIMa 2.0; "Jumlah Aktif Murid" merangkumi murid aktif DELIMa 2.0 + 3.0.`
+      : undefined,
   };
 
   /* ---------- DCS ---------- */

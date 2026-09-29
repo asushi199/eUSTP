@@ -277,7 +277,7 @@ export function delimaTaburan(
     ["Rendah", "Rendah (<40%)"],
   ];
   return (["guru", "murid"] as const).map((k) => ({
-    title: `Taburan Sekolah · ${k === "guru" ? "Guru" : "Murid"} Aktif`,
+    title: `Taburan Sekolah · ${k === "guru" ? "Guru" : "Murid"} Aktif (DELIMa 2.0)`,
     seriesName: "Sekolah",
     data: tahap.map(([t, label]) => ({
       label,

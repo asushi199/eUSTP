@@ -233,7 +233,7 @@ function SchoolDetail({ detail }: { detail: DelimaSchoolDetail }) {
   const groups = [
     school.guru
       ? {
-          title: "Guru",
+          title: "Guru · DELIMa 2.0",
           stats: [
             { label: "Aktif", value: pct(school.guru.peratus) },
             { label: "Bil. aktif", value: `${num(school.guru.aktif)} / ${num(school.guru.jumlah)}` },
@@ -243,7 +243,7 @@ function SchoolDetail({ detail }: { detail: DelimaSchoolDetail }) {
       : null,
     school.murid
       ? {
-          title: "Murid",
+          title: "Murid · DELIMa 2.0",
           stats: [
             { label: "Aktif", value: pct(school.murid.peratus) },
             { label: "Bil. aktif", value: `${num(school.murid.aktif)} / ${num(school.murid.jumlah)}` },
@@ -253,7 +253,7 @@ function SchoolDetail({ detail }: { detail: DelimaSchoolDetail }) {
       : null,
     kadMurid
       ? {
-          title: `Aktif Murid · Sasaran ${kadMurid.sasaran ?? "—"}%`,
+          title: `Jumlah Aktif Murid · DELIMa 2.0 + 3.0 · Sasaran ${kadMurid.sasaran ?? "—"}%`,
           wide: true,
           stats: [
             { label: kadMurid.capai ? "Capai" : "Belum capai", value: pct(kadMurid.peratus) },
@@ -555,7 +555,7 @@ export default function DelimaExplore({
         </button>
         <h3 className="mt-3 text-lg font-semibold tracking-tight">Sejarah snapshot DELIMa</h3>
         <p className="mt-1 text-sm text-graphite">
-          Satu snapshot setiap bulan, disimpan automatik. Klik bulan untuk melihat sekolah.
+          Satu snapshot setiap bulan, disimpan automatik. Angka guru dan murid ialah DELIMa 2.0. Klik bulan untuk melihat sekolah.
         </p>
         {error ? <p className="mt-3 text-sm text-graphite">{error}</p> : null}
         {history && history.total > 0 ? (

@@ -29,7 +29,7 @@ export default function DelimaTrendChart({
   if (data.length === 0) return null;
   return (
     <div className="card p-5">
-      <p className="font-semibold">Peratus Penggunaan DELIMa Bulanan</p>
+      <p className="font-semibold">Peratus Penggunaan DELIMa 2.0 Bulanan</p>
       <div className="mt-3 h-64">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 8, right: 12, bottom: 0, left: -16 }}>
