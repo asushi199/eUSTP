@@ -2,7 +2,7 @@ import "server-only";
 
 import { asc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { analisisBreakdown, analisisMetrics, analisisMonthly } from "@/lib/schema";
+import { analisisBreakdown, analisisMetrics } from "@/lib/schema";
 import type { analisisModul } from "@/lib/schema";
 import { after } from "next/server";
 import { fetchDelimaLive, fetchDelimaSchools, type DelimaLive, type DelimaSchoolList } from "./delima-live";
@@ -11,14 +11,6 @@ import { ensureDelimaSnapshot, getDelimaSnapshotTrend } from "./delima-snapshot"
 export type AnalisisModul = (typeof analisisModul.enumValues)[number];
 
 export type MetricMap = Map<string, string>;
-
-export type MonthlyRow = {
-  monthLabel: string;
-  chartLabel: string;
-  guruPct: number | null;
-  muridPct: number | null;
-  includeChart: boolean;
-};
 
 export type BreakdownRow = { kind: string; label: string; value: number };
 
@@ -30,7 +22,6 @@ export type AnalisisData = {
   /** Titik trend daripada snapshot bulanan (modul `delima`); kosong jika belum ada. */
   snapshotTrend?: { bulan: string; guru: number; murid: number }[];
   metrics: MetricMap;
-  monthly: MonthlyRow[];
   breakdown: BreakdownRow[];
 };
 
@@ -50,17 +41,12 @@ export async function getDelimaConfig() {
   return delimaConfigDariMetrics(new Map(rows.map((r) => [r.key.toLowerCase(), r.value])));
 }
 
-/** Semua data satu modul (metrik KV + siri bulanan + pecahan). */
+/** Semua data satu modul (metrik KV + pecahan). */
 export async function getAnalisisData(modul: AnalisisModul): Promise<AnalisisData> {
   const metricRows = await db
     .select()
     .from(analisisMetrics)
     .where(eq(analisisMetrics.modul, modul));
-  const monthlyRows = await db
-    .select()
-    .from(analisisMonthly)
-    .where(eq(analisisMonthly.modul, modul))
-    .orderBy(asc(analisisMonthly.sort));
   const breakdownRows = await db
     .select()
     .from(analisisBreakdown)
@@ -97,28 +83,15 @@ export async function getAnalisisData(modul: AnalisisModul): Promise<AnalisisDat
     liveSchools,
     snapshotTrend,
     metrics,
-    monthly: monthlyRows.map((r) => ({
-      monthLabel: r.monthLabel,
-      chartLabel: r.chartLabel,
-      guruPct: r.guruPct,
-      muridPct: r.muridPct,
-      includeChart: r.includeChart,
-    })),
     breakdown: breakdownRows.map((r) => ({ kind: r.kind, label: r.label, value: r.value })),
   };
 }
 
-/**
- * Titik carta trend DELIMa: snapshot bulanan automatik bila ≥2 titik, jika tidak
- * siri lama (jadual analisis_monthly) sehingga snapshot mencukupi.
- */
+/** Titik carta trend DELIMa: hanya daripada snapshot bulanan automatik (tertua → terbaharu). */
 export function delimaTrendPoints(
   data: AnalisisData,
 ): { bulan: string; guru: number | null; murid: number | null }[] {
-  if ((data.snapshotTrend?.length ?? 0) >= 2) return data.snapshotTrend!;
-  return data.monthly
-    .filter((r) => r.includeChart)
-    .map((r) => ({ bulan: r.chartLabel || r.monthLabel, guru: r.guruPct, murid: r.muridPct }));
+  return data.snapshotTrend ?? [];
 }
 
 /** Nombor daripada metrik KV (menyokong koma perpuluhan); null jika tiada/bukan nombor. */
