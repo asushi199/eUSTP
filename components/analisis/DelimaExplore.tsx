@@ -3,9 +3,12 @@
 import { useMemo, useState } from "react";
 import KpiGroups from "@/components/analisis/KpiGroups";
 import {
+  loadDelimaHistory,
   loadDelimaSchoolDetail,
   loadDelimaSchools,
+  loadDelimaSnapshotSchools,
 } from "@/lib/actions/delima-public";
+import type { DelimaSnapshotPage, DelimaSnapshotRow } from "@/lib/analisis/delima-snapshot";
 import type {
   DelimaSchoolDetail,
   DelimaSchoolList,
@@ -13,7 +16,14 @@ import type {
   DelimaSchoolRow,
 } from "@/lib/analisis/delima-live";
 
-export type DelimaExploreLayer = "overview" | "schools" | "school";
+
+const BULAN = ["Januari", "Februari", "Mac", "April", "Mei", "Jun", "Julai", "Ogos", "September", "Oktober", "November", "Disember"];
+function bulanLabel(period: string): string {
+  const [y, m] = period.split("-");
+  return `${BULAN[Number(m) - 1] ?? period} ${y}`;
+}
+
+export type DelimaExploreLayer = "overview" | "schools" | "school" | "history" | "snapshot";
 
 const num = (n: number) => n.toLocaleString("ms-MY");
 const pct = (n: number) => `${n.toLocaleString("ms-MY", { maximumFractionDigits: 1 })}%`;
@@ -271,9 +281,134 @@ function SchoolDetail({ detail }: { detail: DelimaSchoolDetail }) {
   );
 }
 
+function HistoryTable({
+  data,
+  loading,
+  onPage,
+  onSelect,
+}: {
+  data: DelimaSnapshotPage;
+  loading: boolean;
+  onPage: (page: number) => void;
+  onSelect: (row: DelimaSnapshotRow) => void;
+}) {
+  const dari = (data.page - 1) * data.pageSize + 1;
+  const hingga = dari + data.rows.length - 1;
+  return (
+    <div className={loading ? "opacity-60" : ""}>
+      <ul className="space-y-3 sm:hidden">
+        {data.rows.map((r) => (
+          <li key={r.id} className="card p-4">
+            <button
+              type="button"
+              className="block w-full text-left font-medium text-ink hover:underline"
+              onClick={() => onSelect(r)}
+            >
+              {bulanLabel(r.period)}
+            </button>
+            <p className="mt-0.5 text-xs text-graphite">{r.tempoh}</p>
+            <dl className="mt-3 space-y-1 border-t border-fog pt-3 text-sm tabular-nums">
+              <div className="flex justify-between">
+                <dt className="text-graphite">Guru aktif</dt>
+                <dd>
+                  {pct(r.guruPct)}{" "}
+                  <span className="text-xs text-graphite">
+                    {num(r.guruAktif)}/{num(r.guruJumlah)}
+                  </span>
+                </dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-graphite">Murid aktif</dt>
+                <dd>
+                  {pct(r.muridPct)}{" "}
+                  <span className="text-xs text-graphite">
+                    {num(r.muridAktif)}/{num(r.muridJumlah)}
+                  </span>
+                </dd>
+              </div>
+            </dl>
+          </li>
+        ))}
+      </ul>
+
+      <div className="card hidden overflow-x-auto sm:block">
+        <table className="w-full min-w-[36rem] text-left text-sm">
+          <thead>
+            <tr className="border-b border-fog text-[11px] font-semibold uppercase tracking-[0.6px] text-steel">
+              <th className="px-4 py-3">Bulan</th>
+              <th className="px-4 py-3">Guru aktif</th>
+              <th className="px-4 py-3">Murid aktif</th>
+              <th className="px-4 py-3 text-right">Sekolah</th>
+              <th className="px-4 py-3">Disimpan</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.rows.map((r) => (
+              <tr key={r.id} className="border-b border-fog/60 last:border-0">
+                <td className="px-4 py-3">
+                  <button
+                    type="button"
+                    className="font-medium text-ink hover:underline"
+                    onClick={() => onSelect(r)}
+                  >
+                    {bulanLabel(r.period)}
+                  </button>
+                  <p className="mt-0.5 text-xs text-graphite">{r.tempoh}</p>
+                </td>
+                <td className="whitespace-nowrap px-4 py-3 tabular-nums">
+                  {pct(r.guruPct)}{" "}
+                  <span className="text-xs text-graphite">
+                    {num(r.guruAktif)}/{num(r.guruJumlah)}
+                  </span>
+                </td>
+                <td className="whitespace-nowrap px-4 py-3 tabular-nums">
+                  {pct(r.muridPct)}{" "}
+                  <span className="text-xs text-graphite">
+                    {num(r.muridAktif)}/{num(r.muridJumlah)}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-right tabular-nums">{r.bilSekolah ?? "—"}</td>
+                <td className="whitespace-nowrap px-4 py-3 text-xs text-graphite">{r.capturedOn}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm">
+        <p className="text-xs text-graphite">
+          {dari}–{hingga} daripada {data.total} snapshot
+        </p>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className="btn-outline btn-sm"
+            disabled={data.page <= 1 || loading}
+            onClick={() => onPage(data.page - 1)}
+          >
+            ← Sebelum
+          </button>
+          <span className="tabular-nums text-graphite">
+            {data.page} / {data.pageCount}
+          </span>
+          <button
+            type="button"
+            className="btn-outline btn-sm"
+            disabled={data.page >= data.pageCount || loading}
+            onClick={() => onPage(data.page + 1)}
+          >
+            Seterusnya →
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /**
  * Terokai DELIMa dalam kad (sama corak dengan OptikExplore):
- * ringkasan → senarai sekolah → butiran sekolah, semuanya tanpa keluar halaman.
+ * ringkasan → senarai sekolah → butiran sekolah, serta sejarah snapshot bulanan
+ * (berhalaman) → sekolah pada bulan itu, semuanya tanpa keluar halaman.
  */
 export default function DelimaExplore({
   children,
@@ -285,9 +420,19 @@ export default function DelimaExplore({
   const [layer, setLayer] = useState<DelimaExploreLayer>("overview");
   const [list, setList] = useState<DelimaSchoolList | null>(null);
   const [detail, setDetail] = useState<DelimaSchoolDetail | null>(null);
+  const [history, setHistory] = useState<DelimaSnapshotPage | null>(null);
+  const [snapshot, setSnapshot] = useState<{
+    label: string;
+    tempoh: string;
+    schools: DelimaSchoolRow[];
+  } | null>(null);
   const [loadingList, setLoadingList] = useState(false);
   const [loadingDetail, setLoadingDetail] = useState(false);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [loadingSnapshot, setLoadingSnapshot] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /** Lapisan asal butiran sekolah — supaya butang kembali betul. */
+  const [detailFrom, setDetailFrom] = useState<"schools" | "snapshot">("schools");
 
   function go(next: DelimaExploreLayer) {
     setLayer(next);
@@ -310,7 +455,44 @@ export default function DelimaExplore({
     }
   }
 
+  async function loadHistoryPage(page: number) {
+    setLoadingHistory(true);
+    setError(null);
+    try {
+      setHistory(await loadDelimaHistory(page));
+    } catch {
+      setError("Sejarah snapshot tidak dapat dimuatkan.");
+    } finally {
+      setLoadingHistory(false);
+    }
+  }
+
+  async function openHistory() {
+    go("history");
+    if (!history) await loadHistoryPage(1);
+  }
+
+  async function openSnapshot(row: DelimaSnapshotRow) {
+    go("snapshot");
+    setSnapshot(null);
+    setLoadingSnapshot(true);
+    setError(null);
+    try {
+      const data = await loadDelimaSnapshotSchools(row.id);
+      if (data) {
+        setSnapshot({ label: bulanLabel(data.period), tempoh: data.tempoh, schools: data.schools });
+      } else {
+        setError("Snapshot tidak dijumpai.");
+      }
+    } catch {
+      setError("Snapshot tidak dapat dimuatkan.");
+    } finally {
+      setLoadingSnapshot(false);
+    }
+  }
+
   async function openSchool(row: DelimaSchoolRow) {
+    setDetailFrom("schools");
     go("school");
     setDetail(null);
     setLoadingDetail(true);
@@ -326,18 +508,33 @@ export default function DelimaExplore({
     }
   }
 
+  /** Sekolah dalam snapshot lama: data sudah ada, tiada ambilan tambahan. */
+  function openSnapshotSchool(row: DelimaSchoolRow) {
+    setDetailFrom("snapshot");
+    setDetail({
+      school: row,
+      kadMurid: null,
+      tempoh: `${snapshot?.label ?? ""} · ${snapshot?.tempoh ?? ""}`,
+      sumberUrl: "",
+    });
+    setError(null);
+    go("school");
+  }
+
+  const back = "text-sm text-graphite hover:text-ink";
+
   if (layer === "school") {
     return (
       <div className="mt-4">
         <button
           type="button"
-          className="text-sm text-graphite hover:text-ink"
+          className={back}
           onClick={() => {
             setError(null);
-            go("schools");
+            go(detailFrom);
           }}
         >
-          ← Senarai sekolah
+          {detailFrom === "snapshot" ? "← Snapshot" : "← Senarai sekolah"}
         </button>
         {detail ? (
           <SchoolDetail detail={detail} />
@@ -350,10 +547,66 @@ export default function DelimaExplore({
     );
   }
 
+  if (layer === "history") {
+    return (
+      <div className="mt-4">
+        <button type="button" className={back} onClick={() => go("overview")}>
+          ← Carta
+        </button>
+        <h3 className="mt-3 text-lg font-semibold tracking-tight">Sejarah snapshot DELIMa</h3>
+        <p className="mt-1 text-sm text-graphite">
+          Satu snapshot setiap bulan, disimpan automatik. Klik bulan untuk melihat sekolah.
+        </p>
+        {error ? <p className="mt-3 text-sm text-graphite">{error}</p> : null}
+        {history && history.total > 0 ? (
+          <div className="mt-4">
+            <HistoryTable
+              data={history}
+              loading={loadingHistory}
+              onPage={(p) => void loadHistoryPage(p)}
+              onSelect={(r) => void openSnapshot(r)}
+            />
+          </div>
+        ) : loadingHistory || !history ? (
+          <p className="mt-4 text-sm text-graphite">Memuatkan sejarah…</p>
+        ) : (
+          <p className="mt-4 text-sm text-graphite">Belum ada snapshot.</p>
+        )}
+      </div>
+    );
+  }
+
+  if (layer === "snapshot") {
+    return (
+      <div className="mt-4">
+        <button type="button" className={back} onClick={() => go("history")}>
+          ← Sejarah
+        </button>
+        {snapshot ? (
+          <>
+            <h3 className="mt-3 text-lg font-semibold tracking-tight">
+              DELIMa mengikut sekolah · {snapshot.label}
+            </h3>
+            <p className="mt-1 text-sm text-graphite">
+              {snapshot.schools.length} sekolah · DELIMa 2.0 · {snapshot.tempoh}
+            </p>
+            <div className="mt-4">
+              <SchoolTable schools={snapshot.schools} onSelect={openSnapshotSchool} />
+            </div>
+          </>
+        ) : loadingSnapshot ? (
+          <p className="mt-4 text-sm text-graphite">Memuatkan snapshot…</p>
+        ) : (
+          <p className="mt-4 text-sm text-graphite">{error ?? "Tiada data."}</p>
+        )}
+      </div>
+    );
+  }
+
   if (layer === "schools") {
     return (
       <div className="mt-4">
-        <button type="button" className="text-sm text-graphite hover:text-ink" onClick={() => go("overview")}>
+        <button type="button" className={back} onClick={() => go("overview")}>
           ← Carta
         </button>
         <h3 className="mt-3 text-lg font-semibold tracking-tight">DELIMa mengikut sekolah</h3>
@@ -377,9 +630,12 @@ export default function DelimaExplore({
   return (
     <>
       {children}
-      <p className="mt-4">
+      <p className="mt-4 flex flex-wrap gap-2">
         <button type="button" className="btn-outline btn-sm" onClick={() => void openSchools()}>
           Lihat senarai sekolah
+        </button>
+        <button type="button" className="btn-outline btn-sm" onClick={() => void openHistory()}>
+          Sejarah snapshot
         </button>
       </p>
     </>

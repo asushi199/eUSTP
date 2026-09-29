@@ -265,3 +265,23 @@ export async function fetchDelimaSchoolDetail(
     return null;
   }
 }
+
+/** Bilangan sekolah ikut tahap aktif bagi carta taburan (guru dan murid). */
+export function delimaTaburan(
+  list: DelimaSchoolList | null | undefined,
+): { title: string; seriesName: string; data: { label: string; jumlah: number }[] }[] {
+  if (!list || list.schools.length === 0) return [];
+  const tahap: [DelimaTahap, string][] = [
+    ["Tinggi", "Tinggi (≥75%)"],
+    ["Sederhana", "Sederhana (40–74%)"],
+    ["Rendah", "Rendah (<40%)"],
+  ];
+  return (["guru", "murid"] as const).map((k) => ({
+    title: `Taburan Sekolah · ${k === "guru" ? "Guru" : "Murid"} Aktif`,
+    seriesName: "Sekolah",
+    data: tahap.map(([t, label]) => ({
+      label,
+      jumlah: list.schools.filter((s) => s[k]?.tahap === t).length,
+    })),
+  }));
+}

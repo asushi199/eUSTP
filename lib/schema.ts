@@ -524,6 +524,64 @@ export const analisisBreakdown = pgTable(
   }),
 );
 
+/**
+ * Snapshot bulanan DELIMa daripada sumber langsung (DELIMa Perak). Satu baris
+ * setiap tempoh data sumber (`period` = "YYYY-MM" hujung tempoh); cron harian
+ * mengemas kini baris tempoh semasa, tempoh baharu jadi baris baharu.
+ */
+export const analisisDelimaSnapshots = pgTable(
+  "analisis_delima_snapshots",
+  {
+    id: serial("id").primaryKey(),
+    period: text("period").notNull(),
+    tempoh: text("tempoh").notNull().default(""),
+    daerah: text("daerah").notNull().default(""),
+    sumberUrl: text("sumber_url").notNull().default(""),
+    capturedOn: date("captured_on").notNull(),
+    guruAktif: integer("guru_aktif").notNull(),
+    guruJumlah: integer("guru_jumlah").notNull(),
+    guruPct: doublePrecision("guru_pct").notNull(),
+    muridAktif: integer("murid_aktif").notNull(),
+    muridJumlah: integer("murid_jumlah").notNull(),
+    muridPct: doublePrecision("murid_pct").notNull(),
+    /** Kad "Aktif Murid" (berbanding sasaran) — null jika sumber tak menyediakannya. */
+    kadAktif: integer("kad_aktif"),
+    kadJumlah: integer("kad_jumlah"),
+    kadPct: doublePrecision("kad_pct"),
+    kadSasaran: doublePrecision("kad_sasaran"),
+    bilSekolah: integer("bil_sekolah"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    periodIdx: uniqueIndex("analisis_delima_snapshots_period_idx").on(t.period),
+  }),
+);
+
+/** Baris sekolah dalam satu snapshot DELIMa. */
+export const analisisDelimaSchools = pgTable(
+  "analisis_delima_schools",
+  {
+    id: serial("id").primaryKey(),
+    snapshotId: integer("snapshot_id")
+      .notNull()
+      .references(() => analisisDelimaSnapshots.id, { onDelete: "cascade" }),
+    kod: text("kod").notNull(),
+    nama: text("nama").notNull(),
+    guruAktif: integer("guru_aktif"),
+    guruJumlah: integer("guru_jumlah"),
+    guruPct: doublePrecision("guru_pct"),
+    guruTahap: text("guru_tahap"),
+    muridAktif: integer("murid_aktif"),
+    muridJumlah: integer("murid_jumlah"),
+    muridPct: doublePrecision("murid_pct"),
+    muridTahap: text("murid_tahap"),
+  },
+  (t) => ({
+    snapshotKodIdx: uniqueIndex("analisis_delima_schools_snapshot_kod_idx").on(t.snapshotId, t.kod),
+  }),
+);
+
 /** Snapshot muat naik AI Tools — setiap fail jadi satu titik carta + arkib. */
 export const analisisOptikSnapshots = pgTable(
   "analisis_optik_snapshots",

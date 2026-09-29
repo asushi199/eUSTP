@@ -4,7 +4,9 @@ import {
   getAnalisisData,
   metricNum,
   metricText,
+  delimaTrendPoints,
 } from "./queries";
+import { delimaTaburan } from "./delima-live";
 import { getOptikHomeView, optikKpiGroupStats, optikKpiReferenceLines } from "./optik-queries";
 
 /** Bentuk data boleh-serialize untuk kad + modal analisis di halaman utama. */
@@ -94,11 +96,6 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
     headlineLabel: avgLabel,
     tiles: [
       { label: "Bil. Sekolah", value: bil(metricNum(delima.metrics, "bil_sekolah", "schools")) },
-      { label: "Khidmat Bantu (kali)", value: bil(metricNum(delima.metrics, "khidmat_bantu_kali")) },
-      {
-        label: "Khidmat Bantu (sekolah)",
-        value: bil(metricNum(delima.metrics, "khidmat_bantu_sekolah")),
-      },
       { label: avgLabel, value: pct(avgGuru) },
       { label: live ? "Murid Aktif (langsung)" : "Purata Murid Aktif (Dis)", value: pct(avgMurid) },
       { label: "Sasaran KPI Guru", value: pct(kpiGuru) },
@@ -106,17 +103,9 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
     ],
     tileGroups: [
       {
-        title: "Capaian & Khidmat Bantu",
+        title: "Capaian",
         stats: [
           { label: "Bil. Sekolah", value: bil(metricNum(delima.metrics, "bil_sekolah", "schools")) },
-          {
-            label: "Khidmat Bantu (kali)",
-            value: bil(metricNum(delima.metrics, "khidmat_bantu_kali")),
-          },
-          {
-            label: "Khidmat Bantu (sekolah)",
-            value: bil(metricNum(delima.metrics, "khidmat_bantu_sekolah")),
-          },
         ],
       },
       {
@@ -153,13 +142,11 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
         : []),
     ],
     delimaTrend: {
-      points: delima.monthly
-        .filter((r) => r.includeChart)
-        .map((r) => ({ bulan: r.chartLabel || r.monthLabel, guru: r.guruPct, murid: r.muridPct })),
+      points: delimaTrendPoints(delima),
       kpiGuru,
     },
     delimaLive: live != null,
-    bars: [],
+    bars: delimaTaburan(delima.liveSchools),
     note: live ? `Data langsung DELIMa Perak (${live.tempoh}).` : undefined,
   };
 

@@ -1,0 +1,266 @@
+import "server-only";
+
+import { asc, count, desc, eq, sql } from "drizzle-orm";
+import { formatInTimeZone } from "date-fns-tz";
+import { db } from "@/lib/db";
+import { analisisDelimaSchools, analisisDelimaSnapshots } from "@/lib/schema";
+import {
+  fetchDelimaLive,
+  fetchDelimaSchools,
+  type DelimaLive,
+  type DelimaSchoolList,
+  type DelimaSchoolPop,
+  type DelimaSchoolRow,
+  type DelimaTahap,
+} from "./delima-live";
+
+export const DELIMA_HISTORY_PAGE_SIZE = 10;
+
+const BULAN_MS = ["jan", "feb", "mac", "apr", "mei", "jun", "jul", "ogos", "sep", "okt", "nov", "dis"];
+const BULAN_LABEL = ["Jan", "Feb", "Mac", "Apr", "Mei", "Jun", "Jul", "Ogs", "Sep", "Okt", "Nov", "Dis"];
+
+/** "1 Jan – 31 Ogos 2026" → "2026-08" (hujung tempoh). null jika format tidak dikenali. */
+export function periodDariTempoh(tempoh: string): string | null {
+  const m = tempoh.match(/[–-]\s*\d{1,2}\s+([A-Za-z]+)\s+(\d{4})\s*$/);
+  if (!m) return null;
+  const idx = BULAN_MS.findIndex((b) => m[1].toLowerCase().startsWith(b));
+  return idx < 0 ? null : `${m[2]}-${String(idx + 1).padStart(2, "0")}`;
+}
+
+/** "2026-08" → "Ogos 2026" untuk paparan. */
+export function periodLabel(period: string): string {
+  const [y, mo] = period.split("-");
+  const idx = Number(mo) - 1;
+  const nama = ["Januari", "Februari", "Mac", "April", "Mei", "Jun", "Julai", "Ogos", "September", "Oktober", "November", "Disember"][idx];
+  return nama ? `${nama} ${y}` : period;
+}
+
+export type DelimaSnapshotRow = {
+  id: number;
+  period: string;
+  tempoh: string;
+  daerah: string;
+  capturedOn: string;
+  guruAktif: number;
+  guruJumlah: number;
+  guruPct: number;
+  muridAktif: number;
+  muridJumlah: number;
+  muridPct: number;
+  kadPct: number | null;
+  kadSasaran: number | null;
+  bilSekolah: number | null;
+};
+
+export type DelimaSnapshotPage = {
+  rows: DelimaSnapshotRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+  pageCount: number;
+};
+
+const dbPop = (
+  aktif: number | null,
+  jumlah: number | null,
+  pct: number | null,
+  tahap: string | null,
+): DelimaSchoolPop | null =>
+  aktif == null || jumlah == null || pct == null
+    ? null
+    : { aktif, jumlah, peratus: pct, tahap: (tahap as DelimaTahap) ?? "Rendah" };
+
+/**
+ * Simpan (upsert) snapshot bagi tempoh data sumber. Idempoten: memanggil semula
+ * dalam tempoh sama hanya mengemas kini nombor + senarai sekolah.
+ */
+export async function saveDelimaSnapshot(
+  live: DelimaLive,
+  senarai: DelimaSchoolList | null,
+): Promise<{ id: number; period: string; created: boolean } | null> {
+  const today = formatInTimeZone(new Date(), "Asia/Kuala_Lumpur", "yyyy-MM-dd");
+  const period = periodDariTempoh(live.tempoh) ?? today.slice(0, 7);
+  const values = {
+    period,
+    tempoh: live.tempoh,
+    daerah: live.daerah,
+    sumberUrl: live.sumberUrl,
+    capturedOn: today,
+    guruAktif: live.guru.aktif,
+    guruJumlah: live.guru.jumlah,
+    guruPct: live.guru.peratus,
+    muridAktif: live.murid.aktif,
+    muridJumlah: live.murid.jumlah,
+    muridPct: live.murid.peratus,
+    kadAktif: live.kadMurid?.aktif ?? null,
+    kadJumlah: live.kadMurid?.jumlah ?? null,
+    kadPct: live.kadMurid?.peratus ?? null,
+    kadSasaran: live.kadMurid?.sasaran ?? null,
+    bilSekolah: live.bilSekolah,
+  };
+
+  return db.transaction(async (tx) => {
+    const ada = await tx
+      .select({ id: analisisDelimaSnapshots.id })
+      .from(analisisDelimaSnapshots)
+      .where(eq(analisisDelimaSnapshots.period, period))
+      .limit(1);
+
+    let id: number;
+    if (ada[0]) {
+      id = ada[0].id;
+      await tx
+        .update(analisisDelimaSnapshots)
+        .set({ ...values, updatedAt: sql`now()` })
+        .where(eq(analisisDelimaSnapshots.id, id));
+    } else {
+      const [ins] = await tx
+        .insert(analisisDelimaSnapshots)
+        .values(values)
+        .returning({ id: analisisDelimaSnapshots.id });
+      id = ins.id;
+    }
+
+    // Senarai sekolah hanya diganti jika berjaya diambil (elak kosongkan sejarah bila sumber gagal separa).
+    if (senarai && senarai.schools.length > 0) {
+      await tx.delete(analisisDelimaSchools).where(eq(analisisDelimaSchools.snapshotId, id));
+      await tx.insert(analisisDelimaSchools).values(
+        senarai.schools.map((s) => ({
+          snapshotId: id,
+          kod: s.kod,
+          nama: s.nama,
+          guruAktif: s.guru?.aktif ?? null,
+          guruJumlah: s.guru?.jumlah ?? null,
+          guruPct: s.guru?.peratus ?? null,
+          guruTahap: s.guru?.tahap ?? null,
+          muridAktif: s.murid?.aktif ?? null,
+          muridJumlah: s.murid?.jumlah ?? null,
+          muridPct: s.murid?.peratus ?? null,
+          muridTahap: s.murid?.tahap ?? null,
+        })),
+      );
+    }
+    return { id, period, created: !ada[0] };
+  });
+}
+
+/** Ambil data sumber sekarang lalu simpan snapshot (untuk cron / butang admin). */
+export async function captureDelimaSnapshot(
+  sumberUrl?: string,
+  daerah?: string,
+): Promise<{ ok: true; period: string; created: boolean } | { ok: false; error: string }> {
+  const [live, senarai] = await Promise.all([
+    fetchDelimaLive(sumberUrl, daerah),
+    fetchDelimaSchools(sumberUrl, daerah),
+  ]);
+  if (!live) return { ok: false, error: "Sumber DELIMa tidak dapat dicapai." };
+  const saved = await saveDelimaSnapshot(live, senarai);
+  if (!saved) return { ok: false, error: "Snapshot gagal disimpan." };
+  return { ok: true, period: saved.period, created: saved.created };
+}
+
+/** Cipta snapshot hanya jika tempoh ini belum ada (dipanggil selepas render halaman awam). */
+export async function ensureDelimaSnapshot(
+  live: DelimaLive,
+  senarai: DelimaSchoolList | null,
+): Promise<void> {
+  const period = periodDariTempoh(live.tempoh);
+  if (period) {
+    const ada = await db
+      .select({ id: analisisDelimaSnapshots.id })
+      .from(analisisDelimaSnapshots)
+      .where(eq(analisisDelimaSnapshots.period, period))
+      .limit(1);
+    if (ada[0]) return;
+  }
+  await saveDelimaSnapshot(live, senarai);
+}
+
+/** Sejarah snapshot, terbaharu dahulu, berhalaman. */
+export async function listDelimaSnapshots(
+  page: number,
+  pageSize: number = DELIMA_HISTORY_PAGE_SIZE,
+): Promise<DelimaSnapshotPage> {
+  const [{ total }] = await db.select({ total: count() }).from(analisisDelimaSnapshots);
+  const pageCount = Math.max(1, Math.ceil(total / pageSize));
+  const p = Math.min(Math.max(1, Math.floor(page) || 1), pageCount);
+  const rows = await db
+    .select({
+      id: analisisDelimaSnapshots.id,
+      period: analisisDelimaSnapshots.period,
+      tempoh: analisisDelimaSnapshots.tempoh,
+      daerah: analisisDelimaSnapshots.daerah,
+      capturedOn: analisisDelimaSnapshots.capturedOn,
+      guruAktif: analisisDelimaSnapshots.guruAktif,
+      guruJumlah: analisisDelimaSnapshots.guruJumlah,
+      guruPct: analisisDelimaSnapshots.guruPct,
+      muridAktif: analisisDelimaSnapshots.muridAktif,
+      muridJumlah: analisisDelimaSnapshots.muridJumlah,
+      muridPct: analisisDelimaSnapshots.muridPct,
+      kadPct: analisisDelimaSnapshots.kadPct,
+      kadSasaran: analisisDelimaSnapshots.kadSasaran,
+      bilSekolah: analisisDelimaSnapshots.bilSekolah,
+    })
+    .from(analisisDelimaSnapshots)
+    .orderBy(desc(analisisDelimaSnapshots.period))
+    .limit(pageSize)
+    .offset((p - 1) * pageSize);
+  return { rows, total, page: p, pageSize, pageCount };
+}
+
+/** Senarai sekolah satu snapshot (susunan kod sekolah). */
+export async function getDelimaSnapshotSchools(
+  snapshotId: number,
+): Promise<{ tempoh: string; period: string; schools: DelimaSchoolRow[] } | null> {
+  const [snap] = await db
+    .select({
+      tempoh: analisisDelimaSnapshots.tempoh,
+      period: analisisDelimaSnapshots.period,
+    })
+    .from(analisisDelimaSnapshots)
+    .where(eq(analisisDelimaSnapshots.id, snapshotId))
+    .limit(1);
+  if (!snap) return null;
+  const rows = await db
+    .select()
+    .from(analisisDelimaSchools)
+    .where(eq(analisisDelimaSchools.snapshotId, snapshotId))
+    .orderBy(asc(analisisDelimaSchools.kod));
+  return {
+    ...snap,
+    schools: rows.map((r) => ({
+      kod: r.kod,
+      nama: r.nama,
+      guru: dbPop(r.guruAktif, r.guruJumlah, r.guruPct, r.guruTahap),
+      murid: dbPop(r.muridAktif, r.muridJumlah, r.muridPct, r.muridTahap),
+    })),
+  };
+}
+
+/** Titik carta trend bulanan daripada snapshot (tertua → terbaharu). */
+export async function getDelimaSnapshotTrend(): Promise<
+  { bulan: string; guru: number; murid: number }[]
+> {
+  const rows = await db
+    .select({
+      period: analisisDelimaSnapshots.period,
+      guru: analisisDelimaSnapshots.guruPct,
+      murid: analisisDelimaSnapshots.muridPct,
+    })
+    .from(analisisDelimaSnapshots)
+    .orderBy(asc(analisisDelimaSnapshots.period));
+  const beberapaTahun = new Set(rows.map((r) => r.period.slice(0, 4))).size > 1;
+  return rows.map((r) => {
+    const [y, mo] = r.period.split("-");
+    const bulan = BULAN_LABEL[Number(mo) - 1] ?? r.period;
+    return {
+      bulan: beberapaTahun ? `${bulan} ${y.slice(2)}` : bulan,
+      guru: r.guru,
+      murid: r.murid,
+    };
+  });
+}
+
+export async function deleteDelimaSnapshot(id: number): Promise<void> {
+  await db.delete(analisisDelimaSnapshots).where(eq(analisisDelimaSnapshots.id, id));
+}

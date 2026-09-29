@@ -4,7 +4,9 @@ import { asc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { analisisBreakdown, analisisMetrics, analisisMonthly } from "@/lib/schema";
 import type { analisisModul } from "@/lib/schema";
-import { fetchDelimaLive, type DelimaLive } from "./delima-live";
+import { after } from "next/server";
+import { fetchDelimaLive, fetchDelimaSchools, type DelimaLive, type DelimaSchoolList } from "./delima-live";
+import { ensureDelimaSnapshot, getDelimaSnapshotTrend } from "./delima-snapshot";
 
 export type AnalisisModul = (typeof analisisModul.enumValues)[number];
 
@@ -23,10 +25,30 @@ export type BreakdownRow = { kind: string; label: string; value: number };
 export type AnalisisData = {
   /** Data DELIMa langsung (hanya modul `delima`, jika sumber dapat dicapai). */
   live?: DelimaLive | null;
+  /** Senarai sekolah langsung (modul `delima`) — asas carta taburan tahap. */
+  liveSchools?: DelimaSchoolList | null;
+  /** Titik trend daripada snapshot bulanan (modul `delima`); kosong jika belum ada. */
+  snapshotTrend?: { bulan: string; guru: number; murid: number }[];
   metrics: MetricMap;
   monthly: MonthlyRow[];
   breakdown: BreakdownRow[];
 };
+
+function delimaConfigDariMetrics(metrics: MetricMap) {
+  return {
+    url: metrics.get("delima_live_url")?.trim() || undefined,
+    daerah: metrics.get("delima_daerah")?.trim() || undefined,
+  };
+}
+
+/** Konfigurasi sumber DELIMa langsung sahaja (tanpa ambil data) — untuk server action ringan. */
+export async function getDelimaConfig() {
+  const rows = await db
+    .select()
+    .from(analisisMetrics)
+    .where(eq(analisisMetrics.modul, "delima"));
+  return delimaConfigDariMetrics(new Map(rows.map((r) => [r.key.toLowerCase(), r.value])));
+}
 
 /** Semua data satu modul (metrik KV + siri bulanan + pecahan). */
 export async function getAnalisisData(modul: AnalisisModul): Promise<AnalisisData> {
@@ -48,16 +70,32 @@ export async function getAnalisisData(modul: AnalisisModul): Promise<AnalisisDat
   const metrics: MetricMap = new Map(metricRows.map((r) => [r.key.toLowerCase(), r.value]));
 
   let live: DelimaLive | null = null;
+  let liveSchools: DelimaSchoolList | null = null;
+  let snapshotTrend: { bulan: string; guru: number; murid: number }[] = [];
   if (modul === "delima") {
-    live = await fetchDelimaLive(
-      metrics.get("delima_live_url")?.trim() || undefined,
-      metrics.get("delima_daerah")?.trim() || undefined,
-    );
+    const cfg = delimaConfigDariMetrics(metrics);
+    [live, liveSchools] = await Promise.all([
+      fetchDelimaLive(cfg.url, cfg.daerah),
+      fetchDelimaSchools(cfg.url, cfg.daerah),
+    ]);
     if (live?.bilSekolah != null) metrics.set("bil_sekolah", String(live.bilSekolah));
+    if (live) {
+      const l = live;
+      const s = liveSchools;
+      try {
+        // Snapshot bulanan automatik: dicipta selepas respons dihantar jika tempoh ini belum ada.
+        after(() => ensureDelimaSnapshot(l, s).catch((e) => console.error("[delima-snapshot]", e)));
+      } catch {
+        /* di luar skop permintaan (cth. build) — cron akan menyimpan */
+      }
+    }
+    snapshotTrend = await getDelimaSnapshotTrend().catch(() => []);
   }
 
   return {
     live,
+    liveSchools,
+    snapshotTrend,
     metrics,
     monthly: monthlyRows.map((r) => ({
       monthLabel: r.monthLabel,
@@ -68,6 +106,19 @@ export async function getAnalisisData(modul: AnalisisModul): Promise<AnalisisDat
     })),
     breakdown: breakdownRows.map((r) => ({ kind: r.kind, label: r.label, value: r.value })),
   };
+}
+
+/**
+ * Titik carta trend DELIMa: snapshot bulanan automatik bila ≥2 titik, jika tidak
+ * siri lama (jadual analisis_monthly) sehingga snapshot mencukupi.
+ */
+export function delimaTrendPoints(
+  data: AnalisisData,
+): { bulan: string; guru: number | null; murid: number | null }[] {
+  if ((data.snapshotTrend?.length ?? 0) >= 2) return data.snapshotTrend!;
+  return data.monthly
+    .filter((r) => r.includeChart)
+    .map((r) => ({ bulan: r.chartLabel || r.monthLabel, guru: r.guruPct, murid: r.muridPct }));
 }
 
 /** Nombor daripada metrik KV (menyokong koma perpuluhan); null jika tiada/bukan nombor. */

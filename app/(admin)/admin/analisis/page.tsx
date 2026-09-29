@@ -2,14 +2,15 @@ import Link from "next/link";
 import { asc, eq } from "drizzle-orm";
 import { requireKandunganAccess } from "@/lib/rbac";
 import { db } from "@/lib/db";
-import { analisisBreakdown, analisisMetrics, analisisModul, analisisMonthly } from "@/lib/schema";
+import { analisisBreakdown, analisisMetrics, analisisModul } from "@/lib/schema";
+import { listDelimaSnapshots, periodLabel } from "@/lib/analisis/delima-snapshot";
 import {
   deleteBreakdown,
   deleteMetric,
-  deleteMonthly,
+  padamSnapshotDelima,
   saveBreakdown,
   saveMetric,
-  saveMonthly,
+  simpanSnapshotDelima,
 } from "@/lib/actions/analisis";
 import ActionForm from "@/components/admin/ActionForm";
 import DeleteButton from "@/components/admin/DeleteButton";
@@ -34,7 +35,7 @@ const MODUL_LABEL: Record<string, string> = {
 export default async function AdminAnalisisPage({
   searchParams,
 }: {
-  searchParams: Promise<{ modul?: string }>;
+  searchParams: Promise<{ modul?: string; hal?: string }>;
 }) {
   await requireKandunganAccess();
   const sp = await searchParams;
@@ -43,17 +44,12 @@ export default async function AdminAnalisisPage({
     ? (sp.modul as (typeof moduls)[number])
     : "delima";
 
-  const [metrics, monthly, breakdown] = await Promise.all([
+  const [metrics, breakdown] = await Promise.all([
     db
       .select()
       .from(analisisMetrics)
       .where(eq(analisisMetrics.modul, modul))
       .orderBy(asc(analisisMetrics.key)),
-    db
-      .select()
-      .from(analisisMonthly)
-      .where(eq(analisisMonthly.modul, modul))
-      .orderBy(asc(analisisMonthly.sort)),
     db
       .select()
       .from(analisisBreakdown)
@@ -66,6 +62,8 @@ export default async function AdminAnalisisPage({
   const liveUrl = optikMetrics.get("delima_live_url")?.trim() || DELIMA_LIVE_DEFAULT_URL;
   const liveDaerah = optikMetrics.get("delima_daerah")?.trim() || DELIMA_LIVE_DEFAULT_DAERAH;
   const live = modul === "delima" ? await fetchDelimaLive(liveUrl, liveDaerah) : null;
+  const hal = Math.max(1, Number.parseInt(sp.hal ?? "1", 10) || 1);
+  const sejarah = modul === "delima" ? await listDelimaSnapshots(hal) : null;
 
   return (
     <>
@@ -136,6 +134,72 @@ export default async function AdminAnalisisPage({
           </div>
         </section>
       ) : null}
+      {sejarah ? (
+        <section className="mt-8">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-lg font-semibold">Sejarah Snapshot</h2>
+            <ActionForm action={simpanSnapshotDelima} submitLabel="Simpan snapshot sekarang">
+              <span className="sr-only">Simpan snapshot DELIMa sekarang</span>
+            </ActionForm>
+          </div>
+          <p className="mt-1 text-sm text-graphite">
+            Disimpan automatik setiap hari untuk tempoh data semasa (satu baris setiap bulan sumber).
+            Carta trend DELIMa memakai snapshot ini.
+          </p>
+          <div className="card mt-3 divide-y divide-fog">
+            {sejarah.rows.length === 0 ? (
+              <p className="px-4 py-6 text-center text-sm text-graphite">Belum ada snapshot.</p>
+            ) : (
+              sejarah.rows.map((r) => (
+                <div key={r.id} className="flex flex-wrap items-center gap-x-6 gap-y-1 px-4 py-3 text-sm">
+                  <div className="w-40 shrink-0">
+                    <p className="font-medium">{periodLabel(r.period)}</p>
+                    <p className="text-xs text-graphite">{r.tempoh}</p>
+                  </div>
+                  <p className="tabular-nums">
+                    Guru {r.guruPct}% <span className="text-xs text-graphite">({r.guruAktif}/{r.guruJumlah})</span>
+                  </p>
+                  <p className="tabular-nums">
+                    Murid {r.muridPct}% <span className="text-xs text-graphite">({r.muridAktif}/{r.muridJumlah})</span>
+                  </p>
+                  <p className="tabular-nums text-graphite">{r.bilSekolah ?? "—"} sekolah</p>
+                  <p className="flex-1 text-xs text-graphite">Disimpan {r.capturedOn}</p>
+                  <DeleteButton
+                    action={padamSnapshotDelima.bind(null, r.id)}
+                    confirmText={`Padam snapshot ${periodLabel(r.period)}?`}
+                  />
+                </div>
+              ))
+            )}
+          </div>
+          {sejarah.pageCount > 1 ? (
+            <nav className="mt-3 flex items-center justify-between text-sm" aria-label="Halaman sejarah">
+              <p className="text-xs text-graphite">
+                {sejarah.total} snapshot · halaman {sejarah.page} / {sejarah.pageCount}
+              </p>
+              <div className="flex gap-2">
+                {sejarah.page > 1 ? (
+                  <Link
+                    href={`/admin/analisis?modul=delima&hal=${sejarah.page - 1}`}
+                    className="btn-outline btn-sm"
+                  >
+                    ← Sebelum
+                  </Link>
+                ) : null}
+                {sejarah.page < sejarah.pageCount ? (
+                  <Link
+                    href={`/admin/analisis?modul=delima&hal=${sejarah.page + 1}`}
+                    className="btn-outline btn-sm"
+                  >
+                    Seterusnya →
+                  </Link>
+                ) : null}
+              </div>
+            </nav>
+          ) : null}
+        </section>
+      ) : null}
+
       {/* ---------- Metrik KV ---------- */}
       <section className="mt-6">
         <h2 className="text-lg font-semibold">Metrik (kunci → nilai)</h2>
@@ -168,73 +232,8 @@ export default async function AdminAnalisisPage({
         </div>
       </section>
 
-      {/* ---------- Siri bulanan ---------- */}
-      <section className="mt-8">
-        <h2 className="text-lg font-semibold">Siri Bulanan (guru % / murid %)</h2>
-        <div className="card mt-3 divide-y divide-fog">
-          {monthly.map((r) => (
-            <div key={r.id} className="flex flex-wrap items-center gap-2 px-4 py-2">
-              <ActionForm action={saveMonthly} className="flex flex-1 flex-wrap items-center gap-2">
-                <input type="hidden" name="modul" value={modul} />
-                <input type="hidden" name="id" value={r.id} />
-                <input name="monthLabel" defaultValue={r.monthLabel} className="input w-20" />
-                <input
-                  name="guruPct"
-                  defaultValue={r.guruPct ?? ""}
-                  className="input w-24"
-                  placeholder="guru %"
-                />
-                <input
-                  name="muridPct"
-                  defaultValue={r.muridPct ?? ""}
-                  className="input w-24"
-                  placeholder="murid %"
-                />
-                <input
-                  name="chartLabel"
-                  defaultValue={r.chartLabel}
-                  className="input w-28"
-                  placeholder="label carta"
-                />
-                <input
-                  name="sort"
-                  type="number"
-                  defaultValue={r.sort}
-                  className="input w-20"
-                  title="Susunan"
-                />
-                <label className="flex items-center gap-1 text-xs text-graphite">
-                  <input type="checkbox" name="includeChart" defaultChecked={r.includeChart} />
-                  carta
-                </label>
-              </ActionForm>
-              <DeleteButton
-                action={deleteMonthly.bind(null, r.id)}
-                confirmText={`Padam baris "${r.monthLabel}"?`}
-              />
-            </div>
-          ))}
-          <div className="px-4 py-3">
-            <ActionForm
-              action={saveMonthly}
-              submitLabel="Tambah"
-              className="flex flex-wrap items-center gap-2"
-            >
-              <input type="hidden" name="modul" value={modul} />
-              <input name="monthLabel" placeholder="Bulan (cth. Jan)" className="input w-28" required />
-              <input name="guruPct" placeholder="guru %" className="input w-24" />
-              <input name="muridPct" placeholder="murid %" className="input w-24" />
-              <input name="sort" type="number" placeholder="susunan" className="input w-24" />
-              <label className="flex items-center gap-1 text-xs text-graphite">
-                <input type="checkbox" name="includeChart" defaultChecked />
-                carta
-              </label>
-            </ActionForm>
-          </div>
-        </div>
-      </section>
-
       {/* ---------- Pecahan kategori ---------- */}
+      {modul !== "delima" ? (
       <section className="mt-8">
         <h2 className="text-lg font-semibold">Pecahan Kategori (lokasi / sekolah)</h2>
         <div className="card mt-3 divide-y divide-fog">
@@ -269,6 +268,7 @@ export default async function AdminAnalisisPage({
           </div>
         </div>
       </section>
+      ) : null}
         </>
       )}
     </>

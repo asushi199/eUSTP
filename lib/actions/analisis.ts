@@ -4,7 +4,9 @@ import { revalidatePath } from "next/cache";
 import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { analisisBreakdown, analisisMetrics, analisisModul, analisisMonthly } from "@/lib/schema";
+import { analisisBreakdown, analisisMetrics, analisisModul } from "@/lib/schema";
+import { getDelimaConfig } from "@/lib/analisis/queries";
+import { captureDelimaSnapshot, deleteDelimaSnapshot } from "@/lib/analisis/delima-snapshot";
 import { requireKandunganAccess } from "@/lib/rbac";
 
 const modulSchema = z.enum(analisisModul.enumValues);
@@ -47,35 +49,22 @@ export async function deleteMetric(id: number): Promise<{ ok: boolean }> {
   return { ok: true };
 }
 
-/* ---------- Siri bulanan ---------- */
+/* ---------- Snapshot DELIMa ---------- */
 
-export async function saveMonthly(formData: FormData): Promise<{ ok: boolean; error?: string }> {
+export async function simpanSnapshotDelima(): Promise<{ ok: boolean; error?: string }> {
   await requireKandunganAccess();
-  const modul = modulSchema.safeParse(formData.get("modul"));
-  const monthLabel = String(formData.get("monthLabel") ?? "").trim();
-  if (!modul.success || !monthLabel) return { ok: false, error: "Input tidak sah" };
-  const values = {
-    modul: modul.data,
-    monthLabel,
-    chartLabel: String(formData.get("chartLabel") ?? "").trim(),
-    guruPct: numOrNull(formData.get("guruPct")),
-    muridPct: numOrNull(formData.get("muridPct")),
-    includeChart: formData.get("includeChart") === "on",
-    sort: numOrNull(formData.get("sort")) ?? 0,
-  };
-  const idRaw = String(formData.get("id") ?? "").trim();
-  if (idRaw) {
-    await db.update(analisisMonthly).set(values).where(eq(analisisMonthly.id, Number(idRaw)));
-  } else {
-    await db.insert(analisisMonthly).values(values);
-  }
+  const cfg = await getDelimaConfig();
+  const r = await captureDelimaSnapshot(cfg.url, cfg.daerah);
+  if (!r.ok) return { ok: false, error: r.error };
+  revalidatePath("/");
   revalidateAnalisis();
   return { ok: true };
 }
 
-export async function deleteMonthly(id: number): Promise<{ ok: boolean }> {
+export async function padamSnapshotDelima(id: number): Promise<{ ok: boolean }> {
   await requireKandunganAccess();
-  await db.delete(analisisMonthly).where(eq(analisisMonthly.id, id));
+  await deleteDelimaSnapshot(id);
+  revalidatePath("/");
   revalidateAnalisis();
   return { ok: true };
 }

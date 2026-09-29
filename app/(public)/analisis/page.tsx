@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import {
   getAnalisisData,
+  delimaTrendPoints,
   metricNum,
   metricText,
 } from "@/lib/analisis/queries";
 import { getPerkhidmatanAnalisis, emptyPerkhidmatanAnalisis } from "@/lib/analisis/perkhidmatan";
 import { getOptikPublicView, optikKpiGroupStats, optikKpiReferenceLines, applySchoolDirectoryNames } from "@/lib/analisis/optik-queries";
 import OptikExplore from "@/components/analisis/OptikExplore";
+import { delimaTaburan } from "@/lib/analisis/delima-live";
 import DelimaExplore from "@/components/analisis/DelimaExplore";
 import AnalisisKpiTiles from "@/components/analisis/AnalisisKpiTiles";
 import AnalisisTahunSelect from "@/components/analisis/AnalisisTahunSelect";
@@ -127,19 +129,13 @@ export default async function AnalisisPage({
   /* ---------- DELIMa ---------- */
   const kpiGuru = metricNum(delima.metrics, "kpi_guru");
   const live = delima.live;
-  const delimaPoints = delima.monthly
-    .filter((r) => r.includeChart)
-    .map((r) => ({ bulan: r.chartLabel || r.monthLabel, guru: r.guruPct, murid: r.muridPct }));
+  const delimaPoints = delimaTrendPoints(delima);
+  const delimaBars = delimaTaburan(delima.liveSchools);
   const delimaGroups = [
     {
-      title: "Capaian & Khidmat Bantu",
+      title: "Capaian",
       stats: [
         { label: "Bil. Sekolah", value: bil(metricNum(delima.metrics, "bil_sekolah", "schools")) },
-        { label: "Khidmat Bantu (kali)", value: bil(metricNum(delima.metrics, "khidmat_bantu_kali")) },
-        {
-          label: "Khidmat Bantu (sekolah)",
-          value: bil(metricNum(delima.metrics, "khidmat_bantu_sekolah")),
-        },
       ],
     },
     {
@@ -294,6 +290,13 @@ export default async function AnalisisPage({
         <div className="mt-4">
           <DelimaTrendChart data={delimaPoints} kpiGuru={kpiGuru} />
         </div>
+        {delimaBars.length > 0 ? (
+          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            {delimaBars.map((b) => (
+              <BreakdownBarChart key={b.title} title={b.title} data={b.data} seriesName={b.seriesName} />
+            ))}
+          </div>
+        ) : null}
         <SourceLink url={metricText(delima.metrics, "source_url")} label="Buka sumber DELIMa" />
         </DelimaExplore>
         ) : (
@@ -304,6 +307,13 @@ export default async function AnalisisPage({
         <div className="mt-4">
           <DelimaTrendChart data={delimaPoints} kpiGuru={kpiGuru} />
         </div>
+        {delimaBars.length > 0 ? (
+          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            {delimaBars.map((b) => (
+              <BreakdownBarChart key={b.title} title={b.title} data={b.data} seriesName={b.seriesName} />
+            ))}
+          </div>
+        ) : null}
         <SourceLink url={metricText(delima.metrics, "source_url")} label="Buka sumber DELIMa" />
           </>
         )}
