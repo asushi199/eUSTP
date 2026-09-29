@@ -41,7 +41,7 @@ function PopCell({ pop }: { pop: DelimaSchoolPop | null }) {
 }
 
 type Kumpulan = "guru" | "murid";
-type Sort = "nama" | "peratus";
+type Sort = "kod" | "nama" | "peratus";
 type Tahap = "all" | "Tinggi" | "Sederhana" | "Rendah";
 
 function SchoolTable({
@@ -53,7 +53,7 @@ function SchoolTable({
 }) {
   const [query, setQuery] = useState("");
   const [tahap, setTahap] = useState<Tahap>("all");
-  const [sort, setSort] = useState<Sort>("nama");
+  const [sort, setSort] = useState<Sort>("kod");
   const [kump, setKump] = useState<Kumpulan>("guru");
 
   const filtered = useMemo(() => {
@@ -62,7 +62,8 @@ function SchoolTable({
       if (tahap !== "all" && r[kump]?.tahap !== tahap) return false;
       return !q || `${r.kod} ${r.nama}`.toLowerCase().includes(q);
     });
-    if (sort === "nama") return rows;
+    if (sort === "kod") return rows;
+    if (sort === "nama") return [...rows].sort((a, b) => a.nama.localeCompare(b.nama, "ms"));
     return [...rows].sort((a, b) => (a[kump]?.peratus ?? -1) - (b[kump]?.peratus ?? -1));
   }, [kump, query, schools, sort, tahap]);
 
@@ -124,6 +125,7 @@ function SchoolTable({
             value={sort}
             onChange={(e) => setSort(e.target.value as Sort)}
           >
+            <option value="kod">Kod sekolah</option>
             <option value="nama">Nama</option>
             <option value="peratus">% aktif (rendah → tinggi)</option>
           </select>

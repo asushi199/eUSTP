@@ -229,7 +229,7 @@ export async function fetchDelimaSchools(
       if (ada) ada.murid = pop(b);
       else peta.set(b.id, { kod: b.id.toUpperCase(), nama: b.nama, guru: null, murid: pop(b) });
     }
-    const schools = [...peta.values()].sort((a, b) => a.nama.localeCompare(b.nama, "ms"));
+    const schools = [...peta.values()].sort((a, b) => a.kod.localeCompare(b.kod, "en", { numeric: true }));
     return { schools, tempoh: guru.tempoh || murid.tempoh, daerah: s.daerah };
   } catch {
     return null;
