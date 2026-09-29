@@ -256,7 +256,7 @@ export default function HomeAnalisisBand({
                 aria-labelledby="analisis-modal-title"
                 className={`relative z-[71] max-h-[88vh] w-full overflow-y-auto rounded-t-2xl bg-white p-5 shadow-modal sm:rounded-2xl sm:p-6 ${
                   (openId === "optik" && optikLayer !== "overview") ||
-                  (openId === "delima" && delimaLayer !== "overview")
+                  openId === "delima"
                     ? "max-w-4xl"
                     : "max-w-2xl"
                 }`}

@@ -10,6 +10,7 @@ import { getOptikPublicView, optikKpiGroupStats, optikKpiReferenceLines, applySc
 import OptikExplore from "@/components/analisis/OptikExplore";
 import { delimaTaburan } from "@/lib/analisis/delima-live";
 import DelimaExplore from "@/components/analisis/DelimaExplore";
+import { capaianStats } from "@/lib/analisis/summary";
 import AnalisisKpiTiles from "@/components/analisis/AnalisisKpiTiles";
 import AnalisisTahunSelect from "@/components/analisis/AnalisisTahunSelect";
 import KpiGroups from "@/components/analisis/KpiGroups";
@@ -133,10 +134,9 @@ export default async function AnalisisPage({
   const delimaBars = delimaTaburan(delima.liveSchools);
   const delimaGroups = [
     {
-      title: "Capaian",
-      stats: [
-        { label: "Bil. Sekolah", value: bil(metricNum(delima.metrics, "bil_sekolah", "schools")) },
-      ],
+      title: "Capaian Sekolah",
+      wide: true,
+      stats: capaianStats(delima.capaiSekolah, metricNum(delima.metrics, "bil_sekolah", "schools")),
     },
     {
       title: "Guru",
@@ -166,12 +166,11 @@ export default async function AnalisisPage({
       ? [
           {
             title: `Jumlah Aktif Murid · DELIMa 2.0 + 3.0 · Sasaran ${live.kadMurid.sasaran ?? "—"}%`,
-            wide: true,
             stats: [
               { label: live.kadMurid.capai ? "Capai" : "Belum capai", value: pct(live.kadMurid.peratus) },
               {
-                label: "Bil. aktif",
-                value: `${bil(live.kadMurid.aktif)} / ${bil(live.kadMurid.jumlah)}`,
+                label: `aktif daripada ${bil(live.kadMurid.jumlah)}`,
+                value: bil(live.kadMurid.aktif),
               },
             ],
           },

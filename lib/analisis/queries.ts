@@ -6,7 +6,7 @@ import { analisisBreakdown, analisisMetrics } from "@/lib/schema";
 import type { analisisModul } from "@/lib/schema";
 import { after } from "next/server";
 import { fetchDelimaLive, fetchDelimaSchools, type DelimaLive, type DelimaSchoolList } from "./delima-live";
-import { ensureDelimaSnapshot, getDelimaSnapshotTrend } from "./delima-snapshot";
+import { ensureDelimaSnapshot, getDelimaCapaiTerkini, getDelimaSnapshotTrend } from "./delima-snapshot";
 
 export type AnalisisModul = (typeof analisisModul.enumValues)[number];
 
@@ -21,6 +21,11 @@ export type AnalisisData = {
   liveSchools?: DelimaSchoolList | null;
   /** Titik trend daripada snapshot bulanan (modul `delima`); kosong jika belum ada. */
   snapshotTrend?: { bulan: string; guru: number; murid: number }[];
+  /**
+   * Sekolah yang capai sasaran: guru = guru DELIMa 2.0 ≥ sasaran KPI guru (dikira langsung);
+   * murid = kad "Aktif Murid" sekolah capai (daripada snapshot). null jika belum ada.
+   */
+  capaiSekolah?: { guru: number | null; murid: number | null; jumlah: number | null } | null;
   metrics: MetricMap;
   breakdown: BreakdownRow[];
 };
@@ -58,6 +63,7 @@ export async function getAnalisisData(modul: AnalisisModul): Promise<AnalisisDat
   let live: DelimaLive | null = null;
   let liveSchools: DelimaSchoolList | null = null;
   let snapshotTrend: { bulan: string; guru: number; murid: number }[] = [];
+  let capaiSekolah: AnalisisData["capaiSekolah"] = null;
   if (modul === "delima") {
     const cfg = delimaConfigDariMetrics(metrics);
     [live, liveSchools] = await Promise.all([
@@ -70,18 +76,33 @@ export async function getAnalisisData(modul: AnalisisModul): Promise<AnalisisDat
       const s = liveSchools;
       try {
         // Snapshot bulanan automatik: dicipta selepas respons dihantar jika tempoh ini belum ada.
-        after(() => ensureDelimaSnapshot(l, s).catch((e) => console.error("[delima-snapshot]", e)));
+        after(() =>
+          ensureDelimaSnapshot(l, s, cfg.url, cfg.daerah).catch((e) =>
+            console.error("[delima-snapshot]", e),
+          ),
+        );
       } catch {
         /* di luar skop permintaan (cth. build) — cron akan menyimpan */
       }
     }
     snapshotTrend = await getDelimaSnapshotTrend().catch(() => []);
+    const snapCapai = await getDelimaCapaiTerkini().catch(() => null);
+    const kpiGuru = Number(metrics.get("kpi_guru")?.replace(",", "."));
+    const guruCapai =
+      liveSchools && Number.isFinite(kpiGuru) && kpiGuru > 0
+        ? liveSchools.schools.filter((r) => (r.guru?.peratus ?? -1) >= kpiGuru).length
+        : null;
+    const jumlahSekolah = liveSchools?.schools.length ?? snapCapai?.jumlah ?? null;
+    if (guruCapai != null || snapCapai) {
+      capaiSekolah = { guru: guruCapai, murid: snapCapai?.capai ?? null, jumlah: jumlahSekolah };
+    }
   }
 
   return {
     live,
     liveSchools,
     snapshotTrend,
+    capaiSekolah,
     metrics,
     breakdown: breakdownRows.map((r) => ({ kind: r.kind, label: r.label, value: r.value })),
   };

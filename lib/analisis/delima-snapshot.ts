@@ -5,6 +5,7 @@ import { formatInTimeZone } from "date-fns-tz";
 import { db } from "@/lib/db";
 import { analisisDelimaSchools, analisisDelimaSnapshots } from "@/lib/schema";
 import {
+  fetchDelimaCapai,
   fetchDelimaLive,
   fetchDelimaSchools,
   type DelimaLive,
@@ -50,6 +51,7 @@ export type DelimaSnapshotRow = {
   kadPct: number | null;
   kadSasaran: number | null;
   bilSekolah: number | null;
+  bilCapai: number | null;
 };
 
 export type DelimaSnapshotPage = {
@@ -77,6 +79,7 @@ const dbPop = (
 export async function saveDelimaSnapshot(
   live: DelimaLive,
   senarai: DelimaSchoolList | null,
+  bilCapai: number | null = null,
 ): Promise<{ id: number; period: string; created: boolean } | null> {
   const today = formatInTimeZone(new Date(), "Asia/Kuala_Lumpur", "yyyy-MM-dd");
   const period = periodDariTempoh(live.tempoh) ?? today.slice(0, 7);
@@ -97,6 +100,7 @@ export async function saveDelimaSnapshot(
     kadPct: live.kadMurid?.peratus ?? null,
     kadSasaran: live.kadMurid?.sasaran ?? null,
     bilSekolah: live.bilSekolah,
+    bilCapai,
   };
 
   return db.transaction(async (tx) => {
@@ -154,7 +158,14 @@ export async function captureDelimaSnapshot(
     fetchDelimaSchools(sumberUrl, daerah),
   ]);
   if (!live) return { ok: false, error: "Sumber DELIMa tidak dapat dicapai." };
-  const saved = await saveDelimaSnapshot(live, senarai);
+  const bilCapai = senarai
+    ? await fetchDelimaCapai(
+        senarai.schools.map((s) => s.kod),
+        sumberUrl,
+        daerah,
+      )
+    : null;
+  const saved = await saveDelimaSnapshot(live, senarai, bilCapai);
   if (!saved) return { ok: false, error: "Snapshot gagal disimpan." };
   return { ok: true, period: saved.period, created: saved.created };
 }
@@ -163,17 +174,37 @@ export async function captureDelimaSnapshot(
 export async function ensureDelimaSnapshot(
   live: DelimaLive,
   senarai: DelimaSchoolList | null,
+  sumberUrl?: string,
+  daerah?: string,
 ): Promise<void> {
   const period = periodDariTempoh(live.tempoh);
   if (period) {
     const ada = await db
-      .select({ id: analisisDelimaSnapshots.id })
+      .select({ id: analisisDelimaSnapshots.id, bilCapai: analisisDelimaSnapshots.bilCapai })
       .from(analisisDelimaSnapshots)
       .where(eq(analisisDelimaSnapshots.period, period))
       .limit(1);
-    if (ada[0]) return;
+    // Sudah ada dan bilangan sekolah capai sudah dikira: tiada apa perlu dibuat.
+    if (ada[0] && ada[0].bilCapai != null) return;
   }
-  await saveDelimaSnapshot(live, senarai);
+  const bilCapai = senarai
+    ? await fetchDelimaCapai(
+        senarai.schools.map((s) => s.kod),
+        sumberUrl,
+        daerah,
+      )
+    : null;
+  await saveDelimaSnapshot(live, senarai, bilCapai);
+}
+
+/** Sekolah capai sasaran kad "Aktif Murid" daripada snapshot terbaharu (null jika belum dikira). */
+export async function getDelimaCapaiTerkini(): Promise<{ capai: number; jumlah: number } | null> {
+  const [r] = await db
+    .select({ capai: analisisDelimaSnapshots.bilCapai, jumlah: analisisDelimaSnapshots.bilSekolah })
+    .from(analisisDelimaSnapshots)
+    .orderBy(desc(analisisDelimaSnapshots.period))
+    .limit(1);
+  return r && r.capai != null && r.jumlah != null ? { capai: r.capai, jumlah: r.jumlah } : null;
 }
 
 /** Sejarah snapshot, terbaharu dahulu, berhalaman. */
@@ -200,6 +231,7 @@ export async function listDelimaSnapshots(
       kadPct: analisisDelimaSnapshots.kadPct,
       kadSasaran: analisisDelimaSnapshots.kadSasaran,
       bilSekolah: analisisDelimaSnapshots.bilSekolah,
+      bilCapai: analisisDelimaSnapshots.bilCapai,
     })
     .from(analisisDelimaSnapshots)
     .orderBy(desc(analisisDelimaSnapshots.period))

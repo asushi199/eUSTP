@@ -550,6 +550,8 @@ export const analisisDelimaSnapshots = pgTable(
     kadPct: doublePrecision("kad_pct"),
     kadSasaran: doublePrecision("kad_sasaran"),
     bilSekolah: integer("bil_sekolah"),
+    /** Bilangan sekolah yang capai sasaran kad "Aktif Murid" (null jika belum dikira). */
+    bilCapai: integer("bil_capai"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },

@@ -338,7 +338,7 @@ function HistoryTable({
               <th className="px-4 py-3">Bulan</th>
               <th className="px-4 py-3">Guru aktif</th>
               <th className="px-4 py-3">Murid aktif</th>
-              <th className="px-4 py-3 text-right">Sekolah</th>
+              <th className="px-4 py-3 text-right">Sekolah capai</th>
               <th className="px-4 py-3">Disimpan</th>
             </tr>
           </thead>
@@ -367,7 +367,9 @@ function HistoryTable({
                     {num(r.muridAktif)}/{num(r.muridJumlah)}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-right tabular-nums">{r.bilSekolah ?? "—"}</td>
+                <td className="px-4 py-3 text-right tabular-nums">
+                  {r.bilCapai != null ? `${r.bilCapai} / ${r.bilSekolah ?? "—"}` : "—"}
+                </td>
                 <td className="whitespace-nowrap px-4 py-3 text-xs text-graphite">{r.capturedOn}</td>
               </tr>
             ))}

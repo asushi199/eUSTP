@@ -1,0 +1,1 @@
+ALTER TABLE "analisis_delima_snapshots" ADD COLUMN "bil_capai" integer;

@@ -46,20 +46,31 @@ const SM_COLS: Record<number, string> = {
 export default function KpiGroups({ groups }: { groups: KpiGroup[] }) {
   const shown = groups.filter((g) => g.stats.some((s) => s.value !== ""));
   if (shown.length === 0) return null;
-  const narrow = shown.filter((g) => !g.wide);
-  const wide = shown.filter((g) => g.wide);
+
+  // Ikut susunan: kumpulan `wide` ambil satu baris penuh; kumpulan biasa berturutan berkongsi satu baris.
+  const rows: { wide: boolean; groups: KpiGroup[] }[] = [];
+  for (const g of shown) {
+    const last = rows[rows.length - 1];
+    if (!g.wide && last && !last.wide) last.groups.push(g);
+    else rows.push({ wide: !!g.wide, groups: [g] });
+  }
+
   return (
     <div className="space-y-3">
-      {narrow.length > 0 ? (
-        <div className={`grid gap-3 ${SM_COLS[narrow.length] ?? "sm:grid-cols-4"}`}>
-          {narrow.map((g) => (
-            <GroupCard key={g.title} {...g} />
-          ))}
-        </div>
-      ) : null}
-      {wide.map((g) => (
-        <GroupCard key={g.title} {...g} />
-      ))}
+      {rows.map((row) =>
+        row.wide ? (
+          <GroupCard key={row.groups[0].title} {...row.groups[0]} />
+        ) : (
+          <div
+            key={row.groups.map((g) => g.title).join("|")}
+            className={`grid gap-3 ${SM_COLS[row.groups.length] ?? "sm:grid-cols-4"}`}
+          >
+            {row.groups.map((g) => (
+              <GroupCard key={g.title} {...g} />
+            ))}
+          </div>
+        ),
+      )}
     </div>
   );
 }

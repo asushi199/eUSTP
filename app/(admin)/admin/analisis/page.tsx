@@ -162,7 +162,11 @@ export default async function AdminAnalisisPage({
                   <p className="tabular-nums">
                     Murid {r.muridPct}% <span className="text-xs text-graphite">({r.muridAktif}/{r.muridJumlah})</span>
                   </p>
-                  <p className="tabular-nums text-graphite">{r.bilSekolah ?? "—"} sekolah</p>
+                  <p className="tabular-nums text-graphite">
+                    {r.bilCapai != null
+                      ? `${r.bilCapai} / ${r.bilSekolah ?? "—"} sekolah capai`
+                      : `${r.bilSekolah ?? "—"} sekolah`}
+                  </p>
                   <p className="flex-1 text-xs text-graphite">Disimpan {r.capturedOn}</p>
                   <DeleteButton
                     action={padamSnapshotDelima.bind(null, r.id)}

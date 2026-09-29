@@ -63,6 +63,21 @@ export type AnalisisHomeModule = {
   note?: string;
 };
 
+/** Kumpulan "Capaian Sekolah": sekolah capai sasaran guru / murid (xx / jumlah). */
+export function capaianStats(
+  c: { guru: number | null; murid: number | null; jumlah: number | null } | null | undefined,
+  bilSekolah: number | null,
+): { label: string; value: string }[] {
+  const jumlah = c?.jumlah ?? bilSekolah;
+  const par = (n: number | null | undefined) =>
+    n == null || jumlah == null ? "" : `${bil(n)} / ${bil(jumlah)}`;
+  const stats = [
+    { label: "Capaian Guru", value: par(c?.guru) },
+    { label: "Capaian Murid", value: par(c?.murid) },
+  ].filter((s) => s.value !== "");
+  return stats.length > 0 ? stats : [{ label: "Bil. Sekolah", value: bil(bilSekolah) }];
+}
+
 function pct(n: number | null): string {
   return n == null ? "" : `${n.toLocaleString("ms-MY")}%`;
 }
@@ -103,10 +118,9 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
     ],
     tileGroups: [
       {
-        title: "Capaian",
-        stats: [
-          { label: "Bil. Sekolah", value: bil(metricNum(delima.metrics, "bil_sekolah", "schools")) },
-        ],
+        title: "Capaian Sekolah",
+        wide: true,
+        stats: capaianStats(delima.capaiSekolah, metricNum(delima.metrics, "bil_sekolah", "schools")),
       },
       {
         title: "Guru",
@@ -126,15 +140,14 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
         ? [
             {
               title: `Jumlah Aktif Murid · DELIMa 2.0 + 3.0 · Sasaran ${live.kadMurid.sasaran ?? "—"}%`,
-            wide: true,
               stats: [
                 {
                   label: live.kadMurid.capai ? "Capai" : "Belum capai",
                   value: pct(live.kadMurid.peratus),
                 },
                 {
-                  label: "Bil. aktif",
-                  value: `${bil(live.kadMurid.aktif)} / ${bil(live.kadMurid.jumlah)}`,
+                  label: `aktif daripada ${bil(live.kadMurid.jumlah)}`,
+                  value: bil(live.kadMurid.aktif),
                 },
               ],
             },
