@@ -277,11 +277,6 @@ export default async function AnalisisPage({
       {/* ---------- DELIMa ---------- */}
       <section id="delima" className="mt-10 scroll-mt-28">
         <h2 className="text-xl font-semibold">DELIMa</h2>
-        {metricText(delima.metrics, "intro") ? (
-          <p className="mt-1 max-w-2xl text-sm leading-relaxed text-graphite">
-            {metricText(delima.metrics, "intro")}
-          </p>
-        ) : null}
         {live ? (
         <DelimaExplore>
         <div className="mt-4">
@@ -297,7 +292,6 @@ export default async function AnalisisPage({
             ))}
           </div>
         ) : null}
-        <SourceLink url={metricText(delima.metrics, "source_url")} label="Buka sumber DELIMa" />
         </DelimaExplore>
         ) : (
           <>
@@ -314,7 +308,6 @@ export default async function AnalisisPage({
             ))}
           </div>
         ) : null}
-        <SourceLink url={metricText(delima.metrics, "source_url")} label="Buka sumber DELIMa" />
           </>
         )}
       </section>
