@@ -1,7 +1,7 @@
 /** Petak KPI dikumpul ikut kategori — dipakai bila statistik modul jelas berkumpulan (cth. DELIMa: guru/murid, OPTIK: status/sasaran). */
 
 export type KpiStat = { label: string; value: string };
-export type KpiGroup = { title: string; stats: KpiStat[]; align?: "left" | "center" };
+export type KpiGroup = { title: string; stats: KpiStat[]; align?: "left" | "center"; wide?: boolean };
 
 function StatCell({ label, value, align }: KpiStat & { align: "left" | "center" }) {
   if (value === "") return null;
@@ -46,9 +46,18 @@ const SM_COLS: Record<number, string> = {
 export default function KpiGroups({ groups }: { groups: KpiGroup[] }) {
   const shown = groups.filter((g) => g.stats.some((s) => s.value !== ""));
   if (shown.length === 0) return null;
+  const narrow = shown.filter((g) => !g.wide);
+  const wide = shown.filter((g) => g.wide);
   return (
-    <div className={`grid gap-3 ${SM_COLS[shown.length] ?? "sm:grid-cols-4"}`}>
-      {shown.map((g) => (
+    <div className="space-y-3">
+      {narrow.length > 0 ? (
+        <div className={`grid gap-3 ${SM_COLS[narrow.length] ?? "sm:grid-cols-4"}`}>
+          {narrow.map((g) => (
+            <GroupCard key={g.title} {...g} />
+          ))}
+        </div>
+      ) : null}
+      {wide.map((g) => (
         <GroupCard key={g.title} {...g} />
       ))}
     </div>

@@ -14,6 +14,11 @@ import {
 import ActionForm from "@/components/admin/ActionForm";
 import DeleteButton from "@/components/admin/DeleteButton";
 import OptikAdminPanel from "@/components/admin/OptikAdminPanel";
+import {
+  DELIMA_LIVE_DEFAULT_DAERAH,
+  DELIMA_LIVE_DEFAULT_URL,
+  fetchDelimaLive,
+} from "@/lib/analisis/delima-live";
 import { formatInTimeZone } from "date-fns-tz";
 
 export const dynamic = "force-dynamic";
@@ -58,6 +63,9 @@ export default async function AdminAnalisisPage({
 
   const today = formatInTimeZone(new Date(), "Asia/Kuala_Lumpur", "yyyy-MM-dd");
   const optikMetrics = new Map(metrics.map((m) => [m.key.toLowerCase(), m.value]));
+  const liveUrl = optikMetrics.get("delima_live_url")?.trim() || DELIMA_LIVE_DEFAULT_URL;
+  const liveDaerah = optikMetrics.get("delima_daerah")?.trim() || DELIMA_LIVE_DEFAULT_DAERAH;
+  const live = modul === "delima" ? await fetchDelimaLive(liveUrl, liveDaerah) : null;
 
   return (
     <>
@@ -90,6 +98,44 @@ export default async function AdminAnalisisPage({
         <OptikAdminPanel metrics={optikMetrics} today={today} />
       ) : (
         <>
+      {modul === "delima" ? (
+        <section className="mt-6">
+          <h2 className="text-lg font-semibold">Sumber Data Langsung</h2>
+          <p className="mt-1 text-sm text-graphite">
+            Peratus guru/murid aktif dan bilangan sekolah dibaca terus daripada papan pemuka DELIMa
+            Perak (dikemas kini automatik setiap jam). Tukar pautan atau daerah di bawah jika perlu.
+          </p>
+          <div className="card mt-3 space-y-3 px-4 py-3">
+            {(
+              [
+                ["delima_live_url", "Pautan papan pemuka", liveUrl],
+                ["delima_daerah", "Slug daerah (cth. manjung)", liveDaerah],
+              ] as const
+            ).map(([key, label, value]) => (
+              <ActionForm key={key} action={saveMetric} className="flex flex-wrap items-center gap-2">
+                <input type="hidden" name="modul" value={modul} />
+                <input type="hidden" name="key" value={key} />
+                <span className="w-56 shrink-0 text-sm">{label}</span>
+                <input name="value" defaultValue={value} className="input max-w-xl flex-1" />
+              </ActionForm>
+            ))}
+            <p className="text-sm">
+              Status:{" "}
+              {live ? (
+                <span className="font-semibold">
+                  Berjaya — Guru {live.guru.peratus}% ({live.guru.aktif.toLocaleString("ms-MY")}/
+                  {live.guru.jumlah.toLocaleString("ms-MY")}), Murid {live.murid.peratus}% ·{" "}
+                  {live.tempoh}
+                </span>
+              ) : (
+                <span className="font-semibold text-bloom-deep">
+                  Gagal dicapai — paparan awam guna data pangkalan data (metrik di bawah).
+                </span>
+              )}
+            </p>
+          </div>
+        </section>
+      ) : null}
       {/* ---------- Metrik KV ---------- */}
       <section className="mt-6">
         <h2 className="text-lg font-semibold">Metrik (kunci → nilai)</h2>

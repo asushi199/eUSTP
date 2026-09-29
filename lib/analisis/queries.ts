@@ -4,6 +4,7 @@ import { asc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { analisisBreakdown, analisisMetrics, analisisMonthly } from "@/lib/schema";
 import type { analisisModul } from "@/lib/schema";
+import { fetchDelimaLive, type DelimaLive } from "./delima-live";
 
 export type AnalisisModul = (typeof analisisModul.enumValues)[number];
 
@@ -20,6 +21,8 @@ export type MonthlyRow = {
 export type BreakdownRow = { kind: string; label: string; value: number };
 
 export type AnalisisData = {
+  /** Data DELIMa langsung (hanya modul `delima`, jika sumber dapat dicapai). */
+  live?: DelimaLive | null;
   metrics: MetricMap;
   monthly: MonthlyRow[];
   breakdown: BreakdownRow[];
@@ -42,8 +45,20 @@ export async function getAnalisisData(modul: AnalisisModul): Promise<AnalisisDat
     .where(eq(analisisBreakdown.modul, modul))
     .orderBy(asc(analisisBreakdown.sort));
 
+  const metrics: MetricMap = new Map(metricRows.map((r) => [r.key.toLowerCase(), r.value]));
+
+  let live: DelimaLive | null = null;
+  if (modul === "delima") {
+    live = await fetchDelimaLive(
+      metrics.get("delima_live_url")?.trim() || undefined,
+      metrics.get("delima_daerah")?.trim() || undefined,
+    );
+    if (live?.bilSekolah != null) metrics.set("bil_sekolah", String(live.bilSekolah));
+  }
+
   return {
-    metrics: new Map(metricRows.map((r) => [r.key.toLowerCase(), r.value])),
+    live,
+    metrics,
     monthly: monthlyRows.map((r) => ({
       monthLabel: r.monthLabel,
       chartLabel: r.chartLabel,
