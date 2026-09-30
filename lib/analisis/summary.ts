@@ -86,6 +86,8 @@ export type HomeBengkelProgram = {
   program: string;
   value: string;
   unit: string;
+  /** Jumlah peruntukan, cth. "RM2,500.00". */
+  peruntukan?: string;
 };
 
 /** Kumpulan "Capaian Sekolah": sekolah capai sasaran guru / murid (xx / jumlah). */

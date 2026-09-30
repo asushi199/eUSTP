@@ -82,12 +82,15 @@ function AnalisisModuleBody({
                 {item.detail ? (
                   <p className="mt-1 text-xs leading-relaxed text-graphite">{item.detail}</p>
                 ) : null}
+                {item.meta ? (
+                  <p className="mt-1.5 text-xs font-semibold text-ink">{item.meta}</p>
+                ) : null}
               </div>
               <div className="shrink-0 text-right">
                 <p className="whitespace-nowrap text-xl font-semibold tabular-nums tracking-tight text-ink sm:text-2xl">
                   {item.value}
                 </p>
-                <p className="mt-0.5 whitespace-nowrap text-[11px] leading-snug text-graphite">{item.unit}</p>
+                <p className="mt-0.5 whitespace-pre-line text-[11px] leading-snug text-graphite">{item.unit}</p>
               </div>
             </li>
           ))}
@@ -127,11 +130,14 @@ function moduleHasDetail(mod: AnalisisHomeModule): boolean {
   );
 }
 
-function statRows(mod: AnalisisHomeModule): { title: string; detail?: string; value: string; unit: string }[] {
+function statRows(
+  mod: AnalisisHomeModule,
+): { title: string; detail?: string; meta?: string; value: string; unit: string }[] {
   if (mod.statRows && mod.statRows.length > 0) return mod.statRows;
   return (mod.bengkel ?? []).map((item) => ({
     title: item.title,
     detail: item.program,
+    meta: item.peruntukan ? `Jumlah Peruntukan: ${item.peruntukan}` : undefined,
     value: item.value,
     unit: item.unit,
   }));
