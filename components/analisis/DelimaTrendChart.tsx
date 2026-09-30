@@ -55,12 +55,12 @@ export default function DelimaTrendChart({
             {kpiGuru != null ? (
               <ReferenceLine
                 y={kpiGuru}
-                stroke="#c2c2c2"
+                stroke="#024ad8"
                 strokeDasharray="6 4"
                 label={{
                   value: `KPI Guru ${kpiGuru}%`,
                   fontSize: 10,
-                  fill: "#636363",
+                  fill: "#024ad8",
                   position: "insideBottomRight",
                 }}
               />
