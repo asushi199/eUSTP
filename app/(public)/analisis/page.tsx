@@ -313,9 +313,16 @@ export default async function AnalisisPage({
 
       {/* ---------- DCS ---------- */}
       <section id="dcs" className="mt-12 scroll-mt-28">
-        <h2 className="text-xl font-semibold">Digital Competency Score (DCS)</h2>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <h2 className="text-xl font-semibold">Digital Competency Score (DCS)</h2>
+          <span className="text-sm font-semibold text-ink">Data 2025</span>
+          <span className="inline-flex items-center gap-1.5 rounded bg-ink px-2.5 py-1 text-xs font-semibold text-white">
+            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-bloom-coral" aria-hidden />
+            2026 masih berlangsung
+          </span>
+        </div>
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
-          <BreakdownBarChart title="TOV · KPI · Pencapaian (%)" data={dcsBars} seriesName="%" />
+          <BreakdownBarChart title="TOV · KPI · Pencapaian 2025 (%)" data={dcsBars} seriesName="%" />
           <div className="card p-5 text-sm leading-relaxed text-graphite">
             {metricText(dcs.metrics, "updated_text", "kemaskini") ? (
               <p>

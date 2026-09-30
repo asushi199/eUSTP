@@ -46,6 +46,19 @@ function AnalisisModuleBody({
   }
   return (
     <div className={`mt-4 space-y-4 ${loadingYear ? "opacity-60" : ""}`}>
+      {active.yearLabel || active.callout ? (
+        <div className="flex flex-wrap items-center gap-2">
+          {active.yearLabel ? (
+            <span className="text-sm font-semibold text-ink">{active.yearLabel}</span>
+          ) : null}
+          {active.callout ? (
+            <span className="inline-flex items-center gap-1.5 rounded bg-ink px-2.5 py-1 text-xs font-semibold text-white">
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-bloom-coral" aria-hidden />
+              {active.callout}
+            </span>
+          ) : null}
+        </div>
+      ) : null}
       {active.note ? (
         <p className="text-sm leading-relaxed text-graphite">{active.note}</p>
       ) : null}
@@ -59,6 +72,24 @@ function AnalisisModuleBody({
           data={active.delimaTrend.points}
           kpiGuru={active.delimaTrend.kpiGuru}
         />
+      ) : null}
+      {active.bengkel && active.bengkel.length > 0 ? (
+        <ul className="divide-y divide-fog overflow-hidden rounded-lg border border-fog">
+          {active.bengkel.map((item) => (
+            <li key={item.title} className="flex items-start gap-4 px-4 py-4">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-ink">{item.title}</p>
+                <p className="mt-1 text-xs leading-relaxed text-graphite">{item.program}</p>
+              </div>
+              <div className="shrink-0 text-right">
+                <p className="whitespace-nowrap text-xl font-semibold tabular-nums tracking-tight text-ink sm:text-2xl">
+                  {item.value}
+                </p>
+                <p className="mt-0.5 whitespace-nowrap text-[11px] leading-snug text-graphite">{item.unit}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
       ) : null}
       {active.bars.map((bar) => (
         <BreakdownBarChart
@@ -88,7 +119,8 @@ function moduleHasDetail(mod: AnalisisHomeModule): boolean {
     mod.tiles.some((t) => t.value !== "") ||
     (mod.delimaTrend?.points.length ?? 0) > 0 ||
     mod.bars.some((b) => b.data.length > 0) ||
-    (mod.line?.data.length ?? 0) > 0
+    (mod.line?.data.length ?? 0) > 0 ||
+    (mod.bengkel?.length ?? 0) > 0
   );
 }
 
@@ -225,14 +257,14 @@ export default function HomeAnalisisBand({
   return (
     <>
       {indikator.length > 0 ? (
-        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
           {indikator.map((mod) => (
             <ModuleCard key={mod.id} mod={mod} onOpen={setOpenId} />
           ))}
         </div>
       ) : null}
       {perkhidmatan ? (
-        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
           {perkData.map((mod) => (
             <ModuleCard key={mod.id} mod={mod} onOpen={openModule} />
           ))}
@@ -255,10 +287,11 @@ export default function HomeAnalisisBand({
                 aria-modal="true"
                 aria-labelledby="analisis-modal-title"
                 className={`relative z-[71] max-h-[88vh] w-full overflow-y-auto rounded-t-2xl bg-white p-5 shadow-modal sm:rounded-2xl sm:p-6 ${
-                  (openId === "optik" && optikLayer !== "overview") ||
-                  openId === "delima"
-                    ? "max-w-4xl"
-                    : "max-w-2xl"
+                  openId === "bengkel"
+                    ? "max-w-3xl"
+                    : (openId === "optik" && optikLayer !== "overview") || openId === "delima"
+                      ? "max-w-4xl"
+                      : "max-w-2xl"
                 }`}
                 onClick={(e) => e.stopPropagation()}
               >

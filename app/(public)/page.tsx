@@ -1,6 +1,7 @@
 import { withDbTimeout } from "@/lib/db";
 import { HOME_MODULES } from "@/lib/home-modules";
 import { getPerkhidmatanHomeModules } from "@/lib/analisis/perkhidmatan";
+import { bengkelHomeModule } from "@/lib/analisis/bengkel";
 import { getAnalisisHomeSummary } from "@/lib/analisis/summary";
 import { getDpdSummary } from "@/lib/stats/dpd";
 import { getPssSummary } from "@/lib/stats/pss";
@@ -100,7 +101,7 @@ export default async function HomePage() {
           </h2>
           {analisis || perkhidmatan ? (
             <HomeAnalisisBand
-              indikator={analisis ?? []}
+              indikator={[...(analisis ?? []), bengkelHomeModule]}
               perkhidmatan={perkhidmatan?.modules ?? null}
               years={perkhidmatan?.years ?? [statsYear]}
               initialYear={perkhidmatan?.year ?? statsYear}

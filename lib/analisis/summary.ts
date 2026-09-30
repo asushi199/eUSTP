@@ -45,6 +45,7 @@ export type AnalisisHomeModule = {
     | "ains"
     | "pensijilan"
     | "optik"
+    | "bengkel"
     | "khidmat-bantu"
     | "pinjaman-aset"
     | "tempahan-pkg";
@@ -52,6 +53,10 @@ export type AnalisisHomeModule = {
   /** Nilai utama pada kad kecil halaman utama ("" jika belum ada data). */
   headlineValue: string;
   headlineLabel: string;
+  /** Tahun data pada kad kecil, cth. "Data 2025". */
+  yearLabel?: string;
+  /** Nota kecil menonjol pada kad, cth. tahun semasa masih berlangsung. */
+  callout?: string;
   tiles: { label: string; value: string }[];
   /** Kumpulan KPI ikut kategori (guru/murid, status/sasaran) — dipaparkan gantian `tiles` bila ada. */
   tileGroups?: HomeKpiGroup[];
@@ -61,6 +66,16 @@ export type AnalisisHomeModule = {
   bars: HomeBarChart[];
   line?: HomeLineChart;
   note?: string;
+  /** Senarai bengkel paparan statik — butiran hanya dalam modal. */
+  bengkel?: HomeBengkelProgram[];
+};
+
+export type HomeBengkelProgram = {
+  title: string;
+  /** Nama rasmi program. Kekalkan ejaan CoE, jangan uppercase melalui CSS. */
+  program: string;
+  value: string;
+  unit: string;
 };
 
 /** Kumpulan "Capaian Sekolah": sekolah capai sasaran guru / murid (xx / jumlah). */
@@ -172,10 +187,12 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
     label: "DCS",
     headlineValue: pct(dcsCapai),
     headlineLabel: "Pencapaian DCS",
+    yearLabel: "Data 2025",
+    callout: "2026 masih berlangsung",
     tiles: [],
     bars: [
       {
-        title: "TOV · KPI · Pencapaian (%)",
+        title: "TOV · KPI · Pencapaian 2025 (%)",
         seriesName: "%",
         data: [
           { label: "TOV", jumlah: metricNum(dcs.metrics, "tov") ?? 0 },
