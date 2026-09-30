@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import AnalisisKpiTiles from "@/components/analisis/AnalisisKpiTiles";
@@ -59,8 +60,19 @@ function AnalisisModuleBody({
           ) : null}
         </div>
       ) : null}
-      {active.note ? (
-        <p className="text-sm leading-relaxed text-graphite">{active.note}</p>
+      {active.note || active.id === "tebus-buku" ? (
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          {active.note ? (
+            <p className="text-sm leading-relaxed text-graphite">{active.note}</p>
+          ) : (
+            <span />
+          )}
+          {active.id === "tebus-buku" ? (
+            <Link href="/laporan/tebus-buku" className="btn-outline-ink btn-sm shrink-0">
+              Semak Tebus Buku
+            </Link>
+          ) : null}
+        </div>
       ) : null}
       {active.tileGroups ? (
         <KpiGroups groups={active.tileGroups} />
