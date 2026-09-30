@@ -163,17 +163,15 @@ function statRows(
 function ModuleCard({
   mod,
   onOpen,
-  className = "",
 }: {
   mod: AnalisisHomeModule;
   onOpen: (id: AnalisisHomeModule["id"]) => void;
-  className?: string;
 }) {
   return (
     <button
       type="button"
       onClick={() => onOpen(mod.id)}
-      className={`card group p-4 text-left transition hover:-translate-y-0.5 hover:shadow-modal focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${className}`}
+      className="card group p-4 text-left transition hover:-translate-y-0.5 hover:shadow-modal focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
       aria-haspopup="dialog"
     >
       <span className="flex items-center justify-between gap-2">
@@ -309,28 +307,12 @@ export default function HomeAnalisisBand({
         </div>
       ) : null}
       {mesyuarat.length > 0 || perkhidmatan ? (
-        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-6">
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
           {mesyuarat.map((mod) => (
-            <ModuleCard
-              key={mod.id}
-              mod={mod}
-              onOpen={setOpenId}
-              className={mesyuarat.length > 1 ? "sm:col-span-3" : "sm:col-span-2"}
-            />
+            <ModuleCard key={mod.id} mod={mod} onOpen={setOpenId} />
           ))}
           {perkhidmatan
-            ? perkData.map((mod, i) => (
-                <ModuleCard
-                  key={mod.id}
-                  mod={mod}
-                  onOpen={openModule}
-                  className={`sm:col-span-2 ${
-                    i === perkData.length - 1 && (mesyuarat.length + perkData.length) % 2 === 1
-                      ? "col-span-2"
-                      : ""
-                  }`}
-                />
-              ))
+            ? perkData.map((mod) => <ModuleCard key={mod.id} mod={mod} onOpen={openModule} />)
             : null}
         </div>
       ) : null}
