@@ -271,13 +271,14 @@ export async function getDelimaSnapshotSchools(
 
 /** Titik carta trend bulanan daripada snapshot (tertua → terbaharu). */
 export async function getDelimaSnapshotTrend(): Promise<
-  { bulan: string; guru: number; murid: number }[]
+  { bulan: string; guru: number; murid: number; murid23: number | null }[]
 > {
   const rows = await db
     .select({
       period: analisisDelimaSnapshots.period,
       guru: analisisDelimaSnapshots.guruPct,
       murid: analisisDelimaSnapshots.muridPct,
+      murid23: analisisDelimaSnapshots.kadPct,
     })
     .from(analisisDelimaSnapshots)
     .orderBy(asc(analisisDelimaSnapshots.period));
@@ -289,6 +290,7 @@ export async function getDelimaSnapshotTrend(): Promise<
       bulan: beberapaTahun ? `${bulan} ${y.slice(2)}` : bulan,
       guru: r.guru,
       murid: r.murid,
+      murid23: r.murid23,
     };
   });
 }

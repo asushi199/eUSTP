@@ -27,8 +27,9 @@ export type HomeLineChart = {
 };
 
 export type HomeDelimaTrend = {
-  points: { bulan: string; guru: number | null; murid: number | null }[];
+  points: { bulan: string; guru: number | null; murid: number | null; murid23: number | null }[];
   kpiGuru: number | null;
+  kpiMurid: number | null;
 };
 
 export type HomeKpiGroup = {
@@ -184,6 +185,7 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
     delimaTrend: {
       points: delimaTrendPoints(delima),
       kpiGuru,
+      kpiMurid: metricNum(delima.metrics, "kpi_murid"),
     },
     delimaLive: live != null,
     bars: delimaTaburan(delima.liveSchools),

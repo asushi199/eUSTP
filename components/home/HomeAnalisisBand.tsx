@@ -83,6 +83,7 @@ function AnalisisModuleBody({
         <DelimaTrendChart
           data={active.delimaTrend.points}
           kpiGuru={active.delimaTrend.kpiGuru}
+          kpiMurid={active.delimaTrend.kpiMurid}
         />
       ) : null}
       {statRows(active).length > 0 ? (

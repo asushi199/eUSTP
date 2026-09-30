@@ -129,6 +129,7 @@ export default async function AnalisisPage({
 
   /* ---------- DELIMa ---------- */
   const kpiGuru = metricNum(delima.metrics, "kpi_guru");
+  const kpiMurid = metricNum(delima.metrics, "kpi_murid");
   const live = delima.live;
   const delimaPoints = delimaTrendPoints(delima);
   const delimaBars = delimaTaburan(delima.liveSchools);
@@ -282,7 +283,7 @@ export default async function AnalisisPage({
           <KpiGroups groups={delimaGroups} />
         </div>
         <div className="mt-4">
-          <DelimaTrendChart data={delimaPoints} kpiGuru={kpiGuru} />
+          <DelimaTrendChart data={delimaPoints} kpiGuru={kpiGuru} kpiMurid={kpiMurid} />
         </div>
         {delimaBars.length > 0 ? (
           <div className="mt-4 grid gap-4 lg:grid-cols-2">
@@ -298,7 +299,7 @@ export default async function AnalisisPage({
           <KpiGroups groups={delimaGroups} />
         </div>
         <div className="mt-4">
-          <DelimaTrendChart data={delimaPoints} kpiGuru={kpiGuru} />
+          <DelimaTrendChart data={delimaPoints} kpiGuru={kpiGuru} kpiMurid={kpiMurid} />
         </div>
         {delimaBars.length > 0 ? (
           <div className="mt-4 grid gap-4 lg:grid-cols-2">
