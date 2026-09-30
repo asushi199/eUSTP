@@ -3,6 +3,7 @@ import { HOME_MODULES } from "@/lib/home-modules";
 import { getPerkhidmatanHomeModules } from "@/lib/analisis/perkhidmatan";
 import { getTebusBukuHomeModule } from "@/lib/tebus-buku/queries";
 import { bengkelHomeModule } from "@/lib/analisis/bengkel";
+import { penyertaanHomeModule } from "@/lib/analisis/penyertaan";
 import { getAnalisisHomeSummary } from "@/lib/analisis/summary";
 import { getDpdSummary } from "@/lib/stats/dpd";
 import { getPssSummary } from "@/lib/stats/pss";
@@ -113,6 +114,7 @@ export default async function HomePage() {
                 ...(analisis ?? []),
                 bengkelHomeModule,
                 ...(tebusBuku ? [tebusBuku] : []),
+                penyertaanHomeModule,
               ]}
               perkhidmatan={perkhidmatan?.modules ?? null}
               years={perkhidmatan?.years ?? [statsYear]}

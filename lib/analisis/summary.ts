@@ -48,6 +48,7 @@ export type AnalisisHomeModule = {
     | "optik"
     | "bengkel"
     | "tebus-buku"
+    | "penyertaan"
     | "khidmat-bantu"
     | "pinjaman-aset"
     | "tempahan-pkg";

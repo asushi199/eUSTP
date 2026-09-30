@@ -1832,3 +1832,18 @@ Corak berselang = instance sihat vs beracun.
 - BELUM disahkan: kelip sebenar TIDAK boleh dihasilkan semula dalam emulator
   (toolbar pelayar tak menguncup). Perlu ujian mesin sebenar Magic V5 (scroll
   semula), atau `chrome://inspect` paint-flashing untuk bukti muktamad.
+
+## 2026-09-30 — Kad "Penyertaan Pertandingan" (CoE Analytics)
+
+- Kad baharu `penyertaan` di halaman utama (sebaris dengan Tebus Buku). Modal 5 tab:
+  Ringkasan (KPI, dapatan utama, carta, cadangan susulan, nota data), Pertandingan,
+  Sekolah, Top 5, Guru. Sumber: `MANJUNG2026_RUMUSAN_DAERAH.xlsx` (PPPDM & DUTA 2026
+  Negeri Perak, dijana 30/09/2026).
+- Fail: `lib/analisis/penyertaan-data.ts` (data statik), `lib/analisis/penyertaan.ts`
+  (terbitan + teks dapatan dikira daripada data), `components/analisis/PenyertaanExplore.tsx`
+  (dimuat malas, ada recharts), `tests/analisis/penyertaan.test.ts` (jumlah padan helaian RINGKASAN).
+- Nama murid SENGAJA tidak dipaparkan (halaman awam). Guru: 38 baris fail -> 34 unik
+  (4 rekod digabung: kod sekolah sama, ejaan nama berbeza).
+- Kemas kini: ganti data dalam `penyertaan-data.ts` apabila fail rumusan baharu dijana.
+- Disahkan: tsc bersih, ujian lulus, semak visual desktop + mobile. `npm run build` TIDAK dijalankan
+  (dev server sembang lain sedang guna `.next`).

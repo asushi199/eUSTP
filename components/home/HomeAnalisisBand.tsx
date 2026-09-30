@@ -22,6 +22,10 @@ const DelimaTrendChart = dynamic(() => import("@/components/analisis/DelimaTrend
   ssr: false,
   loading: chartLoading,
 });
+const PenyertaanExplore = dynamic(() => import("@/components/analisis/PenyertaanExplore"), {
+  ssr: false,
+  loading: chartLoading,
+});
 const BreakdownBarChart = dynamic(() => import("@/components/stats/BreakdownBarChart"), {
   ssr: false,
   loading: chartLoading,
@@ -159,15 +163,17 @@ function statRows(
 function ModuleCard({
   mod,
   onOpen,
+  className = "",
 }: {
   mod: AnalisisHomeModule;
   onOpen: (id: AnalisisHomeModule["id"]) => void;
+  className?: string;
 }) {
   return (
     <button
       type="button"
       onClick={() => onOpen(mod.id)}
-      className="card group p-4 text-left transition hover:-translate-y-0.5 hover:shadow-modal focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+      className={`card group p-4 text-left transition hover:-translate-y-0.5 hover:shadow-modal focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${className}`}
       aria-haspopup="dialog"
     >
       <span className="flex items-center justify-between gap-2">
@@ -222,10 +228,12 @@ export default function HomeAnalisisBand({
   const [delimaLayer, setDelimaLayer] = useState<DelimaExploreLayer>("overview");
   const closeRef = useRef<HTMLButtonElement>(null);
   const tebus = indikator.find((m) => m.id === "tebus-buku") ?? null;
-  const lead = indikator.filter((m) => m.id !== "tebus-buku");
+  const penyertaan = indikator.find((m) => m.id === "penyertaan") ?? null;
+  const lead = indikator.filter((m) => m.id !== "tebus-buku" && m.id !== "penyertaan");
+  const mesyuarat = [tebus, penyertaan].filter((m): m is AnalisisHomeModule => m != null);
   const active =
     lead.find((m) => m.id === openId) ??
-    (tebus?.id === openId ? tebus : null) ??
+    mesyuarat.find((m) => m.id === openId) ??
     perkData.find((m) => m.id === openId) ??
     null;
   const perkhidmatanOpen = openId != null && PERKHIDMATAN_IDS.has(openId);
@@ -300,14 +308,28 @@ export default function HomeAnalisisBand({
           ))}
         </div>
       ) : null}
-      {tebus || perkhidmatan ? (
-        <div
-          className={`mt-3 grid gap-3 ${tebus ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-3"}`}
-        >
-          {tebus ? <ModuleCard mod={tebus} onOpen={setOpenId} /> : null}
+      {mesyuarat.length > 0 || perkhidmatan ? (
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-6">
+          {mesyuarat.map((mod) => (
+            <ModuleCard
+              key={mod.id}
+              mod={mod}
+              onOpen={setOpenId}
+              className={mesyuarat.length > 1 ? "sm:col-span-3" : "sm:col-span-2"}
+            />
+          ))}
           {perkhidmatan
-            ? perkData.map((mod) => (
-                <ModuleCard key={mod.id} mod={mod} onOpen={openModule} />
+            ? perkData.map((mod, i) => (
+                <ModuleCard
+                  key={mod.id}
+                  mod={mod}
+                  onOpen={openModule}
+                  className={`sm:col-span-2 ${
+                    i === perkData.length - 1 && (mesyuarat.length + perkData.length) % 2 === 1
+                      ? "col-span-2"
+                      : ""
+                  }`}
+                />
               ))
             : null}
         </div>
@@ -332,6 +354,8 @@ export default function HomeAnalisisBand({
                 className={`relative z-[71] max-h-[88vh] w-full overflow-y-auto rounded-t-2xl bg-white p-5 shadow-modal sm:rounded-2xl sm:p-6 ${
                   openId === "bengkel" || openId === "tebus-buku"
                     ? "max-w-3xl"
+                    : openId === "penyertaan"
+                      ? "max-w-4xl"
                     : (openId === "optik" && optikLayer !== "overview") || openId === "delima"
                       ? "max-w-4xl"
                       : "max-w-2xl"
@@ -384,6 +408,8 @@ export default function HomeAnalisisBand({
                   <DelimaExplore key={openId} onLayerChange={setDelimaLayer}>
                     <AnalisisModuleBody active={active} loadingYear={loadingYear} />
                   </DelimaExplore>
+                ) : active.id === "penyertaan" ? (
+                  <PenyertaanExplore key={openId} />
                 ) : (
                   <AnalisisModuleBody active={active} loadingYear={loadingYear} />
                 )}
