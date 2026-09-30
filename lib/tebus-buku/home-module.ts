@@ -1,6 +1,13 @@
 import type { AnalisisHomeModule, HomeStatRow } from "../analisis/summary";
-import { formatCount, formatTarikhSnapshot } from "./format";
+import { formatCount } from "./format";
 import { splitTebusStatus } from "./progress";
+
+function formatTarikhPendek(value: string | null): string | null {
+  if (!value) return null;
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+  if (!match) return null;
+  return `${Number(match[3])}/${Number(match[2])}/${match[1]}`;
+}
 
 function pct(count: number, total: number): string {
   if (total <= 0 || count <= 0) return "0%";
@@ -38,10 +45,7 @@ export function buildTebusBukuHomeModule(input: {
     gunaCount: input.gunaCount,
   });
   const tebus = split.selesai + split.belumGuna;
-  const tarikh = formatTarikhSnapshot(input.sourcedAt);
-  const schools = Math.max(0, Math.trunc(Number(input.schoolCount)) || 0);
-  const when = tarikh ? `setakat ${tarikh}` : "snapshot semasa";
-  const schoolNote = schools > 0 ? ` ${formatCount(schools)} sekolah menengah.` : "";
+  const tarikh = formatTarikhPendek(input.sourcedAt);
 
   return {
     id: "tebus-buku",
@@ -50,7 +54,7 @@ export function buildTebusBukuHomeModule(input: {
     headlineLabel: "Sudah tebus",
     tiles: [],
     bars: [],
-    note: `Pelajar sekolah menengah daerah Manjung ${when}.${schoolNote} Sudah guna dan "tebus, belum guna" membentuk jumlah sudah tebus.`,
+    note: tarikh ? `Data setakat ${tarikh}.` : undefined,
     statRows: [
       row("Sudah tebus", "Pelajar yang telah menebus baucar buku", tebus, total),
       row("Sudah guna", "Pelajar yang telah menggunakan baucar", split.selesai, total),

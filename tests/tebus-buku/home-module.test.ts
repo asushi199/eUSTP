@@ -22,8 +22,7 @@ test("builds meeting rows as count/total plus percent", () => {
       ["Belum tebus", "1,769/17,498", "10.1%"],
     ],
   );
-  assert.match(mod.note ?? "", /26 Ogos 2026/);
-  assert.match(mod.note ?? "", /17 sekolah/);
+  assert.equal(mod.note, "Data setakat 26/8/2026.");
 });
 
 test("hides the card when there is no snapshot", () => {
