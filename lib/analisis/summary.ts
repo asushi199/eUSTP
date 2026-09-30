@@ -46,6 +46,7 @@ export type AnalisisHomeModule = {
     | "pensijilan"
     | "optik"
     | "bengkel"
+    | "tebus-buku"
     | "khidmat-bantu"
     | "pinjaman-aset"
     | "tempahan-pkg";
@@ -68,6 +69,15 @@ export type AnalisisHomeModule = {
   note?: string;
   /** Senarai bengkel paparan statik — butiran hanya dalam modal. */
   bengkel?: HomeBengkelProgram[];
+  /** Baris angka dalam modal: nilai utama (cth. 404/705) dan anotasi (cth. 57.3%). */
+  statRows?: HomeStatRow[];
+};
+
+export type HomeStatRow = {
+  title: string;
+  detail?: string;
+  value: string;
+  unit: string;
 };
 
 export type HomeBengkelProgram = {

@@ -1,6 +1,7 @@
 import "server-only";
 
 import { asc, count, eq, sql } from "drizzle-orm";
+import { buildTebusBukuHomeModule } from "./home-module";
 import { db } from "@/lib/db";
 import { tebusBukuPelajar } from "@/lib/schema";
 import { compareTingkatan } from "./format";
@@ -52,6 +53,28 @@ export async function listTebusBukuSchools(): Promise<{
     schools: rows.map(toSchool),
     sourcedAt: snapshot[0]?.sourcedAt ?? null,
   };
+}
+
+/** Ringkasan daerah untuk kad CoE Analytics. Null jika snapshot belum diimport. */
+export async function getTebusBukuHomeModule() {
+  const [row] = await db
+    .select({
+      total: count(),
+      tebusCount: sql<number>`sum(case when ${tebusBukuPelajar.sudahTebus} then 1 else 0 end)`,
+      gunaCount: sql<number>`sum(case when ${tebusBukuPelajar.sudahGuna} then 1 else 0 end)`,
+      schoolCount: sql<number>`count(distinct ${tebusBukuPelajar.schoolCode})`,
+      sourcedAt: sql<string | null>`min(${tebusBukuPelajar.sourcedAt})`,
+    })
+    .from(tebusBukuPelajar);
+
+  if (!row) return null;
+  return buildTebusBukuHomeModule({
+    total: Number(row.total),
+    tebusCount: Number(row.tebusCount ?? 0),
+    gunaCount: Number(row.gunaCount ?? 0),
+    schoolCount: Number(row.schoolCount ?? 0),
+    sourcedAt: row.sourcedAt,
+  });
 }
 
 export async function getTebusBukuSchoolPage(

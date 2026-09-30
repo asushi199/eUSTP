@@ -1,6 +1,7 @@
 import { withDbTimeout } from "@/lib/db";
 import { HOME_MODULES } from "@/lib/home-modules";
 import { getPerkhidmatanHomeModules } from "@/lib/analisis/perkhidmatan";
+import { getTebusBukuHomeModule } from "@/lib/tebus-buku/queries";
 import { bengkelHomeModule } from "@/lib/analisis/bengkel";
 import { getAnalisisHomeSummary } from "@/lib/analisis/summary";
 import { getDpdSummary } from "@/lib/stats/dpd";
@@ -61,6 +62,13 @@ export default async function HomePage() {
     );
     return null;
   });
+  const tebusBuku = await getTebusBukuHomeModule().catch((e) => {
+    console.error(
+      "[home] getTebusBukuHomeModule gagal:",
+      e instanceof Error ? e.message : e,
+    );
+    return null;
+  });
   const [dpd, pss] = await Promise.all([
     SHOW_LAPORAN_TILES
       ? withDbTimeout(getDpdSummary()).catch((e) => {
@@ -101,7 +109,11 @@ export default async function HomePage() {
           </h2>
           {analisis || perkhidmatan ? (
             <HomeAnalisisBand
-              indikator={[...(analisis ?? []), bengkelHomeModule]}
+              indikator={[
+                ...(analisis ?? []),
+                bengkelHomeModule,
+                ...(tebusBuku ? [tebusBuku] : []),
+              ]}
               perkhidmatan={perkhidmatan?.modules ?? null}
               years={perkhidmatan?.years ?? [statsYear]}
               initialYear={perkhidmatan?.year ?? statsYear}

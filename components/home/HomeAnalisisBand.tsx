@@ -73,13 +73,15 @@ function AnalisisModuleBody({
           kpiGuru={active.delimaTrend.kpiGuru}
         />
       ) : null}
-      {active.bengkel && active.bengkel.length > 0 ? (
+      {statRows(active).length > 0 ? (
         <ul className="divide-y divide-fog overflow-hidden rounded-lg border border-fog">
-          {active.bengkel.map((item) => (
+          {statRows(active).map((item) => (
             <li key={item.title} className="flex items-start gap-4 px-4 py-4">
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-ink">{item.title}</p>
-                <p className="mt-1 text-xs leading-relaxed text-graphite">{item.program}</p>
+                {item.detail ? (
+                  <p className="mt-1 text-xs leading-relaxed text-graphite">{item.detail}</p>
+                ) : null}
               </div>
               <div className="shrink-0 text-right">
                 <p className="whitespace-nowrap text-xl font-semibold tabular-nums tracking-tight text-ink sm:text-2xl">
@@ -120,8 +122,19 @@ function moduleHasDetail(mod: AnalisisHomeModule): boolean {
     (mod.delimaTrend?.points.length ?? 0) > 0 ||
     mod.bars.some((b) => b.data.length > 0) ||
     (mod.line?.data.length ?? 0) > 0 ||
-    (mod.bengkel?.length ?? 0) > 0
+    (mod.bengkel?.length ?? 0) > 0 ||
+    (mod.statRows?.length ?? 0) > 0
   );
+}
+
+function statRows(mod: AnalisisHomeModule): { title: string; detail?: string; value: string; unit: string }[] {
+  if (mod.statRows && mod.statRows.length > 0) return mod.statRows;
+  return (mod.bengkel ?? []).map((item) => ({
+    title: item.title,
+    detail: item.program,
+    value: item.value,
+    unit: item.unit,
+  }));
 }
 
 function ModuleCard({
@@ -189,8 +202,13 @@ export default function HomeAnalisisBand({
   const [optikLayer, setOptikLayer] = useState<OptikExploreLayer>("overview");
   const [delimaLayer, setDelimaLayer] = useState<DelimaExploreLayer>("overview");
   const closeRef = useRef<HTMLButtonElement>(null);
+  const tebus = indikator.find((m) => m.id === "tebus-buku") ?? null;
+  const lead = indikator.filter((m) => m.id !== "tebus-buku");
   const active =
-    indikator.find((m) => m.id === openId) ?? perkData.find((m) => m.id === openId) ?? null;
+    lead.find((m) => m.id === openId) ??
+    (tebus?.id === openId ? tebus : null) ??
+    perkData.find((m) => m.id === openId) ??
+    null;
   const perkhidmatanOpen = openId != null && PERKHIDMATAN_IDS.has(openId);
 
   useEffect(() => {
@@ -256,20 +274,26 @@ export default function HomeAnalisisBand({
 
   return (
     <>
-      {indikator.length > 0 ? (
+      {lead.length > 0 ? (
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {indikator.map((mod) => (
+          {lead.map((mod) => (
             <ModuleCard key={mod.id} mod={mod} onOpen={setOpenId} />
           ))}
         </div>
       ) : null}
-      {perkhidmatan ? (
-        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {perkData.map((mod) => (
-            <ModuleCard key={mod.id} mod={mod} onOpen={openModule} />
-          ))}
+      {tebus || perkhidmatan ? (
+        <div
+          className={`mt-3 grid gap-3 ${tebus ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-3"}`}
+        >
+          {tebus ? <ModuleCard mod={tebus} onOpen={setOpenId} /> : null}
+          {perkhidmatan
+            ? perkData.map((mod) => (
+                <ModuleCard key={mod.id} mod={mod} onOpen={openModule} />
+              ))
+            : null}
         </div>
-      ) : (
+      ) : null}
+      {perkhidmatan ? null : (
         <div className="card mt-3 p-4 text-sm text-graphite">
           Analisis perkhidmatan tidak dapat dimuatkan buat masa ini.
         </div>
@@ -287,7 +311,7 @@ export default function HomeAnalisisBand({
                 aria-modal="true"
                 aria-labelledby="analisis-modal-title"
                 className={`relative z-[71] max-h-[88vh] w-full overflow-y-auto rounded-t-2xl bg-white p-5 shadow-modal sm:rounded-2xl sm:p-6 ${
-                  openId === "bengkel"
+                  openId === "bengkel" || openId === "tebus-buku"
                     ? "max-w-3xl"
                     : (openId === "optik" && optikLayer !== "overview") || openId === "delima"
                       ? "max-w-4xl"
