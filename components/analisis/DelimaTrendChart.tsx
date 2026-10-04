@@ -42,6 +42,15 @@ export default function DelimaTrendChart({
   const mulaGab = data.findIndex((d) => d.guruGab != null);
   const ada30 = data.some((d) => d.guru30 != null || d.murid30 != null);
   const mula30 = data.findIndex((d) => d.guru30 != null || d.murid30 != null);
+  const siri = [
+    { nama: "DELIMa 3.0", mula: mula30 },
+    { nama: "Guru 2.0+3.0", mula: mulaGab },
+    { nama: "Murid 2.0+3.0", mula: mula23 },
+  ].filter((x) => x.mula > 0);
+  const mulaan = [...new Set(siri.map((x) => x.mula))].map((mula) => ({
+    nama: siri.filter((x) => x.mula === mula).map((x) => x.nama).join(", "),
+    bulan: data[mula].bulan,
+  }));
   return (
     <div className="card p-5">
       <p className="font-semibold">
@@ -174,19 +183,9 @@ export default function DelimaTrendChart({
           </LineChart>
         </ResponsiveContainer>
       </div>
-      {ada30 && mula30 > 0 ? (
+      {mulaan.length > 0 ? (
         <p className="mt-2 text-xs text-graphite">
-          DELIMa 3.0 direkod mulai {data[mula30].bulan}; bulan sebelumnya tiada data.
-        </p>
-      ) : null}
-      {adaGab && mulaGab > 0 ? (
-        <p className="mt-2 text-xs text-graphite">
-          Guru 2.0+3.0 direkod mulai {data[mulaGab].bulan}; bulan sebelumnya tiada data.
-        </p>
-      ) : null}
-      {ada23 && mula23 > 0 ? (
-        <p className="mt-2 text-xs text-graphite">
-          Murid 2.0+3.0 direkod mulai {data[mula23].bulan}; bulan sebelumnya tiada data.
+          {mulaan.map((m) => `${m.nama} direkod mulai ${m.bulan}`).join("; ")}; bulan sebelumnya tiada data.
         </p>
       ) : null}
     </div>

@@ -3,11 +3,23 @@
 export type KpiStat = { label: string; value: string };
 export type KpiGroup = { title: string; stats: KpiStat[]; align?: "left" | "center"; wide?: boolean };
 
-function StatCell({ label, value, align }: KpiStat & { align: "left" | "center" }) {
+function StatCell({
+  label,
+  value,
+  align,
+  dense,
+}: KpiStat & { align: "left" | "center"; dense: boolean }) {
   if (value === "") return null;
+  // Tiga petak atau lebih dalam satu kad: fon & ruang lebih kecil supaya angka (cth. 95.5%) tidak melimpah.
   return (
-    <div className={`px-3 py-3 first:pl-4 last:pr-4 ${align === "center" ? "text-center" : ""}`}>
-      <p className="text-lg font-semibold tabular-nums tracking-tight sm:text-xl">{value}</p>
+    <div
+      className={`${dense ? "px-2 py-3 first:pl-3 last:pr-3" : "px-3 py-3 first:pl-4 last:pr-4"} ${align === "center" ? "text-center" : ""}`}
+    >
+      <p
+        className={`font-semibold tabular-nums tracking-tight ${dense ? "text-base sm:text-lg" : "text-lg sm:text-xl"}`}
+      >
+        {value}
+      </p>
       <p className="mt-0.5 text-[11px] leading-snug text-graphite">{label}</p>
     </div>
   );
@@ -28,7 +40,7 @@ function GroupCard({ title, stats, align = "left" }: KpiGroup) {
         style={{ gridTemplateColumns: `repeat(${shown.length}, minmax(0, 1fr))` }}
       >
         {shown.map((s) => (
-          <StatCell key={s.label} {...s} align={align} />
+          <StatCell key={s.label} {...s} align={align} dense={shown.length >= 3} />
         ))}
       </div>
     </div>
