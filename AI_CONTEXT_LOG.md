@@ -1886,3 +1886,12 @@ Corak berselang = instance sihat vs beracun.
 - Murid gabungan dalam snapshot = lajur `kad_*` (sejarah sedia ada); `murid30_*` = CSV 3.0 sahaja.
 - Senarai "Belum Login" per orang (sheet KPM) mengandungi nama/e-mel — hanya dibilang secara tempatan,
   tidak disimpan/ditunjuk.
+
+### Pembetulan KPI guru (2026-10-04)
+
+- `kpi_guru` dalam DB ialah 78 (sama dengan `avg_tov_guru`, tersalah isi TOV sebagai sasaran). Sasaran
+  rasmi (widget JPN) = Guru 98%, Murid 75%; DB `kpi_guru` dikemas kini ke 98 dan seed `analisis-delima.csv`
+  dibetulkan (kpi_guru 98, kpi_murid 75).
+- Sasaran dikenakan pada angka gabungan 2.0 + 3.0: "Capaian Guru" kini = bil. sekolah `capai` pada widget
+  gabungan (`fetchDelimaGuruCapai`, 12/102 pada 31 Ogos 2026), bukan guru 2.0 >= sasaran.
+- Migrasi 0050: `guru_gab_*` pada snapshot; trend ada garisan "Guru 2.0+3.0" (dibandingkan garis KPI Guru).

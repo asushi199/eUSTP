@@ -559,6 +559,10 @@ export const analisisDelimaSnapshots = pgTable(
     murid30Aktif: integer("murid30_aktif"),
     murid30Jumlah: integer("murid30_jumlah"),
     murid30Pct: doublePrecision("murid30_pct"),
+    /** Guru gabungan 2.0 + 3.0 (dibandingkan dengan sasaran KPI). Murid gabungan = kad* di atas. */
+    guruGabAktif: integer("guru_gab_aktif"),
+    guruGabJumlah: integer("guru_gab_jumlah"),
+    guruGabPct: doublePrecision("guru_gab_pct"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },

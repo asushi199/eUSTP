@@ -18,6 +18,8 @@ export type DelimaPoint = {
   murid: number | null;
   /** Jumlah Aktif Murid DELIMa 2.0 + 3.0 (kad sasaran); null jika bulan itu tiada rekod. */
   murid23?: number | null;
+  /** Guru gabungan 2.0 + 3.0 (dibandingkan dengan KPI guru); null jika bulan itu tiada rekod. */
+  guruGab?: number | null;
   /** DELIMa 3.0 guru/murid; null bagi bulan sebelum 3.0 direkod. */
   guru30?: number | null;
   murid30?: number | null;
@@ -36,6 +38,8 @@ export default function DelimaTrendChart({
   if (data.length === 0) return null;
   const ada23 = data.some((d) => d.murid23 != null);
   const mula23 = data.findIndex((d) => d.murid23 != null);
+  const adaGab = data.some((d) => d.guruGab != null);
+  const mulaGab = data.findIndex((d) => d.guruGab != null);
   const ada30 = data.some((d) => d.guru30 != null || d.murid30 != null);
   const mula30 = data.findIndex((d) => d.guru30 != null || d.murid30 != null);
   return (
@@ -127,6 +131,26 @@ export default function DelimaTrendChart({
                 connectNulls
               />
             ) : null}
+            {adaGab ? (
+              <Line
+                type="monotone"
+                dataKey="guruGab"
+                name="Guru 2.0+3.0"
+                stroke="#024ad8"
+                strokeWidth={2}
+                strokeDasharray="5 3"
+                dot={{ r: 5, fill: "#ffffff", stroke: "#024ad8", strokeWidth: 2, strokeDasharray: "0" }}
+                activeDot={{ r: 6 }}
+                label={{
+                  position: "top",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  fill: "#024ad8",
+                  formatter: (v: unknown) => (v == null ? "" : `${v}%`),
+                }}
+                connectNulls
+              />
+            ) : null}
             {ada23 ? (
               <Line
                 type="monotone"
@@ -153,6 +177,11 @@ export default function DelimaTrendChart({
       {ada30 && mula30 > 0 ? (
         <p className="mt-2 text-xs text-graphite">
           DELIMa 3.0 direkod mulai {data[mula30].bulan}; bulan sebelumnya tiada data.
+        </p>
+      ) : null}
+      {adaGab && mulaGab > 0 ? (
+        <p className="mt-2 text-xs text-graphite">
+          Guru 2.0+3.0 direkod mulai {data[mulaGab].bulan}; bulan sebelumnya tiada data.
         </p>
       ) : null}
       {ada23 && mula23 > 0 ? (

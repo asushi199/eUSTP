@@ -32,6 +32,7 @@ export type HomeDelimaTrend = {
     guru: number | null;
     murid: number | null;
     murid23: number | null;
+    guruGab: number | null;
     guru30: number | null;
     murid30: number | null;
   }[];

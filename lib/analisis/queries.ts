@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { analisisBreakdown, analisisMetrics } from "@/lib/schema";
 import type { analisisModul } from "@/lib/schema";
 import { after } from "next/server";
-import { fetchDelimaLive, fetchDelimaSchools, type DelimaLive, type DelimaSchoolList } from "./delima-live";
+import { fetchDelimaGuruCapai, fetchDelimaLive, fetchDelimaSchools, type DelimaLive, type DelimaSchoolList } from "./delima-live";
 import {
   ensureDelimaSnapshot,
   getDelimaCapaiTerkini,
@@ -93,10 +93,13 @@ export async function getAnalisisData(modul: AnalisisModul): Promise<AnalisisDat
     snapshotTrend = await getDelimaSnapshotTrend().catch(() => []);
     const snapCapai = await getDelimaCapaiTerkini().catch(() => null);
     const kpiGuru = Number(metrics.get("kpi_guru")?.replace(",", "."));
+    // Sasaran KPI guru dikenakan pada angka gabungan 2.0 + 3.0; jika widget itu tiada, banding guru 2.0.
+    const guruCapaiGabung = live?.guruGabung ? await fetchDelimaGuruCapai(cfg.url, cfg.daerah) : null;
     const guruCapai =
-      liveSchools && Number.isFinite(kpiGuru) && kpiGuru > 0
+      guruCapaiGabung ??
+      (liveSchools && Number.isFinite(kpiGuru) && kpiGuru > 0
         ? liveSchools.schools.filter((r) => (r.guru?.peratus ?? -1) >= kpiGuru).length
-        : null;
+        : null);
     const jumlahSekolah = liveSchools?.schools.length ?? snapCapai?.jumlah ?? null;
     if (guruCapai != null || snapCapai) {
       capaiSekolah = { guru: guruCapai, murid: snapCapai?.capai ?? null, jumlah: jumlahSekolah };

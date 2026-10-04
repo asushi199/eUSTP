@@ -292,17 +292,36 @@ export async function fetchDelimaLive(
 async function allPages(
   s: Sumber,
   populasi: "guru" | "murid",
+  gabung = false,
 ): Promise<{ baris: JadualBaris[]; tempoh: string }> {
-  const first = await getJson<JadualJson>(apiUrl(s, { tab: "sekolah", populasi }));
+  const first = await getJson<JadualJson>(apiUrl(s, { tab: "sekolah", populasi, gabung }));
   const rest = await Promise.all(
     Array.from({ length: Math.max(0, (first.jumlahHalaman ?? 1) - 1) }, (_, i) =>
-      getJson<JadualJson>(apiUrl(s, { tab: "sekolah", populasi, halaman: i + 2 })),
+      getJson<JadualJson>(apiUrl(s, { tab: "sekolah", populasi, halaman: i + 2, gabung })),
     ),
   );
   return {
     baris: [first, ...rest].flatMap((j) => j.baris ?? []),
     tempoh: first.kpi?.tarikh ?? "",
   };
+}
+
+/**
+ * Bilangan sekolah yang capai sasaran KPI guru (gabungan 2.0 + 3.0, tanda `capai` widget JPN).
+ * null jika sumber tiada widget gabungan atau gagal dibaca.
+ */
+export async function fetchDelimaGuruCapai(
+  sumberUrl?: string,
+  daerahSlug?: string,
+): Promise<number | null> {
+  try {
+    const s = await resolveSumber(sumberUrl, daerahSlug);
+    if (!s?.widgetGabung) return null;
+    const { baris } = await allPages(s, "guru", true);
+    return baris.length > 0 ? baris.filter((b) => b.capai === true).length : null;
+  } catch {
+    return null;
+  }
 }
 
 /** Semua sekolah daerah, guru + murid digabung ikut kod sekolah. */

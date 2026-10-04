@@ -351,6 +351,13 @@
       "when": 1791102580225,
       "tag": "0049_delima_v30",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1791104146515,
+      "tag": "0050_delima_guru_gabung",
+      "breakpoints": true
     }
   ]
 }

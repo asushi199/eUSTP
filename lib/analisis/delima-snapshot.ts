@@ -67,6 +67,8 @@ export type DelimaTrendPoint = {
   guru: number;
   murid: number;
   murid23: number | null;
+  /** Guru gabungan 2.0 + 3.0; null bagi bulan sebelum direkod. */
+  guruGab: number | null;
   guru30: number | null;
   murid30: number | null;
 };
@@ -126,6 +128,13 @@ export async function saveDelimaSnapshot(
     bilSekolah: live.bilSekolah,
     bilCapai,
     // DELIMa 3.0 hanya ditulis bila CSV berjaya dibaca — kegagalan sementara tak padam rekod sedia ada.
+    ...(live.guruGabung
+      ? {
+          guruGabAktif: live.guruGabung.aktif,
+          guruGabJumlah: live.guruGabung.jumlah,
+          guruGabPct: live.guruGabung.peratus,
+        }
+      : {}),
     ...(live.v30
       ? {
           guru30Aktif: live.v30.guru.aktif,
@@ -227,12 +236,19 @@ export async function ensureDelimaSnapshot(
         id: analisisDelimaSnapshots.id,
         bilCapai: analisisDelimaSnapshots.bilCapai,
         guru30Pct: analisisDelimaSnapshots.guru30Pct,
+        guruGabPct: analisisDelimaSnapshots.guruGabPct,
       })
       .from(analisisDelimaSnapshots)
       .where(eq(analisisDelimaSnapshots.period, period))
       .limit(1);
     // Sudah ada, bilangan sekolah capai sudah dikira dan (jika CSV 3.0 ada) 3.0 sudah direkod: tiada apa perlu dibuat.
-    if (ada[0] && ada[0].bilCapai != null && (!live.v30 || ada[0].guru30Pct != null)) return;
+    if (
+      ada[0] &&
+      ada[0].bilCapai != null &&
+      (!live.v30 || ada[0].guru30Pct != null) &&
+      (!live.guruGabung || ada[0].guruGabPct != null)
+    )
+      return;
   }
   const bilCapai = senarai
     ? await fetchDelimaCapai(
@@ -333,6 +349,7 @@ export async function getDelimaSnapshotTrend(): Promise<DelimaTrendPoint[]> {
       guru: analisisDelimaSnapshots.guruPct,
       murid: analisisDelimaSnapshots.muridPct,
       murid23: analisisDelimaSnapshots.kadPct,
+      guruGab: analisisDelimaSnapshots.guruGabPct,
       guru30: analisisDelimaSnapshots.guru30Pct,
       murid30: analisisDelimaSnapshots.murid30Pct,
     })
@@ -347,6 +364,7 @@ export async function getDelimaSnapshotTrend(): Promise<DelimaTrendPoint[]> {
       guru: r.guru,
       murid: r.murid,
       murid23: r.murid23,
+      guruGab: r.guruGab,
       guru30: r.guru30,
       murid30: r.murid30,
     };
