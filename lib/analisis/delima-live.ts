@@ -24,12 +24,25 @@ export type DelimaKadMurid = DelimaLivePop & {
   kemasKini: string;
 };
 
+/**
+ * Guru yang pernah log masuk DELIMa 2.0 ATAU 3.0 (widget KPI JPN yang bertajuk "Data Aktif Delima 3.0";
+ * disahkan = jumlah - guru "Belum Login" kedua-duanya). Sasaran KPI dikira atas angka gabungan ini,
+ * bukan atas 2.0 atau 3.0 sahaja.
+ */
+export type DelimaGuruGabung = DelimaLivePop & {
+  sasaran: number | null;
+  capai: boolean;
+  kemasKini: string;
+};
+
 export type DelimaLive = {
   daerah: string;
   guru: DelimaLivePop;
   murid: DelimaLivePop;
   /** Jumlah daerah DELIMa 3.0 (CSV Google Sheet); null jika sumber tak dapat dicapai. */
   v30: { guru: DelimaLivePop; murid: DelimaLivePop } | null;
+  /** Guru gabungan 2.0 + 3.0 beserta sasaran KPI; null jika halaman sumber tiada widget itu. */
+  guruGabung: DelimaGuruGabung | null;
   kadMurid: DelimaKadMurid | null;
   bilSekolah: number | null;
   /** Tempoh data, cth. "1 Jan – 31 Ogos 2026". */
@@ -71,6 +84,7 @@ type JadualBaris = {
   jumlahCapai: number;
   jumlahPopulasi: number;
   peratus: number;
+  capai?: boolean;
   lencana?: { label?: string };
 };
 
@@ -78,10 +92,18 @@ type JadualJson = {
   baris?: JadualBaris[];
   jumlah?: number;
   jumlahHalaman?: number;
-  kpi?: { tarikh?: string };
+  kpi?: { tarikh?: string; targetPeratus?: number };
 };
 
-type Sumber = { origin: string; slug: string; daerah: string; widgetId: string; sumberUrl: string };
+type Sumber = {
+  origin: string;
+  slug: string;
+  daerah: string;
+  widgetId: string;
+  /** Widget KPI gabungan 2.0 + 3.0 (tajuk menyebut 3.0); undefined jika tiada pada halaman. */
+  widgetGabung?: string;
+  sumberUrl: string;
+};
 
 async function getText(url: string): Promise<string> {
   const res = await fetch(url, {
@@ -104,9 +126,16 @@ function pageUrl(s: { origin: string; slug: string }, daerah: string, sekolah = 
 
 function apiUrl(
   s: Sumber,
-  o: { tab: "daerah" | "sekolah"; populasi: "guru" | "murid"; sekolah?: string; halaman?: number },
+  o: {
+    tab: "daerah" | "sekolah";
+    populasi: "guru" | "murid";
+    sekolah?: string;
+    halaman?: number;
+    /** Guna widget gabungan 2.0 + 3.0 (bukan widget 2.0). */
+    gabung?: boolean;
+  },
 ): string {
-  return `${s.origin}/api/p/${s.slug}/jadual/${s.widgetId}?${new URLSearchParams({
+  return `${s.origin}/api/p/${s.slug}/jadual/${(o.gabung && s.widgetGabung) || s.widgetId}?${new URLSearchParams({
     tab: o.tab,
     populasi: o.populasi,
     daerah: s.daerah,
@@ -125,9 +154,15 @@ async function resolveSumber(sumberUrl?: string, daerahSlug?: string): Promise<S
   const slug = u.pathname.match(/^\/p\/([^/]+)/)?.[1];
   if (!slug) return null;
   const html = await getText(pageUrl({ origin: u.origin, slug }, daerah));
-  const widgetId = html.match(/widgetId[\\"]+:[\\"]+([0-9a-f-]{36})/)?.[1];
+  const widgets = [
+    ...html.matchAll(/widgetId[\\"]+:[\\"]+([0-9a-f-]{36})[\\"]+,[\\"]+tajuk[\\"]+:[\\"]+([^\\"]+)/g),
+  ].map((m) => ({ id: m[1], tajuk: m[2] }));
+  const widgetGabung = widgets.find((w) => /3\.0/.test(w.tajuk))?.id;
+  const widgetId = [...html.matchAll(/widgetId[\\"]+:[\\"]+([0-9a-f-]{36})/g)]
+    .map((m) => m[1])
+    .find((id) => id !== widgetGabung);
   if (!widgetId) return null;
-  return { origin: u.origin, slug, daerah, widgetId, sumberUrl: url };
+  return { origin: u.origin, slug, daerah, widgetId, widgetGabung, sumberUrl: url };
 }
 
 function tahapDari(baris: JadualBaris): DelimaTahap {
@@ -210,12 +245,16 @@ export async function fetchDelimaLive(
   try {
     const s = await resolveSumber(sumberUrl, daerahSlug);
     if (!s) return null;
-    const [html, guruJ, muridJ, sekolahJ, v30] = await Promise.all([
+    const [html, guruJ, muridJ, sekolahJ, v30, gabungJ] = await Promise.all([
       getText(pageUrl(s, s.daerah)),
       getJson<JadualJson>(apiUrl(s, { tab: "daerah", populasi: "guru" })),
       getJson<JadualJson>(apiUrl(s, { tab: "daerah", populasi: "murid" })),
       getJson<JadualJson>(apiUrl(s, { tab: "sekolah", populasi: "guru" })),
       fetchDelimaV30(s.daerah),
+      // Gagal baca widget gabungan tidak patut menjejaskan angka 2.0.
+      s.widgetGabung
+        ? getJson<JadualJson>(apiUrl(s, { tab: "daerah", populasi: "guru", gabung: true })).catch(() => null)
+        : Promise.resolve(null),
     ]);
     const pick = (j: JadualJson) => j.baris?.find((b) => b.id === s.daerah) ?? j.baris?.[0];
     const g = pick(guruJ);
@@ -226,10 +265,19 @@ export async function fetchDelimaLive(
       jumlah: b.jumlahPopulasi,
       peratus: b.peratus,
     });
+    const gb = gabungJ ? pick(gabungJ) : undefined;
     return {
       daerah: s.daerah,
       guru: p(g),
       murid: p(m),
+      guruGabung: gb
+        ? {
+            ...p(gb),
+            sasaran: gabungJ?.kpi?.targetPeratus || null,
+            capai: gb.capai === true,
+            kemasKini: gabungJ?.kpi?.tarikh ?? "",
+          }
+        : null,
       v30: v30 ? { guru: v30.jumlahGuru, murid: v30.jumlahMurid } : null,
       kadMurid: parseKadMurid(html),
       bilSekolah: typeof sekolahJ.jumlah === "number" ? sekolahJ.jumlah : null,

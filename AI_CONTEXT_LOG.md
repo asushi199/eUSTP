@@ -1862,3 +1862,27 @@ Corak berselang = instance sihat vs beracun.
 - Snapshot bulanan/trend BELUM simpan 3.0 (perlu migrasi lajur) — 3.0 hanya langsung.
 - Gid lembaran: Guru 3.0 = 1023985887, Murid 3.0 = 1408521867; jika Google Sheet bertukar, kemas kini `GID`.
 - Disahkan: tsc bersih, build lulus, 4 ujian lulus, Manjung 102 sekolah (Guru 3.0 64.1%, Murid 3.0 15.0%).
+
+## 2026-10-04 — Snapshot & trend DELIMa 3.0
+
+- Migrasi `0049_delima_v30` (tambahan sahaja, lajur nullable): `guru30_*`/`murid30_*` (aktif, jumlah, pct)
+  pada `analisis_delima_snapshots` dan `analisis_delima_schools`.
+- `saveDelimaSnapshot` tulis 3.0 hanya bila CSV berjaya dibaca (kegagalan sementara tak padam rekod);
+  `ensureDelimaSnapshot` isi semula snapshot sedia ada yang belum ada 3.0 (sekali).
+- Trend (`DelimaTrendPoint`) + `DelimaTrendChart`: garisan "Guru 3.0"/"Murid 3.0" (putus-putus), hanya
+  muncul bila ada data; jadual sejarah & snapshot sekolah papar baris 3.0.
+- Bulan lama (sebelum 3.0 direkod) kekal tiada data 3.0 — CSV hanya data semasa, tiada sejarah.
+- Andaian: CSV 3.0 semasa dikaitkan dengan tempoh sumber 2.0 (angka 2.0 CSV = sumber vercel, 31 Ogos 2026).
+
+### Pembetulan (2026-10-04, selepas semakan data)
+
+- CSV KPM (4 helaian) disahkan bersih: tiada kod sekolah berulang, aktif<=jumlah, peratus sepadan.
+  2.0 sama tepat dengan papan pemuka JPN. 3.0 CSV = pengguna aktif platform 3.0 sahaja.
+- Kad JPN "Data Aktif Delima 3.0" (Guru 80%/Murid 62.3%) BUKAN 3.0 sahaja: ia = pernah log masuk
+  2.0 ATAU 3.0 (Manjung: guru 3757-752 "Belum Login" = 3005; murid 41540-15676 = 25864 ~ 25866).
+  Label asal "Jumlah Aktif Murid · DELIMa 2.0 + 3.0" betul. Sasaran KPI (guru 98%, murid 75%) dikenakan
+  pada angka gabungan ini, jangan banding dengan 3.0 sahaja.
+- Ditambah kad "Jumlah Aktif Guru · 2.0 + 3.0" (widget JPN bertajuk menyebut 3.0, `DelimaLive.guruGabung`).
+- Murid gabungan dalam snapshot = lajur `kad_*` (sejarah sedia ada); `murid30_*` = CSV 3.0 sahaja.
+- Senarai "Belum Login" per orang (sheet KPM) mengandungi nama/e-mel — hanya dibilang secara tempatan,
+  tidak disimpan/ditunjuk.

@@ -18,6 +18,9 @@ export type DelimaPoint = {
   murid: number | null;
   /** Jumlah Aktif Murid DELIMa 2.0 + 3.0 (kad sasaran); null jika bulan itu tiada rekod. */
   murid23?: number | null;
+  /** DELIMa 3.0 guru/murid; null bagi bulan sebelum 3.0 direkod. */
+  guru30?: number | null;
+  murid30?: number | null;
 };
 
 /** Trend % aktif DELIMa guru vs murid, dengan garis sasaran KPI guru dan murid. */
@@ -33,9 +36,13 @@ export default function DelimaTrendChart({
   if (data.length === 0) return null;
   const ada23 = data.some((d) => d.murid23 != null);
   const mula23 = data.findIndex((d) => d.murid23 != null);
+  const ada30 = data.some((d) => d.guru30 != null || d.murid30 != null);
+  const mula30 = data.findIndex((d) => d.guru30 != null || d.murid30 != null);
   return (
     <div className="card p-5">
-      <p className="font-semibold">Peratus Penggunaan DELIMa 2.0 Bulanan</p>
+      <p className="font-semibold">
+        Peratus Penggunaan DELIMa 2.0{ada30 ? " dan 3.0" : ""} Bulanan
+      </p>
       <div className="mt-3 h-64">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 16, right: 28, bottom: 0, left: -16 }}>
@@ -81,7 +88,7 @@ export default function DelimaTrendChart({
             <Line
               type="monotone"
               dataKey="guru"
-              name="Guru"
+              name={ada30 ? "Guru 2.0" : "Guru"}
               stroke="#024ad8"
               strokeWidth={2}
               dot={{ r: 3, fill: "#024ad8", strokeWidth: 0 }}
@@ -96,6 +103,30 @@ export default function DelimaTrendChart({
               dot={{ r: 3, fill: "#636363", strokeWidth: 0 }}
               connectNulls
             />
+            {ada30 ? (
+              <Line
+                type="monotone"
+                dataKey="guru30"
+                name="Guru 3.0"
+                stroke="#6f97ea"
+                strokeWidth={2}
+                strokeDasharray="5 3"
+                dot={{ r: 3, fill: "#6f97ea", strokeWidth: 0 }}
+                connectNulls
+              />
+            ) : null}
+            {ada30 ? (
+              <Line
+                type="monotone"
+                dataKey="murid30"
+                name="Murid 3.0"
+                stroke="#a6a6a6"
+                strokeWidth={2}
+                strokeDasharray="5 3"
+                dot={{ r: 3, fill: "#a6a6a6", strokeWidth: 0 }}
+                connectNulls
+              />
+            ) : null}
             {ada23 ? (
               <Line
                 type="monotone"
@@ -119,6 +150,11 @@ export default function DelimaTrendChart({
           </LineChart>
         </ResponsiveContainer>
       </div>
+      {ada30 && mula30 > 0 ? (
+        <p className="mt-2 text-xs text-graphite">
+          DELIMa 3.0 direkod mulai {data[mula30].bulan}; bulan sebelumnya tiada data.
+        </p>
+      ) : null}
       {ada23 && mula23 > 0 ? (
         <p className="mt-2 text-xs text-graphite">
           Murid 2.0+3.0 direkod mulai {data[mula23].bulan}; bulan sebelumnya tiada data.

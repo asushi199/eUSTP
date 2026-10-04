@@ -27,7 +27,14 @@ export type HomeLineChart = {
 };
 
 export type HomeDelimaTrend = {
-  points: { bulan: string; guru: number | null; murid: number | null; murid23: number | null }[];
+  points: {
+    bulan: string;
+    guru: number | null;
+    murid: number | null;
+    murid23: number | null;
+    guru30: number | null;
+    murid30: number | null;
+  }[];
   kpiGuru: number | null;
   kpiMurid: number | null;
 };
@@ -167,6 +174,23 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
           { label: "Sasaran KPI", value: pct(metricNum(delima.metrics, "kpi_murid")) },
         ],
       },
+      ...(live?.guruGabung
+        ? [
+            {
+              title: `Jumlah Aktif Guru · DELIMa 2.0 + 3.0 · Sasaran ${live.guruGabung.sasaran ?? "—"}%`,
+              stats: [
+                {
+                  label: live.guruGabung.capai ? "Capai" : "Belum capai",
+                  value: pct(live.guruGabung.peratus),
+                },
+                {
+                  label: `aktif daripada ${bil(live.guruGabung.jumlah)}`,
+                  value: bil(live.guruGabung.aktif),
+                },
+              ],
+            },
+          ]
+        : []),
       ...(live?.kadMurid
         ? [
             {
@@ -193,7 +217,7 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
     delimaLive: live != null,
     bars: delimaTaburan(delima.liveSchools),
     note: live
-      ? `Data langsung DELIMa Perak (${live.tempoh}). Angka guru dan murid ialah DELIMa 2.0${live.v30 ? " dan 3.0 (Google Sheet DELIMa Perak)" : ""}; "Jumlah Aktif Murid" merangkumi murid aktif DELIMa 2.0 + 3.0.`
+      ? `Data langsung DELIMa Perak (${live.tempoh}). DELIMa 2.0 dan 3.0${live.v30 ? " (pengguna aktif setiap platform, CSV KPM)" : ""} dikira berasingan; "Jumlah Aktif ... 2.0 + 3.0" ialah pernah log masuk salah satu platform dan itulah yang dibandingkan dengan sasaran KPI.`
       : undefined,
   };
 

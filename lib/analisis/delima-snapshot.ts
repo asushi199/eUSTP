@@ -9,6 +9,7 @@ import {
   fetchDelimaLive,
   fetchDelimaSchools,
   type DelimaLive,
+  type DelimaLivePop,
   type DelimaSchoolList,
   type DelimaSchoolPop,
   type DelimaSchoolRow,
@@ -52,6 +53,22 @@ export type DelimaSnapshotRow = {
   kadSasaran: number | null;
   bilSekolah: number | null;
   bilCapai: number | null;
+  guru30Pct: number | null;
+  guru30Aktif: number | null;
+  guru30Jumlah: number | null;
+  murid30Pct: number | null;
+  murid30Aktif: number | null;
+  murid30Jumlah: number | null;
+};
+
+/** Titik carta trend bulanan; `guru30`/`murid30` null bagi bulan sebelum DELIMa 3.0 direkod. */
+export type DelimaTrendPoint = {
+  bulan: string;
+  guru: number;
+  murid: number;
+  murid23: number | null;
+  guru30: number | null;
+  murid30: number | null;
 };
 
 export type DelimaSnapshotPage = {
@@ -61,6 +78,13 @@ export type DelimaSnapshotPage = {
   pageSize: number;
   pageCount: number;
 };
+
+const dbPop30 = (
+  aktif: number | null,
+  jumlah: number | null,
+  pct: number | null,
+): DelimaLivePop | null =>
+  aktif == null || jumlah == null || pct == null ? null : { aktif, jumlah, peratus: pct };
 
 const dbPop = (
   aktif: number | null,
@@ -101,11 +125,22 @@ export async function saveDelimaSnapshot(
     kadSasaran: live.kadMurid?.sasaran ?? null,
     bilSekolah: live.bilSekolah,
     bilCapai,
+    // DELIMa 3.0 hanya ditulis bila CSV berjaya dibaca — kegagalan sementara tak padam rekod sedia ada.
+    ...(live.v30
+      ? {
+          guru30Aktif: live.v30.guru.aktif,
+          guru30Jumlah: live.v30.guru.jumlah,
+          guru30Pct: live.v30.guru.peratus,
+          murid30Aktif: live.v30.murid.aktif,
+          murid30Jumlah: live.v30.murid.jumlah,
+          murid30Pct: live.v30.murid.peratus,
+        }
+      : {}),
   };
 
   return db.transaction(async (tx) => {
     const ada = await tx
-      .select({ id: analisisDelimaSnapshots.id })
+      .select({ id: analisisDelimaSnapshots.id, guru30Pct: analisisDelimaSnapshots.guru30Pct })
       .from(analisisDelimaSnapshots)
       .where(eq(analisisDelimaSnapshots.period, period))
       .limit(1);
@@ -126,7 +161,9 @@ export async function saveDelimaSnapshot(
     }
 
     // Senarai sekolah hanya diganti jika berjaya diambil (elak kosongkan sejarah bila sumber gagal separa).
-    if (senarai && senarai.schools.length > 0) {
+    // Jika CSV 3.0 gagal kali ini tetapi snapshot sudah ada 3.0, kekalkan baris sekolah sedia ada.
+    const kekalkanSekolah = !live.v30 && ada[0]?.guru30Pct != null;
+    if (senarai && senarai.schools.length > 0 && !kekalkanSekolah) {
       await tx.delete(analisisDelimaSchools).where(eq(analisisDelimaSchools.snapshotId, id));
       await tx.insert(analisisDelimaSchools).values(
         senarai.schools.map((s) => ({
@@ -141,6 +178,12 @@ export async function saveDelimaSnapshot(
           muridJumlah: s.murid?.jumlah ?? null,
           muridPct: s.murid?.peratus ?? null,
           muridTahap: s.murid?.tahap ?? null,
+          guru30Aktif: s.guru30?.aktif ?? null,
+          guru30Jumlah: s.guru30?.jumlah ?? null,
+          guru30Pct: s.guru30?.peratus ?? null,
+          murid30Aktif: s.murid30?.aktif ?? null,
+          murid30Jumlah: s.murid30?.jumlah ?? null,
+          murid30Pct: s.murid30?.peratus ?? null,
         })),
       );
     }
@@ -180,12 +223,16 @@ export async function ensureDelimaSnapshot(
   const period = periodDariTempoh(live.tempoh);
   if (period) {
     const ada = await db
-      .select({ id: analisisDelimaSnapshots.id, bilCapai: analisisDelimaSnapshots.bilCapai })
+      .select({
+        id: analisisDelimaSnapshots.id,
+        bilCapai: analisisDelimaSnapshots.bilCapai,
+        guru30Pct: analisisDelimaSnapshots.guru30Pct,
+      })
       .from(analisisDelimaSnapshots)
       .where(eq(analisisDelimaSnapshots.period, period))
       .limit(1);
-    // Sudah ada dan bilangan sekolah capai sudah dikira: tiada apa perlu dibuat.
-    if (ada[0] && ada[0].bilCapai != null) return;
+    // Sudah ada, bilangan sekolah capai sudah dikira dan (jika CSV 3.0 ada) 3.0 sudah direkod: tiada apa perlu dibuat.
+    if (ada[0] && ada[0].bilCapai != null && (!live.v30 || ada[0].guru30Pct != null)) return;
   }
   const bilCapai = senarai
     ? await fetchDelimaCapai(
@@ -232,6 +279,12 @@ export async function listDelimaSnapshots(
       kadSasaran: analisisDelimaSnapshots.kadSasaran,
       bilSekolah: analisisDelimaSnapshots.bilSekolah,
       bilCapai: analisisDelimaSnapshots.bilCapai,
+      guru30Pct: analisisDelimaSnapshots.guru30Pct,
+      guru30Aktif: analisisDelimaSnapshots.guru30Aktif,
+      guru30Jumlah: analisisDelimaSnapshots.guru30Jumlah,
+      murid30Pct: analisisDelimaSnapshots.murid30Pct,
+      murid30Aktif: analisisDelimaSnapshots.murid30Aktif,
+      murid30Jumlah: analisisDelimaSnapshots.murid30Jumlah,
     })
     .from(analisisDelimaSnapshots)
     .orderBy(desc(analisisDelimaSnapshots.period))
@@ -265,20 +318,23 @@ export async function getDelimaSnapshotSchools(
       nama: r.nama,
       guru: dbPop(r.guruAktif, r.guruJumlah, r.guruPct, r.guruTahap),
       murid: dbPop(r.muridAktif, r.muridJumlah, r.muridPct, r.muridTahap),
+      // undefined (bukan null) bila snapshot tiada 3.0 — UI tidak papar baris 3.0 kosong.
+      guru30: dbPop30(r.guru30Aktif, r.guru30Jumlah, r.guru30Pct) ?? undefined,
+      murid30: dbPop30(r.murid30Aktif, r.murid30Jumlah, r.murid30Pct) ?? undefined,
     })),
   };
 }
 
 /** Titik carta trend bulanan daripada snapshot (tertua → terbaharu). */
-export async function getDelimaSnapshotTrend(): Promise<
-  { bulan: string; guru: number; murid: number; murid23: number | null }[]
-> {
+export async function getDelimaSnapshotTrend(): Promise<DelimaTrendPoint[]> {
   const rows = await db
     .select({
       period: analisisDelimaSnapshots.period,
       guru: analisisDelimaSnapshots.guruPct,
       murid: analisisDelimaSnapshots.muridPct,
       murid23: analisisDelimaSnapshots.kadPct,
+      guru30: analisisDelimaSnapshots.guru30Pct,
+      murid30: analisisDelimaSnapshots.murid30Pct,
     })
     .from(analisisDelimaSnapshots)
     .orderBy(asc(analisisDelimaSnapshots.period));
@@ -291,6 +347,8 @@ export async function getDelimaSnapshotTrend(): Promise<
       guru: r.guru,
       murid: r.murid,
       murid23: r.murid23,
+      guru30: r.guru30,
+      murid30: r.murid30,
     };
   });
 }

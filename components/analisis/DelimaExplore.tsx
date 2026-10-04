@@ -298,6 +298,17 @@ function SchoolDetail({ detail }: { detail: DelimaSchoolDetail }) {
   );
 }
 
+/** undefined (bukan null) bila snapshot tiada 3.0 — V30Line tidak memaparkan apa-apa. */
+function histV30(
+  aktif: number | null,
+  jumlah: number | null,
+  pct: number | null,
+): DelimaLivePop | undefined {
+  return aktif == null || jumlah == null || pct == null
+    ? undefined
+    : { aktif, jumlah, peratus: pct };
+}
+
 function HistoryTable({
   data,
   loading,
@@ -332,6 +343,7 @@ function HistoryTable({
                   <span className="text-xs text-graphite">
                     {num(r.guruAktif)}/{num(r.guruJumlah)}
                   </span>
+                  <V30Line pop={histV30(r.guru30Aktif, r.guru30Jumlah, r.guru30Pct)} />
                 </dd>
               </div>
               <div className="flex justify-between">
@@ -341,6 +353,7 @@ function HistoryTable({
                   <span className="text-xs text-graphite">
                     {num(r.muridAktif)}/{num(r.muridJumlah)}
                   </span>
+                  <V30Line pop={histV30(r.murid30Aktif, r.murid30Jumlah, r.murid30Pct)} />
                 </dd>
               </div>
             </dl>
@@ -377,12 +390,14 @@ function HistoryTable({
                   <span className="text-xs text-graphite">
                     {num(r.guruAktif)}/{num(r.guruJumlah)}
                   </span>
+                  <V30Line pop={histV30(r.guru30Aktif, r.guru30Jumlah, r.guru30Pct)} />
                 </td>
                 <td className="whitespace-nowrap px-4 py-3 tabular-nums">
                   {pct(r.muridPct)}{" "}
                   <span className="text-xs text-graphite">
                     {num(r.muridAktif)}/{num(r.muridJumlah)}
                   </span>
+                  <V30Line pop={histV30(r.murid30Aktif, r.murid30Jumlah, r.murid30Pct)} />
                 </td>
                 <td className="px-4 py-3 text-right tabular-nums">
                   {r.bilCapai != null ? `${r.bilCapai} / ${r.bilSekolah ?? "—"}` : "—"}
@@ -574,7 +589,7 @@ export default function DelimaExplore({
         </button>
         <h3 className="mt-3 text-lg font-semibold tracking-tight">Sejarah snapshot DELIMa</h3>
         <p className="mt-1 text-sm text-graphite">
-          Satu snapshot setiap bulan, disimpan automatik. Angka guru dan murid ialah DELIMa 2.0. Klik bulan untuk melihat sekolah.
+          Satu snapshot setiap bulan, disimpan automatik. Angka utama ialah DELIMa 2.0; DELIMa 3.0 (jika ada) di bawahnya. Klik bulan untuk melihat sekolah.
         </p>
         {error ? <p className="mt-3 text-sm text-graphite">{error}</p> : null}
         {history && history.total > 0 ? (

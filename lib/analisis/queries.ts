@@ -6,7 +6,12 @@ import { analisisBreakdown, analisisMetrics } from "@/lib/schema";
 import type { analisisModul } from "@/lib/schema";
 import { after } from "next/server";
 import { fetchDelimaLive, fetchDelimaSchools, type DelimaLive, type DelimaSchoolList } from "./delima-live";
-import { ensureDelimaSnapshot, getDelimaCapaiTerkini, getDelimaSnapshotTrend } from "./delima-snapshot";
+import {
+  ensureDelimaSnapshot,
+  getDelimaCapaiTerkini,
+  getDelimaSnapshotTrend,
+  type DelimaTrendPoint,
+} from "./delima-snapshot";
 
 export type AnalisisModul = (typeof analisisModul.enumValues)[number];
 
@@ -20,7 +25,7 @@ export type AnalisisData = {
   /** Senarai sekolah langsung (modul `delima`) — asas carta taburan tahap. */
   liveSchools?: DelimaSchoolList | null;
   /** Titik trend daripada snapshot bulanan (modul `delima`); kosong jika belum ada. */
-  snapshotTrend?: { bulan: string; guru: number; murid: number; murid23: number | null }[];
+  snapshotTrend?: DelimaTrendPoint[];
   /**
    * Sekolah yang capai sasaran: guru = guru DELIMa 2.0 ≥ sasaran KPI guru (dikira langsung);
    * murid = kad "Aktif Murid" sekolah capai (daripada snapshot). null jika belum ada.
@@ -62,7 +67,7 @@ export async function getAnalisisData(modul: AnalisisModul): Promise<AnalisisDat
 
   let live: DelimaLive | null = null;
   let liveSchools: DelimaSchoolList | null = null;
-  let snapshotTrend: { bulan: string; guru: number; murid: number; murid23: number | null }[] = [];
+  let snapshotTrend: DelimaTrendPoint[] = [];
   let capaiSekolah: AnalisisData["capaiSekolah"] = null;
   if (modul === "delima") {
     const cfg = delimaConfigDariMetrics(metrics);
@@ -111,7 +116,7 @@ export async function getAnalisisData(modul: AnalisisModul): Promise<AnalisisDat
 /** Titik carta trend DELIMa: hanya daripada snapshot bulanan automatik (tertua → terbaharu). */
 export function delimaTrendPoints(
   data: AnalisisData,
-): { bulan: string; guru: number | null; murid: number | null; murid23: number | null }[] {
+): DelimaTrendPoint[] {
   return data.snapshotTrend ?? [];
 }
 

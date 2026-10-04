@@ -552,6 +552,13 @@ export const analisisDelimaSnapshots = pgTable(
     bilSekolah: integer("bil_sekolah"),
     /** Bilangan sekolah yang capai sasaran kad "Aktif Murid" (null jika belum dikira). */
     bilCapai: integer("bil_capai"),
+    /** DELIMa 3.0 (CSV Google Sheet DELIMa Perak) — null bagi snapshot sebelum 3.0 direkod. */
+    guru30Aktif: integer("guru30_aktif"),
+    guru30Jumlah: integer("guru30_jumlah"),
+    guru30Pct: doublePrecision("guru30_pct"),
+    murid30Aktif: integer("murid30_aktif"),
+    murid30Jumlah: integer("murid30_jumlah"),
+    murid30Pct: doublePrecision("murid30_pct"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
@@ -578,6 +585,12 @@ export const analisisDelimaSchools = pgTable(
     muridJumlah: integer("murid_jumlah"),
     muridPct: doublePrecision("murid_pct"),
     muridTahap: text("murid_tahap"),
+    guru30Aktif: integer("guru30_aktif"),
+    guru30Jumlah: integer("guru30_jumlah"),
+    guru30Pct: doublePrecision("guru30_pct"),
+    murid30Aktif: integer("murid30_aktif"),
+    murid30Jumlah: integer("murid30_jumlah"),
+    murid30Pct: doublePrecision("murid30_pct"),
   },
   (t) => ({
     snapshotKodIdx: uniqueIndex("analisis_delima_schools_snapshot_kod_idx").on(t.snapshotId, t.kod),
