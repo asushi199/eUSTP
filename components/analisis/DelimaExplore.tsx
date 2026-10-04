@@ -10,6 +10,7 @@ import {
 } from "@/lib/actions/delima-public";
 import type { DelimaSnapshotPage, DelimaSnapshotRow } from "@/lib/analisis/delima-snapshot";
 import type {
+  DelimaLivePop,
   DelimaSchoolDetail,
   DelimaSchoolList,
   DelimaSchoolPop,
@@ -47,6 +48,16 @@ function PopCell({ pop }: { pop: DelimaSchoolPop | null }) {
         {num(pop.aktif)}/{num(pop.jumlah)}
       </span>
     </>
+  );
+}
+
+/** Baris kecil DELIMa 3.0 di bawah angka 2.0; tiada apa-apa jika sumber 3.0 tidak ada. */
+function V30Line({ pop }: { pop: DelimaLivePop | null | undefined }) {
+  if (pop === undefined) return null;
+  return (
+    <p className="mt-0.5 text-xs font-normal text-graphite">
+      3.0: {pop ? `${pct(pop.peratus)} · ${num(pop.aktif)}/${num(pop.jumlah)}` : "—"}
+    </p>
   );
 }
 
@@ -160,16 +171,22 @@ function SchoolTable({
               <dl className="mt-3 space-y-2 border-t border-fog pt-3 text-sm tabular-nums">
                 <div className="flex items-center justify-between gap-2">
                   <dt className="text-graphite">Guru</dt>
-                  <dd className="flex items-center gap-2">
-                    <PopCell pop={row.guru} />
-                    <TahapBadge pop={row.guru} />
+                  <dd className="text-right">
+                    <span className="flex items-center justify-end gap-2">
+                      <PopCell pop={row.guru} />
+                      <TahapBadge pop={row.guru} />
+                    </span>
+                    <V30Line pop={row.guru30} />
                   </dd>
                 </div>
                 <div className="flex items-center justify-between gap-2">
                   <dt className="text-graphite">Murid</dt>
-                  <dd className="flex items-center gap-2">
-                    <PopCell pop={row.murid} />
-                    <TahapBadge pop={row.murid} />
+                  <dd className="text-right">
+                    <span className="flex items-center justify-end gap-2">
+                      <PopCell pop={row.murid} />
+                      <TahapBadge pop={row.murid} />
+                    </span>
+                    <V30Line pop={row.murid30} />
                   </dd>
                 </div>
               </dl>
@@ -183,8 +200,8 @@ function SchoolTable({
           <thead>
             <tr className="border-b border-fog text-[11px] font-semibold uppercase tracking-[0.6px] text-steel">
               <th className="px-4 py-3">Sekolah</th>
-              <th className="px-4 py-3">Guru aktif</th>
-              <th className="px-4 py-3">Murid aktif</th>
+              <th className="px-4 py-3">Guru aktif (2.0 / 3.0)</th>
+              <th className="px-4 py-3">Murid aktif (2.0 / 3.0)</th>
             </tr>
           </thead>
           <tbody>
@@ -205,12 +222,14 @@ function SchoolTable({
                     <PopCell pop={row.guru} />
                     <TahapBadge pop={row.guru} />
                   </div>
+                  <V30Line pop={row.guru30} />
                 </td>
                 <td className="whitespace-nowrap px-4 py-3 tabular-nums">
                   <div className="flex items-center gap-2">
                     <PopCell pop={row.murid} />
                     <TahapBadge pop={row.murid} />
                   </div>
+                  <V30Line pop={row.murid30} />
                 </td>
               </tr>
             ))}
@@ -228,29 +247,26 @@ function SchoolTable({
   );
 }
 
+/** Kad Guru/Murid satu sekolah: DELIMa 2.0 dan 3.0 sebelah-menyebelah (bil. aktif dalam label). */
+function versiGroup(
+  title: string,
+  v20: DelimaSchoolPop | null,
+  v30: DelimaLivePop | null | undefined,
+) {
+  const bil = (p: DelimaLivePop) => `${num(p.aktif)} / ${num(p.jumlah)}`;
+  const stats = [
+    v20 ? { label: `2.0 · ${bil(v20)}`, value: pct(v20.peratus) } : null,
+    v30 ? { label: `3.0 · ${bil(v30)}`, value: pct(v30.peratus) } : null,
+    v20 ? { label: "Tahap 2.0", value: v20.tahap } : null,
+  ].filter((x): x is { label: string; value: string } => x != null);
+  return stats.length > 0 ? { title: `${title} · Aktif`, stats } : null;
+}
+
 function SchoolDetail({ detail }: { detail: DelimaSchoolDetail }) {
   const { school, kadMurid } = detail;
   const groups = [
-    school.guru
-      ? {
-          title: "Guru · DELIMa 2.0",
-          stats: [
-            { label: "Aktif", value: pct(school.guru.peratus) },
-            { label: "Bil. aktif", value: `${num(school.guru.aktif)} / ${num(school.guru.jumlah)}` },
-            { label: "Tahap", value: school.guru.tahap },
-          ],
-        }
-      : null,
-    school.murid
-      ? {
-          title: "Murid · DELIMa 2.0",
-          stats: [
-            { label: "Aktif", value: pct(school.murid.peratus) },
-            { label: "Bil. aktif", value: `${num(school.murid.aktif)} / ${num(school.murid.jumlah)}` },
-            { label: "Tahap", value: school.murid.tahap },
-          ],
-        }
-      : null,
+    versiGroup("Guru", school.guru, school.guru30),
+    versiGroup("Murid", school.murid, school.murid30),
     kadMurid
       ? {
           title: `Jumlah Aktif Murid · DELIMa 2.0 + 3.0 · Sasaran ${kadMurid.sasaran ?? "—"}%`,
@@ -269,6 +285,7 @@ function SchoolDetail({ detail }: { detail: DelimaSchoolDetail }) {
       <h3 className="mt-3 text-lg font-semibold tracking-tight">{school.nama}</h3>
       <p className="mt-1 text-sm text-graphite">
         {school.kod} · DELIMa 2.0 · {detail.tempoh}
+        {school.guru30 || school.murid30 ? " · DELIMa 3.0: sumber Google Sheet DELIMa Perak" : ""}
       </p>
       <div className="mt-4">
         <KpiGroups groups={groups} />
@@ -615,6 +632,7 @@ export default function DelimaExplore({
         {list ? (
           <p className="mt-1 text-sm text-graphite">
             {list.schools.length} sekolah · DELIMa 2.0 · {list.tempoh}
+            {list.schools.some((s) => s.guru30 || s.murid30) ? " · DELIMa 3.0 ditunjuk di bawah angka 2.0" : ""}
           </p>
         ) : null}
         {error ? <p className="mt-3 text-sm text-graphite">{error}</p> : null}

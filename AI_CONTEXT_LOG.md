@@ -1847,3 +1847,18 @@ Corak berselang = instance sihat vs beracun.
 - Kemas kini: ganti data dalam `penyertaan-data.ts` apabila fail rumusan baharu dijana.
 - Disahkan: tsc bersih, ujian lulus, semak visual desktop + mobile. `npm run build` TIDAK dijalankan
   (dev server sembang lain sedang guna `.next`).
+
+## 2026-10-04 — DELIMa 3.0 pada panel DELIMa (CoE Analytics)
+
+- Sumber baharu: CSV awam (Publish to web) Google Sheet "Portal Statistik DELIMa Negeri Perak"
+  dalam Google Site DELIMa Perak (Analisis DELIMa). Hanya lembaran Guru 3.0 + Murid 3.0 dibaca
+  (jumlah aktif/jumlah per sekolah, ditapis `PPD MANJUNG`). Tab Admin (nama/e-mel individu) TIDAK
+  diakses/diambil; tiada kata laluan disimpan dalam kod.
+- Angka 2.0 kekal dari papan pemuka DELIMa Perak (vercel) — lembaran 2.0 CSV memberi angka sama.
+- Fail: `lib/analisis/delima-csv-parse.ts` (tulen, boleh diuji), `lib/analisis/delima-csv.ts`
+  (fetch, cache 1 jam), `delima-live.ts` (`DelimaLive.v30`, `DelimaSchoolRow.guru30/murid30`),
+  `summary.ts` (stat "Aktif · DELIMa 3.0"), `DelimaExplore.tsx` (baris 3.0 dalam jadual sekolah,
+  kad Guru/Murid 2.0+3.0 dalam butiran), `tests/analisis/delima-csv.test.ts`.
+- Snapshot bulanan/trend BELUM simpan 3.0 (perlu migrasi lajur) — 3.0 hanya langsung.
+- Gid lembaran: Guru 3.0 = 1023985887, Murid 3.0 = 1408521867; jika Google Sheet bertukar, kemas kini `GID`.
+- Disahkan: tsc bersih, build lulus, 4 ujian lulus, Manjung 102 sekolah (Guru 3.0 64.1%, Murid 3.0 15.0%).

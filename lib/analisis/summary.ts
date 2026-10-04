@@ -155,6 +155,7 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
         title: "Guru",
         stats: [
           { label: live ? "Aktif · DELIMa 2.0" : "Purata Aktif (Dis)", value: pct(avgGuru) },
+          { label: "Aktif · DELIMa 3.0", value: pct(live?.v30?.guru.peratus ?? null) },
           { label: "Sasaran KPI", value: pct(kpiGuru) },
         ],
       },
@@ -162,6 +163,7 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
         title: "Murid",
         stats: [
           { label: live ? "Aktif · DELIMa 2.0" : "Purata Aktif (Dis)", value: pct(avgMurid) },
+          { label: "Aktif · DELIMa 3.0", value: pct(live?.v30?.murid.peratus ?? null) },
           { label: "Sasaran KPI", value: pct(metricNum(delima.metrics, "kpi_murid")) },
         ],
       },
@@ -191,7 +193,7 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
     delimaLive: live != null,
     bars: delimaTaburan(delima.liveSchools),
     note: live
-      ? `Data langsung DELIMa Perak (${live.tempoh}). Angka guru dan murid ialah DELIMa 2.0; "Jumlah Aktif Murid" merangkumi murid aktif DELIMa 2.0 + 3.0.`
+      ? `Data langsung DELIMa Perak (${live.tempoh}). Angka guru dan murid ialah DELIMa 2.0${live.v30 ? " dan 3.0 (Google Sheet DELIMa Perak)" : ""}; "Jumlah Aktif Murid" merangkumi murid aktif DELIMa 2.0 + 3.0.`
       : undefined,
   };
 

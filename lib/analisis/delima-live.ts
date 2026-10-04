@@ -1,5 +1,7 @@
 import "server-only";
 
+import { fetchDelimaV30 } from "./delima-csv";
+
 /**
  * Data DELIMa langsung daripada papan pemuka awam DELIMa Perak (dipautkan terus,
  * tanpa muat naik manual). URL sumber + slug daerah boleh ditukar pentadbir di
@@ -26,6 +28,8 @@ export type DelimaLive = {
   daerah: string;
   guru: DelimaLivePop;
   murid: DelimaLivePop;
+  /** Jumlah daerah DELIMa 3.0 (CSV Google Sheet); null jika sumber tak dapat dicapai. */
+  v30: { guru: DelimaLivePop; murid: DelimaLivePop } | null;
   kadMurid: DelimaKadMurid | null;
   bilSekolah: number | null;
   /** Tempoh data, cth. "1 Jan – 31 Ogos 2026". */
@@ -42,6 +46,9 @@ export type DelimaSchoolRow = {
   nama: string;
   guru: DelimaSchoolPop | null;
   murid: DelimaSchoolPop | null;
+  /** DELIMa 3.0 (tiada tahap); undefined bagi snapshot lama atau jika CSV tak dapat dicapai. */
+  guru30?: DelimaLivePop | null;
+  murid30?: DelimaLivePop | null;
 };
 
 export type DelimaSchoolList = {
@@ -203,11 +210,12 @@ export async function fetchDelimaLive(
   try {
     const s = await resolveSumber(sumberUrl, daerahSlug);
     if (!s) return null;
-    const [html, guruJ, muridJ, sekolahJ] = await Promise.all([
+    const [html, guruJ, muridJ, sekolahJ, v30] = await Promise.all([
       getText(pageUrl(s, s.daerah)),
       getJson<JadualJson>(apiUrl(s, { tab: "daerah", populasi: "guru" })),
       getJson<JadualJson>(apiUrl(s, { tab: "daerah", populasi: "murid" })),
       getJson<JadualJson>(apiUrl(s, { tab: "sekolah", populasi: "guru" })),
+      fetchDelimaV30(s.daerah),
     ]);
     const pick = (j: JadualJson) => j.baris?.find((b) => b.id === s.daerah) ?? j.baris?.[0];
     const g = pick(guruJ);
@@ -222,6 +230,7 @@ export async function fetchDelimaLive(
       daerah: s.daerah,
       guru: p(g),
       murid: p(m),
+      v30: v30 ? { guru: v30.jumlahGuru, murid: v30.jumlahMurid } : null,
       kadMurid: parseKadMurid(html),
       bilSekolah: typeof sekolahJ.jumlah === "number" ? sekolahJ.jumlah : null,
       tempoh: guruJ.kpi?.tarikh ?? "",
@@ -256,7 +265,11 @@ export async function fetchDelimaSchools(
   try {
     const s = await resolveSumber(sumberUrl, daerahSlug);
     if (!s) return null;
-    const [guru, murid] = await Promise.all([allPages(s, "guru"), allPages(s, "murid")]);
+    const [guru, murid, v30] = await Promise.all([
+      allPages(s, "guru"),
+      allPages(s, "murid"),
+      fetchDelimaV30(s.daerah),
+    ]);
     const peta = new Map<string, DelimaSchoolRow>();
     for (const b of guru.baris) {
       peta.set(b.id, { kod: b.id.toUpperCase(), nama: b.nama, guru: pop(b), murid: null });
@@ -265,6 +278,12 @@ export async function fetchDelimaSchools(
       const ada = peta.get(b.id);
       if (ada) ada.murid = pop(b);
       else peta.set(b.id, { kod: b.id.toUpperCase(), nama: b.nama, guru: null, murid: pop(b) });
+    }
+    if (v30) {
+      for (const r of peta.values()) {
+        r.guru30 = v30.guru.get(r.kod) ?? null;
+        r.murid30 = v30.murid.get(r.kod) ?? null;
+      }
     }
     const schools = [...peta.values()].sort((a, b) => a.kod.localeCompare(b.kod, "en", { numeric: true }));
     return { schools, tempoh: guru.tempoh || murid.tempoh, daerah: s.daerah };
@@ -283,17 +302,29 @@ export async function fetchDelimaSchoolDetail(
     const s = await resolveSumber(sumberUrl, daerahSlug);
     if (!s) return null;
     const id = kod.trim().toLowerCase();
-    const [html, guruJ, muridJ] = await Promise.all([
+    const [html, guruJ, muridJ, v30] = await Promise.all([
       getText(pageUrl(s, s.daerah, id)),
       getJson<JadualJson>(apiUrl(s, { tab: "sekolah", populasi: "guru", sekolah: id })),
       getJson<JadualJson>(apiUrl(s, { tab: "sekolah", populasi: "murid", sekolah: id })),
+      fetchDelimaV30(s.daerah),
     ]);
     const g = guruJ.baris?.find((b) => b.id === id);
     const m = muridJ.baris?.find((b) => b.id === id);
     const nama = g?.nama ?? m?.nama;
     if (!nama) return null;
     return {
-      school: { kod: id.toUpperCase(), nama, guru: pop(g), murid: pop(m) },
+      school: {
+        kod: id.toUpperCase(),
+        nama,
+        guru: pop(g),
+        murid: pop(m),
+        ...(v30
+          ? {
+              guru30: v30.guru.get(id.toUpperCase()) ?? null,
+              murid30: v30.murid.get(id.toUpperCase()) ?? null,
+            }
+          : {}),
+      },
       kadMurid: parseKadMurid(html),
       tempoh: guruJ.kpi?.tarikh ?? muridJ.kpi?.tarikh ?? "",
       sumberUrl: s.sumberUrl,
