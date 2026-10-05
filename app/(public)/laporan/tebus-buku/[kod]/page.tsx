@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import PageHeader from "@/components/PageHeader";
 import PublicPageShell from "@/components/PublicPageShell";
 import StudentLookup from "@/components/tebus-buku/StudentLookup";
 import TebusProgress from "@/components/tebus-buku/TebusProgress";
 import { withDbTimeout } from "@/lib/db";
+import { getDirectoryContactAccess } from "@/lib/direktori/access";
+import { direktoriLoginHref } from "@/lib/moe-dl";
 import {
   formatCount,
   formatTarikhSnapshot,
@@ -20,21 +22,32 @@ type Props = {
   params: Promise<{ kod: string }>;
 };
 
+/** Senarai nama pelajar ialah data peribadi — jangan benarkan enjin carian mengindeks. */
+const NO_INDEX = { index: false, follow: false } as const;
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { kod } = await params;
   try {
     const page = await withDbTimeout(getTebusBukuSchoolPage(kod));
-    if (!page) return { title: "Semak Tebus Buku — NEXa Manjung" };
+    if (!page) return { title: "Semak Tebus Buku — NEXa Manjung", robots: NO_INDEX };
     return {
       title: `${shortSchoolName(page.school.name)} — Semak Tebus Buku — NEXa Manjung`,
+      robots: NO_INDEX,
     };
   } catch {
-    return { title: "Semak Tebus Buku — NEXa Manjung" };
+    return { title: "Semak Tebus Buku — NEXa Manjung", robots: NO_INDEX };
   }
 }
 
 export default async function TebusBukuSchoolPage({ params }: Props) {
   const { kod } = await params;
+
+  // Senarai nama pelajar hanya untuk akaun MOE-DL (@moe-dl.edu.my) atau staf USTP.
+  const access = await getDirectoryContactAccess();
+  if (!access.ok) {
+    redirect(direktoriLoginHref(`/laporan/tebus-buku/${encodeURIComponent(kod)}`));
+  }
+
   const accent = getModuleAccent("/laporan/tebus-buku");
 
   let page = null;

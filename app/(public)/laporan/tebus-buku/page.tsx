@@ -14,6 +14,7 @@ export const metadata: Metadata = {
   title: "Semak Tebus Buku — CoE Reports — NEXa Manjung",
   description:
     "Semak status tebus dan guna baucar buku pelajar sekolah menengah daerah Manjung.",
+  robots: { index: false, follow: false },
 };
 
 export default async function TebusBukuIndexPage() {

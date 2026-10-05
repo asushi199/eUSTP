@@ -27,10 +27,13 @@ export default function MoeDlSignInPanel({
   callbackUrl,
   googleEnabled,
   errorMessage,
+  purposeText,
 }: {
   callbackUrl: string;
   googleEnabled: boolean;
   errorMessage?: string | null;
+  /** Ganti ayat pembuka lalai (nombor telefon direktori). */
+  purposeText?: string;
 }) {
   const [inApp, setInApp] = useState<InAppKind>(null);
   const [copied, setCopied] = useState(false);
@@ -91,7 +94,7 @@ export default function MoeDlSignInPanel({
   return (
     <div className="card space-y-4 p-6">
       <p className="text-sm leading-relaxed text-graphite">
-        Nombor telefon dan WhatsApp hanya dipaparkan selepas log masuk dengan
+        {purposeText ?? "Nombor telefon dan WhatsApp hanya dipaparkan"} selepas log masuk dengan
         akaun Google KPM <span className="font-medium text-ink">@moe-dl.edu.my</span>.
         Jangan guna Gmail peribadi.
       </p>
