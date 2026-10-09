@@ -163,7 +163,6 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
         title: "Guru",
         stats: [
           { label: live ? "Aktif · 2.0 + 3.0" : "Purata Aktif (Dis)", value: pct(avgGuru) },
-          { label: "Platform 3.0 sahaja", value: pct(live?.v30?.guru.peratus ?? null) },
           { label: "Sasaran KPI", value: pct(kpiGuru) },
         ],
       },
@@ -171,7 +170,6 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
         title: "Murid",
         stats: [
           { label: live ? "Aktif · 2.0 + 3.0" : "Purata Aktif (Dis)", value: pct(avgMurid) },
-          { label: "Platform 3.0 sahaja", value: pct(live?.v30?.murid.peratus ?? null) },
           { label: "Sasaran KPI", value: pct(metricNum(delima.metrics, "kpi_murid")) },
         ],
       },

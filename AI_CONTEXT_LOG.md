@@ -1916,4 +1916,4 @@ Corak berselang = instance sihat vs beracun.
   senarai sekolah; `fetchDelimaCapai` (scrape kad) dibuang. Snapshot semasa/akan datang guna kiraan ini (`getKpiMurid`);
   snapshot bulan lama TIDAK disentuh. Pembetulan di atas (kekalkan nilai lama bila null) kekal sebagai pelindung.
 - Disahkan: Manjung guru 83/102, murid 39/102 (sama dengan kiraan bebas daripada API sumber).
-- Label kad Guru/Murid (halaman utama + /analisis) ditukar: "Aktif · 2.0 + 3.0" (angka gabungan JPN) dan "Platform 3.0 sahaja" (CSV 3.0). Jadual/trend sejarah tidak disentuh.
+- Label kad Guru/Murid (halaman utama + /analisis) ditukar: "Aktif · 2.0 + 3.0" (angka gabungan JPN); baris "Platform 3.0 sahaja" (CSV) dibuang kerana sumber sudah gabungan. Jadual/trend sejarah tidak disentuh.
