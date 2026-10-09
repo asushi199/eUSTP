@@ -1,6 +1,6 @@
 import "server-only";
 
-import { asc, count, desc, eq, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, isNotNull, sql } from "drizzle-orm";
 import { formatInTimeZone } from "date-fns-tz";
 import { db } from "@/lib/db";
 import { analisisDelimaSchools, analisisDelimaSnapshots } from "@/lib/schema";
@@ -126,7 +126,8 @@ export async function saveDelimaSnapshot(
     kadPct: live.kadMurid?.peratus ?? null,
     kadSasaran: live.kadMurid?.sasaran ?? null,
     bilSekolah: live.bilSekolah,
-    bilCapai,
+    // Bilangan capai hanya ditulis bila berjaya dikira — kegagalan sementara (null) tak padam nilai sedia ada.
+    ...(bilCapai != null ? { bilCapai } : {}),
     // DELIMa 3.0 hanya ditulis bila CSV berjaya dibaca — kegagalan sementara tak padam rekod sedia ada.
     ...(live.guruGabung
       ? {
@@ -260,11 +261,16 @@ export async function ensureDelimaSnapshot(
   await saveDelimaSnapshot(live, senarai, bilCapai);
 }
 
-/** Sekolah capai sasaran kad "Aktif Murid" daripada snapshot terbaharu (null jika belum dikira). */
+/**
+ * Sekolah capai sasaran kad "Aktif Murid" daripada snapshot terbaharu yang sudah dikira
+ * (null jika belum pernah dikira). Snapshot tempoh baharu yang belum siap dikira dilangkau
+ * supaya "Capaian Murid" tidak hilang sementara menunggu pengiraan.
+ */
 export async function getDelimaCapaiTerkini(): Promise<{ capai: number; jumlah: number } | null> {
   const [r] = await db
     .select({ capai: analisisDelimaSnapshots.bilCapai, jumlah: analisisDelimaSnapshots.bilSekolah })
     .from(analisisDelimaSnapshots)
+    .where(and(isNotNull(analisisDelimaSnapshots.bilCapai), isNotNull(analisisDelimaSnapshots.bilSekolah)))
     .orderBy(desc(analisisDelimaSnapshots.period))
     .limit(1);
   return r && r.capai != null && r.jumlah != null ? { capai: r.capai, jumlah: r.jumlah } : null;
