@@ -144,7 +144,7 @@ export default async function AnalisisPage({
       stats: [
         ...(live
           ? [
-              { label: "Aktif · 2.0 + 3.0", value: pct(live.guru.peratus) },
+              { label: "Aktif", value: pct(live.guru.peratus) },
               { label: "Bil. Aktif", value: `${bil(live.guru.aktif)} / ${bil(live.guru.jumlah)}` },
             ]
           : [{ label: "Purata Aktif (Dis)", value: pct(metricNum(delima.metrics, "avg_dis_guru")) }]),
@@ -156,7 +156,7 @@ export default async function AnalisisPage({
       stats: [
         ...(live
           ? [
-              { label: "Aktif · 2.0 + 3.0", value: pct(live.murid.peratus) },
+              { label: "Aktif", value: pct(live.murid.peratus) },
               { label: "Bil. Aktif", value: `${bil(live.murid.aktif)} / ${bil(live.murid.jumlah)}` },
             ]
           : [{ label: "Purata Aktif (Dis)", value: pct(metricNum(delima.metrics, "avg_dis_murid")) }]),
