@@ -1895,3 +1895,14 @@ Corak berselang = instance sihat vs beracun.
 - Sasaran dikenakan pada angka gabungan 2.0 + 3.0: "Capaian Guru" kini = bil. sekolah `capai` pada widget
   gabungan (`fetchDelimaGuruCapai`, 12/102 pada 31 Ogos 2026), bukan guru 2.0 >= sasaran.
 - Migrasi 0050: `guru_gab_*` pada snapshot; trend ada garisan "Guru 2.0+3.0" (dibandingkan garis KPI Guru).
+
+### Pembetulan "Capaian Murid" hilang (2026-10-09)
+
+- Punca: `saveDelimaSnapshot` menulis `bilCapai` tanpa syarat. Jika `fetchDelimaCapai` pulang `null` (kurang 95% kad
+  sekolah berjaya dibaca) semasa snapshot dikemas kini semula (cron/butang admin/render halaman), nilai sedia ada
+  ditimpa `null` → `capaianStats` menapis baris "Capaian Murid".
+- Pembetulan: `bilCapai` hanya ditulis bila bukan `null`; `getDelimaCapaiTerkini` mengambil snapshot terbaharu yang
+  `bilCapai`-nya sudah ada (snapshot tempoh baharu yang belum siap dikira dilangkau, jadi baris tidak lenyap).
+- Kesan sampingan: sementara tempoh baharu belum siap dikira, "Capaian Murid" menunjukkan angka tempoh sebelumnya.
+- Belum disahkan terhadap data langsung: hos delimaperak.vercel.app disekat dalam persekitaran sesi ini. Jika
+  `bilCapai` terus `null`, semak `parseKadMurid` (format HTML kad "Aktif Murid" mungkin berubah).
