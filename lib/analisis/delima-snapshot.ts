@@ -3,9 +3,9 @@ import "server-only";
 import { and, asc, count, desc, eq, isNotNull, sql } from "drizzle-orm";
 import { formatInTimeZone } from "date-fns-tz";
 import { db } from "@/lib/db";
-import { analisisDelimaSchools, analisisDelimaSnapshots } from "@/lib/schema";
+import { analisisDelimaSchools, analisisDelimaSnapshots, analisisMetrics } from "@/lib/schema";
 import {
-  fetchDelimaCapai,
+  bilSekolahCapai,
   fetchDelimaLive,
   fetchDelimaSchools,
   type DelimaLive,
@@ -211,13 +211,7 @@ export async function captureDelimaSnapshot(
     fetchDelimaSchools(sumberUrl, daerah),
   ]);
   if (!live) return { ok: false, error: "Sumber DELIMa tidak dapat dicapai." };
-  const bilCapai = senarai
-    ? await fetchDelimaCapai(
-        senarai.schools.map((s) => s.kod),
-        sumberUrl,
-        daerah,
-      )
-    : null;
+  const bilCapai = bilSekolahCapai(senarai, "murid", await getKpiMurid());
   const saved = await saveDelimaSnapshot(live, senarai, bilCapai);
   if (!saved) return { ok: false, error: "Snapshot gagal disimpan." };
   return { ok: true, period: saved.period, created: saved.created };
@@ -251,18 +245,23 @@ export async function ensureDelimaSnapshot(
     )
       return;
   }
-  const bilCapai = senarai
-    ? await fetchDelimaCapai(
-        senarai.schools.map((s) => s.kod),
-        sumberUrl,
-        daerah,
-      )
-    : null;
+  const bilCapai = bilSekolahCapai(senarai, "murid", await getKpiMurid());
   await saveDelimaSnapshot(live, senarai, bilCapai);
 }
 
+/** Sasaran KPI murid (%) daripada metrik modul DELIMa; null jika belum ditetapkan. */
+async function getKpiMurid(): Promise<number | null> {
+  const [r] = await db
+    .select({ value: analisisMetrics.value })
+    .from(analisisMetrics)
+    .where(and(eq(analisisMetrics.modul, "delima"), eq(analisisMetrics.key, "kpi_murid")))
+    .limit(1);
+  const n = Number(r?.value?.replace(",", "."));
+  return Number.isFinite(n) ? n : null;
+}
+
 /**
- * Sekolah capai sasaran kad "Aktif Murid" daripada snapshot terbaharu yang sudah dikira
+ * Sekolah murid capai sasaran KPI daripada snapshot terbaharu yang sudah dikira
  * (null jika belum pernah dikira). Snapshot tempoh baharu yang belum siap dikira dilangkau
  * supaya "Capaian Murid" tidak hilang sementara menunggu pengiraan.
  */

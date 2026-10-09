@@ -1906,3 +1906,14 @@ Corak berselang = instance sihat vs beracun.
 - Kesan sampingan: sementara tempoh baharu belum siap dikira, "Capaian Murid" menunjukkan angka tempoh sebelumnya.
 - Belum disahkan terhadap data langsung: hos delimaperak.vercel.app disekat dalam persekitaran sesi ini. Jika
   `bilCapai` terus `null`, semak `parseKadMurid` (format HTML kad "Aktif Murid" mungkin berubah).
+
+### Capaian Sekolah guru + murid (2026-10-09, punca sebenar)
+
+- Sumber JPN (kemas kini 2026-10-08, data hingga 30 Sep 2026) kini MENGGABUNGKAN DELIMa 2.0 + 3.0 dalam satu
+  laporan: widget gabungan berasingan dan kad "Aktif Murid" sudah tiada; `targetPeratus` = 0 (tanda `capai` tak boleh dipercayai).
+  Itulah punca sebenar "Capaian Murid" hilang (kad tiada → `bilCapai` null) dan "Capaian Guru" 12/102 (8 Ogos) lapuk.
+- `bilSekolahCapai()` (delima-live.ts) kira terus sekolah dengan peratus aktif >= sasaran KPI (guru 98, murid 75) daripada
+  senarai sekolah; `fetchDelimaCapai` (scrape kad) dibuang. Snapshot semasa/akan datang guna kiraan ini (`getKpiMurid`);
+  snapshot bulan lama TIDAK disentuh. Pembetulan di atas (kekalkan nilai lama bila null) kekal sebagai pelindung.
+- Disahkan: Manjung guru 83/102, murid 39/102 (sama dengan kiraan bebas daripada API sumber).
+- Label kad Guru/Murid (halaman utama + /analisis) ditukar: "Aktif · 2.0 + 3.0" (angka gabungan JPN) dan "Platform 3.0 sahaja" (CSV 3.0). Jadual/trend sejarah tidak disentuh.

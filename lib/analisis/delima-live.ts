@@ -201,40 +201,18 @@ function parseKadMurid(html: string): DelimaKadMurid | null {
 }
 
 /**
- * Bilangan sekolah yang capai sasaran kad "Aktif Murid" (kad setiap sekolah dibaca satu demi satu,
- * serentak terhad). null jika sumber tak dapat dicapai atau terlalu banyak sekolah gagal dibaca.
+ * Bilangan sekolah yang capai sasaran KPI (peratus aktif >= sasaran), dikira terus daripada senarai sekolah.
+ * Sumber JPN kini menggabungkan DELIMa 2.0 + 3.0 dan tidak lagi memaparkan kad "Aktif Murid" / tanda capai
+ * yang boleh dipercayai (targetPeratus = 0), jadi sasaran dibandingkan sendiri.
  */
-export async function fetchDelimaCapai(
-  kods: string[],
-  sumberUrl?: string,
-  daerahSlug?: string,
-): Promise<number | null> {
-  try {
-    const s = await resolveSumber(sumberUrl, daerahSlug);
-    if (!s || kods.length === 0) return null;
-    let capai = 0;
-    let berjaya = 0;
-    let idx = 0;
-    async function pekerja() {
-      while (idx < kods.length) {
-        const kod = kods[idx++].toLowerCase();
-        try {
-          const kad = parseKadMurid(await getText(pageUrl(s!, s!.daerah, kod)));
-          if (kad) {
-            berjaya++;
-            if (kad.capai) capai++;
-          }
-        } catch {
-          /* dilangkau */
-        }
-      }
-    }
-    await Promise.all(Array.from({ length: 8 }, pekerja));
-    // Angka separa menyesatkan: hanya terima jika hampir semua sekolah berjaya dibaca.
-    return berjaya >= kods.length * 0.95 ? capai : null;
-  } catch {
+export function bilSekolahCapai(
+  senarai: DelimaSchoolList | null | undefined,
+  populasi: "guru" | "murid",
+  sasaran: number | null | undefined,
+): number | null {
+  if (!senarai || senarai.schools.length === 0 || sasaran == null || !Number.isFinite(sasaran) || sasaran <= 0)
     return null;
-  }
+  return senarai.schools.filter((r) => (r[populasi]?.peratus ?? -1) >= sasaran).length;
 }
 
 /** Ringkasan daerah; null jika sumber tak dapat dicapai/format berubah (pemanggil guna data pangkalan data). */

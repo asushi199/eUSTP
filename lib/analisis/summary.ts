@@ -140,7 +140,7 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
   const live = delima.live;
   const avgGuru = live ? live.guru.peratus : metricNum(delima.metrics, "avg_dis_guru");
   const avgMurid = live ? live.murid.peratus : metricNum(delima.metrics, "avg_dis_murid");
-  const avgLabel = live ? "Guru Aktif (DELIMa 2.0)" : "Purata Guru Aktif (Dis)";
+  const avgLabel = live ? "Guru Aktif (2.0 + 3.0)" : "Purata Guru Aktif (Dis)";
   const delimaModule: AnalisisHomeModule = {
     id: "delima",
     label: "DELIMa",
@@ -149,7 +149,7 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
     tiles: [
       { label: "Bil. Sekolah", value: bil(metricNum(delima.metrics, "bil_sekolah", "schools")) },
       { label: avgLabel, value: pct(avgGuru) },
-      { label: live ? "Murid Aktif (DELIMa 2.0)" : "Purata Murid Aktif (Dis)", value: pct(avgMurid) },
+      { label: live ? "Murid Aktif (2.0 + 3.0)" : "Purata Murid Aktif (Dis)", value: pct(avgMurid) },
       { label: "Sasaran KPI Guru", value: pct(kpiGuru) },
       { label: "Sasaran KPI Murid", value: pct(metricNum(delima.metrics, "kpi_murid")) },
     ],
@@ -162,16 +162,16 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
       {
         title: "Guru",
         stats: [
-          { label: live ? "Aktif · DELIMa 2.0" : "Purata Aktif (Dis)", value: pct(avgGuru) },
-          { label: "Aktif · DELIMa 3.0", value: pct(live?.v30?.guru.peratus ?? null) },
+          { label: live ? "Aktif · 2.0 + 3.0" : "Purata Aktif (Dis)", value: pct(avgGuru) },
+          { label: "Platform 3.0 sahaja", value: pct(live?.v30?.guru.peratus ?? null) },
           { label: "Sasaran KPI", value: pct(kpiGuru) },
         ],
       },
       {
         title: "Murid",
         stats: [
-          { label: live ? "Aktif · DELIMa 2.0" : "Purata Aktif (Dis)", value: pct(avgMurid) },
-          { label: "Aktif · DELIMa 3.0", value: pct(live?.v30?.murid.peratus ?? null) },
+          { label: live ? "Aktif · 2.0 + 3.0" : "Purata Aktif (Dis)", value: pct(avgMurid) },
+          { label: "Platform 3.0 sahaja", value: pct(live?.v30?.murid.peratus ?? null) },
           { label: "Sasaran KPI", value: pct(metricNum(delima.metrics, "kpi_murid")) },
         ],
       },

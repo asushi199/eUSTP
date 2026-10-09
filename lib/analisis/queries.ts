@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { analisisBreakdown, analisisMetrics } from "@/lib/schema";
 import type { analisisModul } from "@/lib/schema";
 import { after } from "next/server";
-import { fetchDelimaGuruCapai, fetchDelimaLive, fetchDelimaSchools, type DelimaLive, type DelimaSchoolList } from "./delima-live";
+import { bilSekolahCapai, fetchDelimaGuruCapai, fetchDelimaLive, fetchDelimaSchools, type DelimaLive, type DelimaSchoolList } from "./delima-live";
 import {
   ensureDelimaSnapshot,
   getDelimaCapaiTerkini,
@@ -27,8 +27,8 @@ export type AnalisisData = {
   /** Titik trend daripada snapshot bulanan (modul `delima`); kosong jika belum ada. */
   snapshotTrend?: DelimaTrendPoint[];
   /**
-   * Sekolah yang capai sasaran: guru = guru DELIMa 2.0 ≥ sasaran KPI guru (dikira langsung);
-   * murid = kad "Aktif Murid" sekolah capai (daripada snapshot). null jika belum ada.
+   * Sekolah yang capai sasaran: peratus aktif guru/murid sekolah ≥ sasaran KPI masing-masing
+   * (dikira terus daripada senarai sekolah langsung; murid jatuh balik ke snapshot). null jika belum ada.
    */
   capaiSekolah?: { guru: number | null; murid: number | null; jumlah: number | null } | null;
   metrics: MetricMap;
@@ -92,17 +92,15 @@ export async function getAnalisisData(modul: AnalisisModul): Promise<AnalisisDat
     }
     snapshotTrend = await getDelimaSnapshotTrend().catch(() => []);
     const snapCapai = await getDelimaCapaiTerkini().catch(() => null);
-    const kpiGuru = Number(metrics.get("kpi_guru")?.replace(",", "."));
-    // Sasaran KPI guru dikenakan pada angka gabungan 2.0 + 3.0; jika widget itu tiada, banding guru 2.0.
+    const num = (k: string) => Number(metrics.get(k)?.replace(",", "."));
+    // Sumber JPN kini gabungan 2.0 + 3.0 (satu laporan); sasaran dibandingkan dengan peratus aktif setiap sekolah.
+    // Widget gabungan berasingan (jika masih ada) diutamakan untuk guru.
     const guruCapaiGabung = live?.guruGabung ? await fetchDelimaGuruCapai(cfg.url, cfg.daerah) : null;
-    const guruCapai =
-      guruCapaiGabung ??
-      (liveSchools && Number.isFinite(kpiGuru) && kpiGuru > 0
-        ? liveSchools.schools.filter((r) => (r.guru?.peratus ?? -1) >= kpiGuru).length
-        : null);
+    const guruCapai = guruCapaiGabung ?? bilSekolahCapai(liveSchools, "guru", num("kpi_guru"));
+    const muridCapai = bilSekolahCapai(liveSchools, "murid", num("kpi_murid")) ?? snapCapai?.capai ?? null;
     const jumlahSekolah = liveSchools?.schools.length ?? snapCapai?.jumlah ?? null;
-    if (guruCapai != null || snapCapai) {
-      capaiSekolah = { guru: guruCapai, murid: snapCapai?.capai ?? null, jumlah: jumlahSekolah };
+    if (guruCapai != null || muridCapai != null) {
+      capaiSekolah = { guru: guruCapai, murid: muridCapai, jumlah: jumlahSekolah };
     }
   }
 

@@ -144,9 +144,9 @@ export default async function AnalisisPage({
       stats: [
         ...(live
           ? [
-              { label: "Aktif · DELIMa 2.0", value: pct(live.guru.peratus) },
-              ...(live.v30 ? [{ label: "Aktif · DELIMa 3.0", value: pct(live.v30.guru.peratus) }] : []),
-              { label: "Bil. Aktif 2.0", value: `${bil(live.guru.aktif)} / ${bil(live.guru.jumlah)}` },
+              { label: "Aktif · 2.0 + 3.0", value: pct(live.guru.peratus) },
+              ...(live.v30 ? [{ label: "Platform 3.0 sahaja", value: pct(live.v30.guru.peratus) }] : []),
+              { label: "Bil. Aktif", value: `${bil(live.guru.aktif)} / ${bil(live.guru.jumlah)}` },
             ]
           : [{ label: "Purata Aktif (Dis)", value: pct(metricNum(delima.metrics, "avg_dis_guru")) }]),
         { label: "Sasaran KPI", value: pct(kpiGuru) },
@@ -157,9 +157,9 @@ export default async function AnalisisPage({
       stats: [
         ...(live
           ? [
-              { label: "Aktif · DELIMa 2.0", value: pct(live.murid.peratus) },
-              ...(live.v30 ? [{ label: "Aktif · DELIMa 3.0", value: pct(live.v30.murid.peratus) }] : []),
-              { label: "Bil. Aktif 2.0", value: `${bil(live.murid.aktif)} / ${bil(live.murid.jumlah)}` },
+              { label: "Aktif · 2.0 + 3.0", value: pct(live.murid.peratus) },
+              ...(live.v30 ? [{ label: "Platform 3.0 sahaja", value: pct(live.v30.murid.peratus) }] : []),
+              { label: "Bil. Aktif", value: `${bil(live.murid.aktif)} / ${bil(live.murid.jumlah)}` },
             ]
           : [{ label: "Purata Aktif (Dis)", value: pct(metricNum(delima.metrics, "avg_dis_murid")) }]),
         { label: "Sasaran KPI", value: pct(metricNum(delima.metrics, "kpi_murid")) },
