@@ -51,6 +51,30 @@ function PopCell({ pop }: { pop: DelimaSchoolPop | null }) {
   );
 }
 
+/**
+ * DELIMa 2.0 sudah tiada, jadi paparan sekolah tidak lagi membezakan 2.0 / 3.0:
+ * ambil angka dengan peratus aktif tertinggi sebagai nilai "aktif" sekolah. Tahap dikira semula
+ * (ambang sama seperti `tahapDari` dalam delima-live.ts) bila 3.0 yang menang.
+ */
+function tertinggi(
+  v20: DelimaSchoolPop | null,
+  v30: DelimaLivePop | null | undefined,
+): DelimaSchoolPop | null {
+  if (!v30 || (v20 && v20.peratus >= v30.peratus)) return v20;
+  const tahap = v30.peratus >= 75 ? "Tinggi" : v30.peratus >= 40 ? "Sederhana" : "Rendah";
+  return { ...v30, tahap };
+}
+
+function gabungSekolah(row: DelimaSchoolRow): DelimaSchoolRow {
+  return {
+    ...row,
+    guru: tertinggi(row.guru, row.guru30),
+    murid: tertinggi(row.murid, row.murid30),
+    guru30: undefined,
+    murid30: undefined,
+  };
+}
+
 /** Baris kecil DELIMa 3.0 di bawah angka 2.0; tiada apa-apa jika sumber 3.0 tidak ada. */
 function V30Line({ pop }: { pop: DelimaLivePop | null | undefined }) {
   if (pop === undefined) return null;
@@ -66,12 +90,13 @@ type Sort = "kod" | "nama" | "peratus";
 type Tahap = "all" | "Tinggi" | "Sederhana" | "Rendah";
 
 function SchoolTable({
-  schools,
+  schools: sumber,
   onSelect,
 }: {
   schools: DelimaSchoolRow[];
   onSelect: (row: DelimaSchoolRow) => void;
 }) {
+  const schools = useMemo(() => sumber.map(gabungSekolah), [sumber]);
   const [query, setQuery] = useState("");
   const [tahap, setTahap] = useState<Tahap>("all");
   const [sort, setSort] = useState<Sort>("kod");
@@ -176,7 +201,6 @@ function SchoolTable({
                       <PopCell pop={row.guru} />
                       <TahapBadge pop={row.guru} />
                     </span>
-                    <V30Line pop={row.guru30} />
                   </dd>
                 </div>
                 <div className="flex items-center justify-between gap-2">
@@ -186,7 +210,6 @@ function SchoolTable({
                       <PopCell pop={row.murid} />
                       <TahapBadge pop={row.murid} />
                     </span>
-                    <V30Line pop={row.murid30} />
                   </dd>
                 </div>
               </dl>
@@ -200,8 +223,8 @@ function SchoolTable({
           <thead>
             <tr className="border-b border-fog text-[11px] font-semibold uppercase tracking-[0.6px] text-steel">
               <th className="px-4 py-3">Sekolah</th>
-              <th className="px-4 py-3">Guru aktif (2.0 / 3.0)</th>
-              <th className="px-4 py-3">Murid aktif (2.0 / 3.0)</th>
+              <th className="px-4 py-3">Guru aktif</th>
+              <th className="px-4 py-3">Murid aktif</th>
             </tr>
           </thead>
           <tbody>
@@ -222,14 +245,12 @@ function SchoolTable({
                     <PopCell pop={row.guru} />
                     <TahapBadge pop={row.guru} />
                   </div>
-                  <V30Line pop={row.guru30} />
                 </td>
                 <td className="whitespace-nowrap px-4 py-3 tabular-nums">
                   <div className="flex items-center gap-2">
                     <PopCell pop={row.murid} />
                     <TahapBadge pop={row.murid} />
                   </div>
-                  <V30Line pop={row.murid30} />
                 </td>
               </tr>
             ))}
@@ -247,26 +268,24 @@ function SchoolTable({
   );
 }
 
-/** Kad Guru/Murid satu sekolah: DELIMa 2.0 dan 3.0 sebelah-menyebelah (bil. aktif dalam label). */
-function versiGroup(
-  title: string,
-  v20: DelimaSchoolPop | null,
-  v30: DelimaLivePop | null | undefined,
-) {
-  const bil = (p: DelimaLivePop) => `${num(p.aktif)} / ${num(p.jumlah)}`;
-  const stats = [
-    v20 ? { label: `2.0 · ${bil(v20)}`, value: pct(v20.peratus) } : null,
-    v30 ? { label: `3.0 · ${bil(v30)}`, value: pct(v30.peratus) } : null,
-    v20 ? { label: "Tahap 2.0", value: v20.tahap } : null,
-  ].filter((x): x is { label: string; value: string } => x != null);
-  return stats.length > 0 ? { title: `${title} · Aktif`, stats } : null;
+/** Kad Guru/Murid satu sekolah: satu angka aktif sahaja (tertinggi antara 2.0 dan 3.0). */
+function aktifGroup(title: string, p: DelimaSchoolPop | null) {
+  if (!p) return null;
+  return {
+    title: `${title} · Aktif`,
+    stats: [
+      { label: `Aktif · ${num(p.aktif)} / ${num(p.jumlah)}`, value: pct(p.peratus) },
+      { label: "Tahap", value: p.tahap },
+    ],
+  };
 }
 
 function SchoolDetail({ detail }: { detail: DelimaSchoolDetail }) {
-  const { school, kadMurid } = detail;
+  const { kadMurid } = detail;
+  const school = useMemo(() => gabungSekolah(detail.school), [detail.school]);
   const groups = [
-    versiGroup("Guru", school.guru, school.guru30),
-    versiGroup("Murid", school.murid, school.murid30),
+    aktifGroup("Guru", school.guru),
+    aktifGroup("Murid", school.murid),
     kadMurid
       ? {
           title: `Jumlah Aktif Murid · DELIMa 2.0 + 3.0 · Sasaran ${kadMurid.sasaran ?? "—"}%`,
@@ -284,8 +303,7 @@ function SchoolDetail({ detail }: { detail: DelimaSchoolDetail }) {
     <>
       <h3 className="mt-3 text-lg font-semibold tracking-tight">{school.nama}</h3>
       <p className="mt-1 text-sm text-graphite">
-        {school.kod} · DELIMa 2.0 · {detail.tempoh}
-        {school.guru30 || school.murid30 ? " · DELIMa 3.0: sumber Google Sheet DELIMa Perak" : ""}
+        {school.kod} · {detail.tempoh}
       </p>
       <div className="mt-4">
         <KpiGroups groups={groups} />
@@ -622,7 +640,7 @@ export default function DelimaExplore({
               DELIMa mengikut sekolah · {snapshot.label}
             </h3>
             <p className="mt-1 text-sm text-graphite">
-              {snapshot.schools.length} sekolah · DELIMa 2.0 · {snapshot.tempoh}
+              {snapshot.schools.length} sekolah · {snapshot.tempoh}
             </p>
             <div className="mt-4">
               <SchoolTable schools={snapshot.schools} onSelect={openSnapshotSchool} />
@@ -646,8 +664,7 @@ export default function DelimaExplore({
         <h3 className="mt-3 text-lg font-semibold tracking-tight">DELIMa mengikut sekolah</h3>
         {list ? (
           <p className="mt-1 text-sm text-graphite">
-            {list.schools.length} sekolah · DELIMa 2.0 · {list.tempoh}
-            {list.schools.some((s) => s.guru30 || s.murid30) ? " · DELIMa 3.0 ditunjuk di bawah angka 2.0" : ""}
+            {list.schools.length} sekolah · {list.tempoh}
           </p>
         ) : null}
         {error ? <p className="mt-3 text-sm text-graphite">{error}</p> : null}
