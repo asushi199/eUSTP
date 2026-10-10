@@ -7,6 +7,7 @@ import { listDelimaSnapshots, periodLabel } from "@/lib/analisis/delima-snapshot
 import {
   deleteBreakdown,
   deleteMetric,
+  muatNaikBelumLoginDelima,
   padamSnapshotDelima,
   saveBreakdown,
   saveMetric,
@@ -131,6 +132,33 @@ export default async function AdminAnalisisPage({
                 </span>
               )}
             </p>
+          </div>
+        </section>
+      ) : null}
+      {modul === "delima" ? (
+        <section className="mt-8">
+          <h2 className="text-lg font-semibold">Guru Belum Log Masuk</h2>
+          <p className="mt-1 text-sm text-graphite">
+            Muat naik CSV eksport DELIMa (lajur email, name, ppd, kodsekolah, login_status). Hanya guru
+            PPD {liveDaerah.toUpperCase()} diambil; hanya nama dan kod sekolah disimpan — e-mel tidak
+            disimpan. Setiap muat naik menggantikan senarai lama.
+          </p>
+          <div className="card mt-3 px-4 py-3">
+            <ActionForm
+              action={muatNaikBelumLoginDelima}
+              className="flex flex-wrap items-end gap-3"
+              submitLabel="Muat naik senarai"
+              submitClassName="btn-primary"
+            >
+              <div>
+                <label className="label" htmlFor="belum-login-file">Fail CSV</label>
+                <input id="belum-login-file" name="file" type="file" accept=".csv,text/csv" required className="input" />
+              </div>
+              <div>
+                <label className="label" htmlFor="belum-login-tarikh">Tarikh data</label>
+                <input id="belum-login-tarikh" name="tarikh" type="date" required defaultValue={today} className="input" />
+              </div>
+            </ActionForm>
           </div>
         </section>
       ) : null}

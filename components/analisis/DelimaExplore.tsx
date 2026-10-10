@@ -258,7 +258,7 @@ function aktifGroup(title: string, p: DelimaSchoolPop | null) {
 }
 
 function SchoolDetail({ detail }: { detail: DelimaSchoolDetail }) {
-  const { kadMurid } = detail;
+  const { kadMurid, belumLogin } = detail;
   const school = useMemo(() => gabungSekolah(detail.school), [detail.school]);
   const groups = [
     aktifGroup("Guru", school.guru),
@@ -285,9 +285,32 @@ function SchoolDetail({ detail }: { detail: DelimaSchoolDetail }) {
       <div className="mt-4">
         <KpiGroups groups={groups} />
       </div>
+      {belumLogin ? (
+        <section className="mt-6">
+          <h4 className="text-base font-semibold tracking-tight">
+            Guru belum log masuk DELIMa ({belumLogin.nama.length})
+          </h4>
+          {belumLogin.nama.length === 0 ? (
+            <p className="mt-3 text-sm text-graphite">
+              Tiada guru sekolah ini dalam senarai belum log masuk.
+            </p>
+          ) : (
+            <ol className="card mt-3 divide-y divide-fog">
+              {belumLogin.nama.map((nama, i) => (
+                <li key={`${nama}-${i}`} className="flex gap-3 px-4 py-3">
+                  <span className="w-6 shrink-0 text-right text-sm tabular-nums text-graphite">
+                    {i + 1}
+                  </span>
+                  <span className="min-w-0 font-medium leading-snug">{nama}</span>
+                </li>
+              ))}
+            </ol>
+          )}
+        </section>
+      ) : null}
       <p className="mt-3 text-xs text-graphite">
-        Sumber hanya menyediakan bilangan pengguna aktif setiap sekolah; senarai nama guru atau murid
-        tidak dipaparkan.
+        Sumber hanya menyediakan bilangan pengguna aktif setiap sekolah
+        {belumLogin ? "; senarai nama murid tidak dipaparkan." : "; senarai nama guru atau murid tidak dipaparkan."}
       </p>
     </>
   );

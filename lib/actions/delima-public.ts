@@ -1,6 +1,7 @@
 "use server";
 
 import { getDelimaConfig } from "@/lib/analisis/queries";
+import { getDelimaBelumLogin } from "@/lib/analisis/delima-belum-store";
 import {
   DELIMA_HISTORY_PAGE_SIZE,
   getDelimaSnapshotSchools,
@@ -24,7 +25,9 @@ export async function loadDelimaSchoolDetail(kod: string): Promise<DelimaSchoolD
   const code = kod.trim().toUpperCase();
   if (!/^[A-Z0-9]{4,12}$/.test(code)) return null;
   const c = await getDelimaConfig();
-  return fetchDelimaSchoolDetail(code, c.url, c.daerah);
+  const detail = await fetchDelimaSchoolDetail(code, c.url, c.daerah);
+  if (!detail) return null;
+  return { ...detail, belumLogin: await getDelimaBelumLogin(code) };
 }
 
 /** Sejarah snapshot bulanan, berhalaman. */

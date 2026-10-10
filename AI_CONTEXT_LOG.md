@@ -1917,3 +1917,17 @@ Corak berselang = instance sihat vs beracun.
   snapshot bulan lama TIDAK disentuh. Pembetulan di atas (kekalkan nilai lama bila null) kekal sebagai pelindung.
 - Disahkan: Manjung guru 83/102, murid 39/102 (sama dengan kiraan bebas daripada API sumber).
 - Label kad Guru/Murid (halaman utama + /analisis) ditukar: "Aktif" (angka gabungan JPN, tanpa sebut 2.0/3.0; nota kad dipendekkan); baris "Platform 3.0 sahaja" (CSV) dibuang kerana sumber sudah gabungan. Jadual/trend sejarah tidak disentuh.
+
+### Senarai guru belum log masuk DELIMa + pemulihan snapshot AI Tools (2026-10-10)
+
+- Borang muat naik AI Tools: `e.currentTarget` jadi null selepas `await` → `form.reset()` melempar TypeError ("client-side
+  exception") walaupun muat naik berjaya. Rujukan borang kini disimpan sebelum `await`.
+- Snapshot AI Tools id 10 (`okt.csv`, 10 Okt) dipadam kerana Looker sebenarnya hanya dikemas kini hingga 31 Ogos (data sama
+  dengan 21 Sep); snapshot id 6 (Sep 2026) dijadikan semasa dan metrik disegerakkan semula.
+- Migrasi 0051: jadual `analisis_delima_belum_login` (kod, nama, listed_on; RLS dikunci). Hanya nama + kod sekolah disimpan —
+  e-mel TIDAK disimpan. Setiap muat naik (admin → Analisis → DELIMa → "Guru Belum Log Masuk") menggantikan seluruh senarai
+  dan hanya PPD daerah semasa diambil (`parseBelumLoginCsv`, ujian di `tests/analisis/delima-belum-parse.test.ts`).
+- Butiran sekolah DELIMa memaparkan nama guru belum log masuk (nama sahaja, tanpa nota/tarikh di halaman; `listed_on` tetap disimpan). Data awal: fail
+  `belum-login-guru-300926-perak.csv` → Manjung 58 guru / 21 sekolah (tarikh 2026-09-30).
+- Senarai AI Tools "belum" (283 guru, 30 Sep) TIDAK diimport: 356 guru "Belum Selesai" dalam Looker tiada dalam fail itu
+  (takrif berbeza); paparan AI Tools kekal ikut Looker (nama + status sahaja, tanpa e-mel).

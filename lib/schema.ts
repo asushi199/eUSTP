@@ -601,6 +601,25 @@ export const analisisDelimaSchools = pgTable(
   }),
 );
 
+/**
+ * Guru yang belum log masuk DELIMa (daerah semasa) — hanya kod sekolah + nama untuk dipaparkan
+ * kepada sekolah. E-mel dan butiran lain sengaja TIDAK disimpan. Setiap muat naik menggantikan
+ * keseluruhan senarai; `listedOn` = tarikh data fail sumber.
+ */
+export const analisisDelimaBelumLogin = pgTable(
+  "analisis_delima_belum_login",
+  {
+    id: serial("id").primaryKey(),
+    kod: text("kod").notNull(),
+    nama: text("nama").notNull(),
+    listedOn: date("listed_on").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    kodIdx: index("analisis_delima_belum_login_kod_idx").on(t.kod),
+  }),
+);
+
 /** Snapshot muat naik AI Tools — setiap fail jadi satu titik carta + arkib. */
 export const analisisOptikSnapshots = pgTable(
   "analisis_optik_snapshots",

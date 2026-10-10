@@ -76,6 +76,8 @@ export type DelimaSchoolDetail = {
   kadMurid: DelimaKadMurid | null;
   tempoh: string;
   sumberUrl: string;
+  /** Guru belum log masuk (nama sahaja); undefined/null jika senarai belum dimuat naik. */
+  belumLogin?: { nama: string[]; tarikh: string } | null;
 };
 
 type JadualBaris = {
