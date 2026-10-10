@@ -8,6 +8,7 @@ import {
   loadDelimaSchools,
   loadDelimaSnapshotSchools,
 } from "@/lib/actions/delima-public";
+import { gabungSekolah } from "@/lib/analisis/delima-merge";
 import type { DelimaSnapshotPage, DelimaSnapshotRow } from "@/lib/analisis/delima-snapshot";
 import type {
   DelimaLivePop,
@@ -49,30 +50,6 @@ function PopCell({ pop }: { pop: DelimaSchoolPop | null }) {
       </span>
     </>
   );
-}
-
-/**
- * DELIMa 2.0 sudah tiada, jadi paparan sekolah tidak lagi membezakan 2.0 / 3.0:
- * ambil angka dengan peratus aktif tertinggi sebagai nilai "aktif" sekolah. Tahap dikira semula
- * (ambang sama seperti `tahapDari` dalam delima-live.ts) bila 3.0 yang menang.
- */
-function tertinggi(
-  v20: DelimaSchoolPop | null,
-  v30: DelimaLivePop | null | undefined,
-): DelimaSchoolPop | null {
-  if (!v30 || (v20 && v20.peratus >= v30.peratus)) return v20;
-  const tahap = v30.peratus >= 75 ? "Tinggi" : v30.peratus >= 40 ? "Sederhana" : "Rendah";
-  return { ...v30, tahap };
-}
-
-function gabungSekolah(row: DelimaSchoolRow): DelimaSchoolRow {
-  return {
-    ...row,
-    guru: tertinggi(row.guru, row.guru30),
-    murid: tertinggi(row.murid, row.murid30),
-    guru30: undefined,
-    murid30: undefined,
-  };
 }
 
 /** Baris kecil DELIMa 3.0 di bawah angka 2.0; tiada apa-apa jika sumber 3.0 tidak ada. */

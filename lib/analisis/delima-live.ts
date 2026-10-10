@@ -1,6 +1,7 @@
 import "server-only";
 
 import { fetchDelimaV30 } from "./delima-csv";
+import { gabungSekolah, tahapDariPeratus } from "./delima-merge";
 
 /**
  * Data DELIMa langsung daripada papan pemuka awam DELIMa Perak (dipautkan terus,
@@ -168,7 +169,7 @@ async function resolveSumber(sumberUrl?: string, daerahSlug?: string): Promise<S
 function tahapDari(baris: JadualBaris): DelimaTahap {
   const label = baris.lencana?.label;
   if (label === "Tinggi" || label === "Sederhana" || label === "Rendah") return label;
-  return baris.peratus >= 75 ? "Tinggi" : baris.peratus >= 40 ? "Sederhana" : "Rendah";
+  return tahapDariPeratus(baris.peratus);
 }
 
 function pop(b: JadualBaris | undefined): DelimaSchoolPop | null {
@@ -389,12 +390,13 @@ export function delimaTaburan(
     ["Sederhana", "Sederhana (40–74%)"],
     ["Rendah", "Rendah (<40%)"],
   ];
+  const sekolah = list.schools.map(gabungSekolah);
   return (["guru", "murid"] as const).map((k) => ({
-    title: `Taburan Sekolah · ${k === "guru" ? "Guru" : "Murid"} Aktif (DELIMa 2.0)`,
+    title: `Taburan Sekolah · ${k === "guru" ? "Guru" : "Murid"} Aktif`,
     seriesName: "Sekolah",
     data: tahap.map(([t, label]) => ({
       label,
-      jumlah: list.schools.filter((s) => s[k]?.tahap === t).length,
+      jumlah: sekolah.filter((s) => s[k]?.tahap === t).length,
     })),
   }));
 }
