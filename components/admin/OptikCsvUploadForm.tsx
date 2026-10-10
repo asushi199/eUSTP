@@ -12,14 +12,16 @@ export default function OptikCsvUploadForm({ today }: { today: string }) {
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
-    const fd = new FormData(e.currentTarget);
+    // currentTarget jadi null selepas handler selesai — simpan rujukan sebelum `await`.
+    const form = e.currentTarget;
+    const fd = new FormData(form);
     startTransition(async () => {
       const res = await uploadOptikSnapshot(fd);
       if (!res.ok) {
         setError(res.error ?? "Muat naik gagal.");
         return;
       }
-      e.currentTarget.reset();
+      form.reset();
       router.refresh();
     });
   }
