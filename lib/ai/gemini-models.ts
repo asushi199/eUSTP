@@ -1,7 +1,7 @@
 export const DEFAULT_GEMINI_MODELS = [
   "gemini-3.6-flash",
-  "gemini-3.5-flash",
   "gemini-2.5-flash",
+  "gemini-3.5-flash-lite",
 ] as const;
 
 export function resolveGeminiModels(env: Record<string, string | undefined> = process.env) {
