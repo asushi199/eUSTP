@@ -264,7 +264,6 @@ export default function AinsExplore({
               value: (j.murid > 0 ? j.lulus / j.murid : 0).toFixed(2),
             },
             { label: "Muka surat dibaca", value: num(j.mukaSurat) },
-            { label: "Bintang", value: num(j.star) },
           ]}
         />
       </div>

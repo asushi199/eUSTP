@@ -2013,3 +2013,8 @@ Corak berselang = instance sihat vs beracun.
 
 - `tapisMuridCsv` (`lib/analisis/ains-csv.ts`): CSV satu bulan — sudah/belum + susunan ikut bulan terpilih; CSV semua bulan — "sudah" = ada bacaan diluluskan dalam mana-mana bulan, susunan ikut jumlah diluluskan semua bulan. Carian nama sama untuk kedua-dua.
 - Butang papar bilangan murid setiap CSV + nota ringkas bezanya. Ujian ditambah (5 lulus), typecheck + eslint lulus.
+
+## 2026-10-13 — Ains: buang kad "Bintang" pada ringkasan sahaja
+
+- Arahan pimpinan: kad "Bintang" pada ringkasan (overview) tidak dipaparkan. Lajur Bintang dalam senarai murid dan CSV KEKAL (sengaja).
+- Medan `star` kekal dalam import, DB dan jenis.
