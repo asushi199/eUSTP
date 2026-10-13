@@ -8,6 +8,8 @@ import {
   listDelimaSnapshots,
   type DelimaSnapshotPage,
 } from "@/lib/analisis/delima-snapshot";
+import { getDelimaArkib } from "@/lib/analisis/delima-arkib";
+import type { DelimaArkib } from "@/lib/analisis/delima-arkib-meta";
 import type { DelimaSchoolRow } from "@/lib/analisis/delima-live";
 import {
   fetchDelimaSchoolDetail,
@@ -15,6 +17,12 @@ import {
   type DelimaSchoolDetail,
   type DelimaSchoolList,
 } from "@/lib/analisis/delima-live";
+
+/** Arkib penggunaan DELIMa tahun lepas (peratus aktif sekolah sahaja). */
+export async function loadDelimaArkib(tahun: number): Promise<DelimaArkib | null> {
+  if (!Number.isInteger(tahun)) return null;
+  return getDelimaArkib(tahun);
+}
 
 export async function loadDelimaSchools(): Promise<DelimaSchoolList | null> {
   const c = await getDelimaConfig();

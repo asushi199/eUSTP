@@ -6,14 +6,19 @@ const { auth } = NextAuth(authConfig);
 
 /**
  * Model public-first: kebanyakan halaman awam TIDAK melalui auth.
- * Pengecualian: /analisis dalaman sahaja (akaun staf). Semakan peranan
+ * Pengecualian: /analisis dalaman sahaja (akaun staf); /analisis/ai-tools dan
+ * /analisis/delima awam (dikongsi kepada sekolah). Semakan peranan
  * terperinci dibuat dalam layout (admin) + lib/rbac.ts. Direktori USTP
  * (/direktori/ustp) awam tetapi kandungannya digate oleh akaun MOE-DL.
  */
 const PROTECTED_PREFIXES = ["/admin", "/analisis"];
 
 function needsAuth(pathname: string): boolean {
-  if (pathname === "/analisis/ai-tools" || pathname.startsWith("/analisis/ai-tools/")) {
+  if (
+    pathname === "/analisis/ai-tools" ||
+    pathname.startsWith("/analisis/ai-tools/") ||
+    pathname === "/analisis/delima"
+  ) {
     return false;
   }
   return PROTECTED_PREFIXES.some(

@@ -1940,3 +1940,17 @@ Corak berselang = instance sihat vs beracun.
 - `DelimaTrendPoint` / `HomeDelimaTrend` dipendekkan kepada `bulan`, `guru`, `murid`; `getDelimaSnapshotTrend` tidak lagi pilih lajur 3.0/gabungan.
 - Data dalam DB (lajur `guru30_*`, `murid30_*`, `guru_gab_*`, `kad_*`) TIDAK disentuh — masih dipaparkan dalam jadual sejarah snapshot.
 - Disahkan: tsc bersih; modal DELIMa di halaman utama papar 2 garisan + 2 garis KPI.
+
+## 2026-10-13 — Arkib DELIMa 2025 mengikut sekolah + pautan kongsi
+
+- Senarai sekolah DELIMa (CoE Analytics) kini ada pilihan **Tahun**: 2026 = data langsung (seperti sedia ada), 2025 = arkib.
+  Arkib hanya peratus aktif guru/murid setiap sekolah — tiada carta, tiada nama guru/murid, tiada tahap/butiran sekolah.
+- Sumber: Google Sheet rekod PPD (tab pertama), lajur "DISEMBER 31.12.2025 (TOV)", 101 sekolah. Lajur Feb–Jun 2026 dalam helaian
+  yang sama SENGAJA tidak diimport (2026 sudah ada data langsung JPN). Data statik dalam `lib/analisis/delima-arkib-data.ts`
+  (tidak bergantung pada helaian semasa runtime); tambah tahun baharu: tambah data + `DELIMA_ARKIB_TAHUN` + `ARKIB` dalam `delima-arkib.ts`.
+- Nama sekolah diseragamkan dengan jadual `schools` (kod sama), jatuh balik ke nama helaian.
+- Halaman awam boleh dikongsi: `/analisis/delima` (`?tahun=2025` = arkib 2025). Pengecualian auth ditambah dalam `middleware.ts`
+  (sama corak `/analisis/ai-tools`); `/analisis` induk kekal staf sahaja.
+- Fail: `components/analisis/DelimaArkibTable.tsx`, `DelimaExplore.tsx` (initialLayer/initialTahun/backHref + TahunSelect),
+  `lib/actions/delima-public.ts` (`loadDelimaArkib`), `tests/analisis/delima-arkib.test.ts`.
+- Disahkan: tsc bersih, build lulus, 2 ujian lulus, semak visual desktop + mobile, tukar 2025 <-> 2026 dalam modal halaman utama dan halaman kongsi.

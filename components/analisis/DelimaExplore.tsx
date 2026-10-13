@@ -1,13 +1,18 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import DelimaArkibTable from "@/components/analisis/DelimaArkibTable";
 import KpiGroups from "@/components/analisis/KpiGroups";
+import TahunSelect from "@/components/analisis/TahunSelect";
 import {
+  loadDelimaArkib,
   loadDelimaHistory,
   loadDelimaSchoolDetail,
   loadDelimaSchools,
   loadDelimaSnapshotSchools,
 } from "@/lib/actions/delima-public";
+import { DELIMA_ARKIB_TAHUN, isArkibTahun, type DelimaArkib } from "@/lib/analisis/delima-arkib-meta";
 import { gabungSekolah } from "@/lib/analisis/delima-merge";
 import type { DelimaSnapshotPage, DelimaSnapshotRow } from "@/lib/analisis/delima-snapshot";
 import type {
@@ -465,11 +470,27 @@ function HistoryTable({
 export default function DelimaExplore({
   children,
   onLayerChange,
+  initialLayer = "overview",
+  initialTahun,
+  backHref,
+  backLabel = "← Laman utama",
 }: {
   children?: React.ReactNode;
   onLayerChange?: (layer: DelimaExploreLayer) => void;
+  /** Mulakan terus di senarai sekolah (halaman kongsi `/analisis/delima`). */
+  initialLayer?: DelimaExploreLayer;
+  /** Tahun arkib untuk dipaparkan pada mulanya; tiada/bukan arkib = data langsung tahun semasa. */
+  initialTahun?: number;
+  backHref?: string;
+  backLabel?: string;
 }) {
-  const [layer, setLayer] = useState<DelimaExploreLayer>("overview");
+  const [layer, setLayer] = useState<DelimaExploreLayer>(initialLayer);
+  /** null = data langsung (tahun semasa); nombor = tahun arkib. */
+  const [arkibTahun, setArkibTahun] = useState<number | null>(
+    initialTahun != null && isArkibTahun(initialTahun) ? initialTahun : null,
+  );
+  const [arkib, setArkib] = useState<Record<number, DelimaArkib>>({});
+  const [loadingArkib, setLoadingArkib] = useState(false);
   const [list, setList] = useState<DelimaSchoolList | null>(null);
   const [detail, setDetail] = useState<DelimaSchoolDetail | null>(null);
   const [history, setHistory] = useState<DelimaSnapshotPage | null>(null);
@@ -491,8 +512,7 @@ export default function DelimaExplore({
     onLayerChange?.(next);
   }
 
-  async function openSchools() {
-    go("schools");
+  async function loadList() {
     if (list) return;
     setLoadingList(true);
     setError(null);
@@ -506,6 +526,43 @@ export default function DelimaExplore({
       setLoadingList(false);
     }
   }
+
+  async function loadArkibTahun(tahun: number) {
+    if (arkib[tahun]) return;
+    setLoadingArkib(true);
+    setError(null);
+    try {
+      const data = await loadDelimaArkib(tahun);
+      if (data) setArkib((prev) => ({ ...prev, [tahun]: data }));
+      else setError(`Data DELIMa ${tahun} tidak dijumpai.`);
+    } catch {
+      setError(`Data DELIMa ${tahun} tidak dapat dimuatkan.`);
+    } finally {
+      setLoadingArkib(false);
+    }
+  }
+
+  async function muatSenarai(tahun: number | null) {
+    if (tahun != null) await loadArkibTahun(tahun);
+    else await loadList();
+  }
+
+  async function openSchools() {
+    go("schools");
+    await muatSenarai(arkibTahun);
+  }
+
+  async function changeTahun(next: number | null) {
+    setArkibTahun(next);
+    setError(null);
+    await muatSenarai(next);
+  }
+
+  useEffect(() => {
+    if (initialLayer === "schools") void muatSenarai(arkibTahun);
+    // Hanya sekali semasa dimuat: halaman kongsi terus ke senarai sekolah.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function loadHistoryPage(page: number) {
     setLoadingHistory(true);
@@ -656,19 +713,55 @@ export default function DelimaExplore({
   }
 
   if (layer === "schools") {
+    const arkibData = arkibTahun != null ? (arkib[arkibTahun] ?? null) : null;
+    const liveYear =
+      Number(list?.tempoh.match(/(\d{4})\s*$/)?.[1]) || new Date().getFullYear();
+    const years = [...new Set([liveYear, ...DELIMA_ARKIB_TAHUN])].sort((a, b) => b - a);
+    const sedangMuat = arkibTahun != null ? loadingArkib : loadingList;
     return (
       <div className="mt-4">
-        <button type="button" className={back} onClick={() => go("overview")}>
-          ← Carta
-        </button>
-        <h3 className="mt-3 text-lg font-semibold tracking-tight">DELIMa mengikut sekolah</h3>
-        {list ? (
-          <p className="mt-1 text-sm text-graphite">
-            {list.schools.length} sekolah · {list.tempoh}
-          </p>
-        ) : null}
+        {initialLayer === "schools" ? (
+          backHref ? (
+            <Link href={backHref} className={back}>
+              {backLabel}
+            </Link>
+          ) : null
+        ) : (
+          <button type="button" className={back} onClick={() => go("overview")}>
+            ← Carta
+          </button>
+        )}
+        <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h3 className="text-lg font-semibold tracking-tight">
+              DELIMa mengikut sekolah{arkibTahun != null ? ` · ${arkibTahun}` : ""}
+            </h3>
+            {arkibData ? (
+              <p className="mt-1 text-sm text-graphite">
+                {arkibData.schools.length} sekolah · {arkibData.tempoh}
+              </p>
+            ) : list && arkibTahun == null ? (
+              <p className="mt-1 text-sm text-graphite">
+                {list.schools.length} sekolah · {list.tempoh}
+              </p>
+            ) : null}
+          </div>
+          <TahunSelect
+            year={arkibTahun ?? liveYear}
+            years={years}
+            onChange={(y) => void changeTahun(isArkibTahun(y) ? y : null)}
+          />
+        </div>
         {error ? <p className="mt-3 text-sm text-graphite">{error}</p> : null}
-        {loadingList && !list ? (
+        {arkibTahun != null ? (
+          arkibData ? (
+            <div className="mt-4">
+              <DelimaArkibTable schools={arkibData.schools} />
+            </div>
+          ) : sedangMuat ? (
+            <p className="mt-4 text-sm text-graphite">Memuatkan senarai sekolah…</p>
+          ) : null
+        ) : sedangMuat && !list ? (
           <p className="mt-4 text-sm text-graphite">Memuatkan senarai sekolah…</p>
         ) : list ? (
           <div className="mt-4">
