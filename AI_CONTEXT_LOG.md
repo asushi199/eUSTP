@@ -2002,3 +2002,9 @@ Corak berselang = instance sihat vs beracun.
 
 - `AinsExplore`: senarai sekolah & murid sebelum ini render kad (telefon) DAN jadual (sm+) serentak, satu disorok dengan CSS → nod DOM berganda. Kini `useSkrinLebar()` (`useSyncExternalStore` + `matchMedia("(min-width: 640px)")`) memilih satu sahaja. Snapshot pelayan = kad; skrin lebar bertukar ke jadual selepas hidrasi (kelipan singkat sahaja pada paparan awal `/analisis/ains`).
 - Disahkan: typecheck + eslint. Belum dismoke dalam pelayar.
+
+## 2026-10-13 — Ains: muat turun CSV senarai murid
+
+- Butang "CSV <bulan>" dan "CSV semua bulan" dalam senarai murid sekolah (`SekolahView`); ikut carian + status semasa. CSV dijana di klien (data murid sudah ada di pelayar selepas semakan log masuk MOE-DL — tiada endpoint baharu).
+- `lib/analisis/ains-csv.ts` (tulen): satu bulan (Nama, Status, Diluluskan, Ditolak, BM, BI, Lain-lain, Muka surat, Bintang); semua bulan (Diluluskan/Ditolak setiap bulan + jumlah + bilangan bulan membaca). BOM UTF-8, sel yang bermula `= + - @` diawali `'` (halang formula Excel).
+- Ujian: `tests/analisis/ains-csv.test.ts` (`npx tsx --test`). Disahkan: ujian, typecheck, eslint. Belum dismoke dalam pelayar.
