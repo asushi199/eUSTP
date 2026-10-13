@@ -1979,3 +1979,9 @@ Corak berselang = instance sihat vs beracun.
 - `loadAinsMurid` (`lib/actions/ains-explore.ts`) menyemak `getDirectoryContactAccess()` di pelayan; tanpa akses → `{ ok:false, reason:"login" }` dan UI papar butang "Log masuk MOE-DL" (`direktoriLoginHref("/analisis/ains")`). Data murid tidak dihantar ke pelayar tanpa log masuk.
 - `/analisis/ains` ditambah ke `MOE_DL_CALLBACK_PREFIXES` (`lib/moe-dl.ts`); halaman `/direktori/log-masuk` ada salinan khas Ains. Ujian ditambah dalam `tests/direktori/moe-dl-email.test.ts`.
 - Menggantikan nota privasi entri sebelumnya (nama murid tidak lagi terbuka tanpa log masuk). Disahkan: tsc, ujian, build, pelayar (tanpa log masuk → butang login, tiada nama murid).
+
+## 2026-10-13 — Pautan terus modal CoE Analytics (`/?analisis=<id>`)
+
+- `HomeAnalisisBand` membaca `?analisis=<id>` semasa mount dan membuka modal modul berkenaan (id: `ains`, `delima`, `optik`, dll. — mesti padan modul yang dipaparkan; id tidak dikenali diabaikan).
+- Contoh: `/?analisis=ains` membuka carta Program Ains (lapisan ringkasan) terus pada halaman utama. Awam, tiada log masuk.
+- Disahkan: `npm run typecheck`. Belum dismoke dalam pelayar (persekitaran sesi tiada DB).

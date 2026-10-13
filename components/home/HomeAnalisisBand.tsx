@@ -244,6 +244,15 @@ export default function HomeAnalisisBand({
     setMounted(true);
   }, []);
 
+  // Pautan terus: `/?analisis=ains` membuka modal modul berkenaan sebaik halaman dimuatkan.
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get("analisis");
+    if (!id) return;
+    const dikenali = [...lead, ...mesyuarat, ...perkData].some((m) => m.id === id);
+    if (dikenali) openModule(id as AnalisisHomeModule["id"]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     setPerkData(perkhidmatan ?? []);
     setChartsYear(null);
