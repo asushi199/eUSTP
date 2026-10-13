@@ -47,6 +47,15 @@ export type AinsMuridRow = {
   b: AinsMuridBulan[];
 };
 
+/** Data sandaran (metrik Ains sedia ada sebelum import bulanan) — dipaparkan sebagai tahun arkib. */
+export type AinsBackup = {
+  tahun: number;
+  tiles: { label: string; value: string }[];
+  bars: { label: string; jumlah: number }[];
+  sourceUrl: string;
+  sourceLabel: string;
+};
+
 export const AINS_BULAN = [
   "Jan",
   "Feb",

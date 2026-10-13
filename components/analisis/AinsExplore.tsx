@@ -1,29 +1,22 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import AinsLineChart from "@/components/analisis/AinsCharts";
 import AnalisisKpiTiles from "@/components/analisis/AnalisisKpiTiles";
 import TahunSelect from "@/components/analisis/TahunSelect";
 import BreakdownBarChart from "@/components/stats/BreakdownBarChart";
 import { loadAinsMurid, loadAinsTahun } from "@/lib/actions/ains-explore";
+import { direktoriLoginHref } from "@/lib/moe-dl";
 import {
   AINS_BULAN,
   bulanTerkini,
   jumlahAins,
   lulusIkutJenis,
+  type AinsBackup,
   type AinsMuridRow,
   type AinsSekolahRow,
   type AinsTahunData,
 } from "@/lib/analisis/ains-types";
-
-/** Data sandaran (metrik Ains sedia ada sebelum import bulanan) — dipaparkan sebagai tahun arkib. */
-export type AinsBackup = {
-  tahun: number;
-  tiles: { label: string; value: string }[];
-  bars: { label: string; jumlah: number }[];
-  sourceUrl: string;
-  sourceLabel: string;
-};
 
 type Layer = "overview" | "schools" | "school";
 type SekolahSort = "kod" | "nama" | "lulus-desc" | "lulus-asc" | "baca-asc" | "baca-desc";
@@ -41,24 +34,29 @@ const namaBulan = (b: number) => AINS_BULAN[b - 1] ?? String(b);
 
 export default function AinsExplore({
   years,
-  initial,
+  initial = null,
   backup,
+  initialLayer = "overview",
 }: {
   /** Tahun yang ada data bulanan dalam pangkalan data. */
   years: number[];
-  initial: AinsTahunData | null;
+  /** Data tahun terkini jika sudah dimuat pelayan; null = dimuat sendiri selepas dipaparkan. */
+  initial?: AinsTahunData | null;
   backup: AinsBackup;
+  initialLayer?: Layer;
 }) {
-  const [tahun, setTahun] = useState<number>(initial?.tahun ?? backup.tahun);
+  const [tahun, setTahun] = useState<number>(initial?.tahun ?? years[0] ?? backup.tahun);
   const [cache, setCache] = useState<Record<number, AinsTahunData>>(
     initial ? { [initial.tahun]: initial } : {},
   );
-  const [layer, setLayer] = useState<Layer>("overview");
+  const [layer, setLayer] = useState<Layer>(initialLayer);
   const [bulanPilih, setBulanPilih] = useState<number | null>(null);
   const [kod, setKod] = useState<string | null>(null);
   const [murid, setMurid] = useState<Record<string, AinsMuridRow[]>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /** Senarai murid memerlukan log masuk MOE-DL. */
+  const [perluLogin, setPerluLogin] = useState(false);
 
   const allYears = useMemo(
     () => [...new Set([...years, backup.tahun])].sort((a, b) => b - a),
@@ -78,6 +76,16 @@ export default function AinsExplore({
     setKod(null);
     setBulanPilih(null);
     setTahun(next);
+    await muatTahun(next);
+  }
+
+  // Tiada data awal daripada pelayan (cth. modal halaman utama): muat tahun terkini sekali.
+  useEffect(() => {
+    if (!initial && years[0] != null) void muatTahun(years[0]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function muatTahun(next: number) {
     if (!years.includes(next) || cache[next]) return;
     setLoading(true);
     try {
@@ -99,8 +107,11 @@ export default function AinsExplore({
     if (murid[kunci]) return;
     setLoading(true);
     try {
-      const rows = await loadAinsMurid(tahun, k);
-      if (rows) setMurid((m) => ({ ...m, [kunci]: rows }));
+      const res = await loadAinsMurid(tahun, k);
+      if (res.ok) {
+        setPerluLogin(false);
+        setMurid((m) => ({ ...m, [kunci]: res.rows }));
+      } else if (res.reason === "login") setPerluLogin(true);
       else setError("Senarai murid tidak dapat dimuatkan.");
     } catch {
       setError("Senarai murid tidak dapat dimuatkan.");
@@ -194,6 +205,7 @@ export default function AinsExplore({
         murid={murid[`${tahun}:${kod}`] ?? null}
         loading={loading}
         error={error}
+        perluLogin={perluLogin}
         onBack={() => setLayer("schools")}
       />
     );
@@ -466,6 +478,7 @@ function SekolahView({
   murid,
   loading,
   error,
+  perluLogin,
   onBack,
 }: {
   header: React.ReactNode;
@@ -477,6 +490,7 @@ function SekolahView({
   murid: AinsMuridRow[] | null;
   loading: boolean;
   error: string | null;
+  perluLogin: boolean;
   onBack: () => void;
 }) {
   const [q, setQ] = useState("");
@@ -572,7 +586,18 @@ function SekolahView({
 
       <h4 className="mt-8 text-base font-semibold tracking-tight">Senarai murid</h4>
       {error ? <p className="mt-2 text-sm text-graphite">{error}</p> : null}
-      {!murid ? (
+      {!murid && perluLogin ? (
+        <div className="mt-3 rounded-xl border hairline bg-white px-4 py-5 sm:flex sm:items-center sm:justify-between sm:gap-4">
+          <p className="text-sm leading-relaxed text-graphite">
+            Senarai murid dilindungi. Log masuk dengan akaun{" "}
+            <span className="font-medium text-ink">@moe-dl.edu.my</span> untuk melihat nama dan bacaan
+            murid.
+          </p>
+          <a href={direktoriLoginHref("/analisis/ains")} className="btn-primary mt-3 shrink-0 sm:mt-0">
+            Log masuk MOE-DL
+          </a>
+        </div>
+      ) : !murid ? (
         <p className="mt-2 text-sm text-graphite">
           {loading ? "Memuatkan senarai murid…" : "Tiada data murid."}
         </p>
@@ -721,8 +746,8 @@ function SekolahView({
             </p>
           ) : null}
           <p className="mt-3 max-w-2xl text-xs leading-relaxed text-graphite">
-            Klik nama murid untuk melihat graf perkembangan bulanan. Senarai ini untuk kegunaan
-            dalaman staf.
+            Klik nama murid untuk melihat graf perkembangan bulanan. Senarai ini dilindungi dan hanya
+            boleh dilihat dengan akaun MOE-DL.
           </p>
         </>
       )}

@@ -8,7 +8,13 @@ import {
 } from "./queries";
 import { delimaTaburan } from "./delima-live";
 import { getAinsTahun, listAinsTahun } from "./ains-queries";
-import { AINS_BULAN, bulanTerkini, jumlahAins, lulusIkutJenis } from "./ains-types";
+import {
+  AINS_BULAN,
+  bulanTerkini,
+  jumlahAins,
+  lulusIkutJenis,
+  type AinsBackup,
+} from "./ains-types";
 import { getOptikHomeView, optikKpiGroupStats, optikKpiReferenceLines } from "./optik-queries";
 
 /** Bentuk data boleh-serialize untuk kad + modal analisis di halaman utama. */
@@ -72,6 +78,8 @@ export type AnalisisHomeModule = {
   delimaTrend?: HomeDelimaTrend;
   /** DELIMa: data langsung tersedia → boleh terokai senarai sekolah dalam kad. */
   delimaLive?: boolean;
+  /** Ains: terokai tahun/bulan/sekolah/murid dalam modal (data dimuat malas daripada pelayan). */
+  ainsExplore?: { years: number[]; backup: AinsBackup };
   bars: HomeBarChart[];
   line?: HomeLineChart;
   note?: string;
@@ -244,9 +252,23 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
 
   /* ---------- AINS ---------- */
   // Data bulanan terkini (PPD Manjung) jika ada; jika tidak, jatuh balik ke metrik lama (sandaran 2025).
-  const ainsTahun = await listAinsTahun()
-    .then((y) => (y[0] != null ? getAinsTahun(y[0]) : null))
-    .catch(() => null);
+  const ainsYears = await listAinsTahun().catch(() => [] as number[]);
+  const ainsTahun = ainsYears[0] != null ? await getAinsTahun(ainsYears[0]).catch(() => null) : null;
+  const ainsBackup: AinsBackup = {
+    tahun: 2025,
+    tiles: [
+      { label: "Buku Diluluskan", value: bil(metricNum(ains.metrics, "approved")) },
+      { label: "Ditolak", value: bil(metricNum(ains.metrics, "rejected")) },
+    ],
+    bars: [
+      { label: "SK", jumlah: metricNum(ains.metrics, "sk_approved", "sk") ?? 0 },
+      { label: "SJKC", jumlah: metricNum(ains.metrics, "sjkc_approved", "sjkc") ?? 0 },
+      { label: "SJKT", jumlah: metricNum(ains.metrics, "sjkt_approved", "sjkt") ?? 0 },
+    ].filter((b) => b.jumlah > 0),
+    sourceUrl: metricText(ains.metrics, "source_url"),
+    sourceLabel: metricText(ains.metrics, "source_label") || "Buka sumber Ains",
+  };
+  const ainsExplore = { years: ainsYears, backup: ainsBackup };
   let ainsModule: AnalisisHomeModule;
   if (ainsTahun) {
     const bulan = bulanTerkini(ainsTahun);
@@ -273,6 +295,7 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
           data: lulusIkutJenis(baris),
         },
       ],
+      ainsExplore,
     };
   } else {
     const ainsApproved = metricNum(ains.metrics, "approved");
@@ -297,6 +320,7 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
           ].filter((b) => b.jumlah > 0),
         },
       ],
+      ainsExplore,
     };
   }
 

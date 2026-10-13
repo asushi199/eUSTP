@@ -7,6 +7,7 @@ import { getDirectoryContactAccess } from "@/lib/direktori/access";
 import { getModuleAccent } from "@/lib/module-theme";
 import {
   isGoogleAuthConfigured,
+  isAinsCallback,
   isTebusBukuCallback,
   safeDirektoriCallbackUrl,
 } from "@/lib/moe-dl";
@@ -37,25 +38,30 @@ export default async function DirektoriLogMasukPage({
   if (access.ok) redirect(callbackUrl);
 
   const forTebusBuku = isTebusBukuCallback(callbackUrl);
-  const accent = getModuleAccent(forTebusBuku ? "/laporan/tebus-buku" : "/direktori");
+  const forAins = isAinsCallback(callbackUrl);
+  const accent = getModuleAccent(
+    forTebusBuku ? "/laporan/tebus-buku" : forAins ? "/analisis" : "/direktori",
+  );
 
   return (
     <PublicPageShell narrow className="pb-16 sm:pb-12">
       <Link
-        href={forTebusBuku ? "/laporan/tebus-buku" : "/direktori"}
+        href={forTebusBuku ? "/laporan/tebus-buku" : forAins ? "/analisis/ains" : "/direktori"}
         className="text-sm text-graphite hover:text-ink"
       >
-        {forTebusBuku ? "← Semak Tebus Buku" : "← Directory"}
+        {forTebusBuku ? "← Semak Tebus Buku" : forAins ? "← Program Ains" : "← Directory"}
       </Link>
       <PageHeader
         className="mt-2"
-        eyebrow={forTebusBuku ? "CoE Reports" : "CoE Directory"}
+        eyebrow={forTebusBuku ? "CoE Reports" : forAins ? "CoE Analytics" : "CoE Directory"}
         title="Log masuk MOE-DL"
         accent={accent}
         description={
           forTebusBuku
             ? "Akaun Google KPM (@moe-dl.edu.my) diperlukan untuk melihat senarai pelajar dan status tebus baucar buku."
-            : "Akaun Google KPM (@moe-dl.edu.my) diperlukan untuk melihat nombor telefon rakan guru."
+            : forAins
+              ? "Akaun Google KPM (@moe-dl.edu.my) diperlukan untuk melihat senarai murid Program Ains."
+              : "Akaun Google KPM (@moe-dl.edu.my) diperlukan untuk melihat nombor telefon rakan guru."
         }
       />
       <div className="mt-8">
@@ -66,7 +72,9 @@ export default async function DirektoriLogMasukPage({
           purposeText={
             forTebusBuku
               ? "Senarai nama pelajar dan status baucar buku hanya dipaparkan"
-              : undefined
+              : forAins
+                ? "Senarai nama murid dan bacaan Program Ains hanya dipaparkan"
+                : undefined
           }
         />
       </div>

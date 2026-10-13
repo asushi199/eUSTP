@@ -16,7 +16,7 @@ export function isGoogleAuthConfigured(): boolean {
 }
 
 /** Laluan dalaman yang dibenarkan sebagai tujuan selepas log masuk MOE-DL. */
-const MOE_DL_CALLBACK_PREFIXES = ["/direktori", "/laporan/tebus-buku"] as const;
+const MOE_DL_CALLBACK_PREFIXES = ["/direktori", "/laporan/tebus-buku", "/analisis/ains"] as const;
 
 export function safeDirektoriCallbackUrl(from: string | null | undefined): string {
   const value = String(from ?? "").trim();
@@ -28,6 +28,11 @@ export function safeDirektoriCallbackUrl(from: string | null | undefined): strin
 /** Tujuan selepas log masuk ialah modul Semak Tebus Buku (bukan Directory). */
 export function isTebusBukuCallback(callbackUrl: string): boolean {
   return callbackUrl.startsWith("/laporan/tebus-buku");
+}
+
+/** Tujuan selepas log masuk ialah halaman Program Ains (senarai murid). */
+export function isAinsCallback(callbackUrl: string): boolean {
+  return callbackUrl.startsWith("/analisis/ains");
 }
 
 export function direktoriLoginHref(from?: string): string {

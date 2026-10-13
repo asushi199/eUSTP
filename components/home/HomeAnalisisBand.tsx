@@ -22,6 +22,10 @@ const DelimaTrendChart = dynamic(() => import("@/components/analisis/DelimaTrend
   ssr: false,
   loading: chartLoading,
 });
+const AinsExplore = dynamic(() => import("@/components/analisis/AinsExplore"), {
+  ssr: false,
+  loading: chartLoading,
+});
 const PenyertaanExplore = dynamic(() => import("@/components/analisis/PenyertaanExplore"), {
   ssr: false,
   loading: chartLoading,
@@ -338,7 +342,9 @@ export default function HomeAnalisisBand({
                     ? "max-w-3xl"
                     : openId === "penyertaan"
                       ? "max-w-4xl"
-                    : (openId === "optik" && optikLayer !== "overview") || openId === "delima"
+                    : (openId === "optik" && optikLayer !== "overview") ||
+                        openId === "delima" ||
+                        openId === "ains"
                       ? "max-w-4xl"
                       : "max-w-2xl"
                 }`}
@@ -390,6 +396,12 @@ export default function HomeAnalisisBand({
                   <DelimaExplore key={openId} onLayerChange={setDelimaLayer}>
                     <AnalisisModuleBody active={active} loadingYear={loadingYear} />
                   </DelimaExplore>
+                ) : active.id === "ains" && active.ainsExplore ? (
+                  <AinsExplore
+                    key={openId}
+                    years={active.ainsExplore.years}
+                    backup={active.ainsExplore.backup}
+                  />
                 ) : active.id === "penyertaan" ? (
                   <PenyertaanExplore key={openId} />
                 ) : (

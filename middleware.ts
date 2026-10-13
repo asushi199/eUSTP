@@ -17,7 +17,8 @@ function needsAuth(pathname: string): boolean {
   if (
     pathname === "/analisis/ai-tools" ||
     pathname.startsWith("/analisis/ai-tools/") ||
-    pathname === "/analisis/delima"
+    pathname === "/analisis/delima" ||
+    pathname === "/analisis/ains"
   ) {
     return false;
   }

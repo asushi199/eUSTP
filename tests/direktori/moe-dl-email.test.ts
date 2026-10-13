@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   direktoriLoginHref,
+  isAinsCallback,
   isMoeDlEmail,
   isTebusBukuCallback,
   safeDirektoriCallbackUrl,
@@ -23,6 +24,13 @@ test("blocks open redirects on directory callback", () => {
   assert.equal(safeDirektoriCallbackUrl("/admin"), "/direktori");
   assert.equal(safeDirektoriCallbackUrl("https://evil.example"), "/direktori");
   assert.equal(safeDirektoriCallbackUrl("//evil.example"), "/direktori");
+});
+
+test("allows returning to Program Ains after MOE-DL login", () => {
+  assert.equal(safeDirektoriCallbackUrl("/analisis/ains"), "/analisis/ains");
+  assert.equal(isAinsCallback("/analisis/ains"), true);
+  assert.equal(isAinsCallback("/direktori/ustp"), false);
+  assert.equal(safeDirektoriCallbackUrl("/analisis"), "/direktori");
 });
 
 test("allows returning to Semak Tebus Buku after MOE-DL login", () => {

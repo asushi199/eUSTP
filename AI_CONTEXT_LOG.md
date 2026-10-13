@@ -1972,3 +1972,10 @@ Corak berselang = instance sihat vs beracun.
 - UI: `components/analisis/AinsExplore.tsx` dalam `/analisis#ains` — pilihan tahun (2026 data bulanan; 2025 = metrik Ains lama sebagai sandaran), pilihan bulan, carta bulanan, senarai sekolah, senarai murid setiap sekolah (graf perkembangan bila nama diklik). Server action `lib/actions/ains-explore.ts` hanya untuk staf.
 - Ringkasan Ains halaman utama (`summary.ts`) kini guna bulan terkini data 2026; jatuh balik ke metrik lama (dilabel "Data 2025") jika DB kosong. Metrik lama disahkan pengguna sebagai data 2025.
 - Catatan data: angka bulanan diambil seadanya daripada fail (Mac→Apr turun sedikit); jumlah sekolah ikut fail sekolah, senarai murid ikut fail pengguna (beza kecil).
+
+## 2026-10-13 — Ains: ringkasan awam, senarai murid perlu log masuk MOE-DL
+
+- Keputusan pengguna: Ains awam (halaman utama + `/analisis/ains`, pilihan 2025/2026), TETAPI senarai nama murid hanya untuk akaun MOE-DL (@moe-dl.edu.my) atau staf — sama corak Semak Tebus Buku.
+- `loadAinsMurid` (`lib/actions/ains-explore.ts`) menyemak `getDirectoryContactAccess()` di pelayan; tanpa akses → `{ ok:false, reason:"login" }` dan UI papar butang "Log masuk MOE-DL" (`direktoriLoginHref("/analisis/ains")`). Data murid tidak dihantar ke pelayar tanpa log masuk.
+- `/analisis/ains` ditambah ke `MOE_DL_CALLBACK_PREFIXES` (`lib/moe-dl.ts`); halaman `/direktori/log-masuk` ada salinan khas Ains. Ujian ditambah dalam `tests/direktori/moe-dl-email.test.ts`.
+- Menggantikan nota privasi entri sebelumnya (nama murid tidak lagi terbuka tanpa log masuk). Disahkan: tsc, ujian, build, pelayar (tanpa log masuk → butang login, tiada nama murid).
