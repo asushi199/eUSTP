@@ -21,6 +21,39 @@ function keCsv(rows: (string | number)[][]): string {
 const bulanMurid = (m: AinsMuridRow, bulan: number): AinsMuridBulan | null =>
   m.b.find((x) => x.bulan === bulan) ?? null;
 
+export type AinsCsvTapis = {
+  /** Carian nama (kosong = semua). */
+  q: string;
+  status: "" | "baca" | "belum";
+  sort: "lulus-desc" | "lulus-asc" | "nama";
+  /** Bulan terpilih = "sudah membaca" dalam bulan itu; null = dalam mana-mana bulan. */
+  bulan: number | null;
+};
+
+/**
+ * Tapis + susun murid untuk CSV. Satu bulan: status & susunan ikut bulan itu.
+ * Semua bulan (`bulan: null`): "sudah membaca" = ada bacaan diluluskan dalam mana-mana bulan,
+ * susunan ikut jumlah diluluskan semua bulan.
+ */
+export function tapisMuridCsv(murid: AinsMuridRow[], t: AinsCsvTapis): AinsMuridRow[] {
+  const kata = t.q.trim().toLowerCase();
+  const lulus = (m: AinsMuridRow) =>
+    t.bulan === null ? m.b.reduce((n, x) => n + x.lulus, 0) : (bulanMurid(m, t.bulan)?.lulus ?? 0);
+  const out = murid.filter((m) => {
+    if (kata && !m.nama.toLowerCase().includes(kata)) return false;
+    if (t.status === "baca") return lulus(m) > 0;
+    if (t.status === "belum") return lulus(m) === 0;
+    return true;
+  });
+  return out.sort((a, b) =>
+    t.sort === "nama"
+      ? a.nama.localeCompare(b.nama, "ms")
+      : t.sort === "lulus-asc"
+        ? lulus(a) - lulus(b)
+        : lulus(b) - lulus(a),
+  );
+}
+
 /** Satu baris setiap murid untuk satu bulan. */
 export function csvMuridSatuBulan(murid: AinsMuridRow[], bulan: number): string {
   const rows: (string | number)[][] = [
