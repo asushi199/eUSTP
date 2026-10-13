@@ -6,6 +6,7 @@ import AnalisisKpiTiles from "@/components/analisis/AnalisisKpiTiles";
 import TahunSelect from "@/components/analisis/TahunSelect";
 import BreakdownBarChart from "@/components/stats/BreakdownBarChart";
 import { loadAinsMurid, loadAinsTahun } from "@/lib/actions/ains-explore";
+import { csvMuridSatuBulan, csvMuridSemuaBulan, namaFailAins } from "@/lib/analisis/ains-csv";
 import { direktoriLoginHref } from "@/lib/moe-dl";
 import {
   AINS_BULAN,
@@ -686,6 +687,25 @@ function SekolahView({
   const bilMembaca = murid
     ? murid.filter((m) => (m.b.find((x) => x.bulan === bulan)?.lulus ?? 0) > 0).length
     : 0;
+  /** Muat turun CSV ikut carian + status semasa (data murid sudah ada di pelayar). */
+  function muatTurunCsv(semuaBulan: boolean) {
+    if (baris.length === 0) return;
+    const senarai = baris.map((b) => b.m);
+    const csv = semuaBulan ? csvMuridSemuaBulan(senarai) : csvMuridSatuBulan(senarai, bulan);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = namaFailAins([
+      kod,
+      tahun,
+      semuaBulan ? "semua-bulan" : namaBulan(bulan),
+      status === "baca" ? "sudah-membaca" : status === "belum" ? "belum-membaca" : null,
+      q.trim() ? "carian" : null,
+    ]);
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
   const bilBelum = murid ? murid.length - bilMembaca : 0;
   const peratusBaca = murid ? bahagi(bilMembaca, murid.length) : 0;
 
@@ -871,6 +891,27 @@ function SekolahView({
             </div>
           </div>
           <p className="mt-1 text-xs text-graphite">{baris.length} murid dipaparkan</p>
+          <div className="mt-2 grid grid-cols-2 gap-2 sm:flex">
+            <button
+              type="button"
+              className="btn-outline btn-sm"
+              disabled={baris.length === 0}
+              onClick={() => muatTurunCsv(false)}
+            >
+              CSV {namaBulan(bulan)}
+            </button>
+            <button
+              type="button"
+              className="btn-outline btn-sm"
+              disabled={baris.length === 0}
+              onClick={() => muatTurunCsv(true)}
+            >
+              CSV semua bulan
+            </button>
+          </div>
+          <p className="mt-1 text-xs text-graphite">
+            CSV mengikut carian &amp; status di atas ({baris.length} murid).
+          </p>
           {/* Telefon: kad setiap murid tanpa tatal mendatar */}
           {!lebar ? (
             <ul className="card mt-3 divide-y divide-fog/60">
