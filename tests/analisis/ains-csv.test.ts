@@ -5,6 +5,7 @@ import {
   csvMuridSatuBulan,
   csvMuridSemuaBulan,
   namaFailAins,
+  tapisMuridCsv,
 } from "../../lib/analisis/ains-csv";
 import type { AinsMuridBulan, AinsMuridRow } from "../../lib/analisis/ains-types";
 
@@ -65,4 +66,32 @@ test("namaFailAins: slug selamat, buang bahagian kosong", () => {
     "ains-aba1234-2026-semua-bulan.csv",
   );
   assert.equal(namaFailAins(["X", "", "belum"]), "ains-x-belum.csv");
+});
+
+test("tapisMuridCsv: 'sudah' ikut bulan vs mana-mana bulan", () => {
+  const nama = (r: AinsMuridRow[]) => r.map((m) => m.nama);
+  // Feb: hanya Siti membaca; Ali (Feb 0) tidak.
+  assert.deepEqual(nama(tapisMuridCsv(murid, { q: "", status: "baca", sort: "nama", bulan: 2 })), [
+    'SITI "COMEL", NUR',
+  ]);
+  // Mana-mana bulan: Ali (Jan & Mac) dan Siti; murid tanpa bacaan tidak.
+  assert.deepEqual(
+    nama(tapisMuridCsv(murid, { q: "", status: "baca", sort: "nama", bulan: null })),
+    ["ALI BIN ABU", 'SITI "COMEL", NUR'],
+  );
+  assert.deepEqual(
+    nama(tapisMuridCsv(murid, { q: "", status: "belum", sort: "nama", bulan: null })),
+    ["=CMD()"],
+  );
+  // Susun ikut jumlah semua bulan (Ali 8 > Siti 4); carian dihormati.
+  assert.deepEqual(
+    nama(tapisMuridCsv(murid, { q: "", status: "baca", sort: "lulus-desc", bulan: null })),
+    ["ALI BIN ABU", 'SITI "COMEL", NUR'],
+  );
+  assert.deepEqual(
+    nama(tapisMuridCsv(murid, { q: "siti", status: "", sort: "nama", bulan: null })),
+    ['SITI "COMEL", NUR'],
+  );
+  // Tidak mengubah tatasusunan asal.
+  assert.equal(murid[0].nama, "ALI BIN ABU");
 });

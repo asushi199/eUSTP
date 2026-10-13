@@ -6,7 +6,12 @@ import AnalisisKpiTiles from "@/components/analisis/AnalisisKpiTiles";
 import TahunSelect from "@/components/analisis/TahunSelect";
 import BreakdownBarChart from "@/components/stats/BreakdownBarChart";
 import { loadAinsMurid, loadAinsTahun } from "@/lib/actions/ains-explore";
-import { csvMuridSatuBulan, csvMuridSemuaBulan, namaFailAins } from "@/lib/analisis/ains-csv";
+import {
+  csvMuridSatuBulan,
+  csvMuridSemuaBulan,
+  namaFailAins,
+  tapisMuridCsv,
+} from "@/lib/analisis/ains-csv";
 import { direktoriLoginHref } from "@/lib/moe-dl";
 import {
   AINS_BULAN,
@@ -689,8 +694,9 @@ function SekolahView({
     : 0;
   /** Muat turun CSV ikut carian + status semasa (data murid sudah ada di pelayar). */
   function muatTurunCsv(semuaBulan: boolean) {
-    if (baris.length === 0) return;
-    const senarai = baris.map((b) => b.m);
+    if (!murid) return;
+    const senarai = tapisMuridCsv(murid, { q, status, sort, bulan: semuaBulan ? null : bulan });
+    if (senarai.length === 0) return;
     const csv = semuaBulan ? csvMuridSemuaBulan(senarai) : csvMuridSatuBulan(senarai, bulan);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     const a = document.createElement("a");
@@ -706,6 +712,11 @@ function SekolahView({
     URL.revokeObjectURL(a.href);
   }
 
+  /** Bilangan murid dalam CSV semua bulan ("sudah membaca" = mana-mana bulan). */
+  const bilCsvSemua = useMemo(
+    () => (murid ? tapisMuridCsv(murid, { q, status, sort, bulan: null }).length : 0),
+    [murid, q, status, sort],
+  );
   const bilBelum = murid ? murid.length - bilMembaca : 0;
   const peratusBaca = murid ? bahagi(bilMembaca, murid.length) : 0;
 
@@ -898,19 +909,21 @@ function SekolahView({
               disabled={baris.length === 0}
               onClick={() => muatTurunCsv(false)}
             >
-              CSV {namaBulan(bulan)}
+              CSV {namaBulan(bulan)} ({baris.length})
             </button>
             <button
               type="button"
               className="btn-outline btn-sm"
-              disabled={baris.length === 0}
+              disabled={bilCsvSemua === 0}
               onClick={() => muatTurunCsv(true)}
             >
-              CSV semua bulan
+              CSV semua bulan ({bilCsvSemua})
             </button>
           </div>
           <p className="mt-1 text-xs text-graphite">
-            CSV mengikut carian &amp; status di atas ({baris.length} murid).
+            CSV mengikut carian &amp; status di atas. CSV {namaBulan(bulan)}: &quot;sudah/belum&quot;
+            dalam {namaBulan(bulan)}. CSV semua bulan: &quot;sudah&quot; = ada bacaan dalam mana-mana
+            bulan.
           </p>
           {/* Telefon: kad setiap murid tanpa tatal mendatar */}
           {!lebar ? (

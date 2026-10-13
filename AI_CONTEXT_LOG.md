@@ -2008,3 +2008,8 @@ Corak berselang = instance sihat vs beracun.
 - Butang "CSV <bulan>" dan "CSV semua bulan" dalam senarai murid sekolah (`SekolahView`); ikut carian + status semasa. CSV dijana di klien (data murid sudah ada di pelayar selepas semakan log masuk MOE-DL — tiada endpoint baharu).
 - `lib/analisis/ains-csv.ts` (tulen): satu bulan (Nama, Status, Diluluskan, Ditolak, BM, BI, Lain-lain, Muka surat, Bintang); semua bulan (Diluluskan/Ditolak setiap bulan + jumlah + bilangan bulan membaca). BOM UTF-8, sel yang bermula `= + - @` diawali `'` (halang formula Excel).
 - Ujian: `tests/analisis/ains-csv.test.ts` (`npx tsx --test`). Disahkan: ujian, typecheck, eslint. Belum dismoke dalam pelayar.
+
+## 2026-10-13 — Ains CSV: status "sudah/belum" ikut jenis muat turun
+
+- `tapisMuridCsv` (`lib/analisis/ains-csv.ts`): CSV satu bulan — sudah/belum + susunan ikut bulan terpilih; CSV semua bulan — "sudah" = ada bacaan diluluskan dalam mana-mana bulan, susunan ikut jumlah diluluskan semua bulan. Carian nama sama untuk kedua-dua.
+- Butang papar bilangan murid setiap CSV + nota ringkas bezanya. Ujian ditambah (5 lulus), typecheck + eslint lulus.
