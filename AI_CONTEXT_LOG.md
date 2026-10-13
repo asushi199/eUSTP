@@ -1,5 +1,15 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-10-13 — Ains: kurangkan bloat `analisis_ains_murid`
+
+- DB 68 MB, Ains ~43 MB. `analisis_ains_murid` 25k baris tetapi 14 MB heap
+  (1745 halaman vs ~290 patut) — import bulanan UPDATE semua murid
+  (~135k UPDATE, 1,132 HOT) tanpa nama berubah.
+- `VACUUM (FULL, ANALYZE)` dijalankan sekali: jadual 18 MB → 4 MB, DB 68 → 54 MB.
+- `scripts/import-ains.ts`: upsert murid guna `setWhere nama IS DISTINCT FROM
+  excluded.nama` — baris tidak berubah tidak lagi dikemas kini (tiada tuple
+  mati). Tiada migrasi.
+
 ## 2026-09-28 — Tebus Buku: muat naik CSV mingguan + snapshot 28 Sept
 
 - Import semula `tebus_buku_pelajar` daripada CSV JPN

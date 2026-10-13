@@ -70,6 +70,9 @@ async function main() {
           .onConflictDoUpdate({
             target: analisisAinsMurid.email,
             set: { nama: sql`excluded.nama` },
+            // Kemas kini hanya bila nama berubah — UPDATE tanpa perubahan pun
+            // menjana tuple mati dan membengkakkan jadual setiap bulan.
+            setWhere: sql`${analisisAinsMurid.nama} is distinct from excluded.nama`,
           });
       }
       const idPeta = new Map<string, number>();
