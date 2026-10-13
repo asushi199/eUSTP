@@ -61,16 +61,11 @@ export type DelimaSnapshotRow = {
   murid30Jumlah: number | null;
 };
 
-/** Titik carta trend bulanan; `guru30`/`murid30` null bagi bulan sebelum DELIMa 3.0 direkod. */
+/** Titik carta trend bulanan (peratus aktif guru/murid sumber JPN). */
 export type DelimaTrendPoint = {
   bulan: string;
   guru: number;
   murid: number;
-  murid23: number | null;
-  /** Guru gabungan 2.0 + 3.0; null bagi bulan sebelum direkod. */
-  guruGab: number | null;
-  guru30: number | null;
-  murid30: number | null;
 };
 
 export type DelimaSnapshotPage = {
@@ -353,10 +348,6 @@ export async function getDelimaSnapshotTrend(): Promise<DelimaTrendPoint[]> {
       period: analisisDelimaSnapshots.period,
       guru: analisisDelimaSnapshots.guruPct,
       murid: analisisDelimaSnapshots.muridPct,
-      murid23: analisisDelimaSnapshots.kadPct,
-      guruGab: analisisDelimaSnapshots.guruGabPct,
-      guru30: analisisDelimaSnapshots.guru30Pct,
-      murid30: analisisDelimaSnapshots.murid30Pct,
     })
     .from(analisisDelimaSnapshots)
     .orderBy(asc(analisisDelimaSnapshots.period));
@@ -368,10 +359,6 @@ export async function getDelimaSnapshotTrend(): Promise<DelimaTrendPoint[]> {
       bulan: beberapaTahun ? `${bulan} ${y.slice(2)}` : bulan,
       guru: r.guru,
       murid: r.murid,
-      murid23: r.murid23,
-      guruGab: r.guruGab,
-      guru30: r.guru30,
-      murid30: r.murid30,
     };
   });
 }

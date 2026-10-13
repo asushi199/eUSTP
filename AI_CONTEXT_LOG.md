@@ -1931,3 +1931,12 @@ Corak berselang = instance sihat vs beracun.
   `belum-login-guru-300926-perak.csv` → Manjung 58 guru / 21 sekolah (tarikh 2026-09-30).
 - Senarai AI Tools "belum" (283 guru, 30 Sep) TIDAK diimport: 356 guru "Belum Selesai" dalam Looker tiada dalam fail itu
   (takrif berbeza); paparan AI Tools kekal ikut Looker (nama + status sahaja, tanpa e-mel).
+
+## 2026-10-13 — Carta trend DELIMa: hanya siri sumber JPN terkini
+
+- `DelimaTrendChart` kini hanya lukis garisan **Guru** dan **Murid** (laporan gabungan 2.0 + 3.0 sumber JPN) + garis KPI.
+  Siri lama dibuang daripada carta: Guru/Murid 3.0, Guru 2.0+3.0, Murid 2.0+3.0 (hanya ada pada bulan Ogs) dan nota "direkod mulai".
+- Tajuk carta: "Peratus Penggunaan DELIMa Bulanan"; legenda "Guru"/"Murid" (tanpa sebut 2.0).
+- `DelimaTrendPoint` / `HomeDelimaTrend` dipendekkan kepada `bulan`, `guru`, `murid`; `getDelimaSnapshotTrend` tidak lagi pilih lajur 3.0/gabungan.
+- Data dalam DB (lajur `guru30_*`, `murid30_*`, `guru_gab_*`, `kad_*`) TIDAK disentuh — masih dipaparkan dalam jadual sejarah snapshot.
+- Disahkan: tsc bersih; modal DELIMa di halaman utama papar 2 garisan + 2 garis KPI.
