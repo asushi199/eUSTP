@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import AinsLineChart from "@/components/analisis/AinsCharts";
 import AnalisisKpiTiles from "@/components/analisis/AnalisisKpiTiles";
 import TahunSelect from "@/components/analisis/TahunSelect";
@@ -661,6 +661,23 @@ function SekolahView({
   const bilMembaca = murid
     ? murid.filter((m) => (m.b.find((x) => x.bulan === bulan)?.lulus ?? 0) > 0).length
     : 0;
+  const bilBelum = murid ? murid.length - bilMembaca : 0;
+  const peratusBaca = murid ? bahagi(bilMembaca, murid.length) : 0;
+
+  // Skrol hampir ke hujung senarai → paparkan lagi murid secara automatik.
+  const hujung = useRef<HTMLParagraphElement>(null);
+  useEffect(() => {
+    const el = hujung.current;
+    if (!el || baris.length <= papar) return;
+    const io = new IntersectionObserver(
+      (e) => {
+        if (e[0]?.isIntersecting) setPapar((n) => n + MURID_HALAMAN);
+      },
+      { rootMargin: "300px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [baris.length, papar]);
 
   return (
     <div className="mt-4">
@@ -744,60 +761,83 @@ function SekolahView({
         </p>
       ) : (
         <>
-          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-[minmax(0,1fr)_11rem_14rem] sm:items-end">
-            <div className="col-span-2 sm:col-span-1">
-              <label className="label" htmlFor="ains-murid-carian">
-                Cari murid
-              </label>
-              <input
-                id="ains-murid-carian"
-                className="input"
-                placeholder="Nama murid"
-                value={q}
-                onChange={(e) => {
-                  setQ(e.target.value);
-                  setPapar(MURID_HALAMAN);
-                }}
-              />
+          <div className="mt-3">
+            <div className="flex items-baseline justify-between gap-3 text-sm">
+              <span className="font-medium">
+                {bilMembaca} daripada {murid.length} murid membaca
+              </span>
+              <span className="tabular-nums text-graphite">{pct(peratusBaca)}</span>
             </div>
-            <div>
-              <label className="label" htmlFor="ains-murid-status">
-                Status bacaan
-              </label>
-              <select
-                id="ains-murid-status"
-                className="input"
-                value={status}
-                onChange={(e) => {
-                  setStatus(e.target.value as "" | "baca" | "belum");
-                  setPapar(MURID_HALAMAN);
-                }}
-              >
-                <option value="">Semua</option>
-                <option value="baca">Sudah membaca</option>
-                <option value="belum">Belum membaca</option>
-              </select>
+            <div
+              className="mt-2 h-2 overflow-hidden rounded-full bg-cloud"
+              role="progressbar"
+              aria-label="Peratus murid membaca"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(peratusBaca)}
+            >
+              <div className="h-full rounded-full bg-primary" style={{ width: `${peratusBaca}%` }} />
             </div>
-            <div>
-              <label className="label" htmlFor="ains-murid-susun">
-                Susun
-              </label>
-              <select
-                id="ains-murid-susun"
-                className="input"
-                value={sort}
-                onChange={(e) => setSort(e.target.value as MuridSort)}
-              >
-                <option value="lulus-desc">Diluluskan (tinggi → rendah)</option>
-                <option value="lulus-asc">Diluluskan (rendah → tinggi)</option>
-                <option value="nama">Nama</option>
-              </select>
+            <p className="mt-1 text-xs text-graphite">
+              {namaBulan(bulan)} {tahun}
+            </p>
+          </div>
+          <div className="mt-3 sm:max-w-xs">
+            <label className="label" htmlFor="ains-murid-susun">
+              Susun
+            </label>
+            <select
+              id="ains-murid-susun"
+              className="input"
+              value={sort}
+              onChange={(e) => setSort(e.target.value as MuridSort)}
+            >
+              <option value="lulus-desc">Diluluskan (tinggi → rendah)</option>
+              <option value="lulus-asc">Diluluskan (rendah → tinggi)</option>
+              <option value="nama">Nama</option>
+            </select>
+          </div>
+          {/* Carian + status melekat di atas semasa skrol senarai panjang */}
+          <div className="sticky top-[var(--ains-sticky-top,4rem)] z-10 -mx-1 mt-3 bg-white px-1 py-2">
+            <label className="sr-only" htmlFor="ains-murid-carian">
+              Cari murid
+            </label>
+            <input
+              id="ains-murid-carian"
+              className="input"
+              placeholder="Cari nama murid"
+              value={q}
+              onChange={(e) => {
+                setQ(e.target.value);
+                setPapar(MURID_HALAMAN);
+              }}
+            />
+            <div role="group" aria-label="Status bacaan" className="mt-2 grid grid-cols-3 gap-2">
+              {(
+                [
+                  ["", `Semua (${murid.length})`],
+                  ["baca", `Sudah (${bilMembaca})`],
+                  ["belum", `Belum (${bilBelum})`],
+                ] as const
+              ).map(([nilai, label]) => (
+                <button
+                  key={nilai}
+                  type="button"
+                  aria-pressed={status === nilai}
+                  className={`h-10 rounded px-1 text-xs font-semibold ${
+                    status === nilai ? "bg-ink text-white" : "border hairline bg-white text-graphite"
+                  }`}
+                  onClick={() => {
+                    setStatus(nilai);
+                    setPapar(MURID_HALAMAN);
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
           </div>
-          <p className="mt-3 text-xs text-graphite">
-            {baris.length} murid dipaparkan · {bilMembaca} daripada {murid.length} sudah membaca
-            pada {namaBulan(bulan)}
-          </p>
+          <p className="mt-1 text-xs text-graphite">{baris.length} murid dipaparkan</p>
           {/* Telefon: kad setiap murid tanpa tatal mendatar */}
           <ul className="card mt-3 divide-y divide-fog/60 sm:hidden">
             {baris.slice(0, papar).map(({ m, cur }) => {
@@ -930,7 +970,7 @@ function SekolahView({
             </table>
           </div>
           {baris.length > papar ? (
-            <p className="mt-3">
+            <p ref={hujung} className="mt-3">
               <button
                 type="button"
                 className="btn-outline btn-sm"
