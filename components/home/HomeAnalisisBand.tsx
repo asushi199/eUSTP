@@ -346,6 +346,7 @@ export default function HomeAnalisisBand({
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="analisis-modal-title"
+                style={{ "--ains-sticky-top": "0px" } as React.CSSProperties}
                 className={`relative z-[71] max-h-[88vh] w-full overflow-y-auto rounded-t-2xl bg-white p-5 shadow-modal sm:rounded-2xl sm:p-6 ${
                   openId === "bengkel" || openId === "tebus-buku"
                     ? "max-w-3xl"

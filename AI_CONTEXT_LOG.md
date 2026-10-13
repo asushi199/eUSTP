@@ -1991,3 +1991,9 @@ Corak berselang = instance sihat vs beracun.
 - `AinsExplore`: carta (ringkasan + satu sekolah) kini ikut tab pada skrin < lg (satu carta pada satu masa, bukan 4 ditindan); lg ke atas kekal grid. Komponen `ChartTabs`.
 - Senarai sekolah & murid: telefon (< sm) guna kad ringkas tanpa tatal mendatar; jadual penuh kekal pada sm ke atas. Senarai sekolah dihadkan 30 sebaris + "Papar lagi". Penapis dua lajur pada telefon.
 - Disahkan: `npm run typecheck`, eslint fail berkenaan. Belum dismoke dalam pelayar (tiada DB dalam sesi).
+
+## 2026-10-13 — Ains: senarai murid lebih mudah (telefon)
+
+- `SekolahView`: bar kemajuan murid membaca; status bacaan jadi 3 butang (Semua/Sudah/Belum + bilangan) ganti dropdown; carian + status melekat (sticky) semasa skrol; murid dimuat automatik (IntersectionObserver, 50 sekali) dengan butang "Papar lagi" sebagai sandaran.
+- Offset sticky guna pembolehubah CSS `--ains-sticky-top` (lalai 4rem = TopNav; modal halaman utama set `0px` dalam `HomeAnalisisBand`).
+- Disahkan: typecheck + eslint. Belum dismoke dalam pelayar (tiada DB dalam sesi).
