@@ -1997,3 +1997,8 @@ Corak berselang = instance sihat vs beracun.
 - `SekolahView`: bar kemajuan murid membaca; status bacaan jadi 3 butang (Semua/Sudah/Belum + bilangan) ganti dropdown; carian + status melekat (sticky) semasa skrol; murid dimuat automatik (IntersectionObserver, 50 sekali) dengan butang "Papar lagi" sebagai sandaran.
 - Offset sticky guna pembolehubah CSS `--ains-sticky-top` (lalai 4rem = TopNav; modal halaman utama set `0px` dalam `HomeAnalisisBand`).
 - Disahkan: typecheck + eslint. Belum dismoke dalam pelayar (tiada DB dalam sesi).
+
+## 2026-10-13 — Ains: render satu susun atur sahaja (kad ATAU jadual)
+
+- `AinsExplore`: senarai sekolah & murid sebelum ini render kad (telefon) DAN jadual (sm+) serentak, satu disorok dengan CSS → nod DOM berganda. Kini `useSkrinLebar()` (`useSyncExternalStore` + `matchMedia("(min-width: 640px)")`) memilih satu sahaja. Snapshot pelayan = kad; skrin lebar bertukar ke jadual selepas hidrasi (kelipan singkat sahaja pada paparan awal `/analisis/ains`).
+- Disahkan: typecheck + eslint. Belum dismoke dalam pelayar.
