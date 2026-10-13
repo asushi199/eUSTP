@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import AinsLineChart from "@/components/analisis/AinsCharts";
 import AnalisisKpiTiles from "@/components/analisis/AnalisisKpiTiles";
 import TahunSelect from "@/components/analisis/TahunSelect";
@@ -328,6 +328,20 @@ export default function AinsExplore({
   );
 }
 
+/** Skrin sm (640px) ke atas → jadual penuh; di bawahnya → kad. Hanya satu yang dirender. */
+const SKRIN_LEBAR = "(min-width: 640px)";
+function useSkrinLebar(): boolean {
+  return useSyncExternalStore(
+    (cb) => {
+      const mq = window.matchMedia(SKRIN_LEBAR);
+      mq.addEventListener("change", cb);
+      return () => mq.removeEventListener("change", cb);
+    },
+    () => window.matchMedia(SKRIN_LEBAR).matches,
+    () => false,
+  );
+}
+
 /**
  * Telefon/tablet: satu carta pada satu masa dengan tab (kurang tatal menegak).
  * Skrin lebar (lg): semua carta dipapar berdampingan.
@@ -340,7 +354,9 @@ function ChartTabs({ items }: { items: { id: string; label: string; node: React.
         role="tablist"
         aria-label="Pilih carta"
         className="grid gap-2 lg:hidden"
-        style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}
+        style={{
+          gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))`,
+        }}
       >
         {items.map((it) => (
           <button
@@ -391,6 +407,7 @@ function SenaraiSekolah({
   const [jenis, setJenis] = useState("");
   const [sort, setSort] = useState<SekolahSort>("kod");
   const [papar, setPapar] = useState(SEKOLAH_HALAMAN);
+  const lebar = useSkrinLebar();
   const jenisList = useMemo(
     () => [...new Set(rows.map((r) => r.jenis).filter(Boolean))].sort(),
     [rows],
@@ -482,100 +499,107 @@ function SenaraiSekolah({
       </div>
       <p className="mt-3 text-xs text-graphite">{filtered.length} sekolah</p>
       {/* Telefon: kad ringkas tanpa tatal mendatar */}
-      <ul className="card mt-3 divide-y divide-fog/60 sm:hidden">
-        {filtered.slice(0, papar).map((r) => (
-          <li key={r.kod}>
-            <button
-              type="button"
-              className="block w-full px-4 py-3 text-left"
-              onClick={() => onSelect(r.kod)}
-            >
-              <span className="block font-medium leading-snug text-ink">{r.nama}</span>
-              <span className="mt-0.5 block text-xs text-graphite">
-                {r.kod}
-                {r.jenis ? ` · ${r.jenis}` : ""}
-              </span>
-              <span className="mt-2 grid grid-cols-3 gap-2 text-xs text-graphite">
-                <span>
-                  <span className="block text-base font-semibold tabular-nums text-ink">
+      {!lebar ? (
+        <ul className="card mt-3 divide-y divide-fog/60">
+          {filtered.slice(0, papar).map((r) => (
+            <li key={r.kod}>
+              <button
+                type="button"
+                className="block w-full px-4 py-3 text-left"
+                onClick={() => onSelect(r.kod)}
+              >
+                <span className="block font-medium leading-snug text-ink">{r.nama}</span>
+                <span className="mt-0.5 block text-xs text-graphite">
+                  {r.kod}
+                  {r.jenis ? ` · ${r.jenis}` : ""}
+                </span>
+                <span className="mt-2 grid grid-cols-3 gap-2 text-xs text-graphite">
+                  <span>
+                    <span className="block text-base font-semibold tabular-nums text-ink">
+                      {num(r.lulus)}
+                    </span>
+                    Diluluskan
+                  </span>
+                  <span>
+                    <span className="block text-base font-semibold tabular-nums text-ink">
+                      {pct(bahagi(r.muridMembaca, r.murid))}
+                    </span>
+                    Murid membaca
+                  </span>
+                  <span>
+                    <span className="block text-base font-semibold tabular-nums text-ink">
+                      {(r.murid > 0 ? r.lulus / r.murid : 0).toFixed(2)}
+                    </span>
+                    Purata / murid
+                  </span>
+                </span>
+              </button>
+            </li>
+          ))}
+          {filtered.length === 0 ? (
+            <li className="px-4 py-8 text-center text-sm text-graphite">Tiada sekolah sepadan.</li>
+          ) : null}
+        </ul>
+      ) : (
+        <div className="card mt-3 overflow-x-auto">
+          <table className="w-full min-w-[44rem] text-left text-sm">
+            <thead>
+              <tr className="border-b border-fog text-[11px] font-semibold uppercase tracking-[0.6px] text-steel">
+                <th className="px-4 py-3">Sekolah</th>
+                <th className="px-4 py-3 text-right">Murid</th>
+                <th className="px-4 py-3 text-right">Murid membaca</th>
+                <th className="px-4 py-3 text-right">Diluluskan</th>
+                <th className="px-4 py-3 text-right">Ditolak</th>
+                <th className="px-4 py-3 text-right">Purata / murid</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.slice(0, papar).map((r) => (
+                <tr key={r.kod} className="border-b border-fog/60 last:border-0">
+                  <td className="min-w-[12rem] px-4 py-3">
+                    <button
+                      type="button"
+                      className="text-left font-medium leading-snug text-ink hover:underline"
+                      onClick={() => onSelect(r.kod)}
+                    >
+                      {r.nama}
+                    </button>
+                    <p className="mt-0.5 text-xs text-graphite">
+                      {r.kod}
+                      {r.jenis ? ` · ${r.jenis}` : ""}
+                    </p>
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">
+                    {num(r.murid)}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">
+                    {num(r.muridMembaca)}
+                    <span className="ml-1 text-xs text-graphite">
+                      ({pct(bahagi(r.muridMembaca, r.murid))})
+                    </span>
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right font-medium tabular-nums">
                     {num(r.lulus)}
-                  </span>
-                  Diluluskan
-                </span>
-                <span>
-                  <span className="block text-base font-semibold tabular-nums text-ink">
-                    {pct(bahagi(r.muridMembaca, r.murid))}
-                  </span>
-                  Murid membaca
-                </span>
-                <span>
-                  <span className="block text-base font-semibold tabular-nums text-ink">
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">
+                    {num(r.ditolak)}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">
                     {(r.murid > 0 ? r.lulus / r.murid : 0).toFixed(2)}
-                  </span>
-                  Purata / murid
-                </span>
-              </span>
-            </button>
-          </li>
-        ))}
-        {filtered.length === 0 ? (
-          <li className="px-4 py-8 text-center text-sm text-graphite">Tiada sekolah sepadan.</li>
-        ) : null}
-      </ul>
-      <div className="card mt-3 hidden overflow-x-auto sm:block">
-        <table className="w-full min-w-[44rem] text-left text-sm">
-          <thead>
-            <tr className="border-b border-fog text-[11px] font-semibold uppercase tracking-[0.6px] text-steel">
-              <th className="px-4 py-3">Sekolah</th>
-              <th className="px-4 py-3 text-right">Murid</th>
-              <th className="px-4 py-3 text-right">Murid membaca</th>
-              <th className="px-4 py-3 text-right">Diluluskan</th>
-              <th className="px-4 py-3 text-right">Ditolak</th>
-              <th className="px-4 py-3 text-right">Purata / murid</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.slice(0, papar).map((r) => (
-              <tr key={r.kod} className="border-b border-fog/60 last:border-0">
-                <td className="min-w-[12rem] px-4 py-3">
-                  <button
-                    type="button"
-                    className="text-left font-medium leading-snug text-ink hover:underline"
-                    onClick={() => onSelect(r.kod)}
-                  >
-                    {r.nama}
-                  </button>
-                  <p className="mt-0.5 text-xs text-graphite">
-                    {r.kod}
-                    {r.jenis ? ` · ${r.jenis}` : ""}
-                  </p>
-                </td>
-                <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">{num(r.murid)}</td>
-                <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">
-                  {num(r.muridMembaca)}
-                  <span className="ml-1 text-xs text-graphite">
-                    ({pct(bahagi(r.muridMembaca, r.murid))})
-                  </span>
-                </td>
-                <td className="whitespace-nowrap px-4 py-3 text-right font-medium tabular-nums">
-                  {num(r.lulus)}
-                </td>
-                <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">{num(r.ditolak)}</td>
-                <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">
-                  {(r.murid > 0 ? r.lulus / r.murid : 0).toFixed(2)}
-                </td>
-              </tr>
-            ))}
-            {filtered.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-sm text-graphite">
-                  Tiada sekolah sepadan.
-                </td>
-              </tr>
-            ) : null}
-          </tbody>
-        </table>
-      </div>
+                  </td>
+                </tr>
+              ))}
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-8 text-center text-sm text-graphite">
+                    Tiada sekolah sepadan.
+                  </td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
+      )}
       {filtered.length > papar ? (
         <p className="mt-3">
           <button
@@ -625,6 +649,7 @@ function SekolahView({
   const [sort, setSort] = useState<MuridSort>("lulus-desc");
   const [papar, setPapar] = useState(MURID_HALAMAN);
   const [buka, setBuka] = useState<number | null>(null);
+  const lebar = useSkrinLebar();
 
   const semasa = sekolahBulan.find((r) => r.bulan === bulan) ?? null;
   const trend = sekolahBulan.map((r) => ({
@@ -748,10 +773,13 @@ function SekolahView({
         <div className="mt-3 rounded-xl border hairline bg-white px-4 py-5 sm:flex sm:items-center sm:justify-between sm:gap-4">
           <p className="text-sm leading-relaxed text-graphite">
             Senarai murid dilindungi. Log masuk dengan akaun{" "}
-            <span className="font-medium text-ink">@moe-dl.edu.my</span> untuk melihat nama dan bacaan
-            murid.
+            <span className="font-medium text-ink">@moe-dl.edu.my</span> untuk melihat nama dan
+            bacaan murid.
           </p>
-          <a href={direktoriLoginHref("/analisis/ains")} className="btn-primary mt-3 shrink-0 sm:mt-0">
+          <a
+            href={direktoriLoginHref("/analisis/ains")}
+            className="btn-primary mt-3 shrink-0 sm:mt-0"
+          >
             Log masuk MOE-DL
           </a>
         </div>
@@ -776,7 +804,10 @@ function SekolahView({
               aria-valuemax={100}
               aria-valuenow={Math.round(peratusBaca)}
             >
-              <div className="h-full rounded-full bg-primary" style={{ width: `${peratusBaca}%` }} />
+              <div
+                className="h-full rounded-full bg-primary"
+                style={{ width: `${peratusBaca}%` }}
+              />
             </div>
             <p className="mt-1 text-xs text-graphite">
               {namaBulan(bulan)} {tahun}
@@ -825,7 +856,9 @@ function SekolahView({
                   type="button"
                   aria-pressed={status === nilai}
                   className={`h-10 rounded px-1 text-xs font-semibold ${
-                    status === nilai ? "bg-ink text-white" : "border hairline bg-white text-graphite"
+                    status === nilai
+                      ? "bg-ink text-white"
+                      : "border hairline bg-white text-graphite"
                   }`}
                   onClick={() => {
                     setStatus(nilai);
@@ -839,107 +872,36 @@ function SekolahView({
           </div>
           <p className="mt-1 text-xs text-graphite">{baris.length} murid dipaparkan</p>
           {/* Telefon: kad setiap murid tanpa tatal mendatar */}
-          <ul className="card mt-3 divide-y divide-fog/60 sm:hidden">
-            {baris.slice(0, papar).map(({ m, cur }) => {
-              const terbuka = buka === m.id;
-              return (
-                <li key={m.id} className="px-4 py-3">
-                  <button
-                    type="button"
-                    className="flex w-full items-start justify-between gap-3 text-left"
-                    aria-expanded={terbuka}
-                    onClick={() => setBuka(terbuka ? null : m.id)}
-                  >
-                    <span className="font-medium leading-snug text-ink">{m.nama}</span>
-                    <span className="shrink-0 text-right">
-                      <span className="block text-base font-semibold tabular-nums text-ink">
-                        {num(cur?.lulus ?? 0)}
+          {!lebar ? (
+            <ul className="card mt-3 divide-y divide-fog/60">
+              {baris.slice(0, papar).map(({ m, cur }) => {
+                const terbuka = buka === m.id;
+                return (
+                  <li key={m.id} className="px-4 py-3">
+                    <button
+                      type="button"
+                      className="flex w-full items-start justify-between gap-3 text-left"
+                      aria-expanded={terbuka}
+                      onClick={() => setBuka(terbuka ? null : m.id)}
+                    >
+                      <span className="font-medium leading-snug text-ink">{m.nama}</span>
+                      <span className="shrink-0 text-right">
+                        <span className="block text-base font-semibold tabular-nums text-ink">
+                          {num(cur?.lulus ?? 0)}
+                        </span>
+                        <span className="block text-[11px] text-graphite">diluluskan</span>
                       </span>
-                      <span className="block text-[11px] text-graphite">diluluskan</span>
-                    </span>
-                  </button>
-                  <p className="mt-1 text-xs tabular-nums text-graphite">
-                    BM {num(cur?.bm ?? 0)} · BI {num(cur?.eng ?? 0)} · Lain {num(cur?.lain ?? 0)} ·
-                    Ditolak {num(cur?.ditolak ?? 0)}
-                  </p>
-                  {terbuka ? (
-                    <div className="mt-3">
-                      <p className="text-xs tabular-nums text-graphite">
-                        Muka surat {num(cur?.mukaSurat ?? 0)} · Bintang {num(cur?.star ?? 0)}
-                      </p>
-                      <p className="mt-3 text-xs font-semibold uppercase tracking-[0.6px] text-steel">
-                        Perkembangan bulanan
-                      </p>
-                      <AinsLineChart
-                        bare
-                        height="h-44"
-                        data={m.b.map((x) => ({
-                          bulan: namaBulan(x.bulan),
-                          lulus: x.lulus,
-                          ditolak: x.ditolak,
-                        }))}
-                        series={[
-                          { key: "lulus", name: "Diluluskan", color: BIRU },
-                          { key: "ditolak", name: "Ditolak", color: GRAFIT },
-                        ]}
-                      />
-                    </div>
-                  ) : null}
-                </li>
-              );
-            })}
-            {baris.length === 0 ? (
-              <li className="px-4 py-8 text-center text-sm text-graphite">Tiada murid sepadan.</li>
-            ) : null}
-          </ul>
-          <div className="card mt-3 hidden overflow-x-auto sm:block">
-            <table className="w-full min-w-[44rem] text-left text-sm">
-              <thead>
-                <tr className="border-b border-fog text-[11px] font-semibold uppercase tracking-[0.6px] text-steel">
-                  <th className="px-4 py-3">Murid</th>
-                  <th className="px-4 py-3 text-right">Diluluskan</th>
-                  <th className="px-4 py-3 text-right">Ditolak</th>
-                  <th className="px-4 py-3 text-right">BM</th>
-                  <th className="px-4 py-3 text-right">BI</th>
-                  <th className="px-4 py-3 text-right">Lain-lain</th>
-                  <th className="px-4 py-3 text-right">Muka surat</th>
-                  <th className="px-4 py-3 text-right">Bintang</th>
-                </tr>
-              </thead>
-              <tbody>
-                {baris.slice(0, papar).flatMap(({ m, cur }) => {
-                  const terbuka = buka === m.id;
-                  const row = (
-                    <tr key={m.id} className="border-b border-fog/60 last:border-0">
-                      <td className="min-w-[12rem] px-4 py-2.5">
-                        <button
-                          type="button"
-                          className="text-left font-medium leading-snug text-ink hover:underline"
-                          aria-expanded={terbuka}
-                          onClick={() => setBuka(terbuka ? null : m.id)}
-                        >
-                          {m.nama}
-                        </button>
-                      </td>
-                      <td className="px-4 py-2.5 text-right font-medium tabular-nums">
-                        {num(cur?.lulus ?? 0)}
-                      </td>
-                      <td className="px-4 py-2.5 text-right tabular-nums">{num(cur?.ditolak ?? 0)}</td>
-                      <td className="px-4 py-2.5 text-right tabular-nums">{num(cur?.bm ?? 0)}</td>
-                      <td className="px-4 py-2.5 text-right tabular-nums">{num(cur?.eng ?? 0)}</td>
-                      <td className="px-4 py-2.5 text-right tabular-nums">{num(cur?.lain ?? 0)}</td>
-                      <td className="px-4 py-2.5 text-right tabular-nums">
-                        {num(cur?.mukaSurat ?? 0)}
-                      </td>
-                      <td className="px-4 py-2.5 text-right tabular-nums">{num(cur?.star ?? 0)}</td>
-                    </tr>
-                  );
-                  if (!terbuka) return [row];
-                  return [
-                    row,
-                    <tr key={`${m.id}-trend`} className="border-b border-fog/60 bg-cloud/40">
-                      <td colSpan={8} className="px-4 py-3">
-                        <p className="text-xs font-semibold uppercase tracking-[0.6px] text-steel">
+                    </button>
+                    <p className="mt-1 text-xs tabular-nums text-graphite">
+                      BM {num(cur?.bm ?? 0)} · BI {num(cur?.eng ?? 0)} · Lain {num(cur?.lain ?? 0)}{" "}
+                      · Ditolak {num(cur?.ditolak ?? 0)}
+                    </p>
+                    {terbuka ? (
+                      <div className="mt-3">
+                        <p className="text-xs tabular-nums text-graphite">
+                          Muka surat {num(cur?.mukaSurat ?? 0)} · Bintang {num(cur?.star ?? 0)}
+                        </p>
+                        <p className="mt-3 text-xs font-semibold uppercase tracking-[0.6px] text-steel">
                           Perkembangan bulanan
                         </p>
                         <AinsLineChart
@@ -955,20 +917,108 @@ function SekolahView({
                             { key: "ditolak", name: "Ditolak", color: GRAFIT },
                           ]}
                         />
-                      </td>
-                    </tr>,
-                  ];
-                })}
-                {baris.length === 0 ? (
-                  <tr>
-                    <td colSpan={8} className="px-4 py-8 text-center text-sm text-graphite">
-                      Tiada murid sepadan.
-                    </td>
+                      </div>
+                    ) : null}
+                  </li>
+                );
+              })}
+              {baris.length === 0 ? (
+                <li className="px-4 py-8 text-center text-sm text-graphite">
+                  Tiada murid sepadan.
+                </li>
+              ) : null}
+            </ul>
+          ) : (
+            <div className="card mt-3 overflow-x-auto">
+              <table className="w-full min-w-[44rem] text-left text-sm">
+                <thead>
+                  <tr className="border-b border-fog text-[11px] font-semibold uppercase tracking-[0.6px] text-steel">
+                    <th className="px-4 py-3">Murid</th>
+                    <th className="px-4 py-3 text-right">Diluluskan</th>
+                    <th className="px-4 py-3 text-right">Ditolak</th>
+                    <th className="px-4 py-3 text-right">BM</th>
+                    <th className="px-4 py-3 text-right">BI</th>
+                    <th className="px-4 py-3 text-right">Lain-lain</th>
+                    <th className="px-4 py-3 text-right">Muka surat</th>
+                    <th className="px-4 py-3 text-right">Bintang</th>
                   </tr>
-                ) : null}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {baris.slice(0, papar).flatMap(({ m, cur }) => {
+                    const terbuka = buka === m.id;
+                    const row = (
+                      <tr key={m.id} className="border-b border-fog/60 last:border-0">
+                        <td className="min-w-[12rem] px-4 py-2.5">
+                          <button
+                            type="button"
+                            className="text-left font-medium leading-snug text-ink hover:underline"
+                            aria-expanded={terbuka}
+                            onClick={() => setBuka(terbuka ? null : m.id)}
+                          >
+                            {m.nama}
+                          </button>
+                        </td>
+                        <td className="px-4 py-2.5 text-right font-medium tabular-nums">
+                          {num(cur?.lulus ?? 0)}
+                        </td>
+                        <td className="px-4 py-2.5 text-right tabular-nums">
+                          {num(cur?.ditolak ?? 0)}
+                        </td>
+                        <td className="px-4 py-2.5 text-right tabular-nums">{num(cur?.bm ?? 0)}</td>
+                        <td className="px-4 py-2.5 text-right tabular-nums">
+                          {num(cur?.eng ?? 0)}
+                        </td>
+                        <td className="px-4 py-2.5 text-right tabular-nums">
+                          {num(cur?.lain ?? 0)}
+                        </td>
+                        <td className="px-4 py-2.5 text-right tabular-nums">
+                          {num(cur?.mukaSurat ?? 0)}
+                        </td>
+                        <td className="px-4 py-2.5 text-right tabular-nums">
+                          {num(cur?.star ?? 0)}
+                        </td>
+                      </tr>
+                    );
+                    if (!terbuka) return [row];
+                    return [
+                      row,
+                      <tr key={`${m.id}-trend`} className="border-b border-fog/60 bg-cloud/40">
+                        <td colSpan={8} className="px-4 py-3">
+                          <p className="text-xs font-semibold uppercase tracking-[0.6px] text-steel">
+                            Perkembangan bulanan
+                          </p>
+                          <AinsLineChart
+                            bare
+                            height="h-44"
+                            data={m.b.map((x) => ({
+                              bulan: namaBulan(x.bulan),
+                              lulus: x.lulus,
+                              ditolak: x.ditolak,
+                            }))}
+                            series={[
+                              { key: "lulus", name: "Diluluskan", color: BIRU },
+                              {
+                                key: "ditolak",
+                                name: "Ditolak",
+                                color: GRAFIT,
+                              },
+                            ]}
+                          />
+                        </td>
+                      </tr>,
+                    ];
+                  })}
+                  {baris.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="px-4 py-8 text-center text-sm text-graphite">
+                        Tiada murid sepadan.
+                      </td>
+                    </tr>
+                  ) : null}
+                </tbody>
+              </table>
+            </div>
+          )}
           {baris.length > papar ? (
             <p ref={hujung} className="mt-3">
               <button
@@ -981,8 +1031,8 @@ function SekolahView({
             </p>
           ) : null}
           <p className="mt-3 max-w-2xl text-xs leading-relaxed text-graphite">
-            Klik nama murid untuk melihat graf perkembangan bulanan. Senarai ini dilindungi dan hanya
-            boleh dilihat dengan akaun MOE-DL.
+            Klik nama murid untuk melihat graf perkembangan bulanan. Senarai ini dilindungi dan
+            hanya boleh dilihat dengan akaun MOE-DL.
           </p>
         </>
       )}
