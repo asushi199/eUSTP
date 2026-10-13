@@ -18,6 +18,7 @@
     "db:backup-pgdump:upload": "tsx scripts/pg-dump-backup.ts --upload",
     "db:import-tebus-buku": "tsx scripts/import-tebus-buku.ts",
     "db:import-optik": "tsx scripts/import-optik-snapshots.ts",
+    "db:import-ains": "tsx scripts/import-ains.ts",
     "telegram:set-webhook": "tsx scripts/setup-telegram-webhook.ts"
   },
   "dependencies": {

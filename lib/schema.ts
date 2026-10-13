@@ -1412,3 +1412,78 @@ export const khidmatBantuRequests = pgTable(
     activityDateIdx: index("khidmat_bantu_activity_date_idx").on(t.status, t.activityDate),
   }),
 );
+
+/* ==================== Program Ains (bacaan digital) ==================== */
+
+/**
+ * Ringkasan sekolah PPD Manjung sebulan (tahun + bulan = tempoh fail sumber).
+ * murid/ditolak/lulus/purata daripada fail sekolah; baki dijumlahkan daripada fail pengguna.
+ */
+export const analisisAinsSekolah = pgTable(
+  "analisis_ains_sekolah",
+  {
+    id: serial("id").primaryKey(),
+    tahun: integer("tahun").notNull(),
+    bulan: integer("bulan").notNull(),
+    kod: text("kod").notNull(),
+    nama: text("nama").notNull(),
+    jenis: text("jenis").notNull().default(""),
+    tahap: text("tahap").notNull().default(""),
+    murid: integer("murid").notNull().default(0),
+    ditolak: integer("ditolak").notNull().default(0),
+    lulus: integer("lulus").notNull().default(0),
+    purata: doublePrecision("purata").notNull().default(0),
+    /** Murid yang ada sekurang-kurangnya satu bacaan lulus. */
+    muridMembaca: integer("murid_membaca").notNull().default(0),
+    eng: integer("eng").notNull().default(0),
+    bm: integer("bm").notNull().default(0),
+    lain: integer("lain").notNull().default(0),
+    mukaSurat: integer("muka_surat").notNull().default(0),
+    star: integer("star").notNull().default(0),
+  },
+  (t) => ({
+    tempohKodIdx: uniqueIndex("analisis_ains_sekolah_tempoh_kod_idx").on(t.tahun, t.bulan, t.kod),
+  }),
+);
+
+/** Identiti murid (kunci = e-mel MOE-DL); e-mel tidak dipaparkan di mana-mana halaman. */
+export const analisisAinsMurid = pgTable(
+  "analisis_ains_murid",
+  {
+    id: serial("id").primaryKey(),
+    email: text("email").notNull(),
+    nama: text("nama").notNull(),
+  },
+  (t) => ({
+    emailIdx: uniqueIndex("analisis_ains_murid_email_idx").on(t.email),
+  }),
+);
+
+/** Bacaan seorang murid sebulan (nilai terkumpul setakat bulan itu seperti dalam fail sumber). */
+export const analisisAinsMuridBulanan = pgTable(
+  "analisis_ains_murid_bulanan",
+  {
+    id: serial("id").primaryKey(),
+    muridId: integer("murid_id")
+      .notNull()
+      .references(() => analisisAinsMurid.id, { onDelete: "cascade" }),
+    tahun: integer("tahun").notNull(),
+    bulan: integer("bulan").notNull(),
+    kod: text("kod").notNull(),
+    ditolak: integer("ditolak").notNull().default(0),
+    lulus: integer("lulus").notNull().default(0),
+    eng: integer("eng").notNull().default(0),
+    bm: integer("bm").notNull().default(0),
+    lain: integer("lain").notNull().default(0),
+    mukaSurat: integer("muka_surat").notNull().default(0),
+    star: integer("star").notNull().default(0),
+  },
+  (t) => ({
+    muridTempohIdx: uniqueIndex("analisis_ains_murid_bulanan_murid_tempoh_idx").on(
+      t.muridId,
+      t.tahun,
+      t.bulan,
+    ),
+    tempohKodIdx: index("analisis_ains_murid_bulanan_tempoh_kod_idx").on(t.tahun, t.bulan, t.kod),
+  }),
+);

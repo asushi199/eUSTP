@@ -1964,3 +1964,11 @@ Corak berselang = instance sihat vs beracun.
   Jumlah 29,673 padan kad PPD; jumlah ID per sekolah dijumlah 46,699 (kad PPD 46,524 — ukuran ID unik, beza 175).
 - Kolej Vokasional Seri Manjung (AHA1002) ada dalam Power BI (389/650) tetapi SENGAJA tidak disenaraikan (arahan pengguna); kad ringkasan PPD kekal angka rasmi 29,673 / 46,524 (termasuk KV).
 - Data statik dalam `delima-arkib-data.ts` (tidak bergantung pada Power BI semasa runtime). Ulang ambilan perlu penapis Tahun lain.
+
+## 2026-10-13 — Program Ains: data bulanan 2026 (PPD Manjung) + penapis tahun
+
+- Import CSV Ains Jan–Jul 2026 (hanya PPD MANJUNG, 102 sekolah, ~24k murid): `npm run db:import-ains -- "<folder user>" "<folder school>" 2026`. Idempoten per bulan; bulan dikesan daripada nama fail.
+- Jadual baharu (migrasi `0052_ains_bacaan`, RLS dikunci): `analisis_ains_sekolah`, `analisis_ains_murid` (kunci e-mel, tidak dipaparkan), `analisis_ains_murid_bulanan`.
+- UI: `components/analisis/AinsExplore.tsx` dalam `/analisis#ains` — pilihan tahun (2026 data bulanan; 2025 = metrik Ains lama sebagai sandaran), pilihan bulan, carta bulanan, senarai sekolah, senarai murid setiap sekolah (graf perkembangan bila nama diklik). Server action `lib/actions/ains-explore.ts` hanya untuk staf.
+- Ringkasan Ains halaman utama (`summary.ts`) kini guna bulan terkini data 2026; jatuh balik ke metrik lama (dilabel "Data 2025") jika DB kosong. Metrik lama disahkan pengguna sebagai data 2025.
+- Catatan data: angka bulanan diambil seadanya daripada fail (Mac→Apr turun sedikit); jumlah sekolah ikut fail sekolah, senarai murid ikut fail pengguna (beza kecil).

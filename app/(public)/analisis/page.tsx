@@ -10,8 +10,9 @@ import { getOptikPublicView, optikKpiGroupStats, optikKpiReferenceLines, applySc
 import OptikExplore from "@/components/analisis/OptikExplore";
 import { delimaTaburan } from "@/lib/analisis/delima-live";
 import DelimaExplore from "@/components/analisis/DelimaExplore";
+import AinsExplore from "@/components/analisis/AinsExplore";
+import { getAinsTahun, listAinsTahun } from "@/lib/analisis/ains-queries";
 import { capaianStats } from "@/lib/analisis/summary";
-import AnalisisKpiTiles from "@/components/analisis/AnalisisKpiTiles";
 import AnalisisTahunSelect from "@/components/analisis/AnalisisTahunSelect";
 import KpiGroups from "@/components/analisis/KpiGroups";
 import DelimaTrendChart from "@/components/analisis/DelimaTrendChart";
@@ -126,6 +127,8 @@ export default async function AnalisisPage({
       ? perkhidmatanRaw
       : await getPerkhidmatanAnalisis(tahun);
   const optikView = await getOptikPublicView(optik.metrics);
+  const ainsYears = await listAinsTahun().catch(() => [] as number[]);
+  const ainsInitial = ainsYears[0] != null ? await getAinsTahun(ainsYears[0]).catch(() => null) : null;
 
   /* ---------- DELIMa ---------- */
   const kpiGuru = metricNum(delima.metrics, "kpi_guru");
@@ -201,15 +204,21 @@ export default async function AnalisisPage({
   ].filter((b) => b.jumlah > 0);
 
   /* ---------- AINS ---------- */
-  const ainsTiles = [
-    { label: "Buku Diluluskan", value: bil(metricNum(ains.metrics, "approved")) },
-    { label: "Ditolak", value: bil(metricNum(ains.metrics, "rejected")) },
-  ];
-  const ainsBars = [
-    { label: "SK", jumlah: metricNum(ains.metrics, "sk_approved", "sk") ?? 0 },
-    { label: "SJKC", jumlah: metricNum(ains.metrics, "sjkc_approved", "sjkc") ?? 0 },
-    { label: "SJKT", jumlah: metricNum(ains.metrics, "sjkt_approved", "sjkt") ?? 0 },
-  ].filter((b) => b.jumlah > 0);
+  // Metrik Ains sedia ada (sebelum import bulanan) dikekalkan sebagai data sandaran 2025.
+  const ainsBackup = {
+    tahun: 2025,
+    tiles: [
+      { label: "Buku Diluluskan", value: bil(metricNum(ains.metrics, "approved")) },
+      { label: "Ditolak", value: bil(metricNum(ains.metrics, "rejected")) },
+    ],
+    bars: [
+      { label: "SK", jumlah: metricNum(ains.metrics, "sk_approved", "sk") ?? 0 },
+      { label: "SJKC", jumlah: metricNum(ains.metrics, "sjkc_approved", "sjkc") ?? 0 },
+      { label: "SJKT", jumlah: metricNum(ains.metrics, "sjkt_approved", "sjkt") ?? 0 },
+    ].filter((b) => b.jumlah > 0),
+    sourceUrl: metricText(ains.metrics, "source_url"),
+    sourceLabel: metricText(ains.metrics, "source_label") || "Buka sumber Ains",
+  };
 
   /* ---------- Pensijilan ---------- */
   const pensijilanLokasi = pensijilan.breakdown
@@ -361,20 +370,7 @@ export default async function AnalisisPage({
       {/* ---------- AINS ---------- */}
       <section id="ains" className="mt-12 scroll-mt-28">
         <h2 className="text-xl font-semibold">Program Ains (Pembacaan Digital)</h2>
-        <div className="mt-4">
-          <AnalisisKpiTiles tiles={ainsTiles} />
-        </div>
-        <div className="mt-4">
-          <BreakdownBarChart
-            title="Buku Diluluskan Ikut Jenis Sekolah"
-            data={ainsBars}
-            seriesName="Buku"
-          />
-        </div>
-        <SourceLink
-          url={metricText(ains.metrics, "source_url")}
-          label={metricText(ains.metrics, "source_label") || "Buka sumber Ains"}
-        />
+        <AinsExplore years={ainsYears} initial={ainsInitial} backup={ainsBackup} />
       </section>
 
       {/* ---------- Pensijilan ---------- */}

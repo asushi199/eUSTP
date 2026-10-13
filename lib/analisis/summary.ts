@@ -7,6 +7,8 @@ import {
   delimaTrendPoints,
 } from "./queries";
 import { delimaTaburan } from "./delima-live";
+import { getAinsTahun, listAinsTahun } from "./ains-queries";
+import { AINS_BULAN, bulanTerkini, jumlahAins, lulusIkutJenis } from "./ains-types";
 import { getOptikHomeView, optikKpiGroupStats, optikKpiReferenceLines } from "./optik-queries";
 
 /** Bentuk data boleh-serialize untuk kad + modal analisis di halaman utama. */
@@ -241,28 +243,62 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
   };
 
   /* ---------- AINS ---------- */
-  const ainsApproved = metricNum(ains.metrics, "approved");
-  const ainsModule: AnalisisHomeModule = {
-    id: "ains",
-    label: "Program Ains",
-    headlineValue: bil(ainsApproved),
-    headlineLabel: "Buku Diluluskan",
-    tiles: [
-      { label: "Buku Diluluskan", value: bil(ainsApproved) },
-      { label: "Ditolak", value: bil(metricNum(ains.metrics, "rejected")) },
-    ],
-    bars: [
-      {
-        title: "Buku Diluluskan Ikut Jenis Sekolah",
-        seriesName: "Buku",
-        data: [
-          { label: "SK", jumlah: metricNum(ains.metrics, "sk_approved", "sk") ?? 0 },
-          { label: "SJKC", jumlah: metricNum(ains.metrics, "sjkc_approved", "sjkc") ?? 0 },
-          { label: "SJKT", jumlah: metricNum(ains.metrics, "sjkt_approved", "sjkt") ?? 0 },
-        ].filter((b) => b.jumlah > 0),
-      },
-    ],
-  };
+  // Data bulanan terkini (PPD Manjung) jika ada; jika tidak, jatuh balik ke metrik lama (sandaran 2025).
+  const ainsTahun = await listAinsTahun()
+    .then((y) => (y[0] != null ? getAinsTahun(y[0]) : null))
+    .catch(() => null);
+  let ainsModule: AnalisisHomeModule;
+  if (ainsTahun) {
+    const bulan = bulanTerkini(ainsTahun);
+    const baris = ainsTahun.sekolah.filter((r) => r.bulan === bulan);
+    const j = jumlahAins(baris);
+    ainsModule = {
+      id: "ains",
+      label: "Program Ains",
+      headlineValue: bil(j.lulus),
+      headlineLabel: "Buku Diluluskan",
+      yearLabel: `Data ${AINS_BULAN[bulan - 1]} ${ainsTahun.tahun}`,
+      tiles: [
+        { label: "Buku Diluluskan", value: bil(j.lulus) },
+        { label: "Ditolak", value: bil(j.ditolak) },
+        {
+          label: `Murid membaca (daripada ${bil(j.murid)})`,
+          value: bil(j.muridMembaca),
+        },
+      ],
+      bars: [
+        {
+          title: "Buku Diluluskan Ikut Jenis Sekolah",
+          seriesName: "Buku",
+          data: lulusIkutJenis(baris),
+        },
+      ],
+    };
+  } else {
+    const ainsApproved = metricNum(ains.metrics, "approved");
+    ainsModule = {
+      id: "ains",
+      label: "Program Ains",
+      headlineValue: bil(ainsApproved),
+      headlineLabel: "Buku Diluluskan",
+      yearLabel: "Data 2025",
+      tiles: [
+        { label: "Buku Diluluskan", value: bil(ainsApproved) },
+        { label: "Ditolak", value: bil(metricNum(ains.metrics, "rejected")) },
+      ],
+      bars: [
+        {
+          title: "Buku Diluluskan Ikut Jenis Sekolah",
+          seriesName: "Buku",
+          data: [
+            { label: "SK", jumlah: metricNum(ains.metrics, "sk_approved", "sk") ?? 0 },
+            { label: "SJKC", jumlah: metricNum(ains.metrics, "sjkc_approved", "sjkc") ?? 0 },
+            { label: "SJKT", jumlah: metricNum(ains.metrics, "sjkt_approved", "sjkt") ?? 0 },
+          ].filter((b) => b.jumlah > 0),
+        },
+      ],
+    };
+  }
 
   /* ---------- Pensijilan ---------- */
   const pensijilanLokasi = pensijilan.breakdown
