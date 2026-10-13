@@ -756,7 +756,7 @@ export default function DelimaExplore({
         {arkibTahun != null ? (
           arkibData ? (
             <div className="mt-4">
-              <DelimaArkibTable schools={arkibData.schools} />
+              <DelimaArkibTable schools={arkibData.schools} ringkasan={arkibData.ringkasan} />
             </div>
           ) : sedangMuat ? (
             <p className="mt-4 text-sm text-graphite">Memuatkan senarai sekolah…</p>

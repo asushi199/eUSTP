@@ -9,17 +9,21 @@ export const DELIMA_ARKIB_TAHUN = [2025] as const;
 export type DelimaArkibRow = {
   kod: string;
   nama: string;
-  /** % aktif guru (0–100). */
-  guru: number;
-  /** % aktif murid (0–100). */
-  murid: number;
+  /** % aktif guru (0–100); null jika sekolah tiada dalam sumber guru/murid. */
+  guru: number | null;
+  /** % aktif murid (0–100); null jika sekolah tiada dalam sumber guru/murid. */
+  murid: number | null;
+  /** Bil. ID pengguna aktif / jumlah ID pengguna sepanjang tahun (semua jenis ID). */
+  pengguna: { aktif: number; jumlah: number } | null;
 };
 
 export type DelimaArkib = {
   tahun: number;
-  /** Tarikh data, cth. "31 Disember 2025 (TOV)". */
+  /** Tarikh data guru/murid, cth. "31 Disember 2025 (TOV)". */
   tempoh: string;
   schools: DelimaArkibRow[];
+  /** Jumlah pengguna aktif seluruh PPD (kad ringkasan sumber); null jika tiada. */
+  ringkasan: { aktif: number; jumlah: number; sumber: string } | null;
 };
 
 export function isArkibTahun(tahun: number): boolean {

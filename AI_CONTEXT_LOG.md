@@ -1954,3 +1954,13 @@ Corak berselang = instance sihat vs beracun.
 - Fail: `components/analisis/DelimaArkibTable.tsx`, `DelimaExplore.tsx` (initialLayer/initialTahun/backHref + TahunSelect),
   `lib/actions/delima-public.ts` (`loadDelimaArkib`), `tests/analisis/delima-arkib.test.ts`.
 - Disahkan: tsc bersih, build lulus, 2 ujian lulus, semak visual desktop + mobile, tukar 2025 <-> 2026 dalam modal halaman utama dan halaman kongsi.
+
+### Aktif sekolah setiap sekolah 2025 (2026-10-13)
+
+- Lajur "Aktif sekolah" (label paparan; Bil Id Pengguna Aktif / Bil Id Pengguna, semua jenis ID) ditambah pada arkib 2025 + kad ringkasan PPD Manjung
+  (63.8%, 29,673 / 46,524 ID). Sumber: KPM Dashboard Penggunaan Platform (Power BI awam, data 31/12/2025).
+- Cara ambil: laporan Power BI "publish to web" — ditanya terus melalui API querydata laporan itu (penapis `a_dl_ou_List.PPD` = PPD MANJUNG,
+  `all_dl_transaction_log.Tahun` = 2025L; ukuran `Bil Pengguna` + `Adjusted Bil Id Pengguna`, kumpulan ikut `a_dl_ou_List.Sekolah`).
+  Jumlah 29,673 padan kad PPD; jumlah ID per sekolah dijumlah 46,699 (kad PPD 46,524 — ukuran ID unik, beza 175).
+- Kolej Vokasional Seri Manjung (AHA1002) ada dalam Power BI (389/650) tetapi SENGAJA tidak disenaraikan (arahan pengguna); kad ringkasan PPD kekal angka rasmi 29,673 / 46,524 (termasuk KV).
+- Data statik dalam `delima-arkib-data.ts` (tidak bergantung pada Power BI semasa runtime). Ulang ambilan perlu penapis Tahun lain.
