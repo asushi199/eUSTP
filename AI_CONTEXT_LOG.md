@@ -1985,3 +1985,9 @@ Corak berselang = instance sihat vs beracun.
 - `HomeAnalisisBand` membaca `?analisis=<id>` semasa mount dan membuka modal modul berkenaan (id: `ains`, `delima`, `optik`, dll. — mesti padan modul yang dipaparkan; id tidak dikenali diabaikan).
 - Contoh: `/?analisis=ains` membuka carta Program Ains (lapisan ringkasan) terus pada halaman utama. Awam, tiada log masuk.
 - Disahkan: `npm run typecheck`. Belum dismoke dalam pelayar (persekitaran sesi tiada DB).
+
+## 2026-10-13 — Ains: ringkas paparan telefon
+
+- `AinsExplore`: carta (ringkasan + satu sekolah) kini ikut tab pada skrin < lg (satu carta pada satu masa, bukan 4 ditindan); lg ke atas kekal grid. Komponen `ChartTabs`.
+- Senarai sekolah & murid: telefon (< sm) guna kad ringkas tanpa tatal mendatar; jadual penuh kekal pada sm ke atas. Senarai sekolah dihadkan 30 sebaris + "Papar lagi". Penapis dua lajur pada telefon.
+- Disahkan: `npm run typecheck`, eslint fail berkenaan. Belum dismoke dalam pelayar (tiada DB dalam sesi).
