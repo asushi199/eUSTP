@@ -65,6 +65,31 @@ GPICT/DELIMa/GPM, Tempahan PKG, Portal Sumber/Analisis/Maklumat Asas). Sumber as
   `HOME_MODULES` (Reports, Resources, Direktori, Services, Media). Menu
   desktop di bar sisi; telefon kekal tab bawah + Lagi. `/analisis` kekal
   dalaman (staf).
+- **Program Ains — dasar data tahunan** (jadual `analisis_ains_*`, import via
+  `npm run db:import-ains`). Data terperinci murid hanya disimpan untuk
+  **tahun semasa**; tahun lalu diarkib supaya DB tidak membengkak setiap tahun:
+  - `analisis_ains_murid` + `analisis_ains_murid_bulanan` = nama + e-mel murid
+    (~42 MB untuk satu tahun, ~25k murid × 7 bulan). Dipadam bagi tahun yang
+    diarkib; tahun itu tiada lagi senarai/graf murid.
+  - `analisis_ains_sekolah` (~0.2 MB setahun) **dikekalkan** — ringkasan
+    sekolah × bulan: carta, ranking & senarai sekolah untuk tahun lalu masih
+    berfungsi. Ini yang dimaksudkan "data kasar" (macam 2025 yang hanya ada
+    ringkasan).
+  - Langkah arkib tahun T (buat selepas laporan Dis T selesai, sebelum atau
+    semasa import Jan T+1): (1) `npm run db:backup-pgdump:upload` dan sahkan
+    fail ada di Drive — sandaran itu menyimpan butiran murid T; (2) padam
+    `analisis_ains_murid_bulanan` WHERE tahun = T, kemudian padam
+    `analisis_ains_murid` yang tiada baris bulanan lagi; (3) `VACUUM (FULL,
+    ANALYZE)` pada kedua-dua jadual; (4) catat dalam `AI_CONTEXT_LOG.md`.
+  - Skrip `scripts/archive-ains-tahun.ts` BELUM ditulis (patut ada `--dry-run`
+    dan enggan padam jika tiada sandaran terkini). UI tahun diarkib juga belum
+    disuaikan: tukar "Tiada murid sepadan" kepada nota "Butiran murid telah
+    diarkibkan" (`components/analisis/AinsExplore.tsx`).
+  - Butiran murid = data peribadi: jangan komit CSV/eksport murid ke git;
+    simpan hanya dalam sandaran Drive peribadi.
+  - Import bulanan: upsert murid guna `setWhere nama IS DISTINCT FROM` —
+    jangan buang, UPDATE tanpa perubahan menjana tuple mati (bloat 6× pernah
+    berlaku; dibaiki 2026-10-13).
 - Petak statistik DPD/PSS halaman utama disorok (`SHOW_LAPORAN_TILES=false`
   dalam `app/(public)/page.tsx`) — pelaporan 2026 masih guna Looker Studio.
 

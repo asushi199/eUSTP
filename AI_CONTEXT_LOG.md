@@ -9,6 +9,10 @@
 - `scripts/import-ains.ts`: upsert murid guna `setWhere nama IS DISTINCT FROM
   excluded.nama` — baris tidak berubah tidak lagi dikemas kini (tiada tuple
   mati). Tiada migrasi.
+- Dasar baharu (keputusan pengguna): tahun lalu diarkib — butiran murid
+  dipadam selepas sandaran pg_dump, ringkasan sekolah dikekalkan. Prosedur
+  penuh dalam `CLAUDE.md` (bahagian "Program Ains — dasar data tahunan").
+  Skrip arkib + nota UI tahun diarkib belum ditulis; buat sebelum Jan 2027.
 
 ## 2026-09-28 — Tebus Buku: muat naik CSV mingguan + snapshot 28 Sept
 
