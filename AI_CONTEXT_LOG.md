@@ -3,6 +3,7 @@
 ## 2026-10-14 — MJKD admin: tab Maklum Balas lalai "Mengikut perkara"
 
 - `/admin/mjkd/[id]?tab=maklum-balas` tanpa `view` kini membuka **Mengikut perkara** (perkara pertama) — paparan yang paling kerap diguna untuk menanda ★ Sorotan. Kemajuan/Matriks kekal melalui butang paparan.
+- Data ujian dibuang dari DB produksi (arahan pengguna): maklum balas SK MUHAMMAD SAMAN (ABA1018, 8 item, catatan rawak) + 3 gambar bukti Drive. Kini 0 maklum balas untuk MJKD 2026. Skrip sementara, tidak dikomit.
 
 ## 2026-10-14 — MJKD: Mod Pembentangan v2 (MJKD/PLAN-pembentangan-v2.md langkah 1–5)
 
