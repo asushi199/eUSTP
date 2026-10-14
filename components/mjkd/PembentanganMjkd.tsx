@@ -917,7 +917,7 @@ export default function PembentanganMjkd({
               }`}
               onClick={() => tukarTab(t.id)}
             >
-              {t.label} <span className="opacity-50">{t.kunci}</span>
+              {t.label}
             </button>
           ))}
         </nav>
