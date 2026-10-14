@@ -42,21 +42,3 @@ export function julatTarikh(mula: string, tamat: string | null): string {
   if (a[0] === b[0]) return `${a[2]} ${BULAN[a[1] - 1]} – ${b[2]} ${BULAN[b[1] - 1]} ${b[0]}`;
   return `${a[2]} ${BULAN[a[1] - 1]} ${a[0]} – ${b[2]} ${BULAN[b[1] - 1]} ${b[0]}`;
 }
-
-export type FasaAcara =
-  | { jenis: "akan"; hari: number }
-  | { jenis: "berlangsung"; hariKe: number; jumlah: number }
-  | { jenis: "selesai" };
-
-/** Fasa acara berbanding `hariIni` (YYYY-MM-DD, waktu KL). */
-export function fasaAcara(mula: string, tamat: string | null, hariIni: string): FasaAcara {
-  const t = (iso: string) => Date.parse(`${iso}T00:00:00Z`);
-  const akhir = tamat && tamat > mula ? tamat : mula;
-  if (hariIni < mula) return { jenis: "akan", hari: Math.round((t(mula) - t(hariIni)) / 86_400_000) };
-  if (hariIni > akhir) return { jenis: "selesai" };
-  return {
-    jenis: "berlangsung",
-    hariKe: Math.round((t(hariIni) - t(mula)) / 86_400_000) + 1,
-    jumlah: Math.round((t(akhir) - t(mula)) / 86_400_000) + 1,
-  };
-}

@@ -1,5 +1,9 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-10-14 — MJKD: halaman awam kembali ke reka bentuk standard
+
+- Arahan pengguna: `/laporan-mjkd` tidak perlu "gah" — kembali ke peraturan reka bentuk (PageHeader + kad putih, `PublicPageShell`). Hero gelap, logo, kiraan hari dan PDF terbenam dibuang (iframe PDF juga memerangkap tatal sebelum borang); minit = butang Lihat Minit / Muat Turun. Pengecualian reka bentuk kini HANYA mod pembentangan (CLAUDE.md dikemas kini). `fasaAcara` dibuang (tidak digunakan).
+
 ## 2026-10-14 — MJKD: awam minit + maklum balas sahaja; mod pembentangan "pentas"; tab admin tidak lagi tergantung
 
 - Gabungan Bil.1→Bil.2 (`scripts/gabung-mjkd-2026.ts`) telah dijalankan oleh pengguna; `/admin/mjkd` kini terus ke rekod tunggal.

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import DbPerlahan from "@/components/mjkd/DbPerlahan";
 import MaklumBalasMjkdForm from "@/components/mjkd/MaklumBalasMjkdForm";
@@ -7,13 +6,8 @@ import PageHeader from "@/components/PageHeader";
 import PublicPageShell from "@/components/PublicPageShell";
 import { withDbTimeout } from "@/lib/db";
 import { listSchoolOptions } from "@/lib/direktori/queries";
-import {
-  MINIT_RUJUKAN,
-  NAMA_ACARA,
-  fasaAcara,
-  julatTarikh,
-} from "@/lib/mjkd/acara";
-import { formatTarikhMs, hariIniKl, maklumBalasTerbuka } from "@/lib/mjkd/enums";
+import { MINIT_RUJUKAN, NAMA_ACARA, julatTarikh } from "@/lib/mjkd/acara";
+import { formatTarikhMs, maklumBalasTerbuka } from "@/lib/mjkd/enums";
 import {
   getMaklumBalasByReceipt,
   getMesyuaratAwamTerkini,
@@ -64,63 +58,14 @@ async function muatData(sp: { kod?: string; resit?: string; kemaskini?: string }
   return { mesyuarat, terbuka, schools, perkara, existing };
 }
 
-function IkonKalendar() {
+function Pengepala() {
   return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} aria-hidden>
-      <rect x="3" y="5" width="18" height="16" rx="2" />
-      <path d="M3 10h18M8 3v4M16 3v4" />
-    </svg>
-  );
-}
-
-function IkonLokasi() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} aria-hidden>
-      <path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z" />
-      <circle cx="12" cy="9.5" r="2.5" />
-    </svg>
-  );
-}
-
-/** Corak geometri halus (diilhamkan songket) untuk latar hero. */
-function CorakHero() {
-  return (
-    <svg
-      className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.09]"
-      aria-hidden
-    >
-      <defs>
-        <pattern id="mjkd-corak" width="44" height="44" patternUnits="userSpaceOnUse">
-          <path d="M22 2 42 22 22 42 2 22Z" fill="none" stroke="#E3B341" strokeWidth="1" />
-          <path d="M22 13 31 22 22 31 13 22Z" fill="none" stroke="#fff" strokeWidth="0.8" />
-        </pattern>
-      </defs>
-      <rect width="100%" height="100%" fill="url(#mjkd-corak)" />
-    </svg>
-  );
-}
-
-function TajukBahagian({
-  id,
-  nombor,
-  tajuk,
-  sub,
-}: {
-  id: string;
-  nombor: string;
-  tajuk: string;
-  sub?: string;
-}) {
-  return (
-    <div id={id} className="scroll-mt-24 flex items-end gap-4">
-      <span className="font-mono text-4xl font-semibold leading-none text-[#0E7490]/25 sm:text-5xl">
-        {nombor}
-      </span>
-      <div className="min-w-0 border-l-2 border-[#E3B341] pl-4">
-        <h2 className="text-2xl font-semibold tracking-tight text-ink sm:text-[28px]">{tajuk}</h2>
-        {sub ? <p className="mt-1 text-sm text-graphite">{sub}</p> : null}
-      </div>
-    </div>
+    <PageHeader
+      eyebrow="CoE Reports"
+      title={NAMA_ACARA}
+      accent={ACCENT}
+      description={DESKRIPSI}
+    />
   );
 }
 
@@ -133,7 +78,7 @@ export default async function LaporanMjkdPage({ searchParams }: Props) {
   } catch {
     return (
       <PublicPageShell narrow>
-        <PageHeader eyebrow="CoE Reports" title={NAMA_ACARA} accent={ACCENT} description={DESKRIPSI} />
+        <Pengepala />
         <DbPerlahan href={pautanMuatSemula("/laporan-mjkd", sp)} />
       </PublicPageShell>
     );
@@ -142,7 +87,7 @@ export default async function LaporanMjkdPage({ searchParams }: Props) {
   if (!data) {
     return (
       <PublicPageShell narrow>
-        <PageHeader eyebrow="CoE Reports" title={NAMA_ACARA} accent={ACCENT} description={DESKRIPSI} />
+        <Pengepala />
         <p className="card mt-8 p-6 text-sm text-graphite">
           Belum ada mesyuarat yang dibuka. Sila semak semula kemudian.
         </p>
@@ -152,257 +97,118 @@ export default async function LaporanMjkdPage({ searchParams }: Props) {
 
   const { mesyuarat, terbuka, schools, perkara, existing } = data;
   const resit = sp.resit?.trim().toUpperCase();
-  const hariIni = hariIniKl();
   const tutup = mesyuarat.tarikhTutupMaklumBalas;
-  // Kiraan hari hingga maklum balas ditutup (tarikh tutup = hari terakhir dibenarkan).
-  const fasaTutup = terbuka && tutup ? fasaAcara(tutup, null, hariIni) : null;
 
   const namaFail = `Minit-MJKD-${MINIT_RUJUKAN.label.replace(/[./]/g, "-")}.pdf`;
   const muatTurunMinit = mesyuarat.minitUrl
     ? `${mesyuarat.minitUrl}?download=${encodeURIComponent(namaFail)}`
     : "";
 
-  const langkah = [
-    {
-      id: "minit",
-      nombor: "01",
-      tajuk: `Minit Mesyuarat ${MINIT_RUJUKAN.label}`,
-      status: mesyuarat.minitUrl ? "Tersedia — baca sebelum mengisi" : "Belum dimuat naik",
-      aktif: Boolean(mesyuarat.minitUrl),
-    },
-    {
-      id: "maklum-balas",
-      nombor: "02",
-      tajuk: "Maklum Balas PGB",
-      status: terbuka
-        ? tutup
-          ? `Dibuka hingga ${formatTarikhMs(tutup)}`
-          : "Dibuka"
-        : "Ditutup",
-      aktif: terbuka,
-    },
-  ];
-
   return (
-    <div className="portal-page-enter mx-auto w-full max-w-7xl px-4 py-6 sm:px-8 sm:py-10">
-      {/* ============================== HERO ============================== */}
-      <section className="relative overflow-hidden rounded-3xl bg-[#0b2530] text-white shadow-[0_30px_80px_-40px_rgba(11,37,48,0.8)]">
-        <div
-          className="absolute inset-0 bg-[radial-gradient(120%_90%_at_100%_0%,#0E7490_0%,transparent_55%),radial-gradient(80%_80%_at_0%_100%,#123b4a_0%,transparent_60%)]"
-          aria-hidden
-        />
-        <CorakHero />
-        <div className="relative grid gap-8 p-6 sm:p-10 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center xl:gap-12 xl:p-14">
-          <div className="min-w-0">
-            <div className="inline-flex rounded-2xl bg-white px-5 py-3 shadow-lg">
-              <Image
-                src="/mjkd/logo-kpm-ppd-manjung.png"
-                alt="Kementerian Pendidikan Malaysia — Pejabat Pendidikan Daerah Manjung"
-                width={683}
-                height={365}
-                priority
-                className="h-20 w-auto sm:h-24"
-              />
-            </div>
-            <p className="mt-8 text-xs font-semibold tracking-[0.18em] text-[#E3B341]">
-              PEJABAT PENDIDIKAN DAERAH MANJUNG
+    <PublicPageShell>
+      <PageHeader
+        eyebrow="CoE Reports"
+        title={NAMA_ACARA}
+        accent={ACCENT}
+        description={`Mesyuarat Jawatankuasa Kurikulum Daerah · ${julatTarikh(
+          mesyuarat.tarikh,
+          mesyuarat.tarikhTamat,
+        )}${mesyuarat.tempat ? ` · ${mesyuarat.tempat}` : ""}`}
+      />
+      <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-sm">
+        <Link href="/laporan" className="text-graphite hover:text-ink">
+          ← Hub laporan
+        </Link>
+        <Link href="/laporan-mjkd/semak" className="link-blue">
+          Semak status / kemaskini
+        </Link>
+      </div>
+
+      <section className="card mt-8">
+        <div className="flex flex-wrap items-start justify-between gap-4 p-6">
+          <div>
+            <h2 className="text-lg font-semibold">Minit Mesyuarat {MINIT_RUJUKAN.label}</h2>
+            <p className="mt-1 text-sm text-graphite">
+              {formatTarikhMs(MINIT_RUJUKAN.tarikh)} · {MINIT_RUJUKAN.tempat}. Sila baca minit
+              sebelum mengisi maklum balas.
             </p>
-            <h1 className="mt-3 text-3xl font-semibold leading-[1.1] tracking-tight sm:text-5xl xl:text-[56px]">
-              Mesyuarat Jawatankuasa
-              <br className="hidden sm:block" /> Kurikulum Daerah{" "}
-              <span className="bg-gradient-to-r from-[#F5D27A] to-[#E3B341] bg-clip-text text-transparent">
-                2026
-              </span>
-            </h1>
-            <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-white/85 sm:text-base">
-              <span className="inline-flex items-center gap-2">
-                <IkonKalendar />
-                {julatTarikh(mesyuarat.tarikh, mesyuarat.tarikhTamat)}
-              </span>
-              {mesyuarat.tempat ? (
-                <span className="inline-flex items-center gap-2">
-                  <IkonLokasi />
-                  {mesyuarat.tempat}
-                </span>
-              ) : null}
-            </div>
           </div>
-
-          <div className="flex flex-col gap-3 sm:flex-row xl:flex-col">
-            <div className="flex-1 rounded-2xl border border-white/15 bg-white/[0.07] px-6 py-5 text-center backdrop-blur-sm xl:min-w-[220px]">
-              {fasaTutup?.jenis === "akan" ? (
-                <>
-                  <p className="text-5xl font-semibold tabular-nums text-[#F5D27A] sm:text-6xl">
-                    {fasaTutup.hari}
-                  </p>
-                  <p className="mt-1 text-xs font-semibold tracking-[0.14em] text-white/70">
-                    HARI LAGI
-                  </p>
-                  <p className="mt-2 text-xs text-white/60">
-                    Maklum balas ditutup {formatTarikhMs(tutup!)}
-                  </p>
-                </>
-              ) : fasaTutup?.jenis === "berlangsung" ? (
-                <>
-                  <p className="text-2xl font-semibold text-[#F5D27A]">HARI TERAKHIR</p>
-                  <p className="mt-2 text-xs text-white/60">Maklum balas ditutup hari ini</p>
-                </>
-              ) : terbuka ? (
-                <p className="text-lg font-semibold text-white/85">Maklum balas dibuka</p>
-              ) : (
-                <p className="text-lg font-semibold text-white/85">Maklum balas ditutup</p>
-              )}
+          {mesyuarat.minitUrl ? (
+            <div className="flex flex-wrap gap-3">
+              <a
+                href={mesyuarat.minitUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-ink"
+              >
+                Lihat Minit
+              </a>
+              <a href={muatTurunMinit} className="btn-outline-ink">
+                Muat Turun
+              </a>
             </div>
-          </div>
+          ) : null}
         </div>
-
-        {/* Agenda / navigasi bahagian */}
-        <nav
-          aria-label="Bahagian MJKD 2026"
-          className="relative grid grid-cols-1 border-t border-white/10 sm:grid-cols-2"
-        >
-          {langkah.map((l, i) => (
-            <a
-              key={l.id}
-              href={`#${l.id}`}
-              className={`group flex flex-col gap-1 px-5 py-4 transition hover:bg-white/[0.06] sm:px-8 sm:py-5 ${
-                i === 1 ? "border-t border-white/10 sm:border-l sm:border-t-0" : ""
-              }`}
-            >
-              <span className="font-mono text-xs text-[#E3B341]">{l.nombor}</span>
-              <span className="text-sm font-semibold sm:text-base">{l.tajuk}</span>
-              <span className="inline-flex items-center gap-1.5 text-xs text-white/65">
-                <span
-                  className={`h-1.5 w-1.5 rounded-full ${l.aktif ? "bg-emerald-400" : "bg-white/35"}`}
-                  aria-hidden
-                />
-                {l.status}
-              </span>
-            </a>
-          ))}
-        </nav>
+        {!mesyuarat.minitUrl ? (
+          <p className="border-t hairline px-6 py-4 text-sm text-graphite">
+            Minit belum dimuat naik.
+          </p>
+        ) : null}
       </section>
 
-      <div className="mx-auto mt-14 max-w-6xl space-y-16 sm:mt-20 sm:space-y-20">
-        {/* ============================== 01 MINIT ============================== */}
-        <section>
-          <TajukBahagian
-            id="minit"
-            nombor="01"
-            tajuk={`Minit Mesyuarat ${MINIT_RUJUKAN.label}`}
-            sub={`${formatTarikhMs(MINIT_RUJUKAN.tarikh)} · ${MINIT_RUJUKAN.tempat} — sila baca sebelum mengisi maklum balas.`}
-          />
-          {mesyuarat.minitUrl ? (
-            <div className="mt-6 overflow-hidden rounded-2xl border hairline bg-white">
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b hairline px-5 py-4 sm:px-6">
-                <p className="text-sm font-semibold text-ink">{namaFail}</p>
-                <div className="flex flex-wrap gap-2">
-                  <a
-                    href={mesyuarat.minitUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn-ink btn-sm"
-                  >
-                    Skrin penuh ↗
-                  </a>
-                  <a href={muatTurunMinit} className="btn-outline-ink btn-sm">
-                    Muat turun
-                  </a>
-                </div>
-              </div>
-              <iframe
-                title={`Minit Mesyuarat ${MINIT_RUJUKAN.label}`}
-                src={mesyuarat.minitUrl}
-                loading="lazy"
-                className="hidden h-[75vh] w-full bg-cloud md:block"
-              />
-              <p className="px-5 py-4 text-sm text-graphite md:hidden">
-                Klik &quot;Skrin penuh&quot; untuk membaca minit.
+      <section className="mt-10">
+        <h2 className="text-xl font-semibold tracking-tight">Maklum Balas PGB</h2>
+        <p className="mt-1 text-sm text-graphite">
+          {terbuka
+            ? `Dibuka${tutup ? ` hingga ${formatTarikhMs(tutup)}` : ""}. `
+            : "Maklum balas ditutup. "}
+          Catatan wajib ikut 5W1H; bukti boleh berupa pautan dan/atau gambar.
+        </p>
+        <div className="mt-6">
+          {terbuka ? (
+            <MaklumBalasMjkdForm
+              key={existing?.id ?? "baharu"}
+              mesyuarat={{ id: mesyuarat.id, bil: mesyuarat.bil, tahun: mesyuarat.tahun }}
+              schools={schools}
+              perkara={perkara.map((p) => ({
+                id: p.id,
+                para: p.para,
+                mukaSurat: p.mukaSurat,
+                perkara: p.perkara,
+                tindakan: p.tindakan,
+                panduan: p.panduan,
+                sasaran: p.sasaran,
+                sekolahKhusus: p.sekolahKhusus,
+              }))}
+              initialSchoolCode={sp.kod?.trim().toUpperCase()}
+              existing={
+                existing
+                  ? {
+                      namaPengisi: existing.namaPengisi,
+                      jawatanPengisi: existing.jawatanPengisi,
+                      items: existing.items.map((it) => ({
+                        perkaraId: it.perkaraId,
+                        status: it.status,
+                        catatan: it.catatan,
+                        pautanBukti: it.pautanBukti,
+                        fotoBukti: it.fotoBukti,
+                      })),
+                    }
+                  : null
+              }
+              initialReceiptToken={existing ? resit : undefined}
+            />
+          ) : (
+            <div className="card p-6">
+              <p className="font-semibold text-ink">Maklum balas ditutup</p>
+              <p className="mt-1 text-sm text-graphite">
+                Maklum balas tidak lagi diterima. Hubungi PPD Manjung jika anda perlu membuat
+                pembetulan.
               </p>
             </div>
-          ) : (
-            <p className="mt-6 rounded-2xl border hairline bg-white p-6 text-sm text-graphite">
-              Minit belum dimuat naik.
-            </p>
           )}
-        </section>
-
-        {/* =========================== 02 MAKLUM BALAS =========================== */}
-        <section>
-          <TajukBahagian
-            id="maklum-balas"
-            nombor="02"
-            tajuk="Maklum Balas PGB"
-            sub={`Status pelaksanaan perkara tindakan minit ${MINIT_RUJUKAN.label} oleh setiap sekolah.`}
-          />
-          <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 rounded-2xl bg-[#0E7490]/[0.06] px-5 py-4 text-sm sm:px-6">
-            {terbuka ? (
-              <span className="font-semibold text-ink">
-                {tutup ? `Dibuka hingga ${formatTarikhMs(tutup)}` : "Dibuka"}
-              </span>
-            ) : (
-              <span className="font-semibold text-ink">Maklum balas ditutup</span>
-            )}
-            <span className="text-graphite">
-              Catatan wajib ikut <strong className="text-ink">5W1H</strong> · Bukti: pautan dan/atau
-              gambar
-            </span>
-            <Link href="/laporan-mjkd/semak" className="link-blue ml-auto">
-              Semak status / kemaskini →
-            </Link>
-          </div>
-          <div className="mt-6">
-            {terbuka ? (
-              <MaklumBalasMjkdForm
-                key={existing?.id ?? "baharu"}
-                mesyuarat={{ id: mesyuarat.id, bil: mesyuarat.bil, tahun: mesyuarat.tahun }}
-                schools={schools}
-                perkara={perkara.map((p) => ({
-                  id: p.id,
-                  para: p.para,
-                  mukaSurat: p.mukaSurat,
-                  perkara: p.perkara,
-                  tindakan: p.tindakan,
-                  panduan: p.panduan,
-                  sasaran: p.sasaran,
-                  sekolahKhusus: p.sekolahKhusus,
-                }))}
-                initialSchoolCode={sp.kod?.trim().toUpperCase()}
-                existing={
-                  existing
-                    ? {
-                        namaPengisi: existing.namaPengisi,
-                        jawatanPengisi: existing.jawatanPengisi,
-                        items: existing.items.map((it) => ({
-                          perkaraId: it.perkaraId,
-                          status: it.status,
-                          catatan: it.catatan,
-                          pautanBukti: it.pautanBukti,
-                          fotoBukti: it.fotoBukti,
-                        })),
-                      }
-                    : null
-                }
-                initialReceiptToken={existing ? resit : undefined}
-              />
-            ) : (
-              <div className="rounded-2xl border hairline bg-white p-6">
-                <p className="font-semibold text-ink">Maklum balas ditutup</p>
-                <p className="mt-1 text-sm text-graphite">
-                  Maklum balas tidak lagi diterima. Hubungi PPD Manjung jika anda perlu membuat
-                  pembetulan.
-                </p>
-              </div>
-            )}
-          </div>
-        </section>
-
-        <p className="text-sm">
-          <Link href="/laporan" className="text-graphite hover:text-ink">
-            ← CoE Reports
-          </Link>
-        </p>
-      </div>
-    </div>
+        </div>
+      </section>
+    </PublicPageShell>
   );
 }
