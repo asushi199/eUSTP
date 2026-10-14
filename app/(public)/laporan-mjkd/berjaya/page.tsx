@@ -3,7 +3,9 @@ import Link from "next/link";
 import MjkdTicketActions from "@/components/mjkd/MjkdTicketActions";
 import PageHeader from "@/components/PageHeader";
 import PublicPageShell from "@/components/PublicPageShell";
+import { withDbTimeout } from "@/lib/db";
 import { getSchoolByCode } from "@/lib/mjkd/queries";
+import { pautanMuatSemula } from "@/lib/mjkd/ralat-db";
 
 export const metadata: Metadata = {
   title: "Maklum balas dihantar — MJKD",
@@ -19,7 +21,16 @@ export default async function LaporanMjkdBerjayaPage({ searchParams }: Props) {
   const sp = await searchParams;
   const kod = (sp.kod ?? "").trim().toUpperCase();
   const resit = (sp.resit ?? "").trim().toUpperCase();
-  const school = kod ? await getSchoolByCode(kod) : null;
+  // Nombor tiket datang daripada URL dan MESTI sentiasa dipaparkan; nama sekolah hanyalah hiasan.
+  let school: Awaited<ReturnType<typeof getSchoolByCode>> | null = null;
+  let namaTakDapat = false;
+  if (kod) {
+    try {
+      school = await withDbTimeout(getSchoolByCode(kod));
+    } catch {
+      namaTakDapat = true;
+    }
+  }
 
   return (
     <PublicPageShell narrow>
@@ -43,6 +54,15 @@ export default async function LaporanMjkdBerjayaPage({ searchParams }: Props) {
           {kod || "—"}
           {school ? ` — ${school.name}` : ""}
         </p>
+        {namaTakDapat ? (
+          <p className="text-sm text-graphite">
+            Nama sekolah tidak dapat dimuatkan buat masa ini (pangkalan data perlahan) — nombor
+            tiket di bawah tetap sah.{" "}
+            <a href={pautanMuatSemula("/laporan-mjkd/berjaya", { kod: sp.kod, resit: sp.resit })} className="link-blue">
+              Muat semula
+            </a>
+          </p>
+        ) : null}
         <div>
           <p className="text-sm text-graphite">Nombor tiket</p>
           <p className="mt-1 font-mono text-2xl font-semibold tracking-wider text-ink">

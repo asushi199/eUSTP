@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import DbPerlahan from "@/components/mjkd/DbPerlahan";
 import MuatNaikBahanForm from "@/components/mjkd/MuatNaikBahanForm";
 import PageHeader from "@/components/PageHeader";
 import PublicPageShell from "@/components/PublicPageShell";
+import { withDbTimeout } from "@/lib/db";
 import { cadanganSektor, sektorBolehBaca } from "@/lib/mjkd/bahan";
 import { labelMesyuarat } from "@/lib/mjkd/enums";
 import { hariMesyuarat, nilaiPilihanHari, pilihanTarikhPembentangan } from "@/lib/mjkd/hari";
 import { getMesyuaratBahanDibuka, listSektorCadangan } from "@/lib/mjkd/queries";
+import { pautanMuatSemula } from "@/lib/mjkd/ralat-db";
 
 export const metadata: Metadata = {
   title: "Muat Naik Bahan MJKD — NEXa Manjung",
@@ -17,8 +20,31 @@ export const dynamic = "force-dynamic";
 
 const ACCENT = "#0E7490";
 
-export default async function MuatNaikBahanPage() {
+/** Berurutan dalam satu timeout. */
+async function muatData() {
   const mesyuarat = await getMesyuaratBahanDibuka();
+  const sektor = mesyuarat ? await listSektorCadangan() : { pegawai: [], bahan: [] };
+  return { mesyuarat, sektor };
+}
+
+export default async function MuatNaikBahanPage() {
+  let data: Awaited<ReturnType<typeof muatData>>;
+  try {
+    data = await withDbTimeout(muatData());
+  } catch {
+    return (
+      <PublicPageShell narrow>
+        <PageHeader
+          eyebrow="Pelaporan"
+          title="Muat Naik Bahan MJKD"
+          accent={ACCENT}
+          description="Muat naik bahan pembentangan oleh Sektor / Unit."
+        />
+        <DbPerlahan href={pautanMuatSemula("/laporan-mjkd/bahan/muat-naik")} />
+      </PublicPageShell>
+    );
+  }
+  const { mesyuarat, sektor } = data;
 
   if (!mesyuarat) {
     return (
@@ -39,10 +65,7 @@ export default async function MuatNaikBahanPage() {
     );
   }
 
-  const [sektor, pilihan] = await Promise.all([
-    listSektorCadangan(),
-    Promise.resolve(pilihanTarikhPembentangan(hariMesyuarat(mesyuarat))),
-  ]);
+  const pilihan = pilihanTarikhPembentangan(hariMesyuarat(mesyuarat));
 
   return (
     <PublicPageShell narrow>

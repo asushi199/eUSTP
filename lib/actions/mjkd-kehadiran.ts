@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
-import { db } from "@/lib/db";
+import { db, withDbTimeout } from "@/lib/db";
 import { mjkdKehadiran, mjkdMesyuarat, pegawaiPpd } from "@/lib/schema";
 import { requireKandunganAccess } from "@/lib/rbac";
 import { jawatanPgb } from "@/lib/mjkd/jawatan-pgb";
@@ -18,6 +18,7 @@ import { hariIniKl } from "@/lib/mjkd/enums";
 import { isTarikhIso } from "@/lib/mjkd/hari";
 import { kiraanKehadiranHari } from "@/lib/mjkd/pembentangan";
 import { namaKunci } from "@/lib/mjkd/nama-kunci";
+import { MESEJ_DB_PERLAHAN, isRalatTimeoutDb } from "@/lib/mjkd/ralat-db";
 import {
   cariPegawaiPpdAktif,
   getKehadiranByKunci,
@@ -148,6 +149,21 @@ export async function getKehadiranSekolahMjkd(
   mesyuaratId: string,
   schoolCode: string,
 ): Promise<KehadiranSekolahInfo> {
+  try {
+    return await withDbTimeout(muatInfoSekolah(mesyuaratId, schoolCode));
+  } catch (e) {
+    return {
+      ok: false,
+      error: isRalatTimeoutDb(e) ? MESEJ_DB_PERLAHAN : "Gagal memuat maklumat sekolah.",
+    };
+  }
+}
+
+/** Pertanyaan berurutan (bukan Promise.all) — kolam serverless hanya ~3 sambungan. */
+async function muatInfoSekolah(
+  mesyuaratId: string,
+  schoolCode: string,
+): Promise<KehadiranSekolahInfo> {
   const buka = await mesyuaratKehadiranDibuka(mesyuaratId);
   if (!buka.ok) return { ok: false, error: buka.error };
   const kod = String(schoolCode ?? "")
@@ -157,7 +173,8 @@ export async function getKehadiranSekolahMjkd(
   const school = kod ? await getSchoolByCode(kod) : null;
   if (!school) return { ok: false, error: "Kod sekolah tidak dijumpai." };
 
-  const [nama, pk] = await Promise.all([getNamaPgb(school.code), getNamaPkWakil(school.code)]);
+  const nama = await getNamaPgb(school.code);
+  const pk = await getNamaPkWakil(school.code);
   const jawatan = jawatanPgb(kenalJenisSekolah(school.name, school.code), school.name);
   const sudah = nama
     ? await getKehadiranByKunci(buka.mesyuarat.id, hariIniKl(), namaKunci(nama), school.name)
@@ -180,9 +197,18 @@ export async function cariPegawaiMjkd(
     .replace(/\s+/g, " ")
     .slice(0, 100);
   if (kata.length < CARIAN_PEGAWAI_MIN) return [];
-  // Senarai pegawai hanya boleh dicari semasa kehadiran mana-mana mesyuarat dibuka.
-  if (!(await getMesyuaratKehadiranDibuka())) return [];
-  return cariPegawaiPpdAktif(kata);
+  try {
+    return await withDbTimeout(
+      (async () => {
+        // Senarai pegawai hanya boleh dicari semasa kehadiran mana-mana mesyuarat dibuka.
+        if (!(await getMesyuaratKehadiranDibuka())) return [];
+        return cariPegawaiPpdAktif(kata);
+      })(),
+    );
+  } catch {
+    // Carian hanyalah bantuan — jika DB perlahan, pengguna boleh cuba semula / guna tab Lain-lain.
+    return [];
+  }
 }
 
 const kehadiranPayloadSchema = z.object({
@@ -206,11 +232,21 @@ export async function sahkanKehadiranMjkd(payload: KehadiranPayload): Promise<Ke
   if (!parsed.success) return { ok: false, error: "Input tidak sah." };
   const p = parsed.data;
 
+  // Rekod berulang selamat (indeks unik per hari + laluan pendua mesra), jadi timeout = cuba semula.
+  try {
+    return await withDbTimeout(prosesKehadiran(p));
+  } catch (e) {
+    if (isRalatTimeoutDb(e)) return { ok: false, error: MESEJ_DB_PERLAHAN };
+    return { ok: false, error: e instanceof Error ? e.message : "Gagal merekodkan kehadiran." };
+  }
+}
+
+async function prosesKehadiran(p: KehadiranPayload): Promise<KehadiranResult> {
   const buka = await mesyuaratKehadiranDibuka(p.mesyuaratId);
   if (!buka.ok) return { ok: false, error: buka.error };
   const mesyuaratId = buka.mesyuarat.id;
 
-  try {
+  {
     if (p.jenis === "PGB" || p.jenis === "WAKIL") {
       const kod = (p.schoolCode ?? "").trim().toUpperCase();
       const school = kod ? await getSchoolByCode(kod) : null;
@@ -281,8 +317,6 @@ export async function sahkanKehadiranMjkd(payload: KehadiranPayload): Promise<Ke
       schoolCode: null,
       pegawaiPpdId: null,
     });
-  } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : "Gagal merekodkan kehadiran." };
   }
 }
 
@@ -443,15 +477,25 @@ export async function getKiraanKehadiranMjkd(
   mesyuaratId: string,
 ): Promise<{ ok: boolean; kiraan?: KiraanKehadiran; error?: string }> {
   await requireKandunganAccess();
-  const mesyuarat = await getMesyuarat(String(mesyuaratId ?? ""));
-  if (!mesyuarat) return { ok: false, error: "Mesyuarat tidak dijumpai." };
-  const [rekod, sekolah] = await Promise.all([listKehadiran(mesyuarat.id), listSekolahSemua()]);
-  return {
-    ok: true,
-    kiraan: kiraanKehadiranHari(
-      rekod,
-      sekolah.map((s) => s.code),
-      hariIniKl(),
-    ),
-  };
+  try {
+    return await withDbTimeout(
+      (async () => {
+        const mesyuarat = await getMesyuarat(String(mesyuaratId ?? ""));
+        if (!mesyuarat) return { ok: false, error: "Mesyuarat tidak dijumpai." };
+        const rekod = await listKehadiran(mesyuarat.id);
+        const sekolah = await listSekolahSemua();
+        return {
+          ok: true,
+          kiraan: kiraanKehadiranHari(
+            rekod,
+            sekolah.map((s) => s.code),
+            hariIniKl(),
+          ),
+        };
+      })(),
+    );
+  } catch (e) {
+    // Pelanggan mengekalkan kiraan terakhir.
+    return { ok: false, error: isRalatTimeoutDb(e) ? MESEJ_DB_PERLAHAN : "Gagal memuat kiraan." };
+  }
 }

@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { muatNaikBahanAwam, type BahanDisimpan } from "@/lib/actions/mjkd-bahan";
 import { BAHAN_PDF_MAKS_BYTE } from "@/lib/mjkd/bahan";
+import { MESEJ_BAHAN_TIDAK_PASTI } from "@/lib/mjkd/ralat-db";
 
 export type PilihanHariBorang = { label: string; nilai: string };
 
@@ -29,7 +30,14 @@ export default function MuatNaikBahanForm({ pilihanHari, cadanganSektor }: Props
     }
     if (jenis === "PAUTAN") formData.delete("fail");
     startTransition(async () => {
-      const res = await muatNaikBahanAwam(formData);
+      let res: Awaited<ReturnType<typeof muatNaikBahanAwam>>;
+      try {
+        res = await muatNaikBahanAwam(formData);
+      } catch {
+        // Rangkaian/500: fail mungkin sudah dimuat naik — status tidak pasti.
+        setError(MESEJ_BAHAN_TIDAK_PASTI);
+        return;
+      }
       if (!res.ok || !res.bahan) {
         setError(res.error ?? "Gagal memuat naik bahan.");
         return;

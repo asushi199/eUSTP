@@ -1,5 +1,13 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-10-15 — MJKD: `withDbTimeout` pada laluan awam (instance "beracun")
+
+- Gejala produksi: 300 s "Vercel Runtime Timeout Error" berselang pada banyak laluan (termasuk /admin/mjkd dan /tempahan) — isu soket pooler mati yang sama seperti 2026-07-05/07-29/09-21. QR kehadiran tidak boleh berputar berminit-minit.
+- Dibungkus `withDbTimeout` (8 s; halaman utama MJKD 10 s kerana lebih banyak query), pertanyaan BERURUTAN (bukan `Promise.all`; kolam serverless ~3 sambungan — selaras 2026-09-21): halaman awam `/laporan-mjkd`, `/hadir`, `/bahan/muat-naik`, `/semak`, `/berjaya`. Gagal = kad notis BM "Sambungan ke pangkalan data perlahan" + butang muat semula ke URL sama (`components/mjkd/DbPerlahan.tsx`, `pautanMuatSemula`). Tiada data kosong dipaparkan seolah-olah sebenar. `/berjaya`: nombor tiket (dari URL) sentiasa dipaparkan; hanya nama sekolah diabaikan jika perlahan.
+- Tindakan awam: `submitMaklumBalasMjkd` (bacaan dan tulisan dipisah; timeout BACAAN = "cuba semula"; timeout TULISAN = "status penghantaran tidak pasti… hubungi urusetia untuk nombor tiket" kerana komit mungkin masih berlaku), `getPrefillPgbMjkd` & `cariPegawaiMjkd` (pulang kosong), `getKehadiranSekolahMjkd` (ralat BM; `Promise.all` -> berurutan), `sahkanKehadiranMjkd` (mesej piawai — selamat diulang: indeks unik per hari), `muatNaikBahanAwam` (hanya panggilan DB; muat naik GAS/Drive TIDAK dihadkan 8 s; timeout INSERT = status tidak pasti, fail Drive tidak dipadam), `getKiraanKehadiranMjkd` (polling pembentangan; klien kekalkan kiraan terakhir). `listSektorCadangan` kini berurutan. CRUD admin tidak diubah (keputusan 2026-07-29).
+- Klien: `MaklumBalasMjkdForm`, `KehadiranMjkdForm`, `MuatNaikBahanForm` kini menangkap ralat yang dilontar (rangkaian/500) dan papar mesej BM yang sesuai.
+- Pembantu tulen `lib/mjkd/ralat-db.ts` (mesej, `isRalatTimeoutDb`, `pautanMuatSemula`) diuji `tests/mjkd/ralat-db.test.ts`. Disahkan: typecheck, eslint, ujian mjkd + admin (96), `npm run build`.
+
 ## 2026-10-14 — MJKD: data dijalankan, smoke test, pembetulan penyelia
 
 - DB (dijalankan oleh pengguna): `db:migrate` (0053), `db:seed-mjkd` (Bil.1/2026, 13 perkara; sekolah khusus AEE1032, AEA1111, ABA1015, ABA1008), `db:import-pegawai-ppd -- MJKD/pegawai-ppd.csv` (80 pegawai; tiada IC), `scripts/setup-mjkd-2026-bil2.ts` (Bil.2/2026: 21–22 Okt, Hotel Rosa Passadena Cameron Highland, sebelum = Bil.1; maklum balas Bil.1 dibuka, tutup 19 Okt). RLS disahkan pada 7 jadual.

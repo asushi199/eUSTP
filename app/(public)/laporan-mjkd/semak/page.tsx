@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import DbPerlahan from "@/components/mjkd/DbPerlahan";
 import PageHeader from "@/components/PageHeader";
 import PublicPageShell from "@/components/PublicPageShell";
+import { withDbTimeout } from "@/lib/db";
 import {
   STATUS_MJKD_LABEL,
   isStatusMjkd,
@@ -14,6 +16,7 @@ import {
   getSchoolByCode,
   listPerkara,
 } from "@/lib/mjkd/queries";
+import { pautanMuatSemula } from "@/lib/mjkd/ralat-db";
 import { perkaraUntukSekolah } from "@/lib/mjkd/sasaran";
 
 export const metadata: Metadata = {
@@ -26,10 +29,8 @@ type Props = {
   searchParams: Promise<{ kod?: string; resit?: string }>;
 };
 
-export default async function SemakMaklumBalasMjkdPage({ searchParams }: Props) {
-  const sp = await searchParams;
-  const kod = (sp.kod ?? "").trim().toUpperCase();
-  const resit = (sp.resit ?? "").trim().toUpperCase();
+/** Muat BERURUTAN dalam satu timeout. */
+async function muatData(kod: string, resit: string) {
   const mesyuarat = await getMesyuaratAwamTerkini();
 
   let record: Awaited<ReturnType<typeof getMaklumBalasByReceipt>> = null;
@@ -53,6 +54,31 @@ export default async function SemakMaklumBalasMjkdPage({ searchParams }: Props) 
       }
     }
   }
+  return { mesyuarat, record, school, perkaraSekolah, error };
+}
+
+export default async function SemakMaklumBalasMjkdPage({ searchParams }: Props) {
+  const sp = await searchParams;
+  const kod = (sp.kod ?? "").trim().toUpperCase();
+  const resit = (sp.resit ?? "").trim().toUpperCase();
+
+  let data: Awaited<ReturnType<typeof muatData>>;
+  try {
+    data = await withDbTimeout(muatData(kod, resit));
+  } catch {
+    return (
+      <PublicPageShell narrow>
+        <PageHeader
+          eyebrow="Pelaporan"
+          title="Semak / kemaskini maklum balas MJKD"
+          accent="#0E7490"
+          description="Masukkan kod sekolah dan nombor tiket."
+        />
+        <DbPerlahan href={pautanMuatSemula("/laporan-mjkd/semak", { kod: sp.kod, resit: sp.resit })} />
+      </PublicPageShell>
+    );
+  }
+  const { mesyuarat, record, school, perkaraSekolah, error } = data;
 
   const statusMengikutPerkara = new Map(record?.items.map((it) => [it.perkaraId, it.status]));
   const boleh = mesyuarat ? maklumBalasTerbuka(mesyuarat) : false;

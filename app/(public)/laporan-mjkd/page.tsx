@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import BahanAwam from "@/components/mjkd/BahanAwam";
+import DbPerlahan from "@/components/mjkd/DbPerlahan";
 import MaklumBalasMjkdForm from "@/components/mjkd/MaklumBalasMjkdForm";
 import PageHeader from "@/components/PageHeader";
 import PublicPageShell from "@/components/PublicPageShell";
+import { withDbTimeout } from "@/lib/db";
 import { listSchoolOptions } from "@/lib/direktori/queries";
 import {
   formatTarikhMs,
@@ -17,6 +19,7 @@ import {
   listBahan,
   listPerkara,
 } from "@/lib/mjkd/queries";
+import { pautanMuatSemula } from "@/lib/mjkd/ralat-db";
 
 export const metadata: Metadata = {
   title: "Maklum Balas MJKD — NEXa Manjung",
@@ -32,11 +35,49 @@ type Props = {
   searchParams: Promise<{ kod?: string; resit?: string; kemaskini?: string }>;
 };
 
-export default async function LaporanMjkdPage({ searchParams }: Props) {
-  const sp = await searchParams;
+/** Semua data halaman, dimuat BERURUTAN (kolam serverless ~3 sambungan) dalam satu timeout. */
+async function muatData(sp: { kod?: string; resit?: string; kemaskini?: string }) {
   const mesyuarat = await getMesyuaratAwamTerkini();
   const mesyuaratBahan = await getMesyuaratDenganBahan();
   const bahan = mesyuaratBahan ? await listBahan(mesyuaratBahan.id) : [];
+  const terbuka = mesyuarat ? maklumBalasTerbuka(mesyuarat) : false;
+
+  let schools: Awaited<ReturnType<typeof listSchoolOptions>> = [];
+  let perkara: Awaited<ReturnType<typeof listPerkara>> = [];
+  let existing: Awaited<ReturnType<typeof getMaklumBalasByReceipt>> = null;
+  if (mesyuarat && terbuka) {
+    schools = await listSchoolOptions();
+    perkara = await listPerkara(mesyuarat.id, { aktifSahaja: true });
+    const kod = sp.kod?.trim().toUpperCase();
+    const resit = sp.resit?.trim().toUpperCase();
+    existing =
+      sp.kemaskini === "1" && kod && resit
+        ? await getMaklumBalasByReceipt(mesyuarat.id, kod, resit)
+        : null;
+  }
+  return { mesyuarat, mesyuaratBahan, bahan, terbuka, schools, perkara, existing };
+}
+
+export default async function LaporanMjkdPage({ searchParams }: Props) {
+  const sp = await searchParams;
+
+  let data: Awaited<ReturnType<typeof muatData>>;
+  try {
+    data = await withDbTimeout(muatData(sp), 10_000);
+  } catch {
+    return (
+      <PublicPageShell narrow>
+        <PageHeader
+          eyebrow="Pelaporan"
+          title="Maklum Balas MJKD"
+          accent={ACCENT}
+          description="Minit mesyuarat dan maklum balas PGB bagi Mesyuarat Jawatankuasa Kurikulum Daerah."
+        />
+        <DbPerlahan href={pautanMuatSemula("/laporan-mjkd", sp)} />
+      </PublicPageShell>
+    );
+  }
+  const { mesyuarat, mesyuaratBahan, bahan, terbuka, schools, perkara, existing } = data;
   const bahanPaparan = mesyuaratBahan && bahan.length > 0 ? (
     <BahanAwam label={labelMesyuarat(mesyuaratBahan)} bahan={bahan} />
   ) : null;
@@ -63,24 +104,8 @@ export default async function LaporanMjkdPage({ searchParams }: Props) {
     );
   }
 
-  const terbuka = maklumBalasTerbuka(mesyuarat);
   const kod = sp.kod?.trim().toUpperCase();
   const resit = sp.resit?.trim().toUpperCase();
-  const wantUpdate = sp.kemaskini === "1";
-
-  let schools: Awaited<ReturnType<typeof listSchoolOptions>> = [];
-  let perkara: Awaited<ReturnType<typeof listPerkara>> = [];
-  let existing: Awaited<ReturnType<typeof getMaklumBalasByReceipt>> = null;
-  if (terbuka) {
-    [schools, perkara] = await Promise.all([
-      listSchoolOptions(),
-      listPerkara(mesyuarat.id, { aktifSahaja: true }),
-    ]);
-    existing =
-      wantUpdate && kod && resit
-        ? await getMaklumBalasByReceipt(mesyuarat.id, kod, resit)
-        : null;
-  }
 
   const namaFail = `Minit-MJKD-Bil${mesyuarat.bil}-${mesyuarat.tahun}.pdf`;
   const muatTurunHref = mesyuarat.minitUrl
