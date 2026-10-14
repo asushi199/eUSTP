@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import DbPerlahan from "@/components/mjkd/DbPerlahan";
 import KehadiranMjkdForm from "@/components/mjkd/KehadiranMjkdForm";
 import PageHeader from "@/components/PageHeader";
 import PublicPageShell from "@/components/PublicPageShell";
+import { withDbTimeout } from "@/lib/db";
 import { listSchoolOptions } from "@/lib/direktori/queries";
 import { formatTarikhMs, labelMesyuarat } from "@/lib/mjkd/enums";
 import { getMesyuaratKehadiranDibuka } from "@/lib/mjkd/queries";
+import { pautanMuatSemula } from "@/lib/mjkd/ralat-db";
 
 export const metadata: Metadata = {
   title: "Kehadiran MJKD — NEXa Manjung",
@@ -16,8 +19,31 @@ export const dynamic = "force-dynamic";
 
 const ACCENT = "#0E7490";
 
-export default async function HadirMjkdPage() {
+/** Berurutan dalam satu timeout: mesyuarat dibuka, kemudian senarai sekolah (hanya jika perlu). */
+async function muatData() {
   const mesyuarat = await getMesyuaratKehadiranDibuka();
+  const schools = mesyuarat ? await listSchoolOptions() : [];
+  return { mesyuarat, schools };
+}
+
+export default async function HadirMjkdPage() {
+  let data: Awaited<ReturnType<typeof muatData>>;
+  try {
+    data = await withDbTimeout(muatData());
+  } catch {
+    return (
+      <PublicPageShell narrow>
+        <PageHeader
+          eyebrow="Pelaporan"
+          title="Kehadiran MJKD"
+          accent={ACCENT}
+          description="Sahkan kehadiran anda ke Mesyuarat Jawatankuasa Kurikulum Daerah."
+        />
+        <DbPerlahan href={pautanMuatSemula("/laporan-mjkd/hadir")} />
+      </PublicPageShell>
+    );
+  }
+  const { mesyuarat, schools } = data;
 
   if (!mesyuarat) {
     return (
@@ -37,8 +63,6 @@ export default async function HadirMjkdPage() {
       </PublicPageShell>
     );
   }
-
-  const schools = await listSchoolOptions();
 
   return (
     <PublicPageShell narrow>

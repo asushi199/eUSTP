@@ -295,10 +295,12 @@ export async function getMesyuaratDenganBahan(): Promise<MesyuaratRow | null> {
 
 /** Nilai sektor mentah (pegawai PPD aktif) dan sektor/unit bahan terdahulu — untuk cadangan. */
 export async function listSektorCadangan(): Promise<{ pegawai: string[]; bahan: string[] }> {
-  const [peg, bhn] = await Promise.all([
-    db.selectDistinct({ v: pegawaiPpd.sektor }).from(pegawaiPpd).where(eq(pegawaiPpd.aktif, true)),
-    db.selectDistinct({ v: mjkdBahan.sektorUnit }).from(mjkdBahan),
-  ]);
+  // Berurutan (laluan awam; kolam serverless ~3 sambungan).
+  const peg = await db
+    .selectDistinct({ v: pegawaiPpd.sektor })
+    .from(pegawaiPpd)
+    .where(eq(pegawaiPpd.aktif, true));
+  const bhn = await db.selectDistinct({ v: mjkdBahan.sektorUnit }).from(mjkdBahan);
   return {
     pegawai: peg.map((r) => r.v).filter(Boolean),
     bahan: bhn.map((r) => r.v).filter(Boolean),

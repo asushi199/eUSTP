@@ -11,6 +11,7 @@ import {
 } from "@/lib/actions/mjkd-kehadiran";
 import { labelHariPendek } from "@/lib/mjkd/hari";
 import { CARIAN_PEGAWAI_MIN, ORGANISASI_PPD } from "@/lib/mjkd/kehadiran";
+import { MESEJ_RALAT_SAMBUNGAN } from "@/lib/mjkd/ralat-db";
 import type { SchoolOption } from "@/lib/direktori/queries";
 
 type Props = {
@@ -158,7 +159,14 @@ export default function KehadiranMjkdForm({ mesyuarat, schools }: Props) {
   function hantar(payload: KehadiranPayload) {
     setError(null);
     startTransition(async () => {
-      const res = await sahkanKehadiranMjkd(payload);
+      let res: Awaited<ReturnType<typeof sahkanKehadiranMjkd>>;
+      try {
+        res = await sahkanKehadiranMjkd(payload);
+      } catch {
+        // Selamat diulang: indeks unik per hari + laluan pendua mesra.
+        setError(MESEJ_RALAT_SAMBUNGAN + " Tekan \"Sahkan Kehadiran\" sekali lagi.");
+        return;
+      }
       if (!res.ok || !res.rekod) {
         setError(res.error ?? "Gagal merekodkan kehadiran.");
         return;

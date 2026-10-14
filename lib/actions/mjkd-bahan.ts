@@ -3,7 +3,7 @@
 import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
-import { db } from "@/lib/db";
+import { db, withDbTimeout } from "@/lib/db";
 import { mjkdBahan, mjkdMesyuarat } from "@/lib/schema";
 import { requireKandunganAccess } from "@/lib/rbac";
 import {
@@ -22,6 +22,12 @@ import {
 import { janaKodMuatNaik, semakKodMuatNaik } from "@/lib/mjkd/bahan-kod";
 import { hariMesyuarat, labelBeberapaHari } from "@/lib/mjkd/hari";
 import { getBahan, getMesyuarat, getMesyuaratBahanDibuka } from "@/lib/mjkd/queries";
+import {
+  MESEJ_BAHAN_TIDAK_PASTI,
+  MESEJ_DB_PERLAHAN,
+  MESEJ_RALAT_UMUM,
+  isRalatTimeoutDb,
+} from "@/lib/mjkd/ralat-db";
 
 export type BahanActionResult = { ok: boolean; error?: string; kod?: string };
 
@@ -162,7 +168,12 @@ function ringkas(d: BahanSiap): BahanDisimpan {
 
 /** Awam: pembentang muat naik bahan. Hanya jika muat naik dibuka DAN kod kongsi betul (masa-malar). */
 export async function muatNaikBahanAwam(formData: FormData): Promise<MuatNaikBahanResult> {
-  const mesyuarat = await getMesyuaratBahanDibuka();
+  let mesyuarat: Awaited<ReturnType<typeof getMesyuaratBahanDibuka>>;
+  try {
+    mesyuarat = await withDbTimeout(getMesyuaratBahanDibuka());
+  } catch (e) {
+    return { ok: false, error: isRalatTimeoutDb(e) ? MESEJ_DB_PERLAHAN : MESEJ_RALAT_UMUM };
+  }
   if (!mesyuarat) return { ok: false, error: "Muat naik bahan belum dibuka." };
   if (!semakKodMuatNaik(textField(formData.get("kod"), 64), mesyuarat.kodMuatNaikBahan)) {
     return { ok: false, error: "Kod muat naik tidak betul." };
@@ -171,12 +182,16 @@ export async function muatNaikBahanAwam(formData: FormData): Promise<MuatNaikBah
   const siap = await sediakanBahan(mesyuarat, formData, null);
   if (!siap.ok) return { ok: false, error: siap.error };
   try {
-    await db.insert(mjkdBahan).values({
-      mesyuaratId: mesyuarat.id,
-      ...siap.data,
-      dimuatNaikOleh: "awam",
-    });
+    await withDbTimeout(
+      db.insert(mjkdBahan).values({
+        mesyuaratId: mesyuarat.id,
+        ...siap.data,
+        dimuatNaikOleh: "awam",
+      }),
+    );
   } catch (e) {
+    // Timeout: INSERT mungkin masih berjaya kemudian — jangan padam fail Drive; status tidak pasti.
+    if (isRalatTimeoutDb(e)) return { ok: false, error: MESEJ_BAHAN_TIDAK_PASTI };
     // Fail sudah di Drive tetapi baris gagal — buang fail yatim (best-effort).
     if (siap.data.storagePath) await deleteLaporanPhotoViaGas(siap.data.storagePath);
     return { ok: false, error: e instanceof Error ? e.message : "Gagal menyimpan bahan." };

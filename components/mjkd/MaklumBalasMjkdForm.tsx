@@ -17,6 +17,7 @@ import {
   labelMesyuarat,
   type StatusMjkd,
 } from "@/lib/mjkd/enums";
+import { MESEJ_PENGHANTARAN_TIDAK_PASTI, MESEJ_RALAT_SAMBUNGAN } from "@/lib/mjkd/ralat-db";
 import { perkaraUntukSekolah } from "@/lib/mjkd/sasaran";
 import type { SchoolOption } from "@/lib/direktori/queries";
 
@@ -180,9 +181,16 @@ export default function MaklumBalasMjkdForm({
         receiptToken: receiptToken || undefined,
         items,
       };
-      const res = adminMode
-        ? await adminSimpanMaklumBalasMjkd(payload)
-        : await submitMaklumBalasMjkd(payload);
+      let res: Awaited<ReturnType<typeof submitMaklumBalasMjkd>>;
+      try {
+        res = adminMode
+          ? await adminSimpanMaklumBalasMjkd(payload)
+          : await submitMaklumBalasMjkd(payload);
+      } catch {
+        // Rangkaian/500: tindakan mungkin sudah sampai ke pelayan — status tidak pasti.
+        setError(adminMode ? MESEJ_RALAT_SAMBUNGAN : MESEJ_PENGHANTARAN_TIDAK_PASTI);
+        return;
+      }
       if (!res.ok) {
         setError(res.error ?? "Gagal menghantar.");
         return;

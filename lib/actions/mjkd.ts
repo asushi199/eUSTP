@@ -4,7 +4,7 @@ import { randomBytes } from "crypto";
 import { revalidatePath } from "next/cache";
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
-import { db } from "@/lib/db";
+import { db, withDbTimeout } from "@/lib/db";
 import {
   mjkdMaklumBalas,
   mjkdMaklumBalasItem,
@@ -25,6 +25,12 @@ import {
   getSchoolByCode,
   listPerkara,
 } from "@/lib/mjkd/queries";
+import {
+  MESEJ_DB_PERLAHAN,
+  MESEJ_PENGHANTARAN_TIDAK_PASTI,
+  MESEJ_RALAT_UMUM,
+  isRalatTimeoutDb,
+} from "@/lib/mjkd/ralat-db";
 import { perkaraUntukSekolah } from "@/lib/mjkd/sasaran";
 import { sahkanMaklumBalas, type MaklumBalasData } from "@/lib/mjkd/validation";
 
@@ -171,7 +177,13 @@ async function simpanItem(tx: Tx, maklumBalasId: string, data: MaklumBalasData) 
 export async function submitMaklumBalasMjkd(
   payload: MaklumBalasPayload,
 ): Promise<MjkdActionResult> {
-  const siap = await sediakanSimpan(payload);
+  // Fasa 1: bacaan sahaja (belum ada tulisan) — timeout selamat diulang.
+  let siap: Awaited<ReturnType<typeof sediakanSimpan>>;
+  try {
+    siap = await withDbTimeout(sediakanSimpan(payload));
+  } catch (e) {
+    return { ok: false, error: isRalatTimeoutDb(e) ? MESEJ_DB_PERLAHAN : MESEJ_RALAT_UMUM };
+  }
   if (!siap.ok) return { ok: false, error: siap.error };
   const { mesyuarat, school, data, receiptInput } = siap;
 
@@ -179,7 +191,9 @@ export async function submitMaklumBalasMjkd(
     return { ok: false, error: "Maklum balas ditutup." };
   }
 
-  try {
+  // Fasa 2: tulis. Timeout tidak membatalkan transaksi di pelayan — komit mungkin masih berlaku,
+  // jadi pengguna diberitahu status tidak pasti (bukan "cuba semula" semata-mata).
+  const simpan = async (): Promise<MjkdActionResult> => {
     const existing = await getMaklumBalasBySchool(mesyuarat.id, school.code);
     const now = new Date();
 
@@ -233,8 +247,14 @@ export async function submitMaklumBalasMjkd(
     });
     revalidateMjkd(mesyuarat.id);
     return { ok: true, receiptToken: existing.receiptToken, schoolCode: school.code };
+  };
+
+  try {
+    return await withDbTimeout(simpan());
   } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : "Gagal menyimpan maklum balas." };
+    if (isRalatTimeoutDb(e)) return { ok: false, error: MESEJ_PENGHANTARAN_TIDAK_PASTI };
+    // Jangan dedahkan mesej ralat dalaman pangkalan data kepada pengguna awam.
+    return { ok: false, error: MESEJ_RALAT_UMUM };
   }
 }
 
@@ -246,10 +266,23 @@ export async function getPrefillPgbMjkd(
     .trim()
     .toUpperCase()
     .slice(0, 20);
-  const school = kod ? await getSchoolByCode(kod) : null;
-  if (!school) return { nama: "", jawatan: "" };
-  const nama = await getNamaPgb(school.code);
-  return { nama, jawatan: jawatanPgb(kenalJenisSekolah(school.name, school.code), school.name) };
+  if (!kod) return { nama: "", jawatan: "" };
+  try {
+    return await withDbTimeout(
+      (async () => {
+        const school = await getSchoolByCode(kod);
+        if (!school) return { nama: "", jawatan: "" };
+        const nama = await getNamaPgb(school.code);
+        return {
+          nama,
+          jawatan: jawatanPgb(kenalJenisSekolah(school.name, school.code), school.name),
+        };
+      })(),
+    );
+  } catch {
+    // Prefill hanyalah kemudahan — jika DB perlahan, pengguna isi sendiri.
+    return { nama: "", jawatan: "" };
+  }
 }
 
 /* ============================ Admin: maklum balas ============================ */
