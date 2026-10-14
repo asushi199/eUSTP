@@ -19,10 +19,15 @@ function cleanEnv(value: string | undefined): string {
   return v;
 }
 
-async function uploadObject(
+/**
+ * Muat naik satu objek ke bucket awam Supabase Storage dan pulangkan URL awamnya.
+ * `upsert: true` menimpa objek sedia ada pada laluan yang sama (lalai: tidak).
+ */
+export async function uploadPublicStorageObject(
   path: string,
   file: { name: string; type: string; buffer: Buffer },
   errorLabel: string,
+  options: { upsert?: boolean } = {},
 ): Promise<string> {
   const base = cleanEnv(process.env.NEXT_PUBLIC_SUPABASE_URL).replace(/\/$/, "");
   const key = cleanEnv(process.env.SUPABASE_SERVICE_ROLE_KEY);
@@ -43,7 +48,7 @@ async function uploadObject(
     headers: {
       Authorization: `Bearer ${key}`,
       "Content-Type": file.type || "application/octet-stream",
-      "x-upsert": "false",
+      "x-upsert": options.upsert ? "true" : "false",
     },
     body: new Uint8Array(file.buffer),
   });
@@ -72,7 +77,7 @@ export async function uploadRoomPhoto(
   file: { name: string; type: string; buffer: Buffer },
 ): Promise<string> {
   const path = `${pkgId}/${roomSlug}-${Date.now()}.${extOf(file.name)}`;
-  return uploadObject(path, file, "Muat naik gambar bilik");
+  return uploadPublicStorageObject(path, file, "Muat naik gambar bilik");
 }
 
 export async function uploadPkgLogo(
@@ -80,5 +85,5 @@ export async function uploadPkgLogo(
   file: { name: string; type: string; buffer: Buffer },
 ): Promise<string> {
   const path = `${pkgId}/logo-${Date.now()}.${extOf(file.name)}`;
-  return uploadObject(path, file, "Muat naik logo PKG");
+  return uploadPublicStorageObject(path, file, "Muat naik logo PKG");
 }

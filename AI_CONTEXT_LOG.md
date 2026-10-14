@@ -1,5 +1,49 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-10-14 — MJKD: data dijalankan, smoke test, pembetulan penyelia
+
+- DB (dijalankan oleh pengguna): `db:migrate` (0053), `db:seed-mjkd` (Bil.1/2026, 13 perkara; sekolah khusus AEE1032, AEA1111, ABA1015, ABA1008), `db:import-pegawai-ppd -- MJKD/pegawai-ppd.csv` (80 pegawai; tiada IC), `scripts/setup-mjkd-2026-bil2.ts` (Bil.2/2026: 21–22 Okt, Hotel Rosa Passadena Cameron Highland, sebelum = Bil.1; maklum balas Bil.1 dibuka, tutup 19 Okt). RLS disahkan pada 7 jadual.
+- Skrip baharu: `scripts/upload-minit-mjkd.ts` (muat naik PDF minit ke Supabase + simpan URL; `--dry-run`), `scripts/setup-mjkd-2026-bil2.ts`.
+- Minit Bil.1 BELUM dimuat naik: `SUPABASE_SERVICE_ROLE_KEY` dalam `.env.local` tempatan ialah kunci baharu `sb_secret_…` (pembantu storan hanya terima JWT `eyJ…`). Keputusan: muat naik melalui admin (tab Tetapan) selepas deploy (env Vercel).
+- Pembetulan penyelia: (1) `cariPegawaiMjkd` hanya bila kehadiran mana-mana mesyuarat dibuka; (2) kiraan ringkasan/analisis hanya sekolah yang perkara terpakai (x ≤ y); (3) "Mesyuarat sebelum" mesti lebih awal (`lebihAwal` dalam `lib/mjkd/hari.ts`) — ditapis pada pilihan Tetapan/cipta dan disemak di pelayan.
+- Smoke (dev, DB sebenar, tiada data ujian ditulis): borang awam (sasaran per jenis sekolah: SK 8, SK Seri Selamat 9, SJKC 9, SMK Raja Shahriman 11, KV 10 + jawatan "Pengarah"), pengesahan kosong ditolak, mudah alih 375px tanpa tatal mendatar, kehadiran/bahan "belum dibuka", admin semua tab, pembentangan Bil.2 (minit + analisis Bil.1, kehadiran Bil.2), senarai pegawai. Ujian 93 lulus, `npm run build` lulus.
+
+## 2026-10-14 — MJKD Fasa 4: arahan pimpinan (mesyuarat 21–22 Okt)
+
+- **Migrasi 0053_mjkd dipinda di tempat** (belum pernah dijalankan): `mjkd_mesyuarat` + `tarikh_tamat`, `mesyuarat_sebelum_id` (FK sendiri, set null), `bahan_dibuka`, `kod_muat_naik_bahan`; `mjkd_kehadiran` + `tarikh` (unik: mesyuarat, tarikh, nama_kunci, organisasi); jadual baharu `mjkd_bahan`. RLS ada pada kesemua 7 jadual MJKD; `db:generate` = tiada perubahan. Seed Bil.1/2026 tidak perlu diubah (medan baharu lalai null/false).
+- Pembantu tulen: `lib/mjkd/hari.ts` (`hariMesyuarat`, label hari, pilihan tarikh pembentangan, `mesyuaratSebelumLalai`), `bahan.ts` (sahkan pautan https, `terbitkanUrlEmbed` Google Slides/Docs/Sheets/Drive, URL pratonton/muat turun Drive, `kumpulBahan`), `bahan-kod.ts` (kod XXXX-XXXX, `semakKodMuatNaik` timingSafeEqual), kehadiran per hari (`tapisRekodHari`, `tafsirHariDipilih`), `pembentangan.ts` (`binaAnalisis`, grid cip, slaid bahan/kehadiran). Ujian: `tests/mjkd/hari-bahan.test.ts`, `pembentangan.test.ts` dan lain-lain (92 lulus).
+- Kehadiran per hari: rekod menyimpan tarikh KL semasa sahkan; pendua per hari; skrin kejayaan papar tarikh; chip wakil PK Pentadbiran/HEM/Kokurikulum (dari direktori, nama sahaja); admin ada pemilih hari (Hari 1/2/Semua), kiraan dan "belum hadir" mengikut hari, lajur tarikh dalam CSV, tambah manual dengan hari.
+- Bahan MJKD: tindakan `lib/actions/mjkd-bahan.ts`. PDF ≤ 3 MB (semak `%PDF-`) dimuat naik melalui `uploadFileViaGas` ke Drive `MJKD/<tahun>-Bil<bil>/Bahan`; GAS memulangkan `drive/<fileId>` — URL pratonton `/file/d/<id>/preview`, muat turun `uc?export=download`; `gas/Code.gs` tidak diubah (perkongsian "sesiapa dengan pautan" best-effort — jika dasar domain menyekat, fail hanya boleh dibuka dalam domain). Padam bahan = padam baris + padam Drive best-effort. Halaman awam `/laporan-mjkd/bahan/muat-naik` (hanya bila `bahan_dibuka` dan kod betul, disemak di pelayan); bahagian "Bahan MJKD" pada `/laporan-mjkd`; tab Bahan admin (suis, kod + pautan boleh disalin, tambah/sunting/padam).
+- Pembentangan 4 tab: Kehadiran (QR + URL pendek + kiraan hari ini, segar 30 s hanya bila tab kelihatan) · Minit (mesyuarat sebelum; PDF dibenam + Muat Turun) · Maklum Balas (jadual Analisis, grid cip sekolah boleh diklik + lapisan jawapan, kemudian jawapan dipilih ikut susunan) · Bahan (indeks hari -> sektor, paparan benam/tab baharu). Jadual Analisis juga di atas tab Maklum Balas admin. Mesyuarat sebelum boleh ditetapkan semasa cipta/Tetapan (lalai: terkini sebelum).
+- Disahkan: typecheck, eslint, ujian mjkd + admin, `npm run build`. Belum dismoke dalam pelayar (jadual belum wujud di DB).
+
+## 2026-10-14 — MJKD Fasa 3: mod pembentangan
+
+- `/admin/mjkd/[id]/pembentangan` (`requireKandunganAccess`): lapisan skrin penuh untuk projektor (teks badan ≥ 28px pada 1920px, kontras tinggi, 1280–1920 lebar), butang "Skrin penuh" (Fullscreen API, try/catch) dan "Keluar". Kekunci: ← → (juga PageUp/PageDown/Space) antara slaid, 1/2/3 tukar tab, Esc keluar; penunjuk "Slaid x / y". Pautan menonjol "Mod Pembentangan" pada `/admin/mjkd/[id]`.
+- Logik tulen `lib/mjkd/pembentangan.ts` (`binaSlaidPembentangan`, diuji `tests/mjkd/pembentangan.test.ts`): Minit = slaid tajuk (nama mesyuarat, Bil./Tahun, tarikh, tempat, "Buka Minit (PDF)" jika ada) + satu slaid setiap perkara aktif; Maklum Balas = hanya perkara yang ada jawapan dipilih — slaid ringkasan (kiraan status, "x daripada y sekolah telah menghantar", y = sekolah yang perkara terpakai) + satu slaid setiap jawapan dipilih ikut `susunan_bacaan` (seri ikut kod sekolah); pautan bukti dipaparkan sebagai teks; tiada pilihan = slaid kosong yang mesra; Bahan = "Bahan akan ditambah kemudian." (tiada jadual/muat naik).
+- Tiada perubahan skema/migrasi. Disahkan: typecheck, eslint, ujian mjkd + admin, `npm run build`. Belum dismoke dalam pelayar (jadual belum wujud di DB).
+
+## 2026-10-14 — MJKD Fasa 2: kehadiran (QR) + senarai pegawai PPD
+
+- Tiada jadual/migrasi baharu (semua dalam `0053_mjkd.sql`, masih BELUM dijalankan). Tindakan baharu dalam `lib/actions/mjkd-kehadiran.ts`.
+- Awam `/laporan-mjkd/hadir`: mesyuarat terkini dengan `kehadiran_dibuka = true` (jika tiada: "Kehadiran belum dibuka"). Tiga tab, setiap satu berakhir "Sahkan Kehadiran": Sekolah (cari sekolah -> kad PGB -> satu ketik; pautan "Saya wakil sekolah" dengan isi pantas nama PK Pentadbiran), Pegawai PPD, Lain-lain. Rekod = Nama, Jawatan, Organisasi sahaja; hanya nama + jawatan didedahkan (tiada telefon).
+- Pelayan: `sahkanKehadiranMjkd` menolak jika kehadiran tidak dibuka; nama/jawatan PGB dan pegawai diambil di pelayan; indeks unik (mesyuarat, nama_kunci, organisasi) dilanggar = mesej mesra dengan masa rekod sedia ada (bukan ralat). Carian pegawai `cariPegawaiMjkd` di pelayan (min 2 aksara, maks 10, aktif sahaja) — senarai penuh tidak dihantar ke pelayar. localStorage (try/catch) ingat kehadiran terakhir.
+- `jawatanPgb(jenis, nama)`: "Pengarah" bagi nama bermula KOLEJ VOKASIONAL (ujian ditambah); lain-lain tidak berubah.
+- Admin `/admin/mjkd/[id]?tab=kehadiran`: suis buka/tutup, QR (URL mutlak `APP_BASE_URL` + `/laporan-mjkd/hadir`, sandaran origin permintaan) dengan Muat Turun PNG, paparan penuh `/admin/mjkd/[id]/qr` (besar, hitam-putih, teks URL), kiraan, senarai hadir (padam + tambah manual), sekolah belum hadir ikut zon (sekolah sahaja; hadir = ada rekod PGB/WAKIL bagi kod), eksport CSV (`/kehadiran-export`).
+- Admin `/admin/mjkd/pegawai`: senarai/cari/tambah/sunting/aktif-tak aktif (tiada padam; tidak aktif tidak muncul dalam carian awam; tiada IC/nama pengguna).
+- Ujian baharu `tests/mjkd/kehadiran.test.ts`. Disahkan: typecheck, eslint, ujian mjkd + admin (62 lulus), `npm run build`. Belum dismoke dalam pelayar (jadual belum wujud di DB).
+
+## 2026-10-14 — MJKD Fasa 1: skema, logik, seed, maklum balas awam, semakan admin
+
+- Cawangan `feat/mjkd-maklum-balas`. Pelan: `MJKD/PLAN-eUSTP.md` (folder `MJKD/` git-ignored). Corak rujukan: Laporan Akhbar.
+- **Migrasi `drizzle/0053_mjkd.sql` BELUM dijalankan** (penyelia jalankan `npm run db:migrate`). Jadual: `mjkd_mesyuarat`, `mjkd_perkara`, `mjkd_maklum_balas`, `mjkd_maklum_balas_item`, `pegawai_ppd`, `mjkd_kehadiran` (skema penuh untuk Fasa 2 sekali gus) — semua `ENABLE ROW LEVEL SECURITY` tanpa polisi. Fail jurnal/snapshot konsisten (`db:generate` = tiada perubahan).
+- Logik tulen `lib/mjkd/` (diuji `tests/mjkd/*.test.ts`): `jenis-sekolah` (nama diutamakan, kod sandaran, bercanggah/tidak dikenali = ralat; `kenalJenisSekolah` = versi null untuk UI), `sasaran` (`perkaraUntukSekolah`: sekolah_khusus mengatasi sasaran; jenis tidak dikenali hanya dapat SEMUA), `validation` (catatan min 10 aksara kecuali TIDAK_BERKAITAN, bukti http(s)), `nama-kunci`, `jawatan-pgb`, `ringkasan`, `csv`, `pegawai-csv`. Data sebenar 102 sekolah: SK 42, SJKC 24, SJKT 15, SM 21 (SR 81).
+- Awam `/laporan-mjkd` (+ `/berjaya`, `/semak`): minit PDF (Lihat/Muat Turun), borang maklum balas ikut sekolah, nombor tiket seperti Akhbar. Nama PGB diisi daripada direktori melalui tindakan pelayan `getPrefillPgbMjkd` (nama sahaja — tiada telefon). Ditutup jika suis tutup atau melepasi tarikh tutup (waktu KL).
+- Admin `/admin/mjkd` (+ `/[id]` tab Tetapan/Perkara/Maklum Balas, `/[id]/sekolah/[kod]`, `/[id]/export` CSV). Maklum Balas: kemajuan (belum hantar ikut zon), matriks sekolah × perkara, mengikut perkara dengan "Pilih untuk dibaca" + susunan. Kad ditambah di `/admin/pelaporan`, `ADMIN_PAPAN_NESTED_PATHS` (+ ujian), `MODULES`/`LAPORAN_SECTIONS` (aksen #0E7490).
+- Muat naik minit: `uploadPublicStorageObject` (eksport baharu dalam `lib/tempahan/room-photos.ts`, pilihan `upsert`; pemanggil lama tidak berubah). PDF sahaja (semak "%PDF-"), ≤ 8 MB, laluan `mjkd/<tahun>-bil<bil>/minit-<ts>.pdf`.
+- Skrip (JANGAN dijalankan tanpa semakan): `npm run db:seed-mjkd [-- --dry-run]` (Bil.1/2026 + 13 perkara; enggan ganti perkara jika sudah ada maklum balas) dan `npm run db:import-pegawai-ppd -- <csv> [--dry-run]` (header mesti tepat nama,jawatan,sektor; tiada IC/nama pengguna).
+- Disahkan: typecheck, eslint, ujian (mjkd + admin), `npm run build`. Belum dismoke dalam pelayar (jadual belum wujud di DB).
+
 ## 2026-10-13 — Ains: kurangkan bloat `analisis_ains_murid`
 
 - DB 68 MB, Ains ~43 MB. `analisis_ains_murid` 25k baris tetapi 14 MB heap

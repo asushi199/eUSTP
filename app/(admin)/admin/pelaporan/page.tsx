@@ -23,6 +23,11 @@ const CARDS: AdminCard[] = [
     description: "Tinjauan Langganan Akhbar 2026 — termasuk data 2024–2025, semakan PPD & eksport Excel JPN.",
   },
   {
+    href: "/admin/mjkd",
+    title: "Maklum Balas MJKD",
+    description: "Minit mesyuarat, perkara tindakan dan semakan maklum balas PGB bagi MJKD.",
+  },
+  {
     href: "/admin/tebus-buku",
     title: "Tebus Buku",
     description: "Muat naik CSV JPN setiap minggu untuk kemas kini status tebus dan guna.",
