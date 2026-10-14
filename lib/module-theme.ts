@@ -104,6 +104,16 @@ export const MODULES = [
     iconKey: "akhbar" as const,
   },
   {
+    href: "/laporan-mjkd",
+    internalHref: "/laporan-mjkd",
+    external: false,
+    title: "Maklum Balas MJKD",
+    description:
+      "Minit mesyuarat dan maklum balas PGB bagi Mesyuarat Jawatankuasa Kurikulum Daerah.",
+    accent: "#0E7490",
+    iconKey: "laporan" as const,
+  },
+  {
     href: "/laporan/tebus-buku",
     internalHref: "/laporan/tebus-buku",
     external: false,
@@ -184,9 +194,13 @@ export const DIREKTORI_SECTIONS = MODULES.filter((m) =>
 
 /** Sub-modul di bawah hub /laporan — dipapar dalam halaman CoE Reports. */
 export const LAPORAN_SECTIONS = MODULES.filter((m) =>
-  ["/laporan-dpd", "/laporan-pss", "/laporan-akhbar", "/laporan/tebus-buku"].includes(
-    m.internalHref,
-  ),
+  [
+    "/laporan-dpd",
+    "/laporan-pss",
+    "/laporan-akhbar",
+    "/laporan-mjkd",
+    "/laporan/tebus-buku",
+  ].includes(m.internalHref),
 );
 
 /** Sub-modul di bawah hub /tempahan — dipapar dalam halaman CoE Services. */

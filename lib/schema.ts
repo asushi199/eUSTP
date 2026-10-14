@@ -1487,3 +1487,187 @@ export const analisisAinsMuridBulanan = pgTable(
     tempohKodIdx: index("analisis_ains_murid_bulanan_tempoh_kod_idx").on(t.tahun, t.bulan, t.kod),
   }),
 );
+
+/* ==================== Modul MJKD (minit, maklum balas, kehadiran) ==================== */
+
+/**
+ * Mesyuarat Jawatankuasa Kurikulum Daerah. Setiap mesyuarat ialah satu baris
+ * (Bil./tahun); tiada apa-apa tentang mesyuarat tertentu dikod keras dalam komponen.
+ */
+export const mjkdMesyuarat = pgTable(
+  "mjkd_mesyuarat",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    bil: integer("bil").notNull(),
+    tahun: integer("tahun").notNull(),
+    tarikh: date("tarikh").notNull(),
+    /** Hari terakhir mesyuarat berbilang hari (null = satu hari). */
+    tarikhTamat: date("tarikh_tamat"),
+    /** Mesyuarat sebelumnya — minit & maklum balasnya dipaparkan semasa pembentangan mesyuarat ini. */
+    mesyuaratSebelumId: uuid("mesyuarat_sebelum_id").references(
+      (): AnyPgColumn => mjkdMesyuarat.id,
+      { onDelete: "set null" },
+    ),
+    tempat: text("tempat").notNull().default(""),
+    minitUrl: text("minit_url").notNull().default(""),
+    minitStoragePath: text("minit_storage_path").notNull().default(""),
+    maklumBalasDibuka: boolean("maklum_balas_dibuka").notNull().default(false),
+    tarikhTutupMaklumBalas: date("tarikh_tutup_maklum_balas"),
+    kehadiranDibuka: boolean("kehadiran_dibuka").notNull().default(false),
+    bahanDibuka: boolean("bahan_dibuka").notNull().default(false),
+    /** Kod kongsi muat naik bahan (diberi kepada pembentang). */
+    kodMuatNaikBahan: text("kod_muat_naik_bahan").notNull().default(""),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    tahunBilUq: uniqueIndex("mjkd_mesyuarat_tahun_bil_uq").on(t.tahun, t.bil),
+  }),
+);
+
+/** Perkara tindakan daripada minit. `sasaran`: SEMUA | SR | SM | SJK; `sekolahKhusus` tidak kosong = override. */
+export const mjkdPerkara = pgTable(
+  "mjkd_perkara",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    mesyuaratId: uuid("mesyuarat_id")
+      .notNull()
+      .references(() => mjkdMesyuarat.id, { onDelete: "cascade" }),
+    para: text("para").notNull(),
+    mukaSurat: text("muka_surat").notNull().default(""),
+    perkara: text("perkara").notNull(),
+    tindakan: text("tindakan").notNull(),
+    panduan: text("panduan").notNull().default(""),
+    sasaran: text("sasaran").notNull(),
+    sekolahKhusus: text("sekolah_khusus").array().notNull().default([]),
+    sort: integer("sort").notNull().default(0),
+    aktif: boolean("aktif").notNull().default(true),
+  },
+  (t) => ({
+    mesyuaratSortIdx: index("mjkd_perkara_mesyuarat_sort_idx").on(t.mesyuaratId, t.sort),
+  }),
+);
+
+/** Satu maklum balas setiap sekolah setiap mesyuarat. `receiptToken` = nombor tiket kemaskini. */
+export const mjkdMaklumBalas = pgTable(
+  "mjkd_maklum_balas",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    mesyuaratId: uuid("mesyuarat_id")
+      .notNull()
+      .references(() => mjkdMesyuarat.id, { onDelete: "cascade" }),
+    schoolCode: text("school_code")
+      .notNull()
+      .references(() => schools.code, { onDelete: "restrict" }),
+    namaPengisi: text("nama_pengisi").notNull(),
+    jawatanPengisi: text("jawatan_pengisi").notNull(),
+    receiptToken: text("receipt_token").notNull(),
+    tarikhHantar: timestamp("tarikh_hantar", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    mesyuaratSekolahUq: uniqueIndex("mjkd_maklum_balas_mesyuarat_sekolah_uq").on(
+      t.mesyuaratId,
+      t.schoolCode,
+    ),
+  }),
+);
+
+/** Jawapan satu sekolah bagi satu perkara. `status`: SELESAI | DALAM_PELAKSANAAN | BELUM | TIDAK_BERKAITAN. */
+export const mjkdMaklumBalasItem = pgTable(
+  "mjkd_maklum_balas_item",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    maklumBalasId: uuid("maklum_balas_id")
+      .notNull()
+      .references(() => mjkdMaklumBalas.id, { onDelete: "cascade" }),
+    perkaraId: uuid("perkara_id")
+      .notNull()
+      .references(() => mjkdPerkara.id, { onDelete: "cascade" }),
+    status: text("status").notNull(),
+    catatan: text("catatan").notNull().default(""),
+    pautanBukti: text("pautan_bukti").notNull().default(""),
+    /** Admin: dipilih untuk dibaca dalam mesyuarat. */
+    dipilih: boolean("dipilih").notNull().default(false),
+    susunanBacaan: integer("susunan_bacaan"),
+  },
+  (t) => ({
+    maklumBalasPerkaraUq: uniqueIndex("mjkd_maklum_balas_item_mb_perkara_uq").on(
+      t.maklumBalasId,
+      t.perkaraId,
+    ),
+    perkaraIdx: index("mjkd_maklum_balas_item_perkara_idx").on(t.perkaraId),
+  }),
+);
+
+/** Pegawai PPD untuk kehadiran (BUKAN jadual `users`/`pegawai` USTP). Tiada IC/nama pengguna. */
+export const pegawaiPpd = pgTable("pegawai_ppd", {
+  id: serial("id").primaryKey(),
+  nama: text("nama").notNull(),
+  jawatan: text("jawatan").notNull().default(""),
+  sektor: text("sektor").notNull().default(""),
+  aktif: boolean("aktif").notNull().default(true),
+  sort: integer("sort").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+/** Kehadiran mesyuarat. `jenis`: PGB | WAKIL | PEGAWAI | LAIN. `namaKunci` = nama dinormalkan untuk elak duplikasi. */
+export const mjkdKehadiran = pgTable(
+  "mjkd_kehadiran",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    mesyuaratId: uuid("mesyuarat_id")
+      .notNull()
+      .references(() => mjkdMesyuarat.id, { onDelete: "cascade" }),
+    jenis: text("jenis").notNull(),
+    /** Tarikh (waktu KL) semasa mengesahkan kehadiran — satu rekod setiap orang setiap hari. */
+    tarikh: date("tarikh").notNull(),
+    nama: text("nama").notNull(),
+    namaKunci: text("nama_kunci").notNull(),
+    jawatan: text("jawatan").notNull(),
+    organisasi: text("organisasi").notNull(),
+    schoolCode: text("school_code").references(() => schools.code, { onDelete: "set null" }),
+    pegawaiPpdId: integer("pegawai_ppd_id").references(() => pegawaiPpd.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    mesyuaratNamaOrgUq: uniqueIndex("mjkd_kehadiran_mesyuarat_hari_nama_org_uq").on(
+      t.mesyuaratId,
+      t.tarikh,
+      t.namaKunci,
+      t.organisasi,
+    ),
+    schoolIdx: index("mjkd_kehadiran_school_idx").on(t.schoolCode),
+  }),
+);
+
+/**
+ * Bahan pembentangan MJKD (pautan atau PDF ≤ 3 MB di Google Drive). `hari` = tarikh (YYYY-MM-DD)
+ * pembentangan; "21 & 22" = kedua-dua tarikh. `dimuatNaikOleh`: 'awam' atau e-mel admin.
+ */
+export const mjkdBahan = pgTable(
+  "mjkd_bahan",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    mesyuaratId: uuid("mesyuarat_id")
+      .notNull()
+      .references(() => mjkdMesyuarat.id, { onDelete: "cascade" }),
+    sektorUnit: text("sektor_unit").notNull(),
+    tajuk: text("tajuk").notNull(),
+    namaPembentang: text("nama_pembentang").notNull(),
+    hari: text("hari").array().notNull().default([]),
+    jenis: text("jenis").notNull(),
+    url: text("url").notNull(),
+    storagePath: text("storage_path").notNull().default(""),
+    dimuatNaikOleh: text("dimuat_naik_oleh").notNull().default(""),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    mesyuaratIdx: index("mjkd_bahan_mesyuarat_idx").on(t.mesyuaratId),
+  }),
+);

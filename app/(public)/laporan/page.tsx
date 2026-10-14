@@ -18,6 +18,7 @@ const SECTION_TAG: Record<string, string> = {
   "/laporan-dpd": "Pendigitalan",
   "/laporan-pss": "Pusat Sumber Sekolah",
   "/laporan-akhbar": "Langganan Akhbar 2026",
+  "/laporan-mjkd": "Mesyuarat Kurikulum",
   "/laporan/tebus-buku": "Baucar Buku",
 };
 
