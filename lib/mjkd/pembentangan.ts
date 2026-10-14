@@ -47,6 +47,8 @@ export type ItemPembentangan = {
   status: string;
   catatan: string;
   pautanBukti: string;
+  /** Path Drive gambar bukti (pilihan; data lama tiada). */
+  fotoBukti?: string[];
   dipilih: boolean;
   susunanBacaan: number | null;
 };
@@ -137,6 +139,7 @@ export type ChipSekolah = {
   susunan: number | null;
   catatan: string;
   pautanBukti: string;
+  fotoBukti: string[];
   namaPengisi: string;
   jawatanPengisi: string;
 };
@@ -164,6 +167,7 @@ export type SlaidJawapan = {
   catatan: string;
   /** Teks sahaja — bukan pautan hidup. */
   pautanBukti: string;
+  fotoBukti: string[];
   /** Kedudukan dalam bacaan perkara ini (bermula 1) dan jumlah dipilih. */
   nombor: number;
   daripada: number;
@@ -380,6 +384,7 @@ export function binaSlaidMaklumBalas(
         susunan: it.susunanBacaan,
         catatan: it.catatan,
         pautanBukti: it.pautanBukti,
+        fotoBukti: it.fotoBukti ?? [],
         namaPengisi: mb.namaPengisi ?? "",
         jawatanPengisi: mb.jawatanPengisi ?? "",
       }))
@@ -408,6 +413,7 @@ export function binaSlaidMaklumBalas(
         status: it.status,
         catatan: it.catatan,
         pautanBukti: it.pautanBukti,
+        fotoBukti: it.fotoBukti ?? [],
         nombor: i + 1,
         daripada: dipilih.length,
       });
@@ -433,7 +439,7 @@ export function binaSlaidMaklumBalas(
  */
 export function binaSlaidBahan(bahan: readonly BahanPembentangan[] = []): SlaidBahan[] {
   if (bahan.length === 0) {
-    return [{ jenis: "kosong", kunci: "bahan", tajuk: "Bahan MJKD", mesej: MESEJ_BAHAN }];
+    return [{ jenis: "kosong", kunci: "bahan", tajuk: "Bahan MJKD 2026", mesej: MESEJ_BAHAN }];
   }
   const kumpulan = kumpulBahan(bahan);
   // Urutan unik bahan = susunan pertama kali muncul dalam senarai terkumpul.
@@ -517,7 +523,7 @@ export function binaSlaidKehadiran(input: {
       jenis: "kehadiran",
       kunci: "kehadiran",
       mesyuaratId: input.mesyuaratId,
-      tajuk: `Kehadiran MJKD ${labelMesyuarat(input.mesyuarat)}`,
+      tajuk: "Kehadiran MJKD 2026",
       hariLabel: labelHariPendek(input.hariIni),
       url: input.url,
       urlPendek: input.url.replace(/^https?:\/\//, ""),

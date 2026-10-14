@@ -82,6 +82,7 @@ export async function binaCsvMaklumBalasMesyuarat(mesyuaratId: string): Promise<
         status: it.status,
         catatan: it.catatan,
         pautanBukti: it.pautanBukti,
+        fotoBukti: it.fotoBukti,
         namaPengisi: mb.namaPengisi,
         jawatanPengisi: mb.jawatanPengisi,
         tarikhHantar: mb.tarikhHantar.toISOString(),

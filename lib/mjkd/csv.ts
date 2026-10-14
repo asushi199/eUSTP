@@ -4,6 +4,7 @@
  */
 import { ainsCsvCell } from "../analisis/ains-csv";
 import { STATUS_MJKD_LABEL, isStatusMjkd } from "./enums";
+import { urlBukaFotoBukti } from "./validation";
 
 export type CsvMaklumBalasBaris = {
   kodSekolah: string;
@@ -16,6 +17,8 @@ export type CsvMaklumBalasBaris = {
   status: string;
   catatan: string;
   pautanBukti: string;
+  /** Path Drive gambar bukti (pilihan). */
+  fotoBukti?: string[];
   namaPengisi: string;
   jawatanPengisi: string;
   tarikhHantar: string;
@@ -36,6 +39,7 @@ export function csvMaklumBalasMjkd(baris: readonly CsvMaklumBalasBaris[]): strin
       "Status",
       "Catatan",
       "Pautan bukti",
+      "Gambar bukti",
       "Nama pengisi",
       "Jawatan pengisi",
       "Tarikh hantar",
@@ -55,6 +59,7 @@ export function csvMaklumBalasMjkd(baris: readonly CsvMaklumBalasBaris[]): strin
       isStatusMjkd(b.status) ? STATUS_MJKD_LABEL[b.status] : b.status,
       b.catatan,
       b.pautanBukti,
+      (b.fotoBukti ?? []).map(urlBukaFotoBukti).join(" "),
       b.namaPengisi,
       b.jawatanPengisi,
       b.tarikhHantar,

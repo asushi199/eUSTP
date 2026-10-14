@@ -1,9 +1,38 @@
 import { z } from "zod";
 import { isStatusMjkd, type StatusMjkd } from "./enums";
 
-export const CATATAN_MIN = 10;
+export const CATATAN_MIN = 30;
 export const CATATAN_MAX = 2000;
 export const PAUTAN_MAX = 500;
+/** Gambar bukti setiap perkara (Google Drive). */
+export const FOTO_BUKTI_MAKS = 3;
+/** Had saiz satu gambar selepas dimampatkan di pelayar. */
+export const FOTO_BUKTI_MAKS_BYTE = 2.5 * 1024 * 1024;
+/** "drive/{fileId}" (rekod sedia ada) atau "drive/{fileId}~{hmac}" (baru dimuat naik). */
+const PATH_FOTO = /^drive\/[A-Za-z0-9_-]{10,}(~[a-f0-9]{32})?$/;
+
+/** Contoh 5W1H (pemegang tempat catatan). */
+export const CONTOH_5W1H =
+  "Contoh — Apa: Taklimat Matrik Pembelajaran kepada ibu bapa Tahun 4. Siapa: GB, PK Kurikulum dan 58 ibu bapa. Bila: 12 Mac 2026. Di mana: Dewan sekolah. Mengapa: Memberi kefahaman bahawa matrik bukan penanda aras kedudukan murid. Bagaimana: Taklimat 30 minit diikuti sesi soal jawab.";
+
+/** Format gambar bukti yang sah (tandatangan disemak di pelayan, `lib/mjkd/foto-token.ts`). */
+export function isPathFotoBukti(v: string): boolean {
+  return PATH_FOTO.test(v);
+}
+
+function idFoto(path: string): string {
+  return encodeURIComponent(path.replace(/^drive\//, "").replace(/~.*$/, ""));
+}
+
+/** URL gambar kecil Drive untuk <img> (lebar `sz` px). Menerima path atau token. */
+export function urlFotoBukti(path: string, sz = 1200): string {
+  return `https://drive.google.com/thumbnail?id=${idFoto(path)}&sz=w${sz}`;
+}
+
+/** Pautan buka fail Drive (saiz penuh). */
+export function urlBukaFotoBukti(path: string): string {
+  return `https://drive.google.com/file/d/${idFoto(path)}/view`;
+}
 
 export type PerkaraRujukan = { id: string; para: string };
 
@@ -12,6 +41,7 @@ const itemSchema = z.object({
   status: z.string(),
   catatan: z.string().max(CATATAN_MAX, "Catatan terlalu panjang."),
   pautanBukti: z.string().max(PAUTAN_MAX, "Pautan bukti terlalu panjang."),
+  fotoBukti: z.array(z.string().max(200)).optional(),
 });
 
 const submissionShape = z.object({
@@ -33,6 +63,7 @@ export type MaklumBalasItemData = {
   status: StatusMjkd;
   catatan: string;
   pautanBukti: string;
+  fotoBukti: string[];
 };
 
 export type MaklumBalasData = {
@@ -60,8 +91,8 @@ export function isPautanHttp(raw: string): boolean {
  * - Nama dan jawatan pengisi wajib.
  * - Setiap perkara yang terpakai (`terpakai`) mesti ada status yang sah; perkara luar
  *   senarai ditolak.
- * - Catatan wajib (min 10 aksara) kecuali status TIDAK_BERKAITAN.
- * - Pautan bukti pilihan, tetapi mesti URL http(s).
+ * - Catatan wajib ikut 5W1H (min 30 aksara) kecuali status TIDAK_BERKAITAN.
+ * - Bukti pilihan: pautan (mesti URL http(s)) dan/atau ≤ 3 gambar Drive.
  */
 export function sahkanMaklumBalas(
   input: unknown,
@@ -95,7 +126,7 @@ export function sahkanMaklumBalas(
     if (it.status !== "TIDAK_BERKAITAN" && catatan.length < CATATAN_MIN) {
       return {
         ok: false,
-        error: `${rujuk}: catatan sekurang-kurangnya ${CATATAN_MIN} aksara diperlukan.`,
+        error: `${rujuk}: catatan (ikut 5W1H) sekurang-kurangnya ${CATATAN_MIN} aksara diperlukan.`,
       };
     }
     const pautanBukti = it.pautanBukti.trim();
@@ -105,7 +136,14 @@ export function sahkanMaklumBalas(
         error: `${rujuk}: pautan bukti mesti bermula dengan http:// atau https://.`,
       };
     }
-    items.push({ perkaraId: p.id, status: it.status, catatan, pautanBukti });
+    const fotoBukti = [...new Set(it.fotoBukti ?? [])];
+    if (fotoBukti.length > FOTO_BUKTI_MAKS) {
+      return { ok: false, error: `${rujuk}: maksimum ${FOTO_BUKTI_MAKS} gambar bukti.` };
+    }
+    if (!fotoBukti.every(isPathFotoBukti)) {
+      return { ok: false, error: `${rujuk}: gambar bukti tidak sah. Sila muat naik semula.` };
+    }
+    items.push({ perkaraId: p.id, status: it.status, catatan, pautanBukti, fotoBukti });
   }
 
   return {

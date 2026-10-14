@@ -1588,6 +1588,8 @@ export const mjkdMaklumBalasItem = pgTable(
     status: text("status").notNull(),
     catatan: text("catatan").notNull().default(""),
     pautanBukti: text("pautan_bukti").notNull().default(""),
+    /** Gambar bukti (maks 3) di Google Drive: storage path "drive/{fileId}". */
+    fotoBukti: text("foto_bukti").array().notNull().default([]),
     /** Admin: dipilih untuk dibaca dalam mesyuarat. */
     dipilih: boolean("dipilih").notNull().default(false),
     susunanBacaan: integer("susunan_bacaan"),

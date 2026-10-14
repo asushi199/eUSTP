@@ -130,27 +130,29 @@ export default function AdminTetapanMjkd({ mesyuarat, mesyuaratLain }: Props) {
             />
             <p className="mt-1 text-xs text-graphite">Kosong = satu hari sahaja.</p>
           </div>
-          <div>
-            <label className="label" htmlFor="tet-sebelum">
-              Mesyuarat sebelum
-            </label>
-            <select
-              id="tet-sebelum"
-              name="mesyuaratSebelumId"
-              className="input"
-              defaultValue={mesyuarat.mesyuaratSebelumId ?? ""}
-            >
-              <option value="">— Tiada (guna mesyuarat ini sendiri) —</option>
-              {mesyuaratLain.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.label}
-                </option>
-              ))}
-            </select>
-            <p className="mt-1 text-xs text-graphite">
-              Minit dan maklum balas mesyuarat ini dipaparkan semasa pembentangan mesyuarat semasa.
-            </p>
-          </div>
+          {mesyuaratLain.length > 0 ? (
+            <div>
+              <label className="label" htmlFor="tet-sebelum">
+                Mesyuarat sebelum
+              </label>
+              <select
+                id="tet-sebelum"
+                name="mesyuaratSebelumId"
+                className="input"
+                defaultValue={mesyuarat.mesyuaratSebelumId ?? ""}
+              >
+                <option value="">— Tiada (guna mesyuarat ini sendiri) —</option>
+                {mesyuaratLain.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-graphite">
+                Minit dan maklum balas mesyuarat ini dipaparkan semasa pembentangan mesyuarat semasa.
+              </p>
+            </div>
+          ) : null}
           <div>
             <label className="label" htmlFor="tet-tempat">
               Tempat

@@ -1,5 +1,15 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-10-14 — MJKD 2026: satu acara, 5W1H, gambar bukti, pratonton Canva, halaman acara
+
+- Arahan pimpinan: tiada lagi pemisahan Bil.1/Bil.2 (pengumpulan maklum balas Bil.2 bukan lagi tugas unit ini). **Satu rekod** = MJKD 2026 (21–22 Okt, Cameron Highland): minit + 13 perkara Bil.1 dipindah ke rekod Bil.2; label minit dalam `lib/mjkd/acara.ts` (`MINIT_RUJUKAN`). Skrip `scripts/gabung-mjkd-2026.ts [--dry-run]` (pindah perkara/minit, buka maklum balas tutup 19 Okt, padam SEMUA data ujian maklum balas/kehadiran/bahan + fail Drive, padam Bil.1). Dry-run disahkan (1 maklum balas, 1 bahan ujian, 13 perkara); **larian sebenar dijalankan oleh pengguna**. `scripts/setup-mjkd-2026-bil2.ts` kini usang.
+- Migrasi `0054_mjkd_foto_bukti` (DIJALANKAN): `mjkd_maklum_balas_item.foto_bukti text[]` (RLS jadual sedia ada).
+- Paparan: kad CoE Reports + semua tajuk = **MJKD 2026**. `/admin/mjkd` terus ke rekod tunggal (redirect jika satu); pilihan "Mesyuarat sebelum" disorok bila tiada. Mod pembentangan guna rekod sendiri + `MINIT_RUJUKAN` (data lama `mesyuarat_sebelum_id` masih disokong); jawapan dipapar dengan gambar bukti.
+- Maklum balas: catatan wajib 5W1H (nota + contoh pemegang tempat `CONTOH_5W1H`), minimum **30** aksara (pembilang). Bukti = pautan dan/atau ≤ 3 gambar (dimampat di pelayar → `muatNaikFotoBuktiMjkd` → Drive `MJKD/<tahun>/Bukti/<kod>`; semak bait JPG/PNG/WEBP, ≤ 2.5 MB; awam hanya bila dibuka, admin bila-bila). Token `drive/<id>~<hmac>` (`lib/mjkd/foto-token.ts`, AUTH_SECRET) — path tanpa tandatangan hanya diterima jika sudah dalam rekod sekolah itu, supaya borang awam tidak boleh merujuk/memadam fail Drive lain. Gambar dibuang selepas kemas kini dipadam dari Drive (best-effort, di luar had masa DB). CSV + panel admin papar gambar. Diuji hujung-ke-hujung: muat naik GAS → thumbnail 200 image/jpeg → padam (folder kosong `MJKD/2026/Bukti/_UJIAN` tertinggal di Drive).
+- Bahan: `terbitkanUrlEmbed` menyokong Canva (`/design/{id}[/{token}]/(view|edit)` → `/view?embed`); pautan pendek canva.link dihuraikan di pelayan semasa simpan. Arahan perkongsian Canva pada borang muat naik. `BahanPratonton` (≥1280px: senarai + panel pratonton melekit; telefon: pratonton di bawah item) + "Skrin penuh" (tab baharu). `BahanAwam` dibuang. **Belum disahkan dengan reka bentuk Canva awam sebenar.**
+- Halaman `/laporan-mjkd` direka semula sebagai halaman acara (pengecualian reka bentuk dicatat dalam CLAUDE.md): hero gelap + logo KPM/PPD (`public/mjkd/logo-kpm-ppd-manjung.png`), kiraan hari, navigasi 01–04 (Kehadiran, Minit dengan PDF terbenam, Maklum Balas, Bahan), lebar max-w-7xl. `maxDuration = 60` pada halaman awam + admin sekolah (muat naik GAS).
+- Disahkan: typecheck, eslint, ujian mjkd + admin (86), `npm run build`, smoke pelayar 1440/1024/375 (data pra-gabung).
+
 ## 2026-10-15 — MJKD: `withDbTimeout` pada laluan awam (instance "beracun")
 
 - Gejala produksi: 300 s "Vercel Runtime Timeout Error" berselang pada banyak laluan (termasuk /admin/mjkd dan /tempahan) — isu soket pooler mati yang sama seperti 2026-07-05/07-29/09-21. QR kehadiran tidak boleh berputar berminit-minit.

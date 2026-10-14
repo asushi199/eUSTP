@@ -14,7 +14,15 @@ import {
 } from "@/lib/schema";
 import { requireKandunganAccess } from "@/lib/rbac";
 import { uploadPublicStorageObject } from "@/lib/tempahan/room-photos";
+import {
+  deleteLaporanPhotoViaGas,
+  isGasStorageConfigured,
+  uploadFileViaGas,
+} from "@/lib/gas-upload";
+import { auth } from "@/lib/auth";
+import { canManageKandungan } from "@/lib/roles";
 import { isSasaranMjkd, maklumBalasTerbuka } from "@/lib/mjkd/enums";
+import { selesaikanFotoBukti, tandatanganFoto } from "@/lib/mjkd/foto-token";
 import { lebihAwal } from "@/lib/mjkd/hari";
 import { jawatanPgb } from "@/lib/mjkd/jawatan-pgb";
 import { kenalJenisSekolah } from "@/lib/mjkd/jenis-sekolah";
@@ -32,7 +40,12 @@ import {
   isRalatTimeoutDb,
 } from "@/lib/mjkd/ralat-db";
 import { perkaraUntukSekolah } from "@/lib/mjkd/sasaran";
-import { sahkanMaklumBalas, type MaklumBalasData } from "@/lib/mjkd/validation";
+import {
+  FOTO_BUKTI_MAKS_BYTE,
+  sahkanMaklumBalas,
+  urlFotoBukti,
+  type MaklumBalasData,
+} from "@/lib/mjkd/validation";
 
 export type MjkdActionResult = {
   ok: boolean;
@@ -92,6 +105,7 @@ const payloadSchema = z.object({
         status: z.string().max(40),
         catatan: z.string().max(4000),
         pautanBukti: z.string().max(1000),
+        fotoBukti: z.array(z.string().max(200)).max(10).optional(),
       }),
     )
     .max(200),
@@ -161,6 +175,7 @@ async function simpanItem(tx: Tx, maklumBalasId: string, data: MaklumBalasData) 
         status: it.status,
         catatan: it.catatan,
         pautanBukti: it.pautanBukti,
+        fotoBukti: it.fotoBukti,
       })),
     )
     .onConflictDoUpdate({
@@ -169,8 +184,41 @@ async function simpanItem(tx: Tx, maklumBalasId: string, data: MaklumBalasData) 
         status: sql`excluded.status`,
         catatan: sql`excluded.catatan`,
         pautanBukti: sql`excluded.pautan_bukti`,
+        fotoBukti: sql`excluded.foto_bukti`,
       },
     });
+}
+
+/** Tukar token gambar kepada path Drive yang dipercayai; null jika ada gambar tidak sah. */
+function selesaikanData(
+  data: MaklumBalasData,
+  lama: { items: { fotoBukti: string[] }[] } | null,
+): MaklumBalasData | null {
+  const sediaAda = new Set((lama?.items ?? []).flatMap((it) => it.fotoBukti));
+  const items: MaklumBalasData["items"] = [];
+  for (const it of data.items) {
+    const fotoBukti = selesaikanFotoBukti(it.fotoBukti, sediaAda);
+    if (!fotoBukti) return null;
+    items.push({ ...it, fotoBukti });
+  }
+  return { ...data, items };
+}
+
+const MESEJ_FOTO_TIDAK_SAH = "Gambar bukti tidak sah. Sila buang dan muat naik semula gambar.";
+
+/** Gambar bukti lama yang tidak lagi dirujuk selepas kemas kini. */
+function fotoDibuang(
+  lama: { items: { fotoBukti: string[] }[] } | null,
+  baharu: MaklumBalasData,
+): string[] {
+  const kekal = new Set(baharu.items.flatMap((it) => it.fotoBukti));
+  return (lama?.items ?? []).flatMap((it) => it.fotoBukti).filter((p) => !kekal.has(p));
+}
+
+/** Buang fail Drive yatim (best-effort; tidak menghalang respons). */
+async function buangFotoDrive(paths: string[]) {
+  if (paths.length === 0) return;
+  await Promise.all(paths.map((p) => deleteLaporanPhotoViaGas(p).catch(() => false)));
 }
 
 /** Hantar atau kemas kini maklum balas (awam). Kemas kini wajib nombor tiket; ditolak bila ditutup. */
@@ -185,17 +233,28 @@ export async function submitMaklumBalasMjkd(
     return { ok: false, error: isRalatTimeoutDb(e) ? MESEJ_DB_PERLAHAN : MESEJ_RALAT_UMUM };
   }
   if (!siap.ok) return { ok: false, error: siap.error };
-  const { mesyuarat, school, data, receiptInput } = siap;
+  const { mesyuarat, school, receiptInput } = siap;
 
   if (!maklumBalasTerbuka(mesyuarat)) {
     return { ok: false, error: "Maklum balas ditutup." };
   }
+
+  // Gambar lama yang dibuang dipadam dari Drive SELEPAS komit (di luar had masa DB).
+  let fotoUntukDibuang: string[] = [];
 
   // Fasa 2: tulis. Timeout tidak membatalkan transaksi di pelayan — komit mungkin masih berlaku,
   // jadi pengguna diberitahu status tidak pasti (bukan "cuba semula" semata-mata).
   const simpan = async (): Promise<MjkdActionResult> => {
     const existing = await getMaklumBalasBySchool(mesyuarat.id, school.code);
     const now = new Date();
+    if (existing && (!receiptInput || receiptInput !== existing.receiptToken.toUpperCase())) {
+      return {
+        ok: false,
+        error: "Sekolah ini sudah menghantar. Sila masukkan nombor tiket untuk mengemaskini.",
+      };
+    }
+    const data = selesaikanData(siap.data, existing);
+    if (!data) return { ok: false, error: MESEJ_FOTO_TIDAK_SAH };
 
     if (!existing) {
       const token = newReceiptToken();
@@ -226,13 +285,6 @@ export async function submitMaklumBalasMjkd(
       return { ok: true, receiptToken: token, schoolCode: school.code };
     }
 
-    if (!receiptInput || receiptInput !== existing.receiptToken.toUpperCase()) {
-      return {
-        ok: false,
-        error: "Sekolah ini sudah menghantar. Sila masukkan nombor tiket untuk mengemaskini.",
-      };
-    }
-
     await db.transaction(async (tx) => {
       await tx
         .update(mjkdMaklumBalas)
@@ -245,16 +297,93 @@ export async function submitMaklumBalasMjkd(
         .where(eq(mjkdMaklumBalas.id, existing.id));
       await simpanItem(tx, existing.id, data);
     });
+    fotoUntukDibuang = fotoDibuang(existing, data);
     revalidateMjkd(mesyuarat.id);
     return { ok: true, receiptToken: existing.receiptToken, schoolCode: school.code };
   };
 
   try {
-    return await withDbTimeout(simpan());
+    const hasil = await withDbTimeout(simpan());
+    await buangFotoDrive(fotoUntukDibuang);
+    return hasil;
   } catch (e) {
     if (isRalatTimeoutDb(e)) return { ok: false, error: MESEJ_PENGHANTARAN_TIDAK_PASTI };
     // Jangan dedahkan mesej ralat dalaman pangkalan data kepada pengguna awam.
     return { ok: false, error: MESEJ_RALAT_UMUM };
+  }
+}
+
+/** Jenis gambar sebenar daripada bait permulaan (MIME/nama fail boleh dipalsukan). */
+function jenisGambar(b: Buffer): "jpg" | "png" | "webp" | null {
+  if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return "jpg";
+  if (b.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))) return "png";
+  if (
+    b.subarray(0, 4).toString("latin1") === "RIFF" &&
+    b.subarray(8, 12).toString("latin1") === "WEBP"
+  ) {
+    return "webp";
+  }
+  return null;
+}
+
+async function bolehUrusKandungan(): Promise<boolean> {
+  try {
+    const u = (await auth())?.user;
+    return Boolean(u && u.authKind !== "moe-dl" && canManageKandungan(u.peranan));
+  } catch {
+    return false;
+  }
+}
+
+export type MuatNaikFotoResult =
+  | { ok: true; token: string; url: string }
+  | { ok: false; error: string };
+
+/**
+ * Muat naik SATU gambar bukti (sudah dimampatkan di pelayar) ke Google Drive
+ * `MJKD/<tahun>/Bukti/<kod sekolah>`. Awam: hanya bila maklum balas dibuka; admin: bila-bila.
+ * Memulangkan token bertandatangan yang mesti dihantar bersama maklum balas.
+ */
+export async function muatNaikFotoBuktiMjkd(formData: FormData): Promise<MuatNaikFotoResult> {
+  const fail = formData.get("fail");
+  if (!(fail instanceof File) || fail.size === 0) return { ok: false, error: "Sila pilih gambar." };
+  if (fail.size > FOTO_BUKTI_MAKS_BYTE) {
+    return { ok: false, error: "Gambar terlalu besar (maks 2.5 MB selepas dimampatkan)." };
+  }
+  if (!isGasStorageConfigured()) {
+    return { ok: false, error: "Storan gambar belum dikonfigurasi. Sila guna pautan bukti." };
+  }
+
+  let konteks: { tahun: number; kod: string } | null;
+  try {
+    konteks = await withDbTimeout(
+      (async () => {
+        const mesyuarat = await getMesyuarat(textField(formData.get("mesyuaratId"), 64));
+        if (!mesyuarat) return null;
+        if (!maklumBalasTerbuka(mesyuarat) && !(await bolehUrusKandungan())) return null;
+        const kod = textField(formData.get("schoolCode"), 20).toUpperCase();
+        const school = await getSchoolByCode(kod);
+        return school ? { tahun: mesyuarat.tahun, kod: school.code } : null;
+      })(),
+    );
+  } catch (e) {
+    return { ok: false, error: isRalatTimeoutDb(e) ? MESEJ_DB_PERLAHAN : MESEJ_RALAT_UMUM };
+  }
+  if (!konteks) return { ok: false, error: "Maklum balas ditutup atau sekolah tidak sah." };
+
+  const buffer = Buffer.from(await fail.arrayBuffer());
+  const jenis = jenisGambar(buffer);
+  if (!jenis) return { ok: false, error: "Hanya gambar JPG, PNG atau WEBP dibenarkan." };
+
+  try {
+    const fileName = `${konteks.kod}_${randomBytes(6).toString("hex")}.${jenis}`;
+    const { path } = await uploadFileViaGas(
+      { name: fileName, type: jenis === "jpg" ? "image/jpeg" : `image/${jenis}`, buffer },
+      { fileName, subPath: ["MJKD", String(konteks.tahun), "Bukti", konteks.kod] },
+    );
+    return { ok: true, token: tandatanganFoto(path), url: urlFotoBukti(path, 400) };
+  } catch {
+    return { ok: false, error: "Gagal memuat naik gambar. Sila cuba lagi." };
   }
 }
 
@@ -294,11 +423,13 @@ export async function adminSimpanMaklumBalasMjkd(
   await requireKandunganAccess();
   const siap = await sediakanSimpan(payload);
   if (!siap.ok) return { ok: false, error: siap.error };
-  const { mesyuarat, school, data } = siap;
+  const { mesyuarat, school } = siap;
 
   try {
     const existing = await getMaklumBalasBySchool(mesyuarat.id, school.code);
     const now = new Date();
+    const data = selesaikanData(siap.data, existing);
+    if (!data) return { ok: false, error: MESEJ_FOTO_TIDAK_SAH };
     let token = existing?.receiptToken ?? "";
 
     await db.transaction(async (tx) => {
@@ -328,6 +459,7 @@ export async function adminSimpanMaklumBalasMjkd(
         await simpanItem(tx, existing.id, data);
       }
     });
+    await buangFotoDrive(fotoDibuang(existing, data));
     revalidateMjkd(mesyuarat.id);
     return { ok: true, receiptToken: token, schoolCode: school.code };
   } catch (e) {

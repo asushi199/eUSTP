@@ -379,6 +379,13 @@
       "when": 1791940546446,
       "tag": "0053_mjkd",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1791955734881,
+      "tag": "0054_mjkd_foto_bukti",
+      "breakpoints": true
     }
   ]
 }

@@ -14,8 +14,10 @@ import {
 import {
   BAHAN_PDF_MAKS_BYTE,
   idDriveDariPath,
+  isPautanPendekCanva,
   sahkanBahanInput,
   sahkanPautanBahan,
+  terbitkanUrlEmbed,
   urlPratontonDrive,
   type JenisBahan,
 } from "@/lib/mjkd/bahan";
@@ -28,6 +30,30 @@ import {
   MESEJ_RALAT_UMUM,
   isRalatTimeoutDb,
 } from "@/lib/mjkd/ralat-db";
+
+/**
+ * Pautan pendek Canva (canva.link / canva.com/link) -> URL reka bentuk penuh supaya boleh dibenam.
+ * Ikut redirect secara manual (maks 4 lompatan, 5 s); gagal = kekalkan pautan asal.
+ */
+async function huraiPautanPendek(url: string): Promise<string> {
+  let semasa = url;
+  try {
+    for (let i = 0; i < 4; i += 1) {
+      const res = await fetch(semasa, {
+        method: "GET",
+        redirect: "manual",
+        signal: AbortSignal.timeout(5000),
+      });
+      const lokasi = res.headers.get("location");
+      if (!lokasi || res.status < 300 || res.status >= 400) break;
+      semasa = new URL(lokasi, semasa).toString();
+      if (terbitkanUrlEmbed(semasa)) return semasa;
+    }
+  } catch {
+    /* rangkaian gagal — guna pautan asal */
+  }
+  return terbitkanUrlEmbed(semasa) ? semasa : url;
+}
 
 export type BahanActionResult = { ok: boolean; error?: string; kod?: string };
 
@@ -104,9 +130,10 @@ async function sediakanBahan(
   if (jenisRaw === "PAUTAN") {
     const pautan = sahkanPautanBahan(textField(formData.get("url"), 1200));
     if (!pautan.ok) return { ok: false, error: pautan.error };
+    const url = isPautanPendekCanva(pautan.url) ? await huraiPautanPendek(pautan.url) : pautan.url;
     return {
       ok: true,
-      data: { ...sah.data, jenis: "PAUTAN", url: pautan.url, storagePath: "" },
+      data: { ...sah.data, jenis: "PAUTAN", url, storagePath: "" },
     };
   }
   if (jenisRaw !== "PDF") return { ok: false, error: "Sila pilih jenis bahan (Pautan atau Fail PDF)." };

@@ -7,6 +7,7 @@ import {
   sahkanBahanInput,
   sahkanPautanBahan,
   sektorBolehBaca,
+  isPautanPendekCanva,
   terbitkanUrlEmbed,
   urlEmbedBahan,
   urlMuatTurunBahan,
@@ -167,8 +168,28 @@ test("terbitkanUrlEmbed: Google Slides/Docs/Sheets/Drive", () => {
   );
 });
 
+test("terbitkanUrlEmbed: Canva (view/edit, dengan atau tanpa token) -> view?embed", () => {
+  assert.equal(
+    terbitkanUrlEmbed("https://www.canva.com/design/DAGQ4Z0kQJk/AbC-123_xyzToken/view?utm_content=x"),
+    "https://www.canva.com/design/DAGQ4Z0kQJk/AbC-123_xyzToken/view?embed",
+  );
+  assert.equal(
+    terbitkanUrlEmbed("https://www.canva.com/design/DAGQ4Z0kQJk/edit"),
+    "https://www.canva.com/design/DAGQ4Z0kQJk/view?embed",
+  );
+  assert.equal(
+    terbitkanUrlEmbed("https://canva.com/design/DAGQ4Z0kQJk/view?embed"),
+    "https://www.canva.com/design/DAGQ4Z0kQJk/view?embed",
+  );
+  assert.equal(terbitkanUrlEmbed("https://www.canva.com/templates/abc"), null);
+  assert.equal(terbitkanUrlEmbed("https://www.canva.com.evil.my/design/DAGQ4Z0kQJk/view"), null);
+  assert.equal(isPautanPendekCanva("https://canva.link/abc123"), true);
+  assert.equal(isPautanPendekCanva("https://www.canva.com/link/abc"), true);
+  assert.equal(isPautanPendekCanva("https://www.canva.com/design/DAGQ4Z0kQJk/view"), false);
+});
+
 test("terbitkanUrlEmbed: hos lain, folder, http dan tiruan hos tidak dibenam", () => {
-  assert.equal(terbitkanUrlEmbed("https://www.canva.com/design/DAF/view"), null);
+  assert.equal(terbitkanUrlEmbed("https://example.com/design/DAF/view"), null);
   assert.equal(terbitkanUrlEmbed("https://drive.google.com/drive/folders/1AbCdEfGhIjKlMn"), null);
   assert.equal(terbitkanUrlEmbed("http://docs.google.com/presentation/d/1AbCdEfGhIjKlMn/edit"), null);
   assert.equal(

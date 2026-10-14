@@ -3,6 +3,7 @@ import PembentanganMjkd from "@/components/mjkd/PembentanganMjkd";
 import { requireKandunganAccess } from "@/lib/rbac";
 import { muatDataMaklumBalasAdmin } from "@/lib/mjkd/admin-data";
 import { urlKehadiranAwam } from "@/lib/mjkd/base-url";
+import { MINIT_RUJUKAN } from "@/lib/mjkd/acara";
 import { hariIniKl } from "@/lib/mjkd/enums";
 import { binaSlaidPembentangan } from "@/lib/mjkd/pembentangan";
 import { getMesyuarat, listBahan, listKehadiran } from "@/lib/mjkd/queries";
@@ -13,8 +14,9 @@ export const dynamic = "force-dynamic";
 type Props = { params: Promise<{ id: string }> };
 
 /**
- * Mod pembentangan (projektor). Mesyuarat X: Kehadiran (X) · Minit (sebelum) · Maklum Balas
- * (sebelum) · Bahan (X). Jika X tiada mesyuarat sebelum, Minit/Maklum Balas guna X sendiri.
+ * Mod pembentangan (projektor) MJKD 2026 — satu rekod: Kehadiran · Minit · Maklum Balas · Bahan.
+ * Minit/perkara berasal daripada Bil.1/2026 (`MINIT_RUJUKAN`) tetapi disimpan pada rekod ini.
+ * (Data lama dengan `mesyuarat_sebelum_id` masih disokong.)
  */
 export default async function AdminMjkdPembentanganPage({ params }: Props) {
   await requireKandunganAccess();
@@ -22,9 +24,17 @@ export default async function AdminMjkdPembentanganPage({ params }: Props) {
   const mesyuarat = await getMesyuarat(id);
   if (!mesyuarat) notFound();
 
-  const rujukan =
-    (mesyuarat.mesyuaratSebelumId ? await getMesyuarat(mesyuarat.mesyuaratSebelumId) : null) ??
-    mesyuarat;
+  const sebelum = mesyuarat.mesyuaratSebelumId
+    ? await getMesyuarat(mesyuarat.mesyuaratSebelumId)
+    : null;
+  const rujukan = sebelum ?? {
+    id: mesyuarat.id,
+    bil: 1,
+    tahun: mesyuarat.tahun,
+    tarikh: MINIT_RUJUKAN.tarikh,
+    tempat: MINIT_RUJUKAN.tempat,
+    minitUrl: mesyuarat.minitUrl,
+  };
 
   const url = await urlKehadiranAwam();
   const [data, bahan, rekod, qr] = await Promise.all([
@@ -67,6 +77,7 @@ export default async function AdminMjkdPembentanganPage({ params }: Props) {
       status: it.status,
       catatan: it.catatan,
       pautanBukti: it.pautanBukti,
+      fotoBukti: it.fotoBukti,
       dipilih: it.dipilih,
       susunanBacaan: it.susunanBacaan,
     })),

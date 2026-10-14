@@ -34,10 +34,24 @@ export function sahkanPautanBahan(raw: string): PautanResult {
 }
 
 const ID_GOOGLE = /^[A-Za-z0-9_-]{10,}$/;
+const ID_CANVA = /^[A-Za-z0-9_-]{8,40}$/;
+
+/** Hos pautan pendek Canva — perlu dihuraikan (ikut redirect) di pelayan sebelum disimpan. */
+export function isPautanPendekCanva(raw: string): boolean {
+  try {
+    const u = new URL(raw.trim());
+    const host = u.hostname.toLowerCase();
+    return host === "canva.link" || ((host === "www.canva.com" || host === "canva.com") && u.pathname.startsWith("/link/"));
+  } catch {
+    return false;
+  }
+}
 
 /**
- * URL benam (iframe) bagi pautan Google Slides/Docs/Sheets/Drive; null jika tidak boleh dibenam
- * (hos lain, cth. Canva, atau folder Drive) — paparan hendaklah dibuka di tab baharu.
+ * URL benam (iframe) bagi pautan Google Slides/Docs/Sheets/Drive dan reka bentuk Canva; null jika
+ * tidak boleh dibenam (hos lain atau folder Drive) — paparan hendaklah dibuka di tab baharu.
+ * Canva: `/design/{id}[/{token}]/(view|edit|watch)` -> `/view?embed`; hanya dipaparkan jika
+ * pemilik berkongsi "Sesiapa yang ada pautan boleh lihat".
  */
 export function terbitkanUrlEmbed(raw: string): string | null {
   let u: URL;
@@ -74,6 +88,13 @@ export function terbitkanUrlEmbed(raw: string): string | null {
       if (id && ID_GOOGLE.test(id)) return `https://drive.google.com/file/d/${id}/preview`;
     }
     return null;
+  }
+
+  if (host === "www.canva.com" || host === "canva.com") {
+    const [design, id, ...baki] = segmen;
+    if (design !== "design" || !id || !ID_CANVA.test(id)) return null;
+    const token = baki.length >= 2 && ID_CANVA.test(baki[0]!) ? baki[0] : null;
+    return `https://www.canva.com/design/${id}/${token ? `${token}/` : ""}view?embed`;
   }
   return null;
 }

@@ -12,8 +12,8 @@ export const MESEJ_PENGHANTARAN_TIDAK_PASTI =
 
 /** Bahan: baris mungkin sudah disimpan selepas fail dimuat naik. */
 export const MESEJ_BAHAN_TIDAK_PASTI =
-  "Sambungan perlahan — status muat naik tidak pasti. Semak bahagian Bahan MJKD pada halaman " +
-  "Maklum Balas MJKD sebelum menghantar semula (elak bahan berganda), atau hubungi urusetia MJKD.";
+  "Sambungan perlahan — status muat naik tidak pasti. Semak bahagian Bahan pada halaman " +
+  "MJKD 2026 sebelum menghantar semula (elak bahan berganda), atau hubungi urusetia MJKD.";
 
 /** Ralat rangkaian/500 di klien (tindakan pelayan melontar). */
 export const MESEJ_RALAT_SAMBUNGAN = "Sambungan bermasalah. Sila cuba semula sebentar lagi.";

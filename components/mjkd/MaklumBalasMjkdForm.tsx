@@ -9,12 +9,15 @@ import {
 } from "@/lib/actions/mjkd";
 import {
   CATATAN_MIN,
+  CONTOH_5W1H,
+  FOTO_BUKTI_MAKS,
   sahkanMaklumBalas,
 } from "@/lib/mjkd/validation";
+import { MINIT_RUJUKAN } from "@/lib/mjkd/acara";
+import FotoBuktiInput from "@/components/mjkd/FotoBuktiInput";
 import {
   STATUS_MJKD,
   STATUS_MJKD_LABEL,
-  labelMesyuarat,
   type StatusMjkd,
 } from "@/lib/mjkd/enums";
 import { MESEJ_PENGHANTARAN_TIDAK_PASTI, MESEJ_RALAT_SAMBUNGAN } from "@/lib/mjkd/ralat-db";
@@ -35,7 +38,13 @@ export type PerkaraBorang = {
 export type JawapanAwal = {
   namaPengisi: string;
   jawatanPengisi: string;
-  items: { perkaraId: string; status: string; catatan: string; pautanBukti: string }[];
+  items: {
+    perkaraId: string;
+    status: string;
+    catatan: string;
+    pautanBukti: string;
+    fotoBukti: string[];
+  }[];
 };
 
 type Props = {
@@ -50,7 +59,7 @@ type Props = {
   adminMode?: boolean;
 };
 
-type Jawapan = { status: string; catatan: string; pautanBukti: string };
+type Jawapan = { status: string; catatan: string; pautanBukti: string; fotoBukti: string[] };
 
 function matchesSchoolQuery(school: SchoolOption, rawQuery: string) {
   const tokens = rawQuery.trim().toLowerCase().split(/\s+/).filter(Boolean);
@@ -66,6 +75,7 @@ function jawapanAwal(existing?: JawapanAwal | null): Record<string, Jawapan> {
       status: it.status,
       catatan: it.catatan,
       pautanBukti: it.pautanBukti,
+      fotoBukti: it.fotoBukti,
     };
   }
   return out;
@@ -90,6 +100,7 @@ export default function MaklumBalasMjkdForm({
   const [jawatanPengisi, setJawatanPengisi] = useState(existing?.jawatanPengisi ?? "");
   const [receiptToken, setReceiptToken] = useState(initialReceiptToken ?? "");
   const [jawapan, setJawapan] = useState<Record<string, Jawapan>>(() => jawapanAwal(existing));
+  const [muatNaik, setMuatNaik] = useState(0);
   // Elak menimpa nama/jawatan yang sudah disunting pengguna (atau datang daripada rekod sedia ada).
   const disentuh = useRef(Boolean(existing));
 
@@ -143,6 +154,7 @@ export default function MaklumBalasMjkdForm({
         status: prev[perkaraId]?.status ?? "",
         catatan: prev[perkaraId]?.catatan ?? "",
         pautanBukti: prev[perkaraId]?.pautanBukti ?? "",
+        fotoBukti: prev[perkaraId]?.fotoBukti ?? [],
         ...patch,
       },
     }));
@@ -156,11 +168,16 @@ export default function MaklumBalasMjkdForm({
       setError("Sila pilih sekolah.");
       return;
     }
+    if (muatNaik > 0) {
+      setError("Sila tunggu gambar selesai dimuat naik.");
+      return;
+    }
     const items = terpakai.map((p) => ({
       perkaraId: p.id,
       status: jawapan[p.id]?.status ?? "",
       catatan: jawapan[p.id]?.catatan ?? "",
       pautanBukti: jawapan[p.id]?.pautanBukti ?? "",
+      fotoBukti: jawapan[p.id]?.fotoBukti ?? [],
     }));
     // Semakan serta-merta di pelayar (pelayan mengesahkan semula).
     const sah = sahkanMaklumBalas(
@@ -358,7 +375,7 @@ export default function MaklumBalasMjkdForm({
       <section className="space-y-4">
         <div>
           <h2 className="text-lg font-semibold">
-            3. Perkara tindakan ({labelMesyuarat(mesyuarat)})
+            3. Perkara tindakan (Minit {MINIT_RUJUKAN.label})
           </h2>
           <p className="mt-1 text-sm text-graphite">
             {selected
@@ -412,31 +429,65 @@ export default function MaklumBalasMjkdForm({
 
               <div>
                 <label className="label" htmlFor={`catatan-${p.id}`}>
-                  Catatan{tidakBerkaitan ? " (pilihan)" : ` * (sekurang-kurangnya ${CATATAN_MIN} aksara)`}
+                  Catatan{tidakBerkaitan ? " (pilihan)" : " *"}
                 </label>
+                {!tidakBerkaitan ? (
+                  <p className="mb-2 text-xs leading-relaxed text-graphite">
+                    <span className="font-semibold text-ink">Wajib ikut 5W1H</span> — Apa, Siapa,
+                    Bila, Di mana, Mengapa dan Bagaimana (sekurang-kurangnya {CATATAN_MIN} aksara).
+                  </p>
+                ) : null}
                 <textarea
                   id={`catatan-${p.id}`}
                   className="textarea"
-                  rows={3}
+                  rows={5}
                   maxLength={2000}
+                  placeholder={tidakBerkaitan ? "" : CONTOH_5W1H}
                   value={j?.catatan ?? ""}
                   onChange={(e) => ubahJawapan(p.id, { catatan: e.target.value })}
                 />
+                {!tidakBerkaitan ? (
+                  <p
+                    className={`mt-1 text-right text-xs tabular-nums ${
+                      (j?.catatan.trim().length ?? 0) >= CATATAN_MIN
+                        ? "text-graphite"
+                        : "text-bloom-deep"
+                    }`}
+                  >
+                    {j?.catatan.trim().length ?? 0} / {CATATAN_MIN} aksara minimum
+                  </p>
+                ) : null}
               </div>
 
-              <div>
-                <label className="label" htmlFor={`bukti-${p.id}`}>
-                  Pautan bukti (pilihan)
+              <div className="rounded-lg border hairline p-4">
+                <p className="label">Bukti (pilihan)</p>
+                <p className="text-xs leading-relaxed text-graphite">
+                  Boleh beri <span className="font-semibold text-ink">pautan sahaja</span> (cth.
+                  Canva, OPR, Google Drive), <span className="font-semibold text-ink">gambar
+                  sahaja</span> (maks {FOTO_BUKTI_MAKS}), atau kedua-duanya. Pastikan pautan
+                  dikongsi &quot;sesiapa yang ada pautan boleh lihat&quot;.
+                </p>
+                <label className="label mt-3" htmlFor={`bukti-${p.id}`}>
+                  Pautan bukti
                 </label>
                 <input
                   id={`bukti-${p.id}`}
                   className="input"
                   type="url"
                   inputMode="url"
-                  placeholder="https://…"
+                  placeholder="https://www.canva.com/… atau pautan OPR / Google Drive"
                   maxLength={500}
                   value={j?.pautanBukti ?? ""}
                   onChange={(e) => ubahJawapan(p.id, { pautanBukti: e.target.value })}
+                />
+                <p className="label mt-3">Gambar bukti</p>
+                <FotoBuktiInput
+                  id={`foto-${p.id}`}
+                  mesyuaratId={mesyuarat.id}
+                  schoolCode={schoolCode}
+                  nilai={j?.fotoBukti ?? []}
+                  onUbah={(fotoBukti) => ubahJawapan(p.id, { fotoBukti })}
+                  onSibuk={(d) => setMuatNaik((n) => n + d)}
                 />
               </div>
             </article>
@@ -454,9 +505,9 @@ export default function MaklumBalasMjkdForm({
       <button
         type="submit"
         className="btn-primary w-full sm:w-auto"
-        disabled={pending || !selected || terpakai.length === 0}
+        disabled={pending || muatNaik > 0 || !selected || terpakai.length === 0}
       >
-        {pending ? "Menghantar…" : existing ? "Kemaskini maklum balas" : "Hantar maklum balas"}
+        {muatNaik > 0 ? "Memuat naik gambar…" : pending ? "Menghantar…" : existing ? "Kemaskini maklum balas" : "Hantar maklum balas"}
       </button>
     </form>
   );

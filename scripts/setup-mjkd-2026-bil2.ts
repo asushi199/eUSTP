@@ -1,6 +1,8 @@
 import "./load-env";
 
 /**
+ * USANG (2026-10-14): MJKD 2026 kini satu rekod — lihat scripts/gabung-mjkd-2026.ts. Jangan jalankan semula.
+ *
  * Sediakan MJKD Bil.2/2026 (21–22 Okt 2026) dan buka maklum balas Bil.1/2026.
  *  - Bil.2/2026: tarikh 2026-10-21 hingga 2026-10-22, tempat Hotel Rosa Passadena Cameron Highland,
  *    mesyuarat sebelum = Bil.1/2026. Kehadiran dan muat naik bahan KEKAL DITUTUP

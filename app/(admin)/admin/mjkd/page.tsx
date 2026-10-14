@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import AdminMesyuaratBaharuForm from "@/components/mjkd/AdminMesyuaratBaharuForm";
 import { requireKandunganAccess } from "@/lib/rbac";
 import { formatTarikhMs, labelMesyuarat } from "@/lib/mjkd/enums";
@@ -6,18 +7,20 @@ import { bilanganMaklumBalasMengikutMesyuarat, listMesyuarat } from "@/lib/mjkd/
 
 export const dynamic = "force-dynamic";
 
+/** MJKD 2026 ialah satu acara: jika hanya ada satu rekod mesyuarat, terus ke halamannya. */
 export default async function AdminMjkdPage() {
   await requireKandunganAccess();
   const [senarai, bilangan] = await Promise.all([
     listMesyuarat(),
     bilanganMaklumBalasMengikutMesyuarat(),
   ]);
+  if (senarai.length === 1) redirect(`/admin/mjkd/${senarai[0]!.id}`);
 
   return (
     <>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Maklum Balas MJKD</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">MJKD 2026</h1>
           <p className="mt-1 text-sm text-graphite">
             Mesyuarat Jawatankuasa Kurikulum Daerah — minit, perkara tindakan, kehadiran dan
             semakan maklum balas PGB.

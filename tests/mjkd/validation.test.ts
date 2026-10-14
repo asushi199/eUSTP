@@ -8,7 +8,7 @@ import {
   maklumBalasTerbuka,
 } from "../../lib/mjkd/enums";
 import { namaKunci } from "../../lib/mjkd/nama-kunci";
-import { isPautanHttp, sahkanMaklumBalas } from "../../lib/mjkd/validation";
+import { isPautanHttp, sahkanMaklumBalas, urlFotoBukti } from "../../lib/mjkd/validation";
 
 const terpakai = [
   { id: "p1", para: "1.3" },
@@ -19,7 +19,7 @@ const baik = (over: Record<string, unknown> = {}) => ({
   namaPengisi: "  Ali bin Abu ",
   jawatanPengisi: "Guru Besar",
   items: [
-    { perkaraId: "p1", status: "SELESAI", catatan: "Sebanyak 5 guru memohon.", pautanBukti: "" },
+    { perkaraId: "p1", status: "SELESAI", catatan: "Apa: 5 guru memohon GC. Bila: Mac.", pautanBukti: "" },
     { perkaraId: "p2", status: "TIDAK_BERKAITAN", catatan: "", pautanBukti: "" },
   ],
   ...over,
@@ -53,7 +53,7 @@ test("status tidak sah ditolak", () => {
   assert.equal(sahkanMaklumBalas(baik({ items }), terpakai).ok, false);
 });
 
-test("catatan min 10 aksara kecuali TIDAK_BERKAITAN", () => {
+test("catatan min 30 aksara (5W1H) kecuali TIDAK_BERKAITAN", () => {
   for (const status of ["SELESAI", "DALAM_PELAKSANAAN", "BELUM"]) {
     const items = [
       { perkaraId: "p1", status, catatan: "pendek", pautanBukti: "" },
@@ -64,7 +64,7 @@ test("catatan min 10 aksara kecuali TIDAK_BERKAITAN", () => {
   }
   const ok = sahkanMaklumBalas(
     baik({
-      items: [{ perkaraId: "p1", status: "BELUM", catatan: "1234567890", pautanBukti: "" }, baik().items[1]],
+      items: [{ perkaraId: "p1", status: "BELUM", catatan: "123456789012345678901234567890", pautanBukti: "" }, baik().items[1]],
     }),
     terpakai,
   );
@@ -84,7 +84,7 @@ test("pautan bukti: pilihan, tetapi mesti http(s)", () => {
     sahkanMaklumBalas(
       baik({
         items: [
-          { perkaraId: "p1", status: "SELESAI", catatan: "Sudah dilaksanakan.", pautanBukti },
+          { perkaraId: "p1", status: "SELESAI", catatan: "Apa: 5 guru memohon GC. Bila: Mac.", pautanBukti },
           baik().items[1],
         ],
       }),
@@ -99,9 +99,40 @@ test("pautan bukti: pilihan, tetapi mesti http(s)", () => {
   assert.equal(isPautanHttp("https://a.b"), true);
 });
 
+test("catatan 29 aksara ditolak", () => {
+  const items = [
+    { perkaraId: "p1", status: "SELESAI", catatan: "x".repeat(29), pautanBukti: "" },
+    baik().items[1],
+  ];
+  assert.equal(sahkanMaklumBalas(baik({ items }), terpakai).ok, false);
+});
+
+test("gambar bukti: pilihan, maks 3, mesti path Drive", () => {
+  const dengan = (fotoBukti: string[]) =>
+    sahkanMaklumBalas(
+      baik({
+        items: [
+          { perkaraId: "p1", status: "SELESAI", catatan: "Apa: 5 guru memohon GC. Bila: Mac.", pautanBukti: "", fotoBukti },
+          baik().items[1],
+        ],
+      }),
+      terpakai,
+    );
+  const f = (n: number) => `drive/1AbCdEfGhIjK${n}`;
+  const r = dengan([f(1), f(2), f(1)]);
+  assert.equal(r.ok, true);
+  if (r.ok) assert.deepEqual(r.data.items[0]!.fotoBukti, [f(1), f(2)]);
+  assert.equal(dengan([f(1), f(2), f(3), f(4)]).ok, false);
+  assert.equal(dengan(["https://evil.my/x.jpg"]).ok, false);
+  assert.equal(dengan(["drive/../x"]).ok, false);
+  const tanpa = sahkanMaklumBalas(baik(), terpakai);
+  assert.ok(tanpa.ok && tanpa.data.items[0]!.fotoBukti.length === 0);
+  assert.equal(urlFotoBukti(f(1), 400), `https://drive.google.com/thumbnail?id=1AbCdEfGhIjK1&sz=w400`);
+});
+
 test("perkara luar senarai atau berganda ditolak", () => {
   const luar = baik({
-    items: [...baik().items, { perkaraId: "p9", status: "SELESAI", catatan: "1234567890", pautanBukti: "" }],
+    items: [...baik().items, { perkaraId: "p9", status: "SELESAI", catatan: "Apa: 5 guru memohon GC. Bila: Mac.", pautanBukti: "" }],
   });
   assert.equal(sahkanMaklumBalas(luar, terpakai).ok, false);
   const ganda = baik({ items: [...baik().items, baik().items[0]] });

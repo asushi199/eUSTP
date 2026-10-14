@@ -10,7 +10,7 @@ type Props = {
 
 function buildMemoText({ schoolCode, schoolName, ticket }: Props): string {
   const lines = [
-    "NEXa Manjung — Maklum Balas MJKD",
+    "NEXa Manjung — Maklum Balas MJKD 2026",
     "Rujukan nombor tiket maklum balas",
     "",
     `Kod sekolah: ${schoolCode || "—"}`,

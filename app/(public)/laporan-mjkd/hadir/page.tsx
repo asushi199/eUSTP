@@ -6,12 +6,12 @@ import PageHeader from "@/components/PageHeader";
 import PublicPageShell from "@/components/PublicPageShell";
 import { withDbTimeout } from "@/lib/db";
 import { listSchoolOptions } from "@/lib/direktori/queries";
-import { formatTarikhMs, labelMesyuarat } from "@/lib/mjkd/enums";
+import { formatTarikhMs } from "@/lib/mjkd/enums";
 import { getMesyuaratKehadiranDibuka } from "@/lib/mjkd/queries";
 import { pautanMuatSemula } from "@/lib/mjkd/ralat-db";
 
 export const metadata: Metadata = {
-  title: "Kehadiran MJKD — NEXa Manjung",
+  title: "Kehadiran — MJKD 2026 — NEXa Manjung",
   description: "Sahkan kehadiran anda ke Mesyuarat Jawatankuasa Kurikulum Daerah.",
 };
 
@@ -35,7 +35,7 @@ export default async function HadirMjkdPage() {
       <PublicPageShell narrow>
         <PageHeader
           eyebrow="Pelaporan"
-          title="Kehadiran MJKD"
+          title="Kehadiran MJKD 2026"
           accent={ACCENT}
           description="Sahkan kehadiran anda ke Mesyuarat Jawatankuasa Kurikulum Daerah."
         />
@@ -50,7 +50,7 @@ export default async function HadirMjkdPage() {
       <PublicPageShell narrow>
         <PageHeader
           eyebrow="Pelaporan"
-          title="Kehadiran MJKD"
+          title="Kehadiran MJKD 2026"
           accent={ACCENT}
           description="Sahkan kehadiran anda ke Mesyuarat Jawatankuasa Kurikulum Daerah."
         />
@@ -68,7 +68,7 @@ export default async function HadirMjkdPage() {
     <PublicPageShell narrow>
       <PageHeader
         eyebrow="Pelaporan"
-        title={`Kehadiran MJKD ${labelMesyuarat(mesyuarat)}`}
+        title="Kehadiran MJKD 2026"
         accent={ACCENT}
         description={[formatTarikhMs(mesyuarat.tarikh), mesyuarat.tempat].filter(Boolean).join(" · ")}
       />
@@ -80,7 +80,7 @@ export default async function HadirMjkdPage() {
       </div>
       <p className="mt-6 text-sm">
         <Link href="/laporan-mjkd" className="text-graphite hover:text-ink">
-          ← Maklum balas MJKD
+          ← MJKD 2026
         </Link>
       </p>
     </PublicPageShell>

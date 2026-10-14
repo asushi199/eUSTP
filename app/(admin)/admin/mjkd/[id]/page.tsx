@@ -1,3 +1,4 @@
+import { NAMA_ACARA } from "@/lib/mjkd/acara";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import AdminMaklumBalasPanel, {
@@ -124,14 +125,18 @@ export default async function AdminMjkdDetailPage({ params, searchParams }: Prop
   return (
     <>
       <p className="text-sm text-graphite">
-        <Link href="/admin/mjkd" className="hover:text-ink">
-          ← Senarai mesyuarat
+        <Link href="/admin/pelaporan" className="hover:text-ink">
+          ← CoE Reports
+        </Link>
+        <span className="mx-2 text-steel">·</span>
+        <Link href="/admin/mjkd/pegawai" className="hover:text-ink">
+          Senarai pegawai PPD
         </Link>
       </p>
       <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">
-            MJKD {labelMesyuarat(mesyuarat)}
+            {NAMA_ACARA}
           </h1>
           <p className="mt-1 text-sm text-graphite">
             {formatTarikhMs(mesyuarat.tarikh)}

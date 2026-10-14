@@ -1,4 +1,5 @@
 import Link from "next/link";
+import FotoBuktiThumbs from "@/components/mjkd/FotoBuktiThumbs";
 import PilihBacaKawalan from "@/components/mjkd/PilihBacaKawalan";
 import TabelAnalisisMjkd from "@/components/mjkd/TabelAnalisisMjkd";
 import { binaAnalisis } from "@/lib/mjkd/pembentangan";
@@ -495,6 +496,7 @@ function PaparanPerkara({
                     </a>
                   </p>
                 ) : null}
+                <FotoBuktiThumbs foto={it.fotoBukti} className="mt-3" />
                 <div className="mt-4">
                   <PilihBacaKawalan
                     itemId={it.id}

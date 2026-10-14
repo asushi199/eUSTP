@@ -1,0 +1,1 @@
+ALTER TABLE "mjkd_maklum_balas_item" ADD COLUMN IF NOT EXISTS "foto_bukti" text[] DEFAULT '{}' NOT NULL;

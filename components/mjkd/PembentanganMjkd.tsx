@@ -8,6 +8,7 @@ import {
   isStatusMjkd,
   type StatusMjkd,
 } from "@/lib/mjkd/enums";
+import { urlBukaFotoBukti, urlFotoBukti } from "@/lib/mjkd/validation";
 import type { KiraanKehadiran } from "@/lib/mjkd/kehadiran";
 import type {
   ChipSekolah,
@@ -333,6 +334,26 @@ function SlaidJawapanPaparan({ slaid }: { slaid: SlaidJawapan }) {
           Bukti: {slaid.pautanBukti}
         </p>
       ) : null}
+      <FotoBuktiPembentangan foto={slaid.fotoBukti} />
+    </div>
+  );
+}
+
+/** Gambar bukti (Drive) — klik untuk buka saiz penuh di tab baharu. */
+function FotoBuktiPembentangan({ foto }: { foto: string[] }) {
+  if (foto.length === 0) return null;
+  return (
+    <div className="mt-[2vh] flex flex-wrap gap-[1vw]">
+      {foto.map((f) => (
+        <a key={f} href={urlBukaFotoBukti(f)} target="_blank" rel="noopener noreferrer">
+          <img
+            src={urlFotoBukti(f, 800)}
+            alt="Gambar bukti"
+            referrerPolicy="no-referrer"
+            className="h-[22vh] w-auto rounded border-2 border-black object-cover"
+          />
+        </a>
+      ))}
     </div>
   );
 }
@@ -379,6 +400,7 @@ function OverlayCip({ cip, para, onTutup }: { cip: ChipSekolah; para: string; on
             Bukti: {cip.pautanBukti}
           </p>
         ) : null}
+        <FotoBuktiPembentangan foto={cip.fotoBukti} />
         {cip.namaPengisi ? (
           <p className="mt-[2vh] text-[clamp(18px,1.4vw,30px)] text-neutral-700">
             Diisi oleh {cip.namaPengisi}
@@ -401,7 +423,7 @@ function SlaidBahanIndeksPaparan({
 }) {
   return (
     <div className="flex min-h-full flex-col gap-[2vh]">
-      <h1 className={TAJUK}>Bahan MJKD</h1>
+      <h1 className={TAJUK}>Bahan MJKD 2026</h1>
       {slaid.kumpulan.map((k) => (
         <section key={k.hari}>
           <h2 className={LABEL}>{k.label}</h2>

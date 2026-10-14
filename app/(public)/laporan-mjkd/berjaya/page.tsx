@@ -8,7 +8,7 @@ import { getSchoolByCode } from "@/lib/mjkd/queries";
 import { pautanMuatSemula } from "@/lib/mjkd/ralat-db";
 
 export const metadata: Metadata = {
-  title: "Maklum balas dihantar — MJKD",
+  title: "Maklum balas dihantar — MJKD 2026",
 };
 
 export const dynamic = "force-dynamic";

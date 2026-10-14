@@ -212,12 +212,23 @@ export default function MuatNaikBahanForm({ pilihanHari, cadanganSektor }: Props
             inputMode="url"
             required
             maxLength={1000}
-            placeholder="https://…"
+            placeholder="https://www.canva.com/design/… atau pautan Google Slides"
           />
-          <p className="mt-1 text-xs text-graphite">
-            Pautan Google Slides/Docs/Drive mesti dikongsi &quot;sesiapa yang ada pautan boleh
-            melihat&quot; supaya boleh dipaparkan.
-          </p>
+          <div className="mt-2 rounded-lg border hairline bg-cloud/60 px-4 py-3 text-xs leading-relaxed text-charcoal">
+            <p className="font-semibold text-ink">Supaya bahan boleh dipratonton terus di laman:</p>
+            <ul className="mt-1 list-disc space-y-1 pl-4">
+              <li>
+                <span className="font-semibold">Canva:</span> klik <em>Kongsi</em> (Share) → di
+                bawah &quot;Akses pautan&quot; pilih{" "}
+                <em>Sesiapa yang ada pautan</em> (Anyone with the link) → salin pautan.
+              </li>
+              <li>
+                <span className="font-semibold">Google Slides / Docs / Drive:</span> kongsi sebagai
+                &quot;sesiapa yang ada pautan boleh melihat&quot;.
+              </li>
+              <li>Pautan lain tetap diterima, tetapi hanya boleh dibuka di tab baharu.</li>
+            </ul>
+          </div>
         </div>
       ) : (
         <div>

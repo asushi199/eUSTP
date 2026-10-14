@@ -107,9 +107,9 @@ export const MODULES = [
     href: "/laporan-mjkd",
     internalHref: "/laporan-mjkd",
     external: false,
-    title: "Maklum Balas MJKD",
+    title: "MJKD 2026",
     description:
-      "Minit mesyuarat dan maklum balas PGB bagi Mesyuarat Jawatankuasa Kurikulum Daerah.",
+      "Mesyuarat Jawatankuasa Kurikulum Daerah 2026 — kehadiran, minit, maklum balas PGB dan bahan pembentangan.",
     accent: "#0E7490",
     iconKey: "laporan" as const,
   },

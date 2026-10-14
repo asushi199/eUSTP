@@ -6,13 +6,12 @@ import PageHeader from "@/components/PageHeader";
 import PublicPageShell from "@/components/PublicPageShell";
 import { withDbTimeout } from "@/lib/db";
 import { cadanganSektor, sektorBolehBaca } from "@/lib/mjkd/bahan";
-import { labelMesyuarat } from "@/lib/mjkd/enums";
 import { hariMesyuarat, nilaiPilihanHari, pilihanTarikhPembentangan } from "@/lib/mjkd/hari";
 import { getMesyuaratBahanDibuka, listSektorCadangan } from "@/lib/mjkd/queries";
 import { pautanMuatSemula } from "@/lib/mjkd/ralat-db";
 
 export const metadata: Metadata = {
-  title: "Muat Naik Bahan MJKD — NEXa Manjung",
+  title: "Muat Naik Bahan — MJKD 2026 — NEXa Manjung",
   description: "Muat naik bahan pembentangan Mesyuarat Jawatankuasa Kurikulum Daerah.",
 };
 
@@ -36,7 +35,7 @@ export default async function MuatNaikBahanPage() {
       <PublicPageShell narrow>
         <PageHeader
           eyebrow="Pelaporan"
-          title="Muat Naik Bahan MJKD"
+          title="Muat Naik Bahan MJKD 2026"
           accent={ACCENT}
           description="Muat naik bahan pembentangan oleh Sektor / Unit."
         />
@@ -51,7 +50,7 @@ export default async function MuatNaikBahanPage() {
       <PublicPageShell narrow>
         <PageHeader
           eyebrow="Pelaporan"
-          title="Muat Naik Bahan MJKD"
+          title="Muat Naik Bahan MJKD 2026"
           accent={ACCENT}
           description="Muat naik bahan pembentangan oleh Sektor / Unit."
         />
@@ -71,7 +70,7 @@ export default async function MuatNaikBahanPage() {
     <PublicPageShell narrow>
       <PageHeader
         eyebrow="Pelaporan"
-        title={`Muat Naik Bahan MJKD ${labelMesyuarat(mesyuarat)}`}
+        title="Muat Naik Bahan MJKD 2026"
         accent={ACCENT}
         description="Isi maklumat dan muat naik pautan atau fail PDF bahan pembentangan anda."
       />
@@ -83,7 +82,7 @@ export default async function MuatNaikBahanPage() {
       </div>
       <p className="mt-6 text-sm">
         <Link href="/laporan-mjkd" className="text-graphite hover:text-ink">
-          ← Maklum balas MJKD
+          ← MJKD 2026
         </Link>
       </p>
     </PublicPageShell>

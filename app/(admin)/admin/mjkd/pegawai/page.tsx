@@ -20,7 +20,7 @@ export default async function AdminPegawaiPpdPage({ searchParams }: Props) {
     <>
       <p className="text-sm text-graphite">
         <Link href="/admin/mjkd" className="hover:text-ink">
-          ← Maklum Balas MJKD
+          ← MJKD 2026
         </Link>
       </p>
       <h1 className="mt-2 text-2xl font-semibold tracking-tight">Pegawai PPD</h1>

@@ -7,7 +7,6 @@ import { withDbTimeout } from "@/lib/db";
 import {
   STATUS_MJKD_LABEL,
   isStatusMjkd,
-  labelMesyuarat,
   maklumBalasTerbuka,
 } from "@/lib/mjkd/enums";
 import {
@@ -16,11 +15,12 @@ import {
   getSchoolByCode,
   listPerkara,
 } from "@/lib/mjkd/queries";
+import { MINIT_RUJUKAN } from "@/lib/mjkd/acara";
 import { pautanMuatSemula } from "@/lib/mjkd/ralat-db";
 import { perkaraUntukSekolah } from "@/lib/mjkd/sasaran";
 
 export const metadata: Metadata = {
-  title: "Semak Maklum Balas MJKD — NEXa Manjung",
+  title: "Semak Maklum Balas — MJKD 2026 — NEXa Manjung",
 };
 
 export const dynamic = "force-dynamic";
@@ -70,7 +70,7 @@ export default async function SemakMaklumBalasMjkdPage({ searchParams }: Props) 
       <PublicPageShell narrow>
         <PageHeader
           eyebrow="Pelaporan"
-          title="Semak / kemaskini maklum balas MJKD"
+          title="Semak / kemaskini maklum balas MJKD 2026"
           accent="#0E7490"
           description="Masukkan kod sekolah dan nombor tiket."
         />
@@ -87,11 +87,11 @@ export default async function SemakMaklumBalasMjkdPage({ searchParams }: Props) 
     <PublicPageShell narrow>
       <PageHeader
         eyebrow="Pelaporan"
-        title="Semak / kemaskini maklum balas MJKD"
+        title="Semak / kemaskini maklum balas MJKD 2026"
         accent="#0E7490"
         description={
           mesyuarat
-            ? `Mesyuarat ${labelMesyuarat(mesyuarat)}. Masukkan kod sekolah dan nombor tiket.`
+            ? `Maklum balas minit ${MINIT_RUJUKAN.label}. Masukkan kod sekolah dan nombor tiket.`
             : "Masukkan kod sekolah dan nombor tiket."
         }
       />

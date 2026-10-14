@@ -24,7 +24,7 @@ const CARDS: AdminCard[] = [
   },
   {
     href: "/admin/mjkd",
-    title: "Maklum Balas MJKD",
+    title: "MJKD 2026",
     description: "Minit mesyuarat, perkara tindakan dan semakan maklum balas PGB bagi MJKD.",
   },
   {

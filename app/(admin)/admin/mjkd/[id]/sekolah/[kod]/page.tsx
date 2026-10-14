@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import JanaTiketMjkdButton from "@/components/mjkd/JanaTiketMjkdButton";
 import MaklumBalasMjkdForm from "@/components/mjkd/MaklumBalasMjkdForm";
 import { listSchoolOptions } from "@/lib/direktori/queries";
-import { labelMesyuarat } from "@/lib/mjkd/enums";
 import {
   getMaklumBalasBySchool,
   getMesyuarat,
@@ -13,6 +12,8 @@ import {
 import { requireKandunganAccess } from "@/lib/rbac";
 
 export const dynamic = "force-dynamic";
+/** Muat naik gambar bukti melalui GAS boleh mengambil masa. */
+export const maxDuration = 60;
 
 type Props = {
   params: Promise<{ id: string; kod: string }>;
@@ -42,7 +43,7 @@ export default async function AdminMjkdSekolahPage({ params }: Props) {
             href={`/admin/mjkd/${mesyuarat.id}?tab=maklum-balas`}
             className="hover:text-ink"
           >
-            ← Maklum balas {labelMesyuarat(mesyuarat)}
+            ← Maklum balas MJKD 2026
           </Link>
         </p>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">
@@ -91,6 +92,7 @@ export default async function AdminMjkdSekolahPage({ params }: Props) {
                   status: it.status,
                   catatan: it.catatan,
                   pautanBukti: it.pautanBukti,
+                  fotoBukti: it.fotoBukti,
                 })),
               }
             : null

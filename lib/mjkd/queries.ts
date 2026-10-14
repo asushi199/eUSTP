@@ -282,17 +282,6 @@ export async function getMesyuaratBahanDibuka(): Promise<MesyuaratRow | null> {
   return row ?? null;
 }
 
-/** Mesyuarat terkini yang mempunyai sekurang-kurangnya satu bahan. */
-export async function getMesyuaratDenganBahan(): Promise<MesyuaratRow | null> {
-  const [row] = await db
-    .select({ m: mjkdMesyuarat })
-    .from(mjkdMesyuarat)
-    .where(sql`exists (select 1 from ${mjkdBahan} where ${mjkdBahan.mesyuaratId} = ${mjkdMesyuarat.id})`)
-    .orderBy(desc(mjkdMesyuarat.tahun), desc(mjkdMesyuarat.bil))
-    .limit(1);
-  return row?.m ?? null;
-}
-
 /** Nilai sektor mentah (pegawai PPD aktif) dan sektor/unit bahan terdahulu — untuk cadangan. */
 export async function listSektorCadangan(): Promise<{ pegawai: string[]; bahan: string[] }> {
   // Berurutan (laluan awam; kolam serverless ~3 sambungan).

@@ -325,7 +325,7 @@ test("Kehadiran: kiraan bagi hari ini sahaja", () => {
     kodSekolah: sekolah.map((x) => x.code),
   });
   const k = s[0]!;
-  assert.equal(k.tajuk, "Kehadiran MJKD Bil.2/2026");
+  assert.equal(k.tajuk, "Kehadiran MJKD 2026");
   assert.equal(k.hariLabel, "22 Oktober");
   assert.equal(k.urlPendek, "nexa.my/laporan-mjkd/hadir");
   assert.equal(k.kiraan.sekolahHadir, 2);
@@ -346,7 +346,7 @@ test("binaSlaidPembentangan: empat tab; minit/maklum balas daripada rujukan", ()
     kehadiran: { hariIni: "2026-10-21", url: "https://nexa.my/laporan-mjkd/hadir", qr: "", rekod: [] },
   });
   assert.equal(p.kehadiran.length, 1);
-  assert.equal(p.kehadiran[0]!.tajuk, "Kehadiran MJKD Bil.2/2026");
+  assert.equal(p.kehadiran[0]!.tajuk, "Kehadiran MJKD 2026");
   assert.equal(p.minit.length, 4);
   assert.equal(
     p.minit[0]!.jenis === "tajuk" && p.minit[0]!.pengesahan,

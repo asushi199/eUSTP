@@ -1,8 +1,8 @@
+import { NAMA_ACARA } from "@/lib/mjkd/acara";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireKandunganAccess } from "@/lib/rbac";
 import { urlKehadiranAwam } from "@/lib/mjkd/base-url";
-import { labelMesyuarat } from "@/lib/mjkd/enums";
 import { getMesyuarat } from "@/lib/mjkd/queries";
 import { qrDataUrl } from "@/lib/mjkd/qr";
 
@@ -33,7 +33,7 @@ export default async function AdminMjkdQrPage({ params }: Props) {
         Imbas untuk sahkan kehadiran
       </h1>
       <p className="text-center text-[3vmin] font-semibold">
-        MJKD {labelMesyuarat(mesyuarat)}
+        {NAMA_ACARA}
       </p>
       <img
         src={qr}
