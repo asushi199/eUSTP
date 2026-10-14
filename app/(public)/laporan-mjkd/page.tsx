@@ -7,7 +7,7 @@ import PublicPageShell from "@/components/PublicPageShell";
 import { withDbTimeout } from "@/lib/db";
 import { listSchoolOptions } from "@/lib/direktori/queries";
 import { MINIT_RUJUKAN, NAMA_ACARA, julatTarikh } from "@/lib/mjkd/acara";
-import { formatTarikhMs, maklumBalasTerbuka } from "@/lib/mjkd/enums";
+import { bakiHariTutup, formatTarikhMs, maklumBalasTerbuka } from "@/lib/mjkd/enums";
 import {
   getMaklumBalasByReceipt,
   getMesyuaratAwamTerkini,
@@ -56,6 +56,51 @@ async function muatData(sp: { kod?: string; resit?: string; kemaskini?: string }
         : null;
   }
   return { mesyuarat, terbuka, schools, perkara, existing };
+}
+
+/** Kiraan hari hingga maklum balas ditutup — merah bila ≤ 2 hari. */
+function BakiHari({ tutup }: { tutup: string }) {
+  const { hari, namaHari } = bakiHariTutup(tutup);
+  if (hari < 0) return null;
+  const mendesak = hari <= 2;
+  const tajuk =
+    hari === 0
+      ? "Hari terakhir! Maklum balas ditutup malam ini."
+      : hari === 1
+        ? "Tinggal 1 hari lagi sebelum maklum balas ditutup!"
+        : mendesak
+          ? `Tinggal ${hari} hari lagi sebelum maklum balas ditutup!`
+          : `Lagi ${hari} hari sebelum maklum balas ditutup`;
+  return (
+    <div
+      className={`card mt-6 flex items-center gap-5 p-5 sm:p-6 ${
+        mendesak ? "border-bloom-deep/40 bg-bloom-rose/40" : ""
+      }`}
+      role="status"
+    >
+      <div
+        className={`flex h-20 w-20 shrink-0 flex-col items-center justify-center rounded-lg text-white ${
+          mendesak ? "bg-bloom-deep" : "bg-ink"
+        }`}
+      >
+        <span className="text-3xl font-semibold leading-none tabular-nums">
+          {hari === 0 ? "!" : hari}
+        </span>
+        <span className="mt-1 text-[11px] font-semibold tracking-[0.12em]">
+          {hari === 0 ? "AKHIR" : "HARI"}
+        </span>
+      </div>
+      <div className="min-w-0">
+        <p className={`text-lg font-semibold ${mendesak ? "text-bloom-deep" : "text-ink"}`}>
+          {tajuk}
+        </p>
+        <p className="mt-1 text-sm text-graphite">
+          Tarikh tutup: {namaHari}, {formatTarikhMs(tutup)}, jam 11:59 malam. Sekolah yang belum
+          menghantar, sila lengkapkan maklum balas segera.
+        </p>
+      </div>
+    </div>
+  );
 }
 
 function Pengepala() {
@@ -124,7 +169,9 @@ export default async function LaporanMjkdPage({ searchParams }: Props) {
         </Link>
       </div>
 
-      <section className="card mt-8">
+      {terbuka && tutup ? <BakiHari tutup={tutup} /> : null}
+
+      <section className="card mt-6">
         <div className="flex flex-wrap items-start justify-between gap-4 p-6">
           <div>
             <h2 className="text-lg font-semibold">Minit Mesyuarat {MINIT_RUJUKAN.label}</h2>

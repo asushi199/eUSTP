@@ -1,5 +1,9 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-10-14 — MJKD: kiraan hari hingga tarikh tutup (awam)
+
+- `/laporan-mjkd`: kad "Lagi N hari sebelum maklum balas ditutup" (nama hari + tarikh, 11:59 malam); ≤ 2 hari = merah bloom-deep ("Tinggal N hari lagi!"), hari terakhir = "Hari terakhir!". Pembantu tulen `bakiHariTutup` (`lib/mjkd/enums.ts`, waktu KL) diuji.
+
 ## 2026-10-14 — MJKD: halaman awam kembali ke reka bentuk standard
 
 - Arahan pengguna: `/laporan-mjkd` tidak perlu "gah" — kembali ke peraturan reka bentuk (PageHeader + kad putih, `PublicPageShell`). Hero gelap, logo, kiraan hari dan PDF terbenam dibuang (iframe PDF juga memerangkap tatal sebelum borang); minit = butang Lihat Minit / Muat Turun. Pengecualian reka bentuk kini HANYA mod pembentangan (CLAUDE.md dikemas kini). `fasaAcara` dibuang (tidak digunakan).

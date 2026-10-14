@@ -80,6 +80,23 @@ export function maklumBalasTerbuka(
   return hariIniKl(now) <= m.tarikhTutupMaklumBalas;
 }
 
+const NAMA_HARI = ["Ahad", "Isnin", "Selasa", "Rabu", "Khamis", "Jumaat", "Sabtu"];
+
+/**
+ * Hari berbaki sebelum maklum balas ditutup (waktu KL): 0 = hari ini hari terakhir,
+ * negatif = sudah lepas. `namaHari` = nama hari tarikh tutup (cth. "Isnin").
+ */
+export function bakiHariTutup(
+  tutup: string,
+  now: Date = new Date(),
+): { hari: number; namaHari: string } {
+  const t = (iso: string) => Date.parse(`${iso}T00:00:00Z`);
+  return {
+    hari: Math.round((t(tutup) - t(hariIniKl(now))) / 86_400_000),
+    namaHari: NAMA_HARI[new Date(t(tutup)).getUTCDay()] ?? "",
+  };
+}
+
 const NAMA_BULAN = [
   "Januari",
   "Februari",

@@ -5,6 +5,7 @@ import {
   formatTarikhMs,
   hariIniKl,
   labelMesyuarat,
+  bakiHariTutup,
   maklumBalasTerbuka,
 } from "../../lib/mjkd/enums";
 import { namaKunci } from "../../lib/mjkd/nama-kunci";
@@ -193,4 +194,14 @@ test("CSV: BOM, header, escape petikan dan halang formula", () => {
   assert.ok(baris[1]!.includes("'=HYPERLINK"));
   assert.ok(baris[1]!.includes("'+Ali"));
   assert.ok(baris[1]!.endsWith(",Ya,2"));
+});
+
+test("bakiHariTutup: kiraan hari (waktu KL) dan nama hari", () => {
+  // 2026-10-14 10:00 KL = 02:00 UTC
+  const now = new Date("2026-10-14T02:00:00Z");
+  assert.deepEqual(bakiHariTutup("2026-10-19", now), { hari: 5, namaHari: "Isnin" });
+  assert.equal(bakiHariTutup("2026-10-14", now).hari, 0);
+  assert.equal(bakiHariTutup("2026-10-13", now).hari, -1);
+  // 23:30 KL 18 Okt (15:30 UTC) masih 1 hari sebelum 19 Okt
+  assert.equal(bakiHariTutup("2026-10-19", new Date("2026-10-18T15:30:00Z")).hari, 1);
 });
