@@ -26,6 +26,9 @@ import {
   listSektorCadangan,
 } from "@/lib/mjkd/queries";
 import { qrDataUrl } from "@/lib/mjkd/qr";
+import { pautanMuatSemula } from "@/lib/mjkd/ralat-db";
+import DbPerlahan from "@/components/mjkd/DbPerlahan";
+import { withDbTimeout } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
@@ -50,22 +53,11 @@ type Props = {
   }>;
 };
 
-export default async function AdminMjkdDetailPage({ params, searchParams }: Props) {
-  await requireKandunganAccess();
-  const { id } = await params;
-  const sp = await searchParams;
+/** Data halaman mengikut tab — dipanggil dalam `withDbTimeout`. null = mesyuarat tiada. */
+async function muatTab(id: string, tab: TabValue, hariParam: string | undefined) {
   const mesyuarat = await getMesyuarat(id);
-  if (!mesyuarat) notFound();
-
-  const tab: TabValue = TAB.some((t) => t.value === sp.tab) ? (sp.tab as TabValue) : "tetapan";
-  const paparan: PaparanMaklumBalas = PAPARAN_MAKLUM_BALAS.some((v) => v.value === sp.view)
-    ? (sp.view as PaparanMaklumBalas)
-    : "kemajuan";
-  const status = sp.status && isStatusMjkd(sp.status) ? sp.status : "";
-  const jenis: JenisSekolah | "" =
-    sp.jenis && (JENIS_SEKOLAH as readonly string[]).includes(sp.jenis)
-      ? (sp.jenis as JenisSekolah)
-      : "";
+  if (!mesyuarat) return null;
+  const hari = hariMesyuarat(mesyuarat);
 
   // Data sekolah/perkara/jawapan hanya diperlukan untuk tab Perkara dan Maklum Balas.
   const data =
@@ -73,7 +65,6 @@ export default async function AdminMjkdDetailPage({ params, searchParams }: Prop
       ? await muatDataMaklumBalasAdmin(mesyuarat.id)
       : null;
 
-  const hari = hariMesyuarat(mesyuarat);
   const mesyuaratLain =
     tab === "tetapan"
       ? (await listMesyuaratLain())
@@ -90,17 +81,14 @@ export default async function AdminMjkdDetailPage({ params, searchParams }: Prop
   } | null = null;
   if (tab === "kehadiran") {
     const url = await urlKehadiranAwam();
-    const [sekolah, rekod, qr] = await Promise.all([
-      listSekolahSemua(),
-      listKehadiran(mesyuarat.id),
-      qrDataUrl(url),
-    ]);
+    const sekolah = await listSekolahSemua();
+    const rekod = await listKehadiran(mesyuarat.id);
     kehadiran = {
       sekolah,
       rekod,
       url,
-      qr,
-      hariDipilih: tafsirHariDipilih(sp.hari, hari, hariIniKl()),
+      qr: await qrDataUrl(url),
+      hariDipilih: tafsirHariDipilih(hariParam, hari, hariIniKl()),
     };
   }
 
@@ -110,17 +98,53 @@ export default async function AdminMjkdDetailPage({ params, searchParams }: Prop
     uploadUrl: string;
   } | null = null;
   if (tab === "bahan") {
-    const [senarai, sektor, baseUrl] = await Promise.all([
-      listBahan(mesyuarat.id),
-      listSektorCadangan(),
-      resolveBaseUrl(),
-    ]);
+    const senarai = await listBahan(mesyuarat.id);
+    const sektor = await listSektorCadangan();
+    const baseUrl = await resolveBaseUrl();
     bahanData = {
       senarai,
       cadangan: cadanganSektor(sektor.pegawai.map(sektorBolehBaca), sektor.bahan),
       uploadUrl: `${baseUrl}/laporan-mjkd/bahan/muat-naik`,
     };
   }
+
+  return { mesyuarat, hari, data, mesyuaratLain, kehadiran, bahanData };
+}
+
+export default async function AdminMjkdDetailPage({ params, searchParams }: Props) {
+  await requireKandunganAccess();
+  const { id } = await params;
+  const sp = await searchParams;
+  const tab: TabValue = TAB.some((t) => t.value === sp.tab) ? (sp.tab as TabValue) : "tetapan";
+  const paparan: PaparanMaklumBalas = PAPARAN_MAKLUM_BALAS.some((v) => v.value === sp.view)
+    ? (sp.view as PaparanMaklumBalas)
+    : "kemajuan";
+  const status = sp.status && isStatusMjkd(sp.status) ? sp.status : "";
+  const jenis: JenisSekolah | "" =
+    sp.jenis && (JENIS_SEKOLAH as readonly string[]).includes(sp.jenis)
+      ? (sp.jenis as JenisSekolah)
+      : "";
+
+  // Semua query dalam satu had masa, BERURUTAN (kolam serverless 3 sambungan): soket pooler
+  // yang mati tidak lagi menggantung tab sehingga 300 s — paparkan notis + muat semula.
+  let dimuat: Awaited<ReturnType<typeof muatTab>>;
+  try {
+    dimuat = await withDbTimeout(muatTab(id, tab, sp.hari), 10_000);
+  } catch {
+    return (
+      <>
+        <p className="text-sm text-graphite">
+          <Link href="/admin/pelaporan" className="hover:text-ink">
+            ← CoE Reports
+          </Link>
+        </p>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight">{NAMA_ACARA}</h1>
+        <DbPerlahan href={pautanMuatSemula(`/admin/mjkd/${id}`, sp)} />
+      </>
+    );
+  }
+  if (!dimuat) notFound();
+  const { mesyuarat, hari, data, mesyuaratLain, kehadiran, bahanData } = dimuat;
 
   return (
     <>

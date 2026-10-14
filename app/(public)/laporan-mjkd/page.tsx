@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import BahanPratonton from "@/components/mjkd/BahanPratonton";
 import DbPerlahan from "@/components/mjkd/DbPerlahan";
 import MaklumBalasMjkdForm from "@/components/mjkd/MaklumBalasMjkdForm";
 import PageHeader from "@/components/PageHeader";
@@ -18,7 +17,6 @@ import { formatTarikhMs, hariIniKl, maklumBalasTerbuka } from "@/lib/mjkd/enums"
 import {
   getMaklumBalasByReceipt,
   getMesyuaratAwamTerkini,
-  listBahan,
   listPerkara,
 } from "@/lib/mjkd/queries";
 import { pautanMuatSemula } from "@/lib/mjkd/ralat-db";
@@ -26,7 +24,7 @@ import { pautanMuatSemula } from "@/lib/mjkd/ralat-db";
 export const metadata: Metadata = {
   title: "MJKD 2026 — NEXa Manjung",
   description:
-    "Mesyuarat Jawatankuasa Kurikulum Daerah Manjung 2026 — kehadiran, minit, maklum balas PGB dan bahan pembentangan.",
+    "Mesyuarat Jawatankuasa Kurikulum Daerah Manjung 2026 — minit mesyuarat dan maklum balas PGB.",
 };
 
 export const dynamic = "force-dynamic";
@@ -35,20 +33,19 @@ export const maxDuration = 60;
 
 const ACCENT = "#0E7490";
 const DESKRIPSI =
-  "Mesyuarat Jawatankuasa Kurikulum Daerah Manjung 2026 — kehadiran, minit, maklum balas PGB dan bahan pembentangan.";
+  "Mesyuarat Jawatankuasa Kurikulum Daerah Manjung 2026 — minit mesyuarat dan maklum balas PGB.";
 
 type Props = {
   searchParams: Promise<{ kod?: string; resit?: string; kemaskini?: string }>;
 };
 
 /**
- * MJKD 2026 = SATU acara: semua data pada satu rekod mesyuarat. Dimuat BERURUTAN
- * (kolam serverless ~3 sambungan) dalam satu timeout.
+ * MJKD 2026 (awam): minit + maklum balas PGB sahaja. Kehadiran (QR) dan bahan dipaparkan dalam
+ * mod pembentangan. Dimuat BERURUTAN (kolam serverless ~3 sambungan) dalam satu timeout.
  */
 async function muatData(sp: { kod?: string; resit?: string; kemaskini?: string }) {
   const mesyuarat = await getMesyuaratAwamTerkini();
   if (!mesyuarat) return null;
-  const bahan = await listBahan(mesyuarat.id);
   const terbuka = maklumBalasTerbuka(mesyuarat);
 
   let schools: Awaited<ReturnType<typeof listSchoolOptions>> = [];
@@ -64,7 +61,7 @@ async function muatData(sp: { kod?: string; resit?: string; kemaskini?: string }
         ? await getMaklumBalasByReceipt(mesyuarat.id, kod, resit)
         : null;
   }
-  return { mesyuarat, bahan, terbuka, schools, perkara, existing };
+  return { mesyuarat, terbuka, schools, perkara, existing };
 }
 
 function IkonKalendar() {
@@ -153,11 +150,12 @@ export default async function LaporanMjkdPage({ searchParams }: Props) {
     );
   }
 
-  const { mesyuarat, bahan, terbuka, schools, perkara, existing } = data;
+  const { mesyuarat, terbuka, schools, perkara, existing } = data;
   const resit = sp.resit?.trim().toUpperCase();
   const hariIni = hariIniKl();
-  const fasa = fasaAcara(mesyuarat.tarikh, mesyuarat.tarikhTamat, hariIni);
   const tutup = mesyuarat.tarikhTutupMaklumBalas;
+  // Kiraan hari hingga maklum balas ditutup (tarikh tutup = hari terakhir dibenarkan).
+  const fasaTutup = terbuka && tutup ? fasaAcara(tutup, null, hariIni) : null;
 
   const namaFail = `Minit-MJKD-${MINIT_RUJUKAN.label.replace(/[./]/g, "-")}.pdf`;
   const muatTurunMinit = mesyuarat.minitUrl
@@ -166,22 +164,15 @@ export default async function LaporanMjkdPage({ searchParams }: Props) {
 
   const langkah = [
     {
-      id: "kehadiran",
-      nombor: "01",
-      tajuk: "Kehadiran",
-      status: mesyuarat.kehadiranDibuka ? "Dibuka — imbas QR / klik" : "Dibuka pada hari mesyuarat",
-      aktif: mesyuarat.kehadiranDibuka,
-    },
-    {
       id: "minit",
-      nombor: "02",
-      tajuk: "Minit Mesyuarat",
-      status: mesyuarat.minitUrl ? `${MINIT_RUJUKAN.label} · tersedia` : "Belum dimuat naik",
+      nombor: "01",
+      tajuk: `Minit Mesyuarat ${MINIT_RUJUKAN.label}`,
+      status: mesyuarat.minitUrl ? "Tersedia — baca sebelum mengisi" : "Belum dimuat naik",
       aktif: Boolean(mesyuarat.minitUrl),
     },
     {
       id: "maklum-balas",
-      nombor: "03",
+      nombor: "02",
       tajuk: "Maklum Balas PGB",
       status: terbuka
         ? tutup
@@ -189,13 +180,6 @@ export default async function LaporanMjkdPage({ searchParams }: Props) {
           : "Dibuka"
         : "Ditutup",
       aktif: terbuka,
-    },
-    {
-      id: "bahan",
-      nombor: "04",
-      tajuk: "Bahan Pembentangan",
-      status: bahan.length > 0 ? `${bahan.length} bahan` : "Akan dikemas kini",
-      aktif: bahan.length > 0,
     },
   ];
 
@@ -246,54 +230,43 @@ export default async function LaporanMjkdPage({ searchParams }: Props) {
 
           <div className="flex flex-col gap-3 sm:flex-row xl:flex-col">
             <div className="flex-1 rounded-2xl border border-white/15 bg-white/[0.07] px-6 py-5 text-center backdrop-blur-sm xl:min-w-[220px]">
-              {fasa.jenis === "akan" ? (
+              {fasaTutup?.jenis === "akan" ? (
                 <>
                   <p className="text-5xl font-semibold tabular-nums text-[#F5D27A] sm:text-6xl">
-                    {fasa.hari}
+                    {fasaTutup.hari}
                   </p>
                   <p className="mt-1 text-xs font-semibold tracking-[0.14em] text-white/70">
                     HARI LAGI
                   </p>
+                  <p className="mt-2 text-xs text-white/60">
+                    Maklum balas ditutup {formatTarikhMs(tutup!)}
+                  </p>
                 </>
-              ) : fasa.jenis === "berlangsung" ? (
+              ) : fasaTutup?.jenis === "berlangsung" ? (
                 <>
-                  <p className="inline-flex items-center gap-2 text-sm font-semibold text-[#F5D27A]">
-                    <span className="h-2 w-2 animate-pulse rounded-full bg-[#F5D27A]" aria-hidden />
-                    SEDANG BERLANGSUNG
-                  </p>
-                  <p className="mt-2 text-3xl font-semibold">
-                    Hari {fasa.hariKe}
-                    <span className="text-lg text-white/60"> / {fasa.jumlah}</span>
-                  </p>
+                  <p className="text-2xl font-semibold text-[#F5D27A]">HARI TERAKHIR</p>
+                  <p className="mt-2 text-xs text-white/60">Maklum balas ditutup hari ini</p>
                 </>
+              ) : terbuka ? (
+                <p className="text-lg font-semibold text-white/85">Maklum balas dibuka</p>
               ) : (
-                <p className="text-lg font-semibold text-white/85">Mesyuarat telah selesai</p>
+                <p className="text-lg font-semibold text-white/85">Maklum balas ditutup</p>
               )}
             </div>
-            {mesyuarat.kehadiranDibuka ? (
-              <Link
-                href="/laporan-mjkd/hadir"
-                className="flex flex-1 items-center justify-center rounded-2xl bg-[#E3B341] px-6 py-4 text-sm font-bold uppercase tracking-[0.7px] text-[#0b2530] transition hover:bg-[#F5D27A]"
-              >
-                Sahkan kehadiran →
-              </Link>
-            ) : null}
           </div>
         </div>
 
         {/* Agenda / navigasi bahagian */}
         <nav
           aria-label="Bahagian MJKD 2026"
-          className="relative grid grid-cols-2 border-t border-white/10 lg:grid-cols-4"
+          className="relative grid grid-cols-1 border-t border-white/10 sm:grid-cols-2"
         >
           {langkah.map((l, i) => (
             <a
               key={l.id}
               href={`#${l.id}`}
               className={`group flex flex-col gap-1 px-5 py-4 transition hover:bg-white/[0.06] sm:px-8 sm:py-5 ${
-                i % 2 === 1 ? "border-l border-white/10" : ""
-              } ${i >= 2 ? "border-t border-white/10 lg:border-t-0" : ""} ${
-                i === 2 ? "lg:border-l lg:border-white/10" : ""
+                i === 1 ? "border-t border-white/10 sm:border-l sm:border-t-0" : ""
               }`}
             >
               <span className="font-mono text-xs text-[#E3B341]">{l.nombor}</span>
@@ -311,44 +284,11 @@ export default async function LaporanMjkdPage({ searchParams }: Props) {
       </section>
 
       <div className="mx-auto mt-14 max-w-6xl space-y-16 sm:mt-20 sm:space-y-20">
-        {/* ============================ 01 KEHADIRAN ============================ */}
-        <section>
-          <TajukBahagian
-            id="kehadiran"
-            nombor="01"
-            tajuk="Kehadiran"
-            sub="PGB, wakil sekolah, pegawai PPD dan jemputan mengesahkan kehadiran setiap hari."
-          />
-          <div className="mt-6 flex flex-col gap-4 rounded-2xl border hairline bg-white p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
-            {mesyuarat.kehadiranDibuka ? (
-              <>
-                <div>
-                  <p className="text-lg font-semibold text-ink">Pengesahan kehadiran dibuka</p>
-                  <p className="mt-1 text-sm text-graphite">
-                    Imbas kod QR di dewan atau klik butang untuk mengesahkan kehadiran anda.
-                  </p>
-                </div>
-                <Link href="/laporan-mjkd/hadir" className="btn-primary shrink-0">
-                  Sahkan kehadiran
-                </Link>
-              </>
-            ) : (
-              <div>
-                <p className="text-lg font-semibold text-ink">Belum dibuka</p>
-                <p className="mt-1 text-sm text-graphite">
-                  Pengesahan kehadiran dibuka pada hari mesyuarat (
-                  {julatTarikh(mesyuarat.tarikh, mesyuarat.tarikhTamat)}) melalui kod QR di dewan.
-                </p>
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* ============================== 02 MINIT ============================== */}
+        {/* ============================== 01 MINIT ============================== */}
         <section>
           <TajukBahagian
             id="minit"
-            nombor="02"
+            nombor="01"
             tajuk={`Minit Mesyuarat ${MINIT_RUJUKAN.label}`}
             sub={`${formatTarikhMs(MINIT_RUJUKAN.tarikh)} · ${MINIT_RUJUKAN.tempat} — sila baca sebelum mengisi maklum balas.`}
           />
@@ -387,11 +327,11 @@ export default async function LaporanMjkdPage({ searchParams }: Props) {
           )}
         </section>
 
-        {/* =========================== 03 MAKLUM BALAS =========================== */}
+        {/* =========================== 02 MAKLUM BALAS =========================== */}
         <section>
           <TajukBahagian
             id="maklum-balas"
-            nombor="03"
+            nombor="02"
             tajuk="Maklum Balas PGB"
             sub={`Status pelaksanaan perkara tindakan minit ${MINIT_RUJUKAN.label} oleh setiap sekolah.`}
           />
@@ -453,37 +393,6 @@ export default async function LaporanMjkdPage({ searchParams }: Props) {
                   pembetulan.
                 </p>
               </div>
-            )}
-          </div>
-        </section>
-
-        {/* ============================== 04 BAHAN ============================== */}
-        <section>
-          <TajukBahagian
-            id="bahan"
-            nombor="04"
-            tajuk="Bahan Pembentangan"
-            sub="Pilih bahan untuk pratonton terus. Klik “Skrin penuh” untuk membuka di tab baharu."
-          />
-          <div className="mt-6">
-            {bahan.length > 0 ? (
-              <BahanPratonton
-                bahan={bahan.map((b) => ({
-                  id: b.id,
-                  sektorUnit: b.sektorUnit,
-                  tajuk: b.tajuk,
-                  namaPembentang: b.namaPembentang,
-                  hari: b.hari,
-                  jenis: b.jenis,
-                  url: b.url,
-                  storagePath: b.storagePath,
-                  createdAt: b.createdAt.toISOString(),
-                }))}
-              />
-            ) : (
-              <p className="rounded-2xl border hairline bg-white p-6 text-sm text-graphite">
-                Bahan pembentangan akan dipaparkan di sini apabila dimuat naik oleh sektor / unit.
-              </p>
             )}
           </div>
         </section>

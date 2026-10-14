@@ -36,11 +36,11 @@ export const kunciItem = (maklumBalasId: string, perkaraId: string) =>
 export async function muatDataMaklumBalasAdmin(
   mesyuaratId: string,
 ): Promise<DataMaklumBalasAdmin> {
-  const [perkara, sekolahRows, { maklumBalas, items }] = await Promise.all([
-    listPerkara(mesyuaratId),
-    listSekolahSemua(),
-    listMaklumBalasMesyuarat(mesyuaratId),
-  ]);
+  // Berurutan, bukan Promise.all: kolam serverless hanya 3 sambungan — satu soket mati tidak
+  // sepatutnya menyekat semua query serentak (lihat lib/db.ts).
+  const perkara = await listPerkara(mesyuaratId);
+  const sekolahRows = await listSekolahSemua();
+  const { maklumBalas, items } = await listMaklumBalasMesyuarat(mesyuaratId);
   return {
     perkara,
     sekolah: sekolahRows.map((s) => ({ ...s, jenis: kenalJenisSekolah(s.name, s.code) })),

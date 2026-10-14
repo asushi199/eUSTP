@@ -1,5 +1,13 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-10-14 — MJKD: awam minit + maklum balas sahaja; mod pembentangan "pentas"; tab admin tidak lagi tergantung
+
+- Gabungan Bil.1→Bil.2 (`scripts/gabung-mjkd-2026.ts`) telah dijalankan oleh pengguna; `/admin/mjkd` kini terus ke rekod tunggal.
+- Awam `/laporan-mjkd`: bahagian Kehadiran dan Bahan dibuang (dipaparkan dalam mod pembentangan sahaja). Hero kekal; kiraan hari kini hingga **tarikh tutup maklum balas** (hari terakhir = "HARI TERAKHIR"). `BahanPratonton` dibuang (tidak digunakan).
+- Mod pembentangan direka semula (arahan pimpinan "lebih gah"): latar pentas #071c24 + corak songket + aksen emas, logo KPM/PPD pada pengepala, tab pil, bar kemajuan, slaid pembuka kehadiran (tajuk acara + QR berbingkai emas + kiraan langsung), Para berlencana emas, jadual analisis gelap dengan bar status bertindan, cip/lencana status hijau/ambar/merah/kelabu, jawapan dengan gambar bukti di lajur kanan. Logik/kekunci tidak berubah; prop baharu `acara` (tarikh/tempat).
+- **Pepijat tab admin "tiada respons"** (terutama Maklum Balas): `/admin/mjkd/[id]` tiada had masa DB dan `muatDataMaklumBalasAdmin` guna `Promise.all` (3 query serentak, kolam 3) — soket pooler mati menggantung navigasi sehingga 300 s tanpa sebarang paparan. Dibaiki: semua query tab BERURUTAN dalam `withDbTimeout` 10 s (gagal → `DbPerlahan` + muat semula), pembentangan 12 s, `loading.tsx` rangka untuk `/admin/mjkd/[id]`. Tempatan: tukar tab 0.2–0.6 s.
+- Disahkan: typecheck, eslint, ujian mjkd + admin (86), `npm run build`, smoke pelayar (admin semua tab, pembentangan 1920×1080 semua bahagian, awam).
+
 ## 2026-10-14 — MJKD 2026: satu acara, 5W1H, gambar bukti, pratonton Canva, halaman acara
 
 - Arahan pimpinan: tiada lagi pemisahan Bil.1/Bil.2 (pengumpulan maklum balas Bil.2 bukan lagi tugas unit ini). **Satu rekod** = MJKD 2026 (21–22 Okt, Cameron Highland): minit + 13 perkara Bil.1 dipindah ke rekod Bil.2; label minit dalam `lib/mjkd/acara.ts` (`MINIT_RUJUKAN`). Skrip `scripts/gabung-mjkd-2026.ts [--dry-run]` (pindah perkara/minit, buka maklum balas tutup 19 Okt, padam SEMUA data ujian maklum balas/kehadiran/bahan + fail Drive, padam Bil.1). Dry-run disahkan (1 maklum balas, 1 bahan ujian, 13 perkara); **larian sebenar dijalankan oleh pengguna**. `scripts/setup-mjkd-2026-bil2.ts` kini usang.

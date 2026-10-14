@@ -95,10 +95,13 @@ GPICT/DELIMa/GPM, Tempahan PKG, Portal Sumber/Analisis/Maklumat Asas). Sumber as
 - **MJKD 2026 = satu acara, satu rekod `mjkd_mesyuarat`** (kehadiran, minit +
   perkara Bil.1/2026, maklum balas, bahan). Jangan pecah semula kepada Bil.1/Bil.2
   — keputusan pengurusan. Label minit dalam `lib/mjkd/acara.ts` (`MINIT_RUJUKAN`).
-  Halaman awam `/laporan-mjkd` ialah **pengecualian reka bentuk** (acara seluruh
-  daerah: hero gelap, logo KPM/PPD, aksen emas) — jangan "betulkan" ikut had biru
-  / kanvas putih. Catatan maklum balas wajib 5W1H (≥ 30 aksara); gambar bukti
-  di Drive dengan token HMAC (`lib/mjkd/foto-token.ts`).
+  Halaman awam `/laporan-mjkd` HANYA minit + maklum balas (kehadiran/bahan
+  dipaparkan dalam mod pembentangan sahaja). **Mod pembentangan** (dan hero
+  `/laporan-mjkd`) ialah **pengecualian reka bentuk** (acara seluruh daerah:
+  pentas gelap, logo KPM/PPD, aksen emas) — jangan "betulkan" ikut had biru /
+  kanvas putih. Catatan maklum balas wajib 5W1H (≥ 30 aksara); gambar bukti di
+  Drive dengan token HMAC (`lib/mjkd/foto-token.ts`). Halaman admin MJKD: query
+  BERURUTAN dalam `withDbTimeout` + `loading.tsx` (elak tab "tergantung").
 
 ## Selepas setiap fasa
 
