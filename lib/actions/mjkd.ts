@@ -2,7 +2,7 @@
 
 import { randomBytes } from "crypto";
 import { revalidatePath } from "next/cache";
-import { and, asc, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db, withDbTimeout } from "@/lib/db";
 import {
@@ -24,6 +24,9 @@ import { canManageKandungan } from "@/lib/roles";
 import { isSasaranMjkd, maklumBalasTerbuka } from "@/lib/mjkd/enums";
 import { selesaikanFotoBukti, tandatanganFoto } from "@/lib/mjkd/foto-token";
 import { lebihAwal } from "@/lib/mjkd/hari";
+import type { DataPentas, VersiPentas } from "@/lib/mjkd/pembentangan";
+import { huraiPautanBukti } from "@/lib/mjkd/pautan-server";
+import { muatDataPentas, muatKehadiranPentas, versiPentas } from "@/lib/mjkd/pentas-data";
 import { jawatanPgb } from "@/lib/mjkd/jawatan-pgb";
 import { kenalJenisSekolah } from "@/lib/mjkd/jenis-sekolah";
 import {
@@ -239,6 +242,9 @@ export async function submitMaklumBalasMjkd(
     return { ok: false, error: "Maklum balas ditutup." };
   }
 
+  // canva.link -> URL reka bentuk penuh (boleh dipratonton). Di luar had masa DB; gagal = asal.
+  const dataBukti = { ...siap.data, items: await huraiPautanBukti(siap.data.items) };
+
   // Gambar lama yang dibuang dipadam dari Drive SELEPAS komit (di luar had masa DB).
   let fotoUntukDibuang: string[] = [];
 
@@ -253,7 +259,7 @@ export async function submitMaklumBalasMjkd(
         error: "Sekolah ini sudah menghantar. Sila masukkan nombor tiket untuk mengemaskini.",
       };
     }
-    const data = selesaikanData(siap.data, existing);
+    const data = selesaikanData(dataBukti, existing);
     if (!data) return { ok: false, error: MESEJ_FOTO_TIDAK_SAH };
 
     if (!existing) {
@@ -424,11 +430,12 @@ export async function adminSimpanMaklumBalasMjkd(
   const siap = await sediakanSimpan(payload);
   if (!siap.ok) return { ok: false, error: siap.error };
   const { mesyuarat, school } = siap;
+  const dataBukti = { ...siap.data, items: await huraiPautanBukti(siap.data.items) };
 
   try {
     const existing = await getMaklumBalasBySchool(mesyuarat.id, school.code);
     const now = new Date();
-    const data = selesaikanData(siap.data, existing);
+    const data = selesaikanData(dataBukti, existing);
     if (!data) return { ok: false, error: MESEJ_FOTO_TIDAK_SAH };
     let token = existing?.receiptToken ?? "";
 
@@ -483,87 +490,88 @@ export async function adminJanaTiketMjkd(
   return { ok: true, receiptToken: token, schoolCode };
 }
 
-/** Admin: tanda "Pilih untuk dibaca" pada satu jawapan; susunan = hujung senarai perkara itu. */
+/**
+ * Admin: togol "★ Sorotan" pada satu jawapan (lajur `dipilih`). Tanda sahaja — tidak menentukan
+ * susunan slaid; `susunan_bacaan` dikosongkan (tidak digunakan lagi).
+ */
 export async function adminPilihBacaMjkd(
   itemId: string,
   dipilih: boolean,
 ): Promise<MjkdActionResult> {
   await requireKandunganAccess();
-  const [item] = await db
-    .select()
-    .from(mjkdMaklumBalasItem)
-    .where(eq(mjkdMaklumBalasItem.id, itemId))
-    .limit(1);
-  if (!item) return { ok: false, error: "Jawapan tidak dijumpai." };
-  const [mb] = await db
-    .select({ mesyuaratId: mjkdMaklumBalas.mesyuaratId })
-    .from(mjkdMaklumBalas)
-    .where(eq(mjkdMaklumBalas.id, item.maklumBalasId))
-    .limit(1);
-
-  if (!dipilih) {
-    await db
-      .update(mjkdMaklumBalasItem)
-      .set({ dipilih: false, susunanBacaan: null })
-      .where(eq(mjkdMaklumBalasItem.id, itemId));
-  } else {
-    const [maks] = await db
-      .select({ nilai: sql<number>`coalesce(max(${mjkdMaklumBalasItem.susunanBacaan}), 0)` })
-      .from(mjkdMaklumBalasItem)
-      .where(
-        and(eq(mjkdMaklumBalasItem.perkaraId, item.perkaraId), eq(mjkdMaklumBalasItem.dipilih, true)),
-      );
-    await db
-      .update(mjkdMaklumBalasItem)
-      .set({ dipilih: true, susunanBacaan: Number(maks?.nilai ?? 0) + 1 })
-      .where(eq(mjkdMaklumBalasItem.id, itemId));
+  if (!/^[0-9a-f-]{36}$/i.test(String(itemId ?? ""))) {
+    return { ok: false, error: "Jawapan tidak dijumpai." };
   }
-  revalidateMjkd(mb?.mesyuaratId);
-  return { ok: true };
+  try {
+    const mesyuaratId = await withDbTimeout(
+      (async () => {
+        const [item] = await db
+          .update(mjkdMaklumBalasItem)
+          .set({ dipilih: Boolean(dipilih), susunanBacaan: null })
+          .where(eq(mjkdMaklumBalasItem.id, itemId))
+          .returning({ maklumBalasId: mjkdMaklumBalasItem.maklumBalasId });
+        if (!item) return null;
+        const [mb] = await db
+          .select({ mesyuaratId: mjkdMaklumBalas.mesyuaratId })
+          .from(mjkdMaklumBalas)
+          .where(eq(mjkdMaklumBalas.id, item.maklumBalasId))
+          .limit(1);
+        return mb?.mesyuaratId ?? "";
+      })(),
+    );
+    if (mesyuaratId === null) return { ok: false, error: "Jawapan tidak dijumpai." };
+    revalidateMjkd(mesyuaratId || undefined);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: isRalatTimeoutDb(e) ? MESEJ_DB_PERLAHAN : "Gagal mengemas kini sorotan." };
+  }
 }
 
-/** Admin: naik/turun susunan bacaan antara jawapan yang dipilih bagi perkara yang sama. */
-export async function adminUbahSusunanBacaMjkd(
-  itemId: string,
-  arah: "naik" | "turun",
-): Promise<MjkdActionResult> {
+/* ======================== Admin: mod pembentangan (v2) ======================== */
+
+export type DataPembentanganResult = { ok: true; data: DataPentas } | { ok: false; error: string };
+
+/** Muatan penuh mod pembentangan (polling bila `versi.utama` berubah, atau kekunci R). */
+export async function getDataPembentanganMjkd(
+  mesyuaratId: string,
+): Promise<DataPembentanganResult> {
   await requireKandunganAccess();
-  const [item] = await db
-    .select()
-    .from(mjkdMaklumBalasItem)
-    .where(eq(mjkdMaklumBalasItem.id, itemId))
-    .limit(1);
-  if (!item || !item.dipilih) return { ok: false, error: "Jawapan belum dipilih." };
+  try {
+    const data = await withDbTimeout(muatDataPentas(String(mesyuaratId ?? "")), 8000);
+    if (!data) return { ok: false, error: "Mesyuarat tidak dijumpai." };
+    return { ok: true, data };
+  } catch (e) {
+    // Klien mengekalkan data terakhir.
+    return { ok: false, error: isRalatTimeoutDb(e) ? MESEJ_DB_PERLAHAN : "Gagal memuat data." };
+  }
+}
 
-  const [mb] = await db
-    .select({ mesyuaratId: mjkdMaklumBalas.mesyuaratId })
-    .from(mjkdMaklumBalas)
-    .where(eq(mjkdMaklumBalas.id, item.maklumBalasId))
-    .limit(1);
+/** Tandatangan ringan untuk polling (satu query). */
+export async function getVersiPembentanganMjkd(
+  mesyuaratId: string,
+): Promise<{ ok: true; versi: VersiPentas } | { ok: false; error: string }> {
+  await requireKandunganAccess();
+  try {
+    const versi = await withDbTimeout(versiPentas(String(mesyuaratId ?? "")), 6000);
+    if (!versi) return { ok: false, error: "Mesyuarat tidak dijumpai." };
+    return { ok: true, versi };
+  } catch (e) {
+    return { ok: false, error: isRalatTimeoutDb(e) ? MESEJ_DB_PERLAHAN : "Gagal menyemak data." };
+  }
+}
 
-  const dipilih = await db
-    .select({ id: mjkdMaklumBalasItem.id })
-    .from(mjkdMaklumBalasItem)
-    .where(
-      and(eq(mjkdMaklumBalasItem.perkaraId, item.perkaraId), eq(mjkdMaklumBalasItem.dipilih, true)),
-    )
-    .orderBy(asc(mjkdMaklumBalasItem.susunanBacaan), asc(mjkdMaklumBalasItem.id));
-
-  const idx = dipilih.findIndex((x) => x.id === itemId);
-  const sasaran = arah === "naik" ? idx - 1 : idx + 1;
-  if (idx < 0 || sasaran < 0 || sasaran >= dipilih.length) return { ok: true };
-  [dipilih[idx], dipilih[sasaran]] = [dipilih[sasaran]!, dipilih[idx]!];
-
-  await db.transaction(async (tx) => {
-    for (let i = 0; i < dipilih.length; i += 1) {
-      await tx
-        .update(mjkdMaklumBalasItem)
-        .set({ susunanBacaan: i + 1 })
-        .where(eq(mjkdMaklumBalasItem.id, dipilih[i]!.id));
-    }
-  });
-  revalidateMjkd(mb?.mesyuaratId);
-  return { ok: true };
+/** Rekod kehadiran sahaja (bila hanya `versi.hadir` berubah). */
+export async function getKehadiranPembentanganMjkd(
+  mesyuaratId: string,
+): Promise<{ ok: true; kehadiran: DataPentas["kehadiran"] } | { ok: false; error: string }> {
+  await requireKandunganAccess();
+  const id = String(mesyuaratId ?? "");
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return { ok: false, error: "Mesyuarat tidak dijumpai." };
+  try {
+    return { ok: true, kehadiran: await withDbTimeout(muatKehadiranPentas(id), 6000) };
+  } catch (e) {
+    return { ok: false, error: isRalatTimeoutDb(e) ? MESEJ_DB_PERLAHAN : "Gagal memuat kehadiran." };
+  }
 }
 
 /* ============================ Admin: mesyuarat ============================ */

@@ -9,14 +9,12 @@ import { requireKandunganAccess } from "@/lib/rbac";
 import { jawatanPgb } from "@/lib/mjkd/jawatan-pgb";
 import { kenalJenisSekolah } from "@/lib/mjkd/jenis-sekolah";
 import {
-  type KiraanKehadiran,
   CARIAN_PEGAWAI_MIN,
   ORGANISASI_PPD,
   sahkanTeksKehadiran,
 } from "@/lib/mjkd/kehadiran";
 import { hariIniKl } from "@/lib/mjkd/enums";
 import { isTarikhIso } from "@/lib/mjkd/hari";
-import { kiraanKehadiranHari } from "@/lib/mjkd/pembentangan";
 import { namaKunci } from "@/lib/mjkd/nama-kunci";
 import { MESEJ_DB_PERLAHAN, isRalatTimeoutDb } from "@/lib/mjkd/ralat-db";
 import {
@@ -28,9 +26,7 @@ import {
   getNamaPkWakil,
   getPegawaiPpd,
   getSchoolByCode,
-  listKehadiran,
   listPegawaiPpdAdmin,
-  listSekolahSemua,
 } from "@/lib/mjkd/queries";
 
 const JAWATAN_PK = {
@@ -472,32 +468,4 @@ export async function adminTogolPegawaiAktifMjkd(
   if (!row) return { ok: false, error: "Pegawai tidak dijumpai." };
   revalidatePath("/admin/mjkd/pegawai");
   return { ok: true };
-}
-
-/** Admin (pembentangan): kiraan kehadiran HARI INI — dipolling setiap 30 saat semasa tab kelihatan. */
-export async function getKiraanKehadiranMjkd(
-  mesyuaratId: string,
-): Promise<{ ok: boolean; kiraan?: KiraanKehadiran; error?: string }> {
-  await requireKandunganAccess();
-  try {
-    return await withDbTimeout(
-      (async () => {
-        const mesyuarat = await getMesyuarat(String(mesyuaratId ?? ""));
-        if (!mesyuarat) return { ok: false, error: "Mesyuarat tidak dijumpai." };
-        const rekod = await listKehadiran(mesyuarat.id);
-        const sekolah = await listSekolahSemua();
-        return {
-          ok: true,
-          kiraan: kiraanKehadiranHari(
-            rekod,
-            sekolah.map((s) => s.code),
-            hariIniKl(),
-          ),
-        };
-      })(),
-    );
-  } catch (e) {
-    // Pelanggan mengekalkan kiraan terakhir.
-    return { ok: false, error: isRalatTimeoutDb(e) ? MESEJ_DB_PERLAHAN : "Gagal memuat kiraan." };
-  }
 }

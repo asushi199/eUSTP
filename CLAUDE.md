@@ -98,8 +98,10 @@ GPICT/DELIMa/GPM, Tempahan PKG, Portal Sumber/Analisis/Maklumat Asas). Sumber as
   Halaman awam `/laporan-mjkd` HANYA minit + maklum balas (kehadiran/bahan
   dipaparkan dalam mod pembentangan sahaja) dan IKUT reka bentuk standard.
   **Mod pembentangan sahaja** ialah **pengecualian reka bentuk** (acara seluruh
-  daerah: pentas gelap, logo KPM/PPD, aksen emas) — jangan "betulkan" ikut had
-  biru / kanvas putih. Catatan maklum balas wajib 5W1H (≥ 30 aksara); gambar bukti di
+  daerah: kanvas tetap 1920×1080, logo KPM/PPD, aksen emas; tema terang lalai,
+  T = pentas gelap) — jangan "betulkan" ikut had biru / kanvas putih. Kod di
+  `components/mjkd/pembentangan/`, spesifikasi `MJKD/PLAN-pembentangan-v2.md`;
+  semak reka letak tanpa DB di `/dev/pentas` (dev sahaja). Catatan maklum balas wajib 5W1H (≥ 30 aksara); gambar bukti di
   Drive dengan token HMAC (`lib/mjkd/foto-token.ts`). Halaman admin MJKD: query
   BERURUTAN dalam `withDbTimeout` + `loading.tsx` (elak tab "tergantung").
 

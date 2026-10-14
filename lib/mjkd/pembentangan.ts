@@ -1,18 +1,25 @@
 /**
- * Pembina slaid mod pembentangan MJKD (tulen — tiada akses DB; selamat dibawa ke klien).
- * Empat tab: Kehadiran (mesyuarat semasa), Minit (mesyuarat rujukan/sebelum), Maklum Balas
- * (mesyuarat rujukan/sebelum) dan Bahan (mesyuarat semasa).
+ * Mod Pembentangan MJKD 2026 (v2) — logik tulen (tiada akses DB; selamat dibawa ke klien).
+ * Satu dek berterusan mengikut bab: Pembukaan → Kehadiran → Minit → Maklum Balas → Pembentangan
+ * Sektor → Penutup. Jumlah sekolah SENTIASA dikira daripada data (tiada nombor tetap); tiada zon.
  */
-import { urlEmbedBahan, urlMuatTurunBahan, kumpulBahan } from "./bahan";
-import { formatTarikhMs, labelMesyuarat, type StatusMjkd } from "./enums";
+import { kumpulBahan, urlEmbedBahan, urlMuatTurunBahan } from "./bahan";
+import { STATUS_MJKD, formatTarikhMs, labelMesyuarat } from "./enums";
 import { labelBeberapaHari, labelHariPendek } from "./hari";
-import { kiraKehadiran, tapisRekodHari, type KiraanKehadiran } from "./kehadiran";
+import {
+  kiraKehadiran,
+  kodSekolahHadir,
+  tapisRekodHari,
+  type KiraanKehadiran,
+} from "./kehadiran";
+import { kenalJenisSekolah, peringkat } from "./jenis-sekolah";
 import { hitungKemajuan, kiraStatus, type BilanganStatus } from "./ringkasan";
 import { perkaraUntukSekolah } from "./sasaran";
 
 export const NAMA_MESYUARAT_PENUH = "Mesyuarat Jawatankuasa Kurikulum Daerah Manjung";
-export const MESEJ_BAHAN = "Belum ada bahan dimuat naik.";
 export const PANJANG_RINGKAS = 240;
+
+/* --------------------------------- data --------------------------------- */
 
 export type PerkaraPembentangan = {
   id: string;
@@ -35,13 +42,19 @@ export type MesyuaratPembentangan = {
 };
 
 export type SekolahPembentangan = { code: string; name: string; zone?: string };
+
 export type MaklumBalasPembentangan = {
   id: string;
   schoolCode: string;
   namaPengisi?: string;
   jawatanPengisi?: string;
+  /** ISO — masa dihantar (untuk "BARU" dan paparan Spotlight). */
+  tarikhHantar?: string;
 };
+
 export type ItemPembentangan = {
+  /** id item (diperlukan untuk togol Sorotan). */
+  id?: string;
   maklumBalasId: string;
   perkaraId: string;
   status: string;
@@ -49,8 +62,9 @@ export type ItemPembentangan = {
   pautanBukti: string;
   /** Path Drive gambar bukti (pilihan; data lama tiada). */
   fotoBukti?: string[];
+  /** Sorotan (lajur `dipilih`) — tanda sahaja, tidak menentukan susunan slaid. */
   dipilih: boolean;
-  susunanBacaan: number | null;
+  susunanBacaan?: number | null;
 };
 
 export type BahanPembentangan = {
@@ -65,42 +79,73 @@ export type BahanPembentangan = {
   createdAt: string;
 };
 
-/* ------------------------------- jenis slaid ------------------------------- */
-
-export type SlaidKehadiran = {
-  jenis: "kehadiran";
-  kunci: string;
-  mesyuaratId: string;
-  tajuk: string;
-  /** Tarikh hari ini (label) — kiraan ialah bagi hari ini. */
-  hariLabel: string;
-  url: string;
-  urlPendek: string;
-  qr: string;
-  kiraan: KiraanKehadiran;
+export type RekodKehadiranSlaid = {
+  jenis: string;
+  schoolCode: string | null;
+  tarikh: string;
+  /** Sektor pegawai PPD (daripada `pegawai_ppd.sektor`); kosong = Lain-lain. */
+  sektor?: string;
 };
 
-export type SlaidTajuk = {
-  jenis: "tajuk";
-  kunci: string;
-  /** cth. "Pengesahan Minit MJKD Bil.1/2026" — mesyuarat yang memiliki minit. */
-  pengesahan: string;
-  nama: string;
-  bilTahun: string;
+/** Muatan penuh mod pembentangan (boleh disiri — dihantar oleh pelayan & disimpan di localStorage). */
+export type DataPentas = {
+  rujukan: MesyuaratPembentangan;
+  perkara: PerkaraPembentangan[];
+  sekolah: SekolahPembentangan[];
+  maklumBalas: MaklumBalasPembentangan[];
+  items: ItemPembentangan[];
+  bahan: BahanPembentangan[];
+  kehadiran: { hariIni: string; rekod: RekodKehadiranSlaid[] };
+  /** ISO — masa data dimuat di pelayan. */
+  dimuatPada: string;
+};
+
+/**
+ * Tandatangan ringan untuk polling: `utama` berubah = muat semula penuh; `hadir` berubah =
+ * muat semula kehadiran sahaja.
+ */
+export type VersiPentas = { utama: string; hadir: string };
+
+/* ------------------------------- jenis slaid ------------------------------- */
+
+export type Bab = "pembukaan" | "kehadiran" | "minit" | "maklum-balas" | "pembentangan" | "penutup";
+
+export const SENARAI_BAB: readonly { id: Bab; label: string }[] = [
+  { id: "pembukaan", label: "Pembukaan" },
+  { id: "kehadiran", label: "Kehadiran" },
+  { id: "minit", label: "Minit" },
+  { id: "maklum-balas", label: "Maklum Balas" },
+  { id: "pembentangan", label: "Pembentangan Sektor" },
+  { id: "penutup", label: "Penutup" },
+];
+
+type Asas = { kunci: string; bab: Bab; tajuk: string };
+
+export type SektorHadir = { sektor: string; bil: number };
+
+export type SlaidPembukaan = Asas & {
+  jenis: "pembukaan";
+  sekolahHadir: number;
+  pegawaiHadir: number;
+};
+
+export type SlaidKehadiran = Asas & {
+  jenis: "kehadiran";
+  hariLabel: string;
+  sekolahHadir: number;
+  pegawaiHadir: number;
+  pegawaiSektor: SektorHadir[];
+  lain: number;
+};
+
+export type SlaidMinit = Asas & {
+  jenis: "minit";
+  label: string;
   tarikh: string;
   tempat: string;
   minitUrl: string;
-  /** URL muat turun minit (kosong jika tiada minit). */
   muatTurunUrl: string;
-};
-
-export type SlaidPerkara = {
-  jenis: "perkara";
-  kunci: string;
-  para: string;
-  mukaSurat: string;
-  perkara: string;
-  tindakan: string;
+  para: string[];
 };
 
 export type BarisAnalisis = {
@@ -122,91 +167,64 @@ export type Analisis = {
   sekolahJumlah: number;
 };
 
-export type SlaidAnalisis = {
-  jenis: "analisis";
-  kunci: string;
-  tajuk: string;
-  analisis: Analisis;
-  /** Ada sekurang-kurangnya satu jawapan dipilih untuk dibaca. */
-  adaPilihan: boolean;
+export type PapanPemuka = {
+  kpi: {
+    sekolahDihantar: number;
+    sekolahJumlah: number;
+    /** Semua jawapan terpakai merentas perkara. */
+    bilangan: BilanganStatus;
+  };
+  perkara: BarisAnalisis[];
 };
 
-export type ChipSekolah = {
+export type SlaidPapanPemuka = Asas & { jenis: "papan-pemuka" } & PapanPemuka;
+
+export type TileSekolah = {
   kod: string;
   nama: string;
-  status: StatusMjkd | string;
-  dipilih: boolean;
-  susunan: number | null;
-  catatan: string;
-  pautanBukti: string;
-  fotoBukti: string[];
-  namaPengisi: string;
-  jawatanPengisi: string;
+  namaPendek: string;
+  /** null = belum menghantar. */
+  status: string | null;
+  itemId: string | null;
+  sorotan: boolean;
+  baru: boolean;
 };
 
-export type SlaidGrid = {
-  jenis: "grid";
-  kunci: string;
+export type SlaidPerkara = Asas & {
+  jenis: "perkara";
+  perkaraId: string;
   para: string;
   mukaSurat: string;
-  perkaraRingkas: string;
+  perkara: string;
+  tindakan: string;
   bilangan: BilanganStatus;
   dihantar: number;
   dijangka: number;
-  bilDipilih: number;
-  chips: ChipSekolah[];
+  jubin: TileSekolah[];
 };
 
-export type SlaidJawapan = {
-  jenis: "jawapan";
+export type SesiAturCara = {
+  /** Kunci slaid bahan. */
   kunci: string;
-  para: string;
-  kodSekolah: string;
-  namaSekolah: string;
-  status: StatusMjkd | string;
-  catatan: string;
-  /** Teks sahaja — bukan pautan hidup. */
-  pautanBukti: string;
-  fotoBukti: string[];
-  /** Kedudukan dalam bacaan perkara ini (bermula 1) dan jumlah dipilih. */
   nombor: number;
-  daripada: number;
-};
-
-export type SlaidKosong = {
-  jenis: "kosong";
-  kunci: string;
-  tajuk: string;
-  mesej: string;
-};
-
-export type BahanIndeksItem = {
-  id: string;
-  tajuk: string;
-  namaPembentang: string;
-  /** Indeks slaid bahan tersebut dalam tab Bahan. */
-  slaid: number;
-};
-
-export type SlaidBahanIndeks = {
-  jenis: "bahan-indeks";
-  kunci: string;
-  kumpulan: {
-    hari: string;
-    label: string;
-    sektor: { sektorUnit: string; bahan: BahanIndeksItem[] }[];
-  }[];
-};
-
-export type SlaidBahanItem = {
-  jenis: "bahan";
-  kunci: string;
-  id: string;
   sektorUnit: string;
   tajuk: string;
   namaPembentang: string;
+  jenisLabel: string;
+};
+
+export type SlaidAturCara = Asas & {
+  jenis: "atur-cara";
+  hari: { hari: string; label: string; sesi: SesiAturCara[] }[];
+};
+
+export type SlaidBahan = Asas & {
+  jenis: "bahan";
+  id: string;
+  sektorUnit: string;
+  namaPembentang: string;
   hariLabel: string;
-  jenisBahan: string;
+  jenisLabel: string;
   /** URL benam (iframe) atau null jika perlu dibuka di tab baharu. */
   embedUrl: string | null;
   bukaUrl: string;
@@ -215,21 +233,23 @@ export type SlaidBahanItem = {
   daripada: number;
 };
 
-export type SlaidMinit = SlaidTajuk | SlaidPerkara;
-export type SlaidMaklumBalas = SlaidAnalisis | SlaidGrid | SlaidJawapan | SlaidKosong;
-export type SlaidBahan = SlaidBahanIndeks | SlaidBahanItem | SlaidKosong;
-export type SlaidPembentanganSemua =
+export type SlaidPenutup = Asas & {
+  jenis: "penutup";
+  sekolahHadir: number;
+  sekolahDihantar: number;
+  /** null = tiada jawapan lagi. */
+  peratusSelesai: number | null;
+};
+
+export type Slaid =
+  | SlaidPembukaan
   | SlaidKehadiran
   | SlaidMinit
-  | SlaidMaklumBalas
-  | SlaidBahan;
-
-export type Pembentangan = {
-  kehadiran: SlaidKehadiran[];
-  minit: SlaidMinit[];
-  maklumBalas: SlaidMaklumBalas[];
-  bahan: SlaidBahan[];
-};
+  | SlaidPapanPemuka
+  | SlaidPerkara
+  | SlaidAturCara
+  | SlaidBahan
+  | SlaidPenutup;
 
 /* --------------------------------- bantuan --------------------------------- */
 
@@ -246,8 +266,6 @@ function isihPerkara<T extends { sort: number; para: string }>(perkara: readonly
   return [...perkara].sort((a, b) => a.sort - b.sort || a.para.localeCompare(b.para, "ms"));
 }
 
-/* ---------------------------------- Minit ---------------------------------- */
-
 /** Pautan muat turun minit (Supabase menyokong `?download=<nama fail>`). */
 export function urlMuatTurunMinit(m: { bil: number; tahun: number; minitUrl: string }): string {
   if (!m.minitUrl) return "";
@@ -255,35 +273,79 @@ export function urlMuatTurunMinit(m: { bil: number; tahun: number; minitUrl: str
   return `${m.minitUrl}${m.minitUrl.includes("?") ? "&" : "?"}download=${nama}`;
 }
 
-/** Tab Minit: slaid 1 = tajuk (+ PDF); kemudian satu slaid bagi setiap perkara aktif. */
-export function binaSlaidMinit(
-  mesyuarat: MesyuaratPembentangan,
-  perkara: readonly PerkaraPembentangan[],
-): SlaidMinit[] {
-  const slaid: SlaidMinit[] = [
-    {
-      jenis: "tajuk",
-      kunci: "minit-tajuk",
-      pengesahan: `Pengesahan Minit MJKD ${labelMesyuarat(mesyuarat)}`,
-      nama: NAMA_MESYUARAT_PENUH,
-      bilTahun: `Bil. ${mesyuarat.bil} Tahun ${mesyuarat.tahun}`,
-      tarikh: formatTarikhMs(mesyuarat.tarikh),
-      tempat: mesyuarat.tempat,
-      minitUrl: mesyuarat.minitUrl,
-      muatTurunUrl: urlMuatTurunMinit(mesyuarat),
-    },
-  ];
-  for (const p of isihPerkara(perkara.filter((x) => x.aktif))) {
-    slaid.push({
-      jenis: "perkara",
-      kunci: `minit-${p.id}`,
-      para: p.para,
-      mukaSurat: p.mukaSurat,
-      perkara: p.perkara,
-      tindakan: p.tindakan,
-    });
+const AKRONIM_SEKOLAH = new Set([
+  "SK",
+  "SJK",
+  "SJKC",
+  "SJK(C)",
+  "SJKT",
+  "SJK(T)",
+  "SM",
+  "SMK",
+  "SMJK",
+  "SMKA",
+  "SMA",
+  "SMS",
+  "SMT",
+  "SMV",
+  "SBP",
+  "SABK",
+  "SRA",
+  "KV",
+  "MRSM",
+  "PPD",
+  "KPM",
+  "FELDA",
+  "LKTP",
+  "(C)",
+  "(T)",
+  "II",
+  "III",
+  "IV",
+]);
+
+/** "SK MUHAMMAD SAMAN" -> "SK Muhammad Saman" (akronim jenis sekolah kekal huruf besar). */
+export function namaPendek(nama: string): string {
+  return nama
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((w) => {
+      const besar = w.toUpperCase();
+      if (AKRONIM_SEKOLAH.has(besar) || /\d/.test(w)) return besar;
+      return w.toLowerCase().replace(/(^|[-/('.])(\p{L})/gu, (_, a: string, b: string) => a + b.toUpperCase());
+    })
+    .join(" ");
+}
+
+/**
+ * Saiz jubin mozek supaya SEMUA sekolah muat tanpa tatal: pilih bilangan lajur yang memberi fon
+ * terbesar (nama 2 baris mesti muat). ~100 sekolah pada 1028×820 -> 7 lajur, fon ≈ 15px;
+ * bilangan kecil -> jubin besar (lebar maks 420px).
+ */
+export function ukuranMozek(
+  n: number,
+  lebar: number,
+  tinggi: number,
+): { lajur: number; w: number; h: number; fon: number; gap: number } {
+  const gap = 8;
+  const bil = Math.max(1, n);
+  let terbaik: { lajur: number; w: number; h: number; fon: number } | null = null;
+  for (let c = 1; c <= Math.min(14, bil); c += 1) {
+    const w = Math.min(420, (lebar - (c - 1) * gap) / c);
+    const baris = Math.ceil(bil / c);
+    const h = Math.min(120, w * 0.62, (tinggi - (baris - 1) * gap) / baris);
+    const fon = Math.min(30, h * 0.33, w / 9.5);
+    if (!terbaik || fon > terbaik.fon + 0.2) terbaik = { lajur: c, w, h, fon };
   }
-  return slaid;
+  const t = terbaik!;
+  return {
+    lajur: t.lajur,
+    w: Math.floor(t.w * 10) / 10,
+    h: Math.floor(t.h * 10) / 10,
+    fon: Math.max(12, Math.round(t.fon * 10) / 10),
+    gap,
+  };
 }
 
 /* ------------------------------- Maklum Balas ------------------------------- */
@@ -291,9 +353,12 @@ export function binaSlaidMinit(
 type InputMaklumBalas = {
   perkara: readonly PerkaraPembentangan[];
   sekolah: readonly SekolahPembentangan[];
-  maklumBalas: readonly MaklumBalasPembentangan[];
+  maklumBalas: readonly Pick<MaklumBalasPembentangan, "id" | "schoolCode">[];
   items: readonly ItemPembentangan[];
 };
+
+const terpakaiKepada = (p: PerkaraPembentangan, sekolah: readonly SekolahPembentangan[]) =>
+  sekolah.filter((s) => perkaraUntukSekolah([p], s).length > 0);
 
 /**
  * Analisis: satu baris bagi setiap perkara aktif — kiraan status dan "dihantar x / y sekolah"
@@ -303,9 +368,7 @@ export function binaAnalisis(input: InputMaklumBalas): Analisis {
   const kodMengikutMb = new Map(input.maklumBalas.map((m) => [m.id, m.schoolCode]));
   const aktif = input.perkara.filter((p) => p.aktif);
   const baris: BarisAnalisis[] = isihPerkara(aktif).map((p) => {
-    const kodTerpakai = new Set(
-      input.sekolah.filter((s) => perkaraUntukSekolah([p], s).length > 0).map((s) => s.code),
-    );
+    const kodTerpakai = new Set(terpakaiKepada(p, input.sekolah).map((s) => s.code));
     const itemTerpakai = input.items.filter((it) => {
       const kod = kodMengikutMb.get(it.maklumBalasId);
       return it.perkaraId === p.id && kod !== undefined && kodTerpakai.has(kod);
@@ -328,121 +391,241 @@ export function binaAnalisis(input: InputMaklumBalas): Analisis {
   return { baris, sekolahDihantar: kemajuan.dihantar, sekolahJumlah: kemajuan.dijangka };
 }
 
+/** Papan Pemuka Daerah: KPI keseluruhan + baris setiap perkara (tanpa zon). */
+export function kiraPapanPemuka(input: InputMaklumBalas): PapanPemuka {
+  const a = binaAnalisis(input);
+  const bilangan = { jumlah: 0 } as BilanganStatus;
+  for (const s of STATUS_MJKD) bilangan[s] = 0;
+  for (const b of a.baris) {
+    for (const s of STATUS_MJKD) bilangan[s] += b.bilangan[s];
+    bilangan.jumlah += b.bilangan.jumlah;
+  }
+  return {
+    kpi: { sekolahDihantar: a.sekolahDihantar, sekolahJumlah: a.sekolahJumlah, bilangan },
+    perkara: a.baris,
+  };
+}
+
 /**
- * Tab Maklum Balas: slaid 1 = Analisis. Kemudian bagi SETIAP perkara yang ada jawapan: slaid
- * grid cip sekolah (warna = status, bintang = dipilih), diikuti satu slaid bagi setiap jawapan
- * dipilih ikut `susunanBacaan` (tiada susunan di hujung, seri ikut kod sekolah).
+ * Jubin mozek satu perkara: SEMUA sekolah yang perkara itu terpakai (belum menghantar =
+ * status null), diisih SR dahulu, kemudian SM (jenis tidak dikenali di hujung), dan dalam
+ * setiap peringkat ikut kod sekolah — memudahkan PGB mencari sekolah sendiri.
  */
-export function binaSlaidMaklumBalas(
-  input: InputMaklumBalas & { tajuk?: string },
-): SlaidMaklumBalas[] {
-  const sekolahMengikutKod = new Map(input.sekolah.map((s) => [s.code, s]));
-  const mbMengikutId = new Map(input.maklumBalas.map((m) => [m.id, m]));
-  const analisis = binaAnalisis(input);
-  const adaPilihan = input.items.some(
-    (it) => it.dipilih && mbMengikutId.has(it.maklumBalasId),
+export function binaMozek(
+  p: PerkaraPembentangan,
+  sekolah: readonly SekolahPembentangan[],
+  maklumBalas: readonly MaklumBalasPembentangan[],
+  items: readonly ItemPembentangan[],
+  opts: { baru?: ReadonlySet<string> } = {},
+): TileSekolah[] {
+  const mbMengikutKod = new Map(maklumBalas.map((m) => [m.schoolCode, m]));
+  const itemMengikutMb = new Map(
+    items.filter((it) => it.perkaraId === p.id).map((it) => [it.maklumBalasId, it]),
   );
-  const slaid: SlaidMaklumBalas[] = [
-    {
-      jenis: "analisis",
-      kunci: "mb-analisis",
-      tajuk: input.tajuk ?? "Analisis Maklum Balas",
-      analisis,
-      adaPilihan,
-    },
-  ];
+  return terpakaiKepada(p, sekolah)
+    .map((s) => {
+      const mb = mbMengikutKod.get(s.code);
+      const it = mb ? itemMengikutMb.get(mb.id) : undefined;
+      return {
+        kod: s.code,
+        nama: s.name,
+        namaPendek: namaPendek(s.name),
+        status: it ? it.status : null,
+        itemId: it?.id ?? null,
+        sorotan: Boolean(it?.dipilih),
+        baru: Boolean(it && opts.baru?.has(s.code)),
+      };
+    })
+    .sort((a, b) => kedudukanPeringkat(a) - kedudukanPeringkat(b) || a.kod.localeCompare(b.kod));
+}
 
-  const barisMengikutId = new Map(analisis.baris.map((b) => [b.perkaraId, b]));
-  let adaJawapan = false;
+/** 0 = SR, 1 = SM, 2 = jenis tidak dikenali. */
+function kedudukanPeringkat(j: { kod: string; nama: string }): number {
+  const jenis = kenalJenisSekolah(j.nama, j.kod);
+  if (!jenis) return 2;
+  return peringkat(jenis) === "SR" ? 0 : 1;
+}
 
-  for (const p of isihPerkara(input.perkara.filter((x) => x.aktif))) {
-    const jawapan = input.items
-      .filter((it) => it.perkaraId === p.id && mbMengikutId.has(it.maklumBalasId))
-      .map((it) => {
-        const mb = mbMengikutId.get(it.maklumBalasId)!;
-        return { it, mb, sekolah: sekolahMengikutKod.get(mb.schoolCode) };
-      });
-    if (jawapan.length === 0) continue;
-    adaJawapan = true;
+/** Urutan Spotlight (←/→): sekolah yang telah menghantar sahaja, ikut susunan mozek. */
+export function urutanSpotlight(jubin: readonly TileSekolah[]): string[] {
+  return jubin.filter((j) => j.status !== null).map((j) => j.kod);
+}
 
-    const dipilih = jawapan
-      .filter((x) => x.it.dipilih)
-      .sort(
-        (a, b) =>
-          (a.it.susunanBacaan ?? Number.MAX_SAFE_INTEGER) -
-            (b.it.susunanBacaan ?? Number.MAX_SAFE_INTEGER) ||
-          a.mb.schoolCode.localeCompare(b.mb.schoolCode),
-      );
-    const baris = barisMengikutId.get(p.id)!;
+/** Jawapan satu sekolah bagi satu perkara (untuk Spotlight). */
+export function jawapanSekolah(
+  data: Pick<DataPentas, "sekolah" | "maklumBalas" | "items">,
+  perkaraId: string,
+  kod: string,
+): {
+  sekolah: SekolahPembentangan | null;
+  mb: MaklumBalasPembentangan | null;
+  item: ItemPembentangan | null;
+} {
+  const sekolah = data.sekolah.find((s) => s.code === kod) ?? null;
+  const mb = data.maklumBalas.find((m) => m.schoolCode === kod) ?? null;
+  const item = mb
+    ? (data.items.find((it) => it.maklumBalasId === mb.id && it.perkaraId === perkaraId) ?? null)
+    : null;
+  return { sekolah, mb, item };
+}
 
-    const chips: ChipSekolah[] = jawapan
-      .map(({ it, mb, sekolah }) => ({
-        kod: mb.schoolCode,
-        nama: sekolah?.name ?? mb.schoolCode,
-        status: it.status,
-        dipilih: it.dipilih,
-        susunan: it.susunanBacaan,
-        catatan: it.catatan,
-        pautanBukti: it.pautanBukti,
-        fotoBukti: it.fotoBukti ?? [],
-        namaPengisi: mb.namaPengisi ?? "",
-        jawatanPengisi: mb.jawatanPengisi ?? "",
-      }))
-      .sort((a, b) => a.nama.localeCompare(b.nama, "ms"));
-
-    slaid.push({
-      jenis: "grid",
-      kunci: `mb-${p.id}-grid`,
-      para: p.para,
-      mukaSurat: p.mukaSurat,
-      perkaraRingkas: ringkasTeks(p.perkara),
-      bilangan: baris.bilangan,
-      dihantar: baris.dihantar,
-      dijangka: baris.dijangka,
-      bilDipilih: dipilih.length,
-      chips,
-    });
-
-    dipilih.forEach(({ it, mb, sekolah }, i) => {
-      slaid.push({
-        jenis: "jawapan",
-        kunci: `mb-${p.id}-${it.maklumBalasId}`,
-        para: p.para,
-        kodSekolah: mb.schoolCode,
-        namaSekolah: sekolah?.name ?? mb.schoolCode,
-        status: it.status,
-        catatan: it.catatan,
-        pautanBukti: it.pautanBukti,
-        fotoBukti: it.fotoBukti ?? [],
-        nombor: i + 1,
-        daripada: dipilih.length,
-      });
-    });
+/**
+ * Perbezaan antara dua muatan: sekolah yang baru menghantar / mengemas kini maklum balas, dan
+ * sekolah yang baru hadir (untuk denyutan "BARU").
+ */
+export function bezaData(
+  lama: Pick<DataPentas, "maklumBalas" | "kehadiran">,
+  baru: Pick<DataPentas, "maklumBalas" | "kehadiran">,
+): { maklumBalas: Set<string>; hadir: Set<string> } {
+  const masaLama = new Map(lama.maklumBalas.map((m) => [m.schoolCode, m.tarikhHantar ?? ""]));
+  const maklumBalas = new Set<string>();
+  for (const m of baru.maklumBalas) {
+    const sebelum = masaLama.get(m.schoolCode);
+    if (sebelum === undefined || (m.tarikhHantar ?? "") > sebelum) maklumBalas.add(m.schoolCode);
   }
+  const hadirLama = kodSekolahHadir(lama.kehadiran.rekod);
+  const hadir = new Set([...kodSekolahHadir(baru.kehadiran.rekod)].filter((k) => !hadirLama.has(k)));
+  return { maklumBalas, hadir };
+}
 
-  if (!adaJawapan) {
-    slaid.push({
-      jenis: "kosong",
-      kunci: "mb-kosong",
-      tajuk: "Belum ada maklum balas",
-      mesej: "Tiada sekolah yang menghantar maklum balas bagi mesyuarat ini lagi.",
-    });
+/* -------------------------------- Kehadiran -------------------------------- */
+
+/** Kiraan kehadiran bagi satu hari — dipakai slaid Kehadiran dan penyegaran langsung. */
+export function kiraanKehadiranHari(
+  rekod: readonly RekodKehadiranSlaid[],
+  kodSekolah: readonly string[],
+  hari: string,
+): KiraanKehadiran {
+  return kiraKehadiran(tapisRekodHari(rekod, hari), kodSekolah);
+}
+
+export const SEKTOR_LAIN = "Lain-lain";
+
+/** Pegawai PPD hadir mengikut sektor (kosong / "Tiada dalam senarai" = Lain-lain, di hujung). */
+export function pegawaiMengikutSektor(rekod: readonly RekodKehadiranSlaid[]): SektorHadir[] {
+  const peta = new Map<string, number>();
+  for (const r of rekod) {
+    if (r.jenis !== "PEGAWAI") continue;
+    const sektor = r.sektor?.trim() || SEKTOR_LAIN;
+    peta.set(sektor, (peta.get(sektor) ?? 0) + 1);
   }
-  return slaid;
+  return [...peta.entries()]
+    .map(([sektor, bil]) => ({ sektor, bil }))
+    .sort((a, b) => {
+      if (a.sektor === SEKTOR_LAIN) return 1;
+      if (b.sektor === SEKTOR_LAIN) return -1;
+      return b.bil - a.bil || a.sektor.localeCompare(b.sektor, "ms");
+    });
 }
 
 /* ---------------------------------- Bahan ---------------------------------- */
 
-/**
- * Tab Bahan: slaid 1 = senarai mengikut hari -> Sektor/Unit; kemudian satu slaid bagi setiap
- * bahan (susunan = susunan kemunculan dalam senarai). Tiada bahan = satu slaid kosong.
- */
-export function binaSlaidBahan(bahan: readonly BahanPembentangan[] = []): SlaidBahan[] {
-  if (bahan.length === 0) {
-    return [{ jenis: "kosong", kunci: "bahan", tajuk: "Bahan MJKD 2026", mesej: MESEJ_BAHAN }];
+/** Label jenis bahan untuk atur cara: Canva / Slides / Docs / Sheets / PDF / Pautan. */
+export function labelJenisBahan(b: { jenis: string; url: string }): string {
+  if (b.jenis === "PDF") return "PDF";
+  try {
+    const u = new URL(b.url);
+    const host = u.hostname.toLowerCase();
+    if (host.endsWith("canva.com") || host === "canva.link") return "Canva";
+    if (host === "docs.google.com") {
+      if (u.pathname.startsWith("/presentation")) return "Slides";
+      if (u.pathname.startsWith("/document")) return "Docs";
+      if (u.pathname.startsWith("/spreadsheets")) return "Sheets";
+    }
+    if (host === "drive.google.com") return "Drive";
+  } catch {
+    /* bukan URL */
   }
-  const kumpulan = kumpulBahan(bahan);
-  // Urutan unik bahan = susunan pertama kali muncul dalam senarai terkumpul.
+  return "Pautan";
+}
+
+/* ---------------------------------- Dek ---------------------------------- */
+
+export type InputDek = {
+  data: DataPentas;
+  /** Kod sekolah yang baru menghantar (denyutan BARU pada mozek). */
+  baru?: ReadonlySet<string>;
+};
+
+/** Kunci slaid perkara (stabil merentas penyegaran data). */
+export const kunciPerkara = (perkaraId: string) => `perkara-${perkaraId}`;
+
+/**
+ * Dek penuh mengikut bab. `kunci` stabil supaya kedudukan semasa dikekalkan selepas data
+ * disegarkan. Perkara: satu slaid bagi SETIAP perkara aktif (walaupun belum ada jawapan).
+ */
+export function binaDek({ data, baru }: InputDek): Slaid[] {
+  const kodSekolah = data.sekolah.map((s) => s.code);
+  const kodSah = new Set(kodSekolah);
+  const rekodHariIni = tapisRekodHari(data.kehadiran.rekod, data.kehadiran.hariIni);
+  const kiraanHariIni = kiraanKehadiranHari(data.kehadiran.rekod, kodSekolah, data.kehadiran.hariIni);
+  const papan = kiraPapanPemuka(data);
+
+  const dek: Slaid[] = [
+    {
+      jenis: "pembukaan",
+      kunci: "pembukaan",
+      bab: "pembukaan",
+      tajuk: "Pembukaan",
+      sekolahHadir: kiraanHariIni.sekolahHadir,
+      pegawaiHadir: kiraanHariIni.pegawai,
+    },
+    {
+      jenis: "kehadiran",
+      kunci: "kehadiran",
+      bab: "kehadiran",
+      tajuk: "Kehadiran",
+      hariLabel: labelHariPendek(data.kehadiran.hariIni),
+      sekolahHadir: kiraanHariIni.sekolahHadir,
+      pegawaiHadir: kiraanHariIni.pegawai,
+      pegawaiSektor: pegawaiMengikutSektor(rekodHariIni),
+      lain: kiraanHariIni.lain,
+    },
+  ];
+
+  const aktif = isihPerkara(data.perkara.filter((p) => p.aktif));
+  dek.push({
+    jenis: "minit",
+    kunci: "minit",
+    bab: "minit",
+    tajuk: `Pengesahan Minit ${labelMesyuarat(data.rujukan)}`,
+    label: labelMesyuarat(data.rujukan),
+    tarikh: formatTarikhMs(data.rujukan.tarikh),
+    tempat: data.rujukan.tempat,
+    minitUrl: data.rujukan.minitUrl,
+    muatTurunUrl: urlMuatTurunMinit(data.rujukan),
+    para: aktif.map((p) => p.para),
+  });
+
+  dek.push({
+    jenis: "papan-pemuka",
+    kunci: "papan-pemuka",
+    bab: "maklum-balas",
+    tajuk: "Papan Pemuka Daerah",
+    ...papan,
+  });
+  const barisIkutId = new Map(papan.perkara.map((b) => [b.perkaraId, b]));
+  for (const p of aktif) {
+    const b = barisIkutId.get(p.id)!;
+    dek.push({
+      jenis: "perkara",
+      kunci: kunciPerkara(p.id),
+      bab: "maklum-balas",
+      tajuk: `Para ${p.para}`,
+      perkaraId: p.id,
+      para: p.para,
+      mukaSurat: p.mukaSurat,
+      perkara: p.perkara,
+      tindakan: p.tindakan,
+      bilangan: b.bilangan,
+      dihantar: b.dihantar,
+      dijangka: b.dijangka,
+      jubin: binaMozek(p, data.sekolah, data.maklumBalas, data.items, { baru }),
+    });
+  }
+
+  // Bahan: atur cara (ikut hari; bahan dua hari muncul di kedua-duanya) + satu slaid setiap bahan unik.
+  const kumpulan = kumpulBahan(data.bahan);
   const urutan: BahanPembentangan[] = [];
   const dilihat = new Set<string>();
   for (const k of kumpulan) {
@@ -455,37 +638,38 @@ export function binaSlaidBahan(bahan: readonly BahanPembentangan[] = []): SlaidB
       }
     }
   }
-  const indeksSlaid = new Map(urutan.map((b, i) => [b.id, i + 1]));
-
-  const slaid: SlaidBahan[] = [
-    {
-      jenis: "bahan-indeks",
-      kunci: "bahan-indeks",
-      kumpulan: kumpulan.map((k) => ({
-        hari: k.hari,
-        label: k.label,
-        sektor: k.sektor.map((s) => ({
-          sektorUnit: s.sektorUnit,
-          bahan: s.bahan.map((b) => ({
-            id: b.id,
-            tajuk: b.tajuk,
-            namaPembentang: b.namaPembentang,
-            slaid: indeksSlaid.get(b.id)!,
-          })),
+  const nomborIkutId = new Map(urutan.map((b, i) => [b.id, i + 1]));
+  dek.push({
+    jenis: "atur-cara",
+    kunci: "atur-cara",
+    bab: "pembentangan",
+    tajuk: "Atur Cara",
+    hari: kumpulan.map((k) => ({
+      hari: k.hari,
+      label: k.label,
+      sesi: k.sektor.flatMap((s) =>
+        s.bahan.map((b) => ({
+          kunci: `bahan-${b.id}`,
+          nombor: nomborIkutId.get(b.id)!,
+          sektorUnit: b.sektorUnit,
+          tajuk: b.tajuk,
+          namaPembentang: b.namaPembentang,
+          jenisLabel: labelJenisBahan(b),
         })),
-      })),
-    },
-  ];
+      ),
+    })),
+  });
   urutan.forEach((b, i) => {
-    slaid.push({
+    dek.push({
       jenis: "bahan",
       kunci: `bahan-${b.id}`,
+      bab: "pembentangan",
+      tajuk: b.tajuk,
       id: b.id,
       sektorUnit: b.sektorUnit,
-      tajuk: b.tajuk,
       namaPembentang: b.namaPembentang,
       hariLabel: labelBeberapaHari(b.hari),
-      jenisBahan: b.jenis,
+      jenisLabel: labelJenisBahan(b),
       embedUrl: urlEmbedBahan(b),
       bukaUrl: b.url,
       muatTurunUrl: urlMuatTurunBahan(b),
@@ -493,86 +677,25 @@ export function binaSlaidBahan(bahan: readonly BahanPembentangan[] = []): SlaidB
       daripada: urutan.length,
     });
   });
-  return slaid;
+
+  const hadirAcara = [...kodSekolahHadir(data.kehadiran.rekod)].filter((k) => kodSah.has(k)).length;
+  const { bilangan } = papan.kpi;
+  dek.push({
+    jenis: "penutup",
+    kunci: "penutup",
+    bab: "penutup",
+    tajuk: "Terima kasih",
+    sekolahHadir: hadirAcara,
+    sekolahDihantar: papan.kpi.sekolahDihantar,
+    peratusSelesai: bilangan.jumlah ? Math.round((bilangan.SELESAI / bilangan.jumlah) * 100) : null,
+  });
+  return dek;
 }
 
-/* -------------------------------- Kehadiran -------------------------------- */
-
-export type RekodKehadiranSlaid = { jenis: string; schoolCode: string | null; tarikh: string };
-
-/** Kiraan kehadiran bagi satu hari — dipakai slaid Kehadiran dan penyegaran langsung. */
-export function kiraanKehadiranHari(
-  rekod: readonly RekodKehadiranSlaid[],
-  kodSekolah: readonly string[],
-  hari: string,
-): KiraanKehadiran {
-  return kiraKehadiran(tapisRekodHari(rekod, hari), kodSekolah);
-}
-
-export function binaSlaidKehadiran(input: {
-  mesyuaratId: string;
-  mesyuarat: { bil: number; tahun: number };
-  hariIni: string;
-  url: string;
-  qr: string;
-  rekod: readonly RekodKehadiranSlaid[];
-  kodSekolah: readonly string[];
-}): SlaidKehadiran[] {
-  return [
-    {
-      jenis: "kehadiran",
-      kunci: "kehadiran",
-      mesyuaratId: input.mesyuaratId,
-      tajuk: "Kehadiran MJKD 2026",
-      hariLabel: labelHariPendek(input.hariIni),
-      url: input.url,
-      urlPendek: input.url.replace(/^https?:\/\//, ""),
-      qr: input.qr,
-      kiraan: kiraanKehadiranHari(input.rekod, input.kodSekolah, input.hariIni),
-    },
-  ];
-}
-
-/* ------------------------------- Semua slaid ------------------------------- */
-
-/**
- * Semua slaid mod pembentangan. `rujukan` ialah mesyuarat yang memiliki minit dan maklum balas
- * (mesyuarat sebelum, atau mesyuarat itu sendiri jika tiada); `perkara`/`sekolah`/`maklumBalas`/
- * `items` ialah data mesyuarat rujukan. Kehadiran dan bahan milik mesyuarat semasa.
- */
-export function binaSlaidPembentangan(input: {
-  mesyuarat: { id: string; bil: number; tahun: number };
-  rujukan: MesyuaratPembentangan;
-  perkara: readonly PerkaraPembentangan[];
-  sekolah: readonly SekolahPembentangan[];
-  maklumBalas: readonly MaklumBalasPembentangan[];
-  items: readonly ItemPembentangan[];
-  bahan: readonly BahanPembentangan[];
-  kehadiran: {
-    hariIni: string;
-    url: string;
-    qr: string;
-    rekod: readonly RekodKehadiranSlaid[];
-  };
-}): Pembentangan {
-  return {
-    kehadiran: binaSlaidKehadiran({
-      mesyuaratId: input.mesyuarat.id,
-      mesyuarat: input.mesyuarat,
-      hariIni: input.kehadiran.hariIni,
-      url: input.kehadiran.url,
-      qr: input.kehadiran.qr,
-      rekod: input.kehadiran.rekod,
-      kodSekolah: input.sekolah.map((s) => s.code),
-    }),
-    minit: binaSlaidMinit(input.rujukan, input.perkara),
-    maklumBalas: binaSlaidMaklumBalas({
-      perkara: input.perkara,
-      sekolah: input.sekolah,
-      maklumBalas: input.maklumBalas,
-      items: input.items,
-      tajuk: `Analisis Maklum Balas MJKD ${labelMesyuarat(input.rujukan)}`,
-    }),
-    bahan: binaSlaidBahan(input.bahan),
-  };
+/** Indeks slaid selepas dek dibina semula: ikut `kunci`; jika hilang, slaid pertama bab yang sama. */
+export function cariIndeks(dek: readonly Slaid[], kunci: string, bab: Bab, lalai = 0): number {
+  const i = dek.findIndex((s) => s.kunci === kunci);
+  if (i >= 0) return i;
+  const j = dek.findIndex((s) => s.bab === bab);
+  return j >= 0 ? j : Math.min(lalai, dek.length - 1);
 }

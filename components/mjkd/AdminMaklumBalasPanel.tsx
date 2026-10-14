@@ -145,7 +145,7 @@ function PaparanKemajuan({ mesyuaratId, data }: { mesyuaratId: string; data: Dat
           <div className="h-full bg-ink" style={{ width: `${peratus}%` }} />
         </div>
         <p className="mt-3 text-sm text-graphite">
-          {kemajuan.belum.length} belum hantar · {dipilih} jawapan dipilih untuk dibaca
+          {kemajuan.belum.length} belum hantar · {dipilih} jawapan ★ Sorotan
         </p>
         <ul className="mt-3 flex flex-wrap gap-2">
           {STATUS_MJKD.map((s) => (
@@ -382,14 +382,10 @@ function PaparanPerkara({
     (s) => perkaraUntukSekolah([perkara], s).length > 0,
   ).length;
 
+  // Sorotan (lajur `dipilih`) di atas; tanda sahaja — tidak menentukan susunan pembentangan.
   const dipilihSusun = semuaJawapan
     .filter((x) => x.it.dipilih)
-    .sort(
-      (a, b) =>
-        (a.it.susunanBacaan ?? Number.MAX_SAFE_INTEGER) -
-          (b.it.susunanBacaan ?? Number.MAX_SAFE_INTEGER) || a.it.id.localeCompare(b.it.id),
-    );
-  const kedudukanDipilih = new Map(dipilihSusun.map((x, i) => [x.it.id, i]));
+    .sort((a, b) => a.mb.schoolCode.localeCompare(b.mb.schoolCode));
 
   const lulusTapis = (x: (typeof semuaJawapan)[number]) =>
     (!status || x.it.status === status) && (!jenis || x.sekolah!.jenis === jenis);
@@ -442,8 +438,7 @@ function PaparanPerkara({
           </li>
         </ul>
         <p className="mt-2 text-xs text-graphite">
-          {semuaJawapan.length} / {dijangka} sekolah telah menjawab · {dipilihSusun.length} dipilih
-          untuk dibaca
+          {semuaJawapan.length} / {dijangka} sekolah telah menjawab · {dipilihSusun.length} ★ Sorotan
         </p>
       </div>
 
@@ -460,7 +455,6 @@ function PaparanPerkara({
       ) : (
         <ul className="space-y-3">
           {senarai.map(({ it, mb, sekolah }) => {
-            const kedudukan = kedudukanDipilih.get(it.id);
             return (
               <li key={it.id} className={`card p-5 ${it.dipilih ? "border-ink" : ""}`}>
                 <div className="flex flex-wrap items-start justify-between gap-3">
@@ -498,13 +492,7 @@ function PaparanPerkara({
                 ) : null}
                 <FotoBuktiThumbs foto={it.fotoBukti} className="mt-3" />
                 <div className="mt-4">
-                  <PilihBacaKawalan
-                    itemId={it.id}
-                    dipilih={it.dipilih}
-                    susunan={it.susunanBacaan}
-                    pertama={kedudukan === 0}
-                    terakhir={kedudukan === dipilihSusun.length - 1}
-                  />
+                  <PilihBacaKawalan itemId={it.id} dipilih={it.dipilih} />
                 </div>
               </li>
             );

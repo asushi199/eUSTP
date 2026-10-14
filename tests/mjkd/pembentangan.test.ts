@@ -1,20 +1,26 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-  MESEJ_BAHAN,
   binaAnalisis,
-  binaSlaidBahan,
-  binaSlaidKehadiran,
-  binaSlaidMaklumBalas,
-  binaSlaidMinit,
-  binaSlaidPembentangan,
+  binaDek,
+  binaMozek,
+  bezaData,
+  cariIndeks,
+  jawapanSekolah,
+  kiraPapanPemuka,
+  labelJenisBahan,
+  namaPendek,
+  pegawaiMengikutSektor,
   ringkasTeks,
+  ukuranMozek,
+  urutanSpotlight,
   type BahanPembentangan,
+  type DataPentas,
   type ItemPembentangan,
   type PerkaraPembentangan,
 } from "../../lib/mjkd/pembentangan";
 
-const mesyuarat = {
+const rujukan = {
   bil: 1,
   tahun: 2026,
   tarikh: "2026-02-27",
@@ -49,10 +55,10 @@ const sekolah = [
   { code: "AEA1110", name: "SMK AHMAD BOESTAMAM" },
 ];
 const maklumBalas = [
-  { id: "m1", schoolCode: "ABA1001" },
-  { id: "m2", schoolCode: "ABA1002" },
-  { id: "m3", schoolCode: "ABC1046" },
-  { id: "m4", schoolCode: "AEA1110" },
+  { id: "m1", schoolCode: "ABA1001", tarikhHantar: "2026-10-10T01:00:00.000Z" },
+  { id: "m2", schoolCode: "ABA1002", tarikhHantar: "2026-10-10T02:00:00.000Z" },
+  { id: "m3", schoolCode: "ABC1046", tarikhHantar: "2026-10-10T03:00:00.000Z" },
+  { id: "m4", schoolCode: "AEA1110", tarikhHantar: "2026-10-10T04:00:00.000Z" },
 ];
 
 const item = (
@@ -61,63 +67,47 @@ const item = (
   status: string,
   over: Partial<ItemPembentangan> = {},
 ): ItemPembentangan => ({
+  id: `${maklumBalasId}-${perkaraId}`,
   maklumBalasId,
   perkaraId,
   status,
   catatan: `Catatan ${maklumBalasId}`,
   pautanBukti: "",
   dipilih: false,
-  susunanBacaan: null,
   ...over,
 });
 
-test("Minit: slaid 1 = tajuk, kemudian perkara aktif ikut susunan", () => {
-  const s = binaSlaidMinit(mesyuarat, semuaPerkara);
-  assert.equal(s.length, 4); // tajuk + 3 aktif
-  const tajuk = s[0]!;
-  assert.equal(tajuk.jenis, "tajuk");
-  if (tajuk.jenis === "tajuk") {
-    assert.equal(tajuk.nama, "Mesyuarat Jawatankuasa Kurikulum Daerah Manjung");
-    assert.equal(tajuk.bilTahun, "Bil. 1 Tahun 2026");
-    assert.equal(tajuk.tarikh, "27 Februari 2026");
-    assert.equal(tajuk.minitUrl, "https://contoh.my/minit.pdf");
-  }
-  assert.deepEqual(
-    s.slice(1).map((x) => (x.jenis === "perkara" ? x.para : "?")),
-    ["1.3", "1.4", "3.3"],
-  );
+const bahan = (
+  id: string,
+  sektorUnit: string,
+  hari: string[],
+  over: Partial<BahanPembentangan> = {},
+): BahanPembentangan => ({
+  id,
+  sektorUnit,
+  tajuk: "Tajuk " + id,
+  namaPembentang: "En. Ali",
+  hari,
+  jenis: "PAUTAN",
+  url: "https://docs.google.com/presentation/d/abcdefghij1234567/edit",
+  storagePath: "",
+  createdAt: "2026-10-0" + id + "T08:00:00Z",
+  ...over,
 });
 
-test("Minit: URL muat turun menambah ?download=", () => {
-  const s = binaSlaidMinit(mesyuarat, []);
-  assert.equal(
-    s[0]!.jenis === "tajuk" && s[0]!.muatTurunUrl,
-    "https://contoh.my/minit.pdf?download=Minit-MJKD-Bil1-2026.pdf",
-  );
-  const tanpa = binaSlaidMinit({ ...mesyuarat, minitUrl: "" }, []);
-  assert.equal(tanpa[0]!.jenis === "tajuk" && tanpa[0]!.muatTurunUrl, "");
+const data = (over: Partial<DataPentas> = {}): DataPentas => ({
+  rujukan,
+  perkara: semuaPerkara,
+  sekolah,
+  maklumBalas,
+  items: [],
+  bahan: [],
+  kehadiran: { hariIni: "2026-10-21", rekod: [] },
+  dimuatPada: "2026-10-21T01:00:00.000Z",
+  ...over,
 });
 
-test("Minit: tanpa minit_url, tajuk tetap ada (url kosong)", () => {
-  const s = binaSlaidMinit({ ...mesyuarat, minitUrl: "" }, []);
-  assert.equal(s.length, 1);
-  assert.equal(s[0]!.jenis === "tajuk" && s[0]!.minitUrl, "");
-});
-
-test("Minit: tajuk menyatakan mesyuarat pemilik minit", () => {
-  const s = binaSlaidMinit(mesyuarat, []);
-  assert.equal(s[0]!.jenis === "tajuk" && s[0]!.pengesahan, "Pengesahan Minit MJKD Bil.1/2026");
-});
-
-test("Maklum Balas: analisis dahulu; tiada jawapan = slaid kosong selepasnya", () => {
-  const s = binaSlaidMaklumBalas({ perkara: semuaPerkara, sekolah, maklumBalas, items: [] });
-  assert.deepEqual(
-    s.map((x) => x.jenis),
-    ["analisis", "kosong"],
-  );
-  const a = s[0]!;
-  assert.equal(a.jenis === "analisis" && a.adaPilihan, false);
-});
+/* --------------------------------- analisis --------------------------------- */
 
 test("Analisis: baris bagi setiap perkara aktif, kiraan hanya sekolah terpakai", () => {
   const items = [
@@ -156,207 +146,268 @@ test("Analisis: sekolah belum menghantar dikira dalam jumlah", () => {
   assert.equal(a.sekolahJumlah, 4);
 });
 
-test("Maklum Balas: grid bagi SETIAP perkara berjawapan; jawapan dipilih ikut susunan selepas grid", () => {
+test("kiraPapanPemuka: KPI = jumlah jawapan terpakai; jumlah sekolah daripada data", () => {
   const items = [
-    item("m1", "p1", "SELESAI", { dipilih: true, susunanBacaan: 2 }),
-    item("m2", "p1", "DALAM_PELAKSANAAN", { dipilih: true, susunanBacaan: 1 }),
+    item("m1", "p1", "SELESAI"),
+    item("m2", "p1", "DALAM_PELAKSANAAN"),
+    item("m4", "p3", "BELUM"),
+    item("m3", "p3", "SELESAI"), // tidak terpakai
+  ];
+  const p = kiraPapanPemuka({ perkara: semuaPerkara, sekolah, maklumBalas, items });
+  assert.equal(p.kpi.bilangan.jumlah, 3);
+  assert.equal(p.kpi.bilangan.SELESAI, 1);
+  assert.equal(p.kpi.bilangan.DALAM_PELAKSANAAN, 1);
+  assert.equal(p.kpi.bilangan.BELUM, 1);
+  assert.equal(p.kpi.sekolahJumlah, 4);
+  // Satu sekolah kurang (cth. KV tidak hadir) -> jumlah ikut data, bukan nombor tetap.
+  const kurang = kiraPapanPemuka({ perkara: semuaPerkara, sekolah: sekolah.slice(1), maklumBalas, items });
+  assert.equal(kurang.kpi.sekolahJumlah, 3);
+  assert.equal(p.perkara.length, 3);
+});
+
+/* ---------------------------------- mozek ---------------------------------- */
+
+test("binaMozek: semua sekolah terpakai, belum hantar = null, isih SR -> SM kemudian kod", () => {
+  const items = [
+    item("m1", "p1", "SELESAI", { dipilih: true }),
     item("m3", "p1", "BELUM"),
-    item("m4", "p1", "TIDAK_BERKAITAN"),
-    item("m1", "p2", "SELESAI"), // p2 tiada pilihan: grid sahaja
-    item("m4", "p3", "SELESAI", { dipilih: true, susunanBacaan: null }),
-    item("m3", "p3", "BELUM", { dipilih: true, susunanBacaan: null }), // seri: ikut kod sekolah
   ];
-  const s = binaSlaidMaklumBalas({ perkara: semuaPerkara, sekolah, maklumBalas, items });
-
+  const j = binaMozek(semuaPerkara[1]!, sekolah, maklumBalas.slice(0, 3), items, {
+    baru: new Set(["ABC1046", "ABA1002"]),
+  });
   assert.deepEqual(
-    s.map((x) => x.jenis),
-    ["analisis", "grid", "jawapan", "jawapan", "grid", "grid", "jawapan", "jawapan"],
+    j.map((x) => x.kod),
+    ["ABA1001", "ABA1002", "ABC1046", "AEA1110"],
   );
-  assert.equal(s[0]!.jenis === "analisis" && s[0]!.adaPilihan, true);
-
-  const g1 = s[1]!;
-  assert.equal(g1.jenis === "grid" && g1.para, "1.3");
-  if (g1.jenis === "grid") {
-    assert.equal(g1.dihantar, 4);
-    assert.equal(g1.dijangka, 4);
-    assert.equal(g1.bilDipilih, 2);
-    assert.equal(g1.chips.length, 4);
-    // cip diisih ikut nama sekolah
-    assert.deepEqual(
-      g1.chips.map((c) => c.nama),
-      ["SJKC HWA LIAN 1 PANGKOR", "SK BERUAS", "SK DENDANG", "SMK AHMAD BOESTAMAM"],
-    );
-    const beruas = g1.chips.find((c) => c.kod === "ABA1002")!;
-    assert.equal(beruas.dipilih, true);
-    assert.equal(beruas.status, "DALAM_PELAKSANAAN");
-    assert.equal(beruas.catatan, "Catatan m2");
-  }
-  const j1 = s[2]!;
-  const j2 = s[3]!;
-  assert.equal(j1.jenis === "jawapan" && j1.kodSekolah, "ABA1002"); // susunan 1
-  assert.equal(j2.jenis === "jawapan" && j2.kodSekolah, "ABA1001"); // susunan 2
-  if (j1.jenis === "jawapan") {
-    assert.equal(j1.namaSekolah, "SK BERUAS");
-    assert.equal(j1.nombor, 1);
-    assert.equal(j1.daripada, 2);
-  }
-
-  const g2 = s[4]!;
-  assert.equal(g2.jenis === "grid" && g2.para, "1.4");
-  assert.equal(g2.jenis === "grid" && g2.bilDipilih, 0);
-
-  const g3 = s[5]!;
-  if (g3.jenis === "grid") {
-    assert.equal(g3.para, "3.3");
-    assert.equal(g3.dijangka, 1);
-    assert.equal(g3.dihantar, 1); // jawapan SJKC bagi perkara SM tidak dikira
-    assert.equal(g3.chips.length, 2); // tetapi tetap muncul sebagai cip
-  }
-  assert.equal(s[6]!.jenis === "jawapan" && s[6]!.kodSekolah, "ABC1046");
-  assert.equal(s[7]!.jenis === "jawapan" && s[7]!.kodSekolah, "AEA1110");
+  const ikutKod = new Map(j.map((x) => [x.kod, x]));
+  assert.equal(ikutKod.get("ABA1001")!.status, "SELESAI");
+  assert.equal(ikutKod.get("ABA1001")!.sorotan, true);
+  assert.equal(ikutKod.get("ABA1001")!.itemId, "m1-p1");
+  assert.equal(ikutKod.get("ABA1002")!.status, null); // ada maklum balas tetapi tiada item p1
+  assert.equal(ikutKod.get("ABA1002")!.baru, false); // BARU hanya jika ada jawapan
+  assert.equal(ikutKod.get("ABC1046")!.baru, true);
+  assert.equal(ikutKod.get("AEA1110")!.status, null);
+  assert.equal(ikutKod.get("ABC1046")!.namaPendek, "SJKC Hwa Lian 1 Pangkor");
+  assert.deepEqual(urutanSpotlight(j), ["ABA1001", "ABC1046"]);
 });
 
-test("Maklum Balas: pautan bukti dikekalkan sebagai teks; jawapan tanpa maklum balas dilangkau", () => {
-  const items = [
-    item("m1", "p1", "SELESAI", { dipilih: true, susunanBacaan: 1, pautanBukti: "https://x.my/a" }),
-    item("tiada", "p1", "SELESAI", { dipilih: true, susunanBacaan: 2 }),
-  ];
-  const s = binaSlaidMaklumBalas({ perkara: semuaPerkara, sekolah, maklumBalas, items });
+test("binaMozek: perkara SM hanya sekolah menengah; sekolah khusus mengatasi sasaran", () => {
   assert.deepEqual(
-    s.map((x) => x.jenis),
-    ["analisis", "grid", "jawapan"],
+    binaMozek(semuaPerkara[2]!, sekolah, maklumBalas, []).map((x) => x.kod),
+    ["AEA1110"],
   );
-  const j = s[2]!;
-  assert.equal(j.jenis === "jawapan" && j.pautanBukti, "https://x.my/a");
+  const khusus = perkara("p9", "6.4", 9, { sasaran: "SM", sekolahKhusus: ["ABA1001", "ABA1002"] });
+  assert.equal(binaMozek(khusus, sekolah, maklumBalas, []).length, 2);
 });
 
-const bahan = (
-  id: string,
-  sektorUnit: string,
-  hari: string[],
-  over: Partial<BahanPembentangan> = {},
-): BahanPembentangan => ({
-  id,
-  sektorUnit,
-  tajuk: "Tajuk " + id,
-  namaPembentang: "En. Ali",
-  hari,
-  jenis: "PAUTAN",
-  url: "https://docs.google.com/presentation/d/abcdefghij1234567/edit",
-  storagePath: "",
-  createdAt: "2026-10-0" + id + "T08:00:00Z",
-  ...over,
+test("ukuranMozek: ~100 sekolah muat 1028×820 tanpa tatal (7 lajur, fon ≈ 15px)", () => {
+  for (const n of [96, 100, 102, 110]) {
+    const u = ukuranMozek(n, 1028, 820);
+    const baris = Math.ceil(n / u.lajur);
+    assert.ok(u.lajur * u.w + (u.lajur - 1) * u.gap <= 1028 + 0.5, `lebar n=${n}`);
+    assert.ok(baris * u.h + (baris - 1) * u.gap <= 820 + 0.5, `tinggi n=${n}`);
+    assert.ok(u.fon >= 13, `fon n=${n}: ${u.fon}`);
+  }
+  const seratus = ukuranMozek(100, 1028, 820);
+  assert.equal(seratus.lajur, 7);
+  assert.ok(Math.abs(seratus.fon - 15) < 1);
 });
 
-test("Bahan: tiada bahan = slaid kosong", () => {
-  const s = binaSlaidBahan([]);
-  assert.equal(s.length, 1);
-  assert.equal(s[0]!.jenis === "kosong" && s[0]!.mesej, MESEJ_BAHAN);
+test("ukuranMozek: bilangan kecil -> jubin besar, lebar maks 420px", () => {
+  const sm = ukuranMozek(21, 1028, 820);
+  assert.ok(sm.fon > 20);
+  const dua = ukuranMozek(2, 1028, 820);
+  assert.ok(dua.w <= 420);
+  assert.ok(dua.fon >= 25);
+  assert.equal(ukuranMozek(0, 1028, 820).lajur, 1);
 });
 
-test("Bahan: indeks ikut hari -> sektor, kemudian satu slaid setiap bahan unik", () => {
-  const s = binaSlaidBahan([
-    bahan("1", "Pembelajaran", ["2026-10-22"]),
-    bahan("2", "Perancangan", ["2026-10-21", "2026-10-22"], {
-      jenis: "PDF",
-      url: "https://drive.google.com/file/d/FILEID12345abc/preview",
-      storagePath: "drive/FILEID12345abc",
+test("namaPendek: Title Case; akronim jenis sekolah kekal huruf besar", () => {
+  assert.equal(namaPendek("SK MUHAMMAD SAMAN"), "SK Muhammad Saman");
+  assert.equal(namaPendek("SJK(C) CHUNG HWA"), "SJK(C) Chung Hwa");
+  assert.equal(namaPendek("SJK (T) LDG SG WANGI II"), "SJK (T) Ldg Sg Wangi II");
+  assert.equal(namaPendek("SMKA SLIM RIVER"), "SMKA Slim River");
+  assert.equal(namaPendek("SMK DATO' SERI KAMARUDDIN"), "SMK Dato' Seri Kamaruddin");
+  assert.equal(namaPendek("SK SERI SAMUDERA  "), "SK Seri Samudera");
+  assert.equal(namaPendek("KV SERI MANJUNG"), "KV Seri Manjung");
+});
+
+/* ---------------------------------- dek ---------------------------------- */
+
+test("binaDek: susunan bab berterusan; satu slaid setiap perkara aktif; tiada slaid jawapan", () => {
+  const items = [item("m1", "p1", "SELESAI", { dipilih: true })];
+  const dek = binaDek({
+    data: data({
+      items,
+      bahan: [bahan("1", "Pembelajaran", ["2026-10-21"]), bahan("2", "Perancangan", ["2026-10-22"])],
     }),
-    bahan("3", "Pembelajaran", ["2026-10-21"], { url: "https://www.canva.com/design/x" }),
-  ]);
-  assert.equal(s[0]!.jenis, "bahan-indeks");
-  const indeks = s[0]!;
-  if (indeks.jenis === "bahan-indeks") {
-    assert.deepEqual(
-      indeks.kumpulan.map((k) => k.label),
-      ["21 Oktober", "22 Oktober"],
-    );
-    assert.deepEqual(
-      indeks.kumpulan[0]!.sektor.map((x) => x.sektorUnit),
-      ["Pembelajaran", "Perancangan"],
-    );
-    // bahan 2 muncul dalam kedua-dua hari tetapi menunjuk ke slaid yang sama
-    const id2 = indeks.kumpulan
-      .flatMap((k) => k.sektor.flatMap((x) => x.bahan))
-      .filter((b) => b.id === "2");
-    assert.equal(id2.length, 2);
-    assert.equal(id2[0]!.slaid, id2[1]!.slaid);
-  }
-  // 3 bahan unik + indeks
-  assert.equal(s.length, 4);
-  const item3 = s.find((x) => x.jenis === "bahan" && x.id === "3");
-  assert.ok(item3 && item3.jenis === "bahan");
-  if (item3 && item3.jenis === "bahan") {
-    assert.equal(item3.embedUrl, null); // Canva: tab baharu
-    assert.equal(item3.muatTurunUrl, null);
-  }
-  const item2 = s.find((x) => x.jenis === "bahan" && x.id === "2");
-  if (item2 && item2.jenis === "bahan") {
-    assert.equal(item2.hariLabel, "21 & 22 Oktober");
-    assert.equal(item2.embedUrl, "https://drive.google.com/file/d/FILEID12345abc/preview");
-    assert.equal(
-      item2.muatTurunUrl,
-      "https://drive.google.com/uc?export=download&id=FILEID12345abc",
-    );
-  }
-  const item1 = s.find((x) => x.jenis === "bahan" && x.id === "1");
-  if (item1 && item1.jenis === "bahan") {
-    assert.equal(
-      item1.embedUrl,
-      "https://docs.google.com/presentation/d/abcdefghij1234567/embed?start=false&loop=false",
-    );
-  }
-});
-
-test("Kehadiran: kiraan bagi hari ini sahaja", () => {
-  const s = binaSlaidKehadiran({
-    mesyuaratId: "x",
-    mesyuarat: { bil: 2, tahun: 2026 },
-    hariIni: "2026-10-22",
-    url: "https://nexa.my/laporan-mjkd/hadir",
-    qr: "data:image/png;base64,AAA",
-    rekod: [
-      { jenis: "PGB", schoolCode: "ABA1001", tarikh: "2026-10-21" },
-      { jenis: "PGB", schoolCode: "ABA1002", tarikh: "2026-10-22" },
-      { jenis: "WAKIL", schoolCode: "ABC1046", tarikh: "2026-10-22" },
-      { jenis: "PEGAWAI", schoolCode: null, tarikh: "2026-10-22" },
-      { jenis: "LAIN", schoolCode: null, tarikh: "2026-10-21" },
+  });
+  assert.deepEqual(
+    dek.map((s) => s.jenis),
+    [
+      "pembukaan",
+      "kehadiran",
+      "minit",
+      "papan-pemuka",
+      "perkara",
+      "perkara",
+      "perkara",
+      "atur-cara",
+      "bahan",
+      "bahan",
+      "penutup",
     ],
-    kodSekolah: sekolah.map((x) => x.code),
-  });
-  const k = s[0]!;
-  assert.equal(k.tajuk, "Kehadiran MJKD 2026");
-  assert.equal(k.hariLabel, "22 Oktober");
-  assert.equal(k.urlPendek, "nexa.my/laporan-mjkd/hadir");
-  assert.equal(k.kiraan.sekolahHadir, 2);
-  assert.equal(k.kiraan.sekolahJumlah, 4);
-  assert.equal(k.kiraan.pegawai, 1);
-  assert.equal(k.kiraan.lain, 0);
+  );
+  assert.deepEqual(
+    dek.filter((s) => s.jenis === "perkara").map((s) => s.tajuk),
+    ["Para 1.3", "Para 1.4", "Para 3.3"],
+  );
+  // Sorotan tidak menambah slaid (tidak mengubah susunan).
+  const tanpa = binaDek({ data: data({ items: [item("m1", "p1", "SELESAI")] }) });
+  assert.equal(
+    tanpa.filter((s) => s.jenis === "perkara").length,
+    dek.filter((s) => s.jenis === "perkara").length,
+  );
+  const kunci = dek.map((s) => s.kunci);
+  assert.equal(new Set(kunci).size, kunci.length, "kunci unik");
+  const minit = dek.find((s) => s.jenis === "minit")!;
+  assert.equal(minit.jenis === "minit" && minit.label, "Bil.1/2026");
+  assert.equal(
+    minit.jenis === "minit" && minit.muatTurunUrl,
+    "https://contoh.my/minit.pdf?download=Minit-MJKD-Bil1-2026.pdf",
+  );
 });
 
-test("binaSlaidPembentangan: empat tab; minit/maklum balas daripada rujukan", () => {
-  const p = binaSlaidPembentangan({
-    mesyuarat: { id: "x", bil: 2, tahun: 2026 },
-    rujukan: mesyuarat, // Bil.1/2026
-    perkara: semuaPerkara,
-    sekolah,
-    maklumBalas,
-    items: [item("m1", "p1", "SELESAI", { dipilih: true, susunanBacaan: 1 })],
-    bahan: [bahan("1", "Pembelajaran", ["2026-10-21"])],
-    kehadiran: { hariIni: "2026-10-21", url: "https://nexa.my/laporan-mjkd/hadir", qr: "", rekod: [] },
+test("binaDek: kehadiran hari ini; pegawai ikut sektor; penutup ikut semua hari", () => {
+  const dek = binaDek({
+    data: data({
+      kehadiran: {
+        hariIni: "2026-10-22",
+        rekod: [
+          { jenis: "PGB", schoolCode: "ABA1001", tarikh: "2026-10-21" },
+          { jenis: "PGB", schoolCode: "ABA1002", tarikh: "2026-10-22" },
+          { jenis: "WAKIL", schoolCode: "ABC1046", tarikh: "2026-10-22" },
+          { jenis: "PEGAWAI", schoolCode: null, tarikh: "2026-10-22", sektor: "Pembelajaran" },
+          { jenis: "PEGAWAI", schoolCode: null, tarikh: "2026-10-22", sektor: "" },
+          { jenis: "PEGAWAI", schoolCode: null, tarikh: "2026-10-21", sektor: "Perancangan" },
+        ],
+      },
+      items: [item("m1", "p1", "SELESAI"), item("m2", "p1", "BELUM")],
+    }),
   });
-  assert.equal(p.kehadiran.length, 1);
-  assert.equal(p.kehadiran[0]!.tajuk, "Kehadiran MJKD 2026");
-  assert.equal(p.minit.length, 4);
-  assert.equal(
-    p.minit[0]!.jenis === "tajuk" && p.minit[0]!.pengesahan,
-    "Pengesahan Minit MJKD Bil.1/2026",
+  const k = dek.find((s) => s.jenis === "kehadiran")!;
+  if (k.jenis !== "kehadiran") throw new Error();
+  assert.equal(k.hariLabel, "22 Oktober");
+  assert.equal(k.sekolahHadir, 2);
+  assert.equal(k.pegawaiHadir, 2);
+  assert.deepEqual(k.pegawaiSektor, [
+    { sektor: "Pembelajaran", bil: 1 },
+    { sektor: "Lain-lain", bil: 1 },
+  ]);
+  const p = dek.at(-1)!;
+  if (p.jenis !== "penutup") throw new Error();
+  assert.equal(p.sekolahHadir, 3);
+  assert.equal(p.sekolahDihantar, 4);
+  assert.equal(p.peratusSelesai, 50);
+});
+
+test("binaDek: atur cara ikut hari; bahan dua hari muncul dua kali tetapi satu slaid", () => {
+  const dek = binaDek({
+    data: data({
+      bahan: [
+        bahan("1", "Pembelajaran", ["2026-10-22"]),
+        bahan("2", "Perancangan", ["2026-10-21", "2026-10-22"], {
+          jenis: "PDF",
+          url: "https://drive.google.com/file/d/FILEID12345abc/preview",
+          storagePath: "drive/FILEID12345abc",
+        }),
+        bahan("3", "Pembelajaran", ["2026-10-21"], {
+          url: "https://www.canva.com/design/DAGabcdefgh/view",
+        }),
+      ],
+    }),
+  });
+  const a = dek.find((s) => s.jenis === "atur-cara")!;
+  if (a.jenis !== "atur-cara") throw new Error();
+  assert.deepEqual(
+    a.hari.map((h) => h.label),
+    ["21 Oktober", "22 Oktober"],
   );
-  // analisis + grid p1 + jawapan p1
-  assert.equal(p.maklumBalas.length, 3);
-  assert.equal(p.bahan.length, 2);
-  const a = p.maklumBalas[0]!;
-  assert.equal(a.jenis === "analisis" && a.tajuk, "Analisis Maklum Balas MJKD Bil.1/2026");
+  const sesi2 = a.hari.flatMap((h) => h.sesi).filter((s) => s.kunci === "bahan-2");
+  assert.equal(sesi2.length, 2);
+  assert.equal(sesi2[0]!.nombor, sesi2[1]!.nombor);
+  const slaidBahan = dek.filter((s) => s.jenis === "bahan");
+  assert.equal(slaidBahan.length, 3);
+  const b3 = slaidBahan.find((s) => s.jenis === "bahan" && s.id === "3")!;
+  if (b3.jenis !== "bahan") throw new Error();
+  assert.equal(b3.jenisLabel, "Canva");
+  assert.equal(b3.embedUrl, "https://www.canva.com/design/DAGabcdefgh/view?embed");
+  const b2 = slaidBahan.find((s) => s.jenis === "bahan" && s.id === "2")!;
+  if (b2.jenis !== "bahan") throw new Error();
+  assert.equal(b2.hariLabel, "21 & 22 Oktober");
+  assert.equal(b2.muatTurunUrl, "https://drive.google.com/uc?export=download&id=FILEID12345abc");
+});
+
+test("cariIndeks: kekal pada kunci; kunci hilang -> slaid pertama bab yang sama", () => {
+  const dek = binaDek({ data: data() });
+  const i = cariIndeks(dek, "perkara-p2", "maklum-balas");
+  assert.equal(dek[i]!.kunci, "perkara-p2");
+  const j = cariIndeks(dek, "perkara-tiada", "maklum-balas");
+  assert.equal(dek[j]!.kunci, "papan-pemuka");
+});
+
+test("bezaData: sekolah baru menghantar / dikemas kini dan baru hadir", () => {
+  const lama = {
+    maklumBalas: maklumBalas.slice(0, 2),
+    kehadiran: { hariIni: "2026-10-21", rekod: [{ jenis: "PGB", schoolCode: "ABA1001", tarikh: "2026-10-21" }] },
+  };
+  const baru = {
+    maklumBalas: [
+      maklumBalas[0]!,
+      { ...maklumBalas[1]!, tarikhHantar: "2026-10-21T05:00:00.000Z" },
+      maklumBalas[2]!,
+    ],
+    kehadiran: {
+      hariIni: "2026-10-21",
+      rekod: [
+        { jenis: "PGB", schoolCode: "ABA1001", tarikh: "2026-10-21" },
+        { jenis: "WAKIL", schoolCode: "AEA1110", tarikh: "2026-10-21" },
+      ],
+    },
+  };
+  const b = bezaData(lama, baru);
+  assert.deepEqual([...b.maklumBalas].sort(), ["ABA1002", "ABC1046"]);
+  assert.deepEqual([...b.hadir], ["AEA1110"]);
+});
+
+test("jawapanSekolah: cari maklum balas + item bagi perkara", () => {
+  const d = data({ items: [item("m2", "p1", "DALAM_PELAKSANAAN")] });
+  const j = jawapanSekolah(d, "p1", "ABA1002");
+  assert.equal(j.sekolah!.name, "SK BERUAS");
+  assert.equal(j.item!.status, "DALAM_PELAKSANAAN");
+  assert.equal(jawapanSekolah(d, "p2", "ABA1002").item, null);
+});
+
+test("pegawaiMengikutSektor & labelJenisBahan", () => {
+  assert.deepEqual(
+    pegawaiMengikutSektor([
+      { jenis: "PEGAWAI", schoolCode: null, tarikh: "x", sektor: "A" },
+      { jenis: "PEGAWAI", schoolCode: null, tarikh: "x", sektor: "B" },
+      { jenis: "PEGAWAI", schoolCode: null, tarikh: "x", sektor: "B" },
+      { jenis: "PGB", schoolCode: "ABA1001", tarikh: "x" },
+    ]),
+    [
+      { sektor: "B", bil: 2 },
+      { sektor: "A", bil: 1 },
+    ],
+  );
+  assert.equal(labelJenisBahan({ jenis: "PAUTAN", url: "https://canva.link/abc" }), "Canva");
+  assert.equal(
+    labelJenisBahan({ jenis: "PAUTAN", url: "https://docs.google.com/presentation/d/x/edit" }),
+    "Slides",
+  );
+  assert.equal(labelJenisBahan({ jenis: "PDF", url: "" }), "PDF");
+  assert.equal(labelJenisBahan({ jenis: "PAUTAN", url: "https://contoh.my" }), "Pautan");
 });
 
 test("ringkasTeks: pendek kekal, panjang dipotong pada perkataan dengan ellipsis", () => {
@@ -366,4 +417,18 @@ test("ringkasTeks: pendek kekal, panjang dipotong pada perkataan dengan ellipsis
   assert.ok(r.endsWith("…"));
   assert.ok(r.length <= 51);
   assert.ok(!/\s…$/.test(r));
+});
+
+test("binaMozek: SR sebelum SM walaupun kod SM lebih kecil; jenis tidak dikenali di hujung", () => {
+  const sek = [
+    { code: "AEA0001", name: "SMK ALFA" },
+    { code: "ABD9999", name: "SJK(T) ZETA" },
+    { code: "ABA5000", name: "SK BETA" },
+    { code: "XYZ0001", name: "KOLEJ LAIN" },
+  ];
+  const j = binaMozek(perkara("px", "1.1", 1), sek, [], []);
+  assert.deepEqual(
+    j.map((x) => x.kod),
+    ["ABA5000", "ABD9999", "AEA0001", "XYZ0001"],
+  );
 });

@@ -2,27 +2,26 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { adminPilihBacaMjkd, adminUbahSusunanBacaMjkd } from "@/lib/actions/mjkd";
+import { adminPilihBacaMjkd } from "@/lib/actions/mjkd";
 
 type Props = {
   itemId: string;
   dipilih: boolean;
-  susunan: number | null;
-  /** Kedudukan dalam senarai dipilih bagi perkara ini (untuk melumpuhkan naik/turun di hujung). */
-  pertama: boolean;
-  terakhir: boolean;
 };
 
-/** Togol "Pilih untuk dibaca" + susunan bacaan bagi satu jawapan. */
-export default function PilihBacaKawalan({ itemId, dipilih, susunan, pertama, terakhir }: Props) {
+/**
+ * Togol "★ Sorotan" bagi satu jawapan — tanda sahaja (bintang pada mozek mod pembentangan);
+ * tidak menentukan susunan slaid. Boleh juga ditogol dalam Spotlight semasa pembentangan.
+ */
+export default function PilihBacaKawalan({ itemId, dipilih }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  function jalankan(fn: () => Promise<{ ok: boolean; error?: string }>) {
+  function togol() {
     setError(null);
     startTransition(async () => {
-      const res = await fn();
+      const res = await adminPilihBacaMjkd(itemId, !dipilih);
       if (!res.ok) {
         setError(res.error ?? "Gagal.");
         return;
@@ -38,32 +37,10 @@ export default function PilihBacaKawalan({ itemId, dipilih, susunan, pertama, te
         className={dipilih ? "btn-ink btn-sm" : "btn-outline-ink btn-sm"}
         disabled={pending}
         aria-pressed={dipilih}
-        onClick={() => jalankan(() => adminPilihBacaMjkd(itemId, !dipilih))}
+        onClick={togol}
       >
-        {dipilih ? `★ Dipilih${susunan ? ` (${susunan})` : ""}` : "☆ Pilih untuk dibaca"}
+        {dipilih ? "★ Sorotan" : "☆ Sorotan"}
       </button>
-      {dipilih ? (
-        <>
-          <button
-            type="button"
-            className="btn-outline-ink btn-sm"
-            disabled={pending || pertama}
-            onClick={() => jalankan(() => adminUbahSusunanBacaMjkd(itemId, "naik"))}
-            aria-label="Naikkan susunan bacaan"
-          >
-            Naik
-          </button>
-          <button
-            type="button"
-            className="btn-outline-ink btn-sm"
-            disabled={pending || terakhir}
-            onClick={() => jalankan(() => adminUbahSusunanBacaMjkd(itemId, "turun"))}
-            aria-label="Turunkan susunan bacaan"
-          >
-            Turun
-          </button>
-        </>
-      ) : null}
       {error && <span className="text-xs text-bloom-deep">{error}</span>}
     </div>
   );
