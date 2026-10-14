@@ -1,8 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { getKiraanKehadiranMjkd } from "@/lib/actions/mjkd-kehadiran";
 import {
   STATUS_MJKD,
@@ -504,7 +502,7 @@ export default function PembentanganMjkd({
   mesyuaratId: string;
   pembentangan: Pembentangan;
 }) {
-  const router = useRouter();
+  const [sedangKeluar, setSedangKeluar] = useState(false);
   const [tab, setTab] = useState<TabId>("kehadiran");
   const [indeks, setIndeks] = useState<Record<TabId, number>>({
     kehadiran: 0,
@@ -553,9 +551,18 @@ export default function PembentanganMjkd({
     setTab(t);
   }, []);
 
+  // Navigasi penuh (bukan router.push/Link): lapisan pembentangan menutup seluruh skrin dan tiada
+  // loading.tsx, jadi navigasi klien yang menunggu halaman admin (atau tindakan pelayan kiraan
+  // kehadiran yang sedang berjalan) kelihatan "tiada reaksi". Pelayar terus memaparkan kemajuan.
   const keluar = useCallback(() => {
-    router.push(`/admin/mjkd/${mesyuaratId}`);
-  }, [router, mesyuaratId]);
+    setSedangKeluar(true);
+    try {
+      if (document.fullscreenElement) void document.exitFullscreen().catch(() => undefined);
+    } catch {
+      /* Fullscreen API tidak tersedia */
+    }
+    window.location.assign(`/admin/mjkd/${mesyuaratId}`);
+  }, [mesyuaratId]);
 
   const togolSkrinPenuh = useCallback(() => {
     try {
@@ -690,9 +697,14 @@ export default function PembentanganMjkd({
           <button type="button" className={butang} onClick={togolSkrinPenuh}>
             {skrinPenuh ? "Keluar skrin penuh" : "Skrin penuh"}
           </button>
-          <Link href={`/admin/mjkd/${mesyuaratId}`} className={`${butang} bg-black text-white`}>
-            Keluar
-          </Link>
+          <button
+            type="button"
+            className={`${butang} bg-black text-white disabled:opacity-60`}
+            onClick={keluar}
+            disabled={sedangKeluar}
+          >
+            {sedangKeluar ? "Keluar…" : "Keluar"}
+          </button>
         </div>
       </header>
 
