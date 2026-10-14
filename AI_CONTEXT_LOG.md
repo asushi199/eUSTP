@@ -1,5 +1,9 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-10-14 — MJKD admin: tab Maklum Balas lalai "Mengikut perkara"
+
+- `/admin/mjkd/[id]?tab=maklum-balas` tanpa `view` kini membuka **Mengikut perkara** (perkara pertama) — paparan yang paling kerap diguna untuk menanda ★ Sorotan. Kemajuan/Matriks kekal melalui butang paparan.
+
 ## 2026-10-14 — MJKD: Mod Pembentangan v2 (MJKD/PLAN-pembentangan-v2.md langkah 1–5)
 
 - **Dek berterusan** (`components/mjkd/pembentangan/`, ganti `PembentanganMjkd.tsx` yang dipadam): Pembukaan → Kehadiran (QR besar 780px + 2 nombor tanpa penyebut, pegawai ikut sektor) → Minit (PDF) → Papan Pemuka Daerah → satu slaid setiap perkara aktif (mozek SEMUA sekolah terpakai, ikut nama, tiada zon) → Atur Cara + bahan → Penutup. ← → / PgUp PgDn / Space merentas bab; G semua slaid, T tema (lalai **terang**, localStorage), F skrin penuh, B skrin hitam, R segar, S sorotan seterusnya, Esc tutup lapisan / dua kali = keluar. Kedudukan dalam `#kunci` URL.

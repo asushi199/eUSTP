@@ -118,7 +118,7 @@ export default async function AdminMjkdDetailPage({ params, searchParams }: Prop
   const tab: TabValue = TAB.some((t) => t.value === sp.tab) ? (sp.tab as TabValue) : "tetapan";
   const paparan: PaparanMaklumBalas = PAPARAN_MAKLUM_BALAS.some((v) => v.value === sp.view)
     ? (sp.view as PaparanMaklumBalas)
-    : "kemajuan";
+    : "perkara"; // lalai: Mengikut perkara (paling kerap digunakan untuk ★ Sorotan)
   const status = sp.status && isStatusMjkd(sp.status) ? sp.status : "";
   const jenis: JenisSekolah | "" =
     sp.jenis && (JENIS_SEKOLAH as readonly string[]).includes(sp.jenis)
