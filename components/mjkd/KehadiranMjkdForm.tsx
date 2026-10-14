@@ -19,13 +19,12 @@ type Props = {
   schools: SchoolOption[];
 };
 
-type Tab = "sekolah" | "pegawai" | "lain";
+type Tab = "sekolah" | "pegawai";
 type PegawaiHasil = { id: number; nama: string; jawatan: string };
 
 const TABS: { value: Tab; label: string }[] = [
   { value: "sekolah", label: "Sekolah" },
   { value: "pegawai", label: "Pegawai PPD" },
-  { value: "lain", label: "Lain-lain" },
 ];
 
 const MAKS_SENARAI_SEKOLAH = 8;
@@ -92,11 +91,10 @@ export default function KehadiranMjkdForm({ mesyuarat, schools }: Props) {
   const [mencari, setMencari] = useState(false);
   const [pegawai, setPegawai] = useState<PegawaiHasil | null>(null);
   const urutanCari = useRef(0);
-
-  // Lain-lain
-  const [lainNama, setLainNama] = useState("");
-  const [lainJawatan, setLainJawatan] = useState("");
-  const [lainOrganisasi, setLainOrganisasi] = useState("");
+  // Pegawai PPD yang tiada dalam senarai: isi nama + jawatan sendiri.
+  const [pegawaiManual, setPegawaiManual] = useState(false);
+  const [manualNama, setManualNama] = useState("");
+  const [manualJawatan, setManualJawatan] = useState("");
 
   // Ingat kehadiran terakhir pada peranti ini (pilihan; tidak dipercayai).
   useEffect(() => {
@@ -193,9 +191,9 @@ export default function KehadiranMjkdForm({ mesyuarat, schools }: Props) {
     setQPegawai("");
     setHasil([]);
     setPegawai(null);
-    setLainNama("");
-    setLainJawatan("");
-    setLainOrganisasi("");
+    setPegawaiManual(false);
+    setManualNama("");
+    setManualJawatan("");
   }
 
   if (selesai) {
@@ -443,122 +441,142 @@ export default function KehadiranMjkdForm({ mesyuarat, schools }: Props) {
 
       {tab === "pegawai" ? (
         <section className="card space-y-4 p-6">
-          <div>
-            <label className="label" htmlFor="hadir-cari-pegawai">
-              Cari nama pegawai
-            </label>
-            <input
-              id="hadir-cari-pegawai"
-              className="input"
-              placeholder="Taip sekurang-kurangnya 2 huruf nama"
-              autoComplete="off"
-              value={qPegawai}
-              onChange={(e) => {
-                setQPegawai(e.target.value);
-                setPegawai(null);
-              }}
-            />
-          </div>
-          {qPegawai.trim().length >= CARIAN_PEGAWAI_MIN && !pegawai ? (
-            mencari ? (
-              <p className="text-sm text-graphite">Mencari…</p>
-            ) : hasil.length === 0 ? (
-              <p className="rounded-lg border hairline bg-fog/40 px-4 py-3 text-sm text-graphite">
-                Tiada pegawai sepadan. Jika nama anda tiada, gunakan tab Lain-lain.
-              </p>
-            ) : (
-              <ul className="rounded-lg border hairline">
-                {hasil.map((p) => (
-                  <li key={p.id} className="border-b hairline last:border-0">
-                    <button
-                      type="button"
-                      className="block min-h-11 w-full px-4 py-2.5 text-left text-sm hover:bg-cloud/55"
-                      onClick={() => setPegawai(p)}
-                    >
-                      <span className="block font-medium text-ink">{p.nama}</span>
-                      <span className="block text-xs text-graphite">{p.jawatan}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )
-          ) : null}
-          {pegawai ? (
-            <div className="rounded-xl border border-fog bg-cloud/60 p-5">
-              <Maklumat
-                rekod={{ nama: pegawai.nama, jawatan: pegawai.jawatan, organisasi: ORGANISASI_PPD }}
-              />
-              <button
-                type="button"
-                className="btn-primary mt-4 w-full sm:w-auto"
-                disabled={pending}
-                onClick={() =>
-                  hantar({ mesyuaratId: mesyuarat.id, jenis: "PEGAWAI", pegawaiId: pegawai.id })
-                }
-              >
-                {pending ? "Merekod…" : "Sahkan Kehadiran"}
-              </button>
+          {!pegawaiManual ? (
+            <>
+              <div>
+                <label className="label" htmlFor="hadir-cari-pegawai">
+                  Cari nama pegawai
+                </label>
+                <input
+                  id="hadir-cari-pegawai"
+                  className="input"
+                  placeholder="Taip sekurang-kurangnya 2 huruf nama"
+                  autoComplete="off"
+                  value={qPegawai}
+                  onChange={(e) => {
+                    setQPegawai(e.target.value);
+                    setPegawai(null);
+                  }}
+                />
+              </div>
+              {qPegawai.trim().length >= CARIAN_PEGAWAI_MIN && !pegawai ? (
+                mencari ? (
+                  <p className="text-sm text-graphite">Mencari…</p>
+                ) : hasil.length === 0 ? (
+                  <p className="rounded-lg border hairline bg-fog/40 px-4 py-3 text-sm text-graphite">
+                    Tiada pegawai sepadan. Jika nama anda tiada, klik &quot;Tiada dalam
+                    senarai&quot; di bawah.
+                  </p>
+                ) : (
+                  <ul className="rounded-lg border hairline">
+                    {hasil.map((p) => (
+                      <li key={p.id} className="border-b hairline last:border-0">
+                        <button
+                          type="button"
+                          className="block min-h-11 w-full px-4 py-2.5 text-left text-sm hover:bg-cloud/55"
+                          onClick={() => setPegawai(p)}
+                        >
+                          <span className="block font-medium text-ink">{p.nama}</span>
+                          <span className="block text-xs text-graphite">{p.jawatan}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )
+              ) : null}
+              {pegawai ? (
+                <div className="rounded-xl border border-fog bg-cloud/60 p-5">
+                  <Maklumat
+                    rekod={{ nama: pegawai.nama, jawatan: pegawai.jawatan, organisasi: ORGANISASI_PPD }}
+                  />
+                  <button
+                    type="button"
+                    className="btn-primary mt-4 w-full sm:w-auto"
+                    disabled={pending}
+                    onClick={() =>
+                      hantar({ mesyuaratId: mesyuarat.id, jenis: "PEGAWAI", pegawaiId: pegawai.id })
+                    }
+                  >
+                    {pending ? "Merekod…" : "Sahkan Kehadiran"}
+                  </button>
+                </div>
+              ) : null}
+              <div className="border-t hairline pt-4">
+                <button
+                  type="button"
+                  className="text-sm font-medium text-charcoal underline underline-offset-2 hover:text-ink"
+                  onClick={() => {
+                    setPegawaiManual(true);
+                    setPegawai(null);
+                    setError(null);
+                  }}
+                >
+                  Tiada dalam senarai
+                </button>
+                <p className="mt-1 text-xs text-graphite">
+                  Untuk pegawai PPD Manjung sahaja. Wakil sekolah sila guna tab Sekolah.
+                </p>
+              </div>
+            </>
+          ) : (
+            <div className="space-y-3">
+              <div>
+                <p className="text-sm font-semibold text-ink">Pegawai PPD — tiada dalam senarai</p>
+                <p className="mt-1 text-xs text-graphite">
+                  Untuk pegawai PPD Manjung sahaja. Wakil sekolah sila guna tab Sekolah.
+                </p>
+              </div>
+              <div>
+                <label className="label" htmlFor="hadir-pegawai-nama">
+                  Nama *
+                </label>
+                <input
+                  id="hadir-pegawai-nama"
+                  className="input"
+                  maxLength={200}
+                  value={manualNama}
+                  onChange={(e) => setManualNama(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="label" htmlFor="hadir-pegawai-jawatan">
+                  Jawatan / Sektor *
+                </label>
+                <input
+                  id="hadir-pegawai-jawatan"
+                  className="input"
+                  maxLength={200}
+                  placeholder="Contoh: Penolong PPD Sektor Pembelajaran"
+                  value={manualJawatan}
+                  onChange={(e) => setManualJawatan(e.target.value)}
+                />
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  className="btn-primary"
+                  disabled={pending || !manualNama.trim() || !manualJawatan.trim()}
+                  onClick={() =>
+                    hantar({
+                      mesyuaratId: mesyuarat.id,
+                      jenis: "PEGAWAI",
+                      nama: manualNama,
+                      jawatan: manualJawatan,
+                    })
+                  }
+                >
+                  {pending ? "Merekod…" : "Sahkan Kehadiran"}
+                </button>
+                <button
+                  type="button"
+                  className="text-sm text-graphite hover:text-ink"
+                  onClick={() => setPegawaiManual(false)}
+                >
+                  Kembali ke carian
+                </button>
+              </div>
             </div>
-          ) : null}
-        </section>
-      ) : null}
-
-      {tab === "lain" ? (
-        <section className="card space-y-4 p-6">
-          <div>
-            <label className="label" htmlFor="hadir-lain-nama">
-              Nama *
-            </label>
-            <input
-              id="hadir-lain-nama"
-              className="input"
-              maxLength={200}
-              value={lainNama}
-              onChange={(e) => setLainNama(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="label" htmlFor="hadir-lain-jawatan">
-              Jawatan *
-            </label>
-            <input
-              id="hadir-lain-jawatan"
-              className="input"
-              maxLength={200}
-              value={lainJawatan}
-              onChange={(e) => setLainJawatan(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="label" htmlFor="hadir-lain-organisasi">
-              Organisasi *
-            </label>
-            <input
-              id="hadir-lain-organisasi"
-              className="input"
-              maxLength={200}
-              value={lainOrganisasi}
-              onChange={(e) => setLainOrganisasi(e.target.value)}
-            />
-          </div>
-          <button
-            type="button"
-            className="btn-primary w-full sm:w-auto"
-            disabled={
-              pending || !lainNama.trim() || !lainJawatan.trim() || !lainOrganisasi.trim()
-            }
-            onClick={() =>
-              hantar({
-                mesyuaratId: mesyuarat.id,
-                jenis: "LAIN",
-                nama: lainNama,
-                jawatan: lainJawatan,
-                organisasi: lainOrganisasi,
-              })
-            }
-          >
-            {pending ? "Merekod…" : "Sahkan Kehadiran"}
-          </button>
+          )}
         </section>
       ) : null}
 

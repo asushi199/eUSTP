@@ -1,5 +1,10 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-10-14 — MJKD kehadiran: tab Lain-lain dibuang
+
+- Kebimbangan pengguna: wakil sekolah tersalah isi tab "Lain-lain". Borang awam `/laporan-mjkd/hadir` kini hanya Sekolah + Pegawai PPD; tab Pegawai ada "Tiada dalam senarai" (isi Nama + Jawatan/Sektor sendiri, nota "pegawai PPD Manjung sahaja") → rekod `PEGAWAI`, organisasi PPD Manjung, `pegawai_ppd_id` null. `sahkanKehadiranMjkd` awam tidak lagi menerima `LAIN` (zod); admin masih boleh tambah LAIN secara manual. Mod pembentangan papar kad "Lain-lain" hanya jika > 0.
+- Disahkan: typecheck, eslint, ujian (86), build. Borang tidak dismoke dalam pelayar (kehadiran sedang ditutup di produksi).
+
 ## 2026-10-14 — MJKD: kiraan hari hingga tarikh tutup (awam)
 
 - `/laporan-mjkd`: kad "Lagi N hari sebelum maklum balas ditutup" (nama hari + tarikh, 11:59 malam); ≤ 2 hari = merah bloom-deep ("Tinggal N hari lagi!"), hari terakhir = "Hari terakhir!". Pembantu tulen `bakiHariTutup` (`lib/mjkd/enums.ts`, waktu KL) diuji.

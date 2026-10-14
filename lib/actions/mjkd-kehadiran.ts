@@ -206,14 +206,15 @@ export async function cariPegawaiMjkd(
       })(),
     );
   } catch {
-    // Carian hanyalah bantuan — jika DB perlahan, pengguna boleh cuba semula / guna tab Lain-lain.
+    // Carian hanyalah bantuan — jika DB perlahan, pengguna boleh cuba semula / "Tiada dalam senarai".
     return [];
   }
 }
 
 const kehadiranPayloadSchema = z.object({
   mesyuaratId: z.string().min(1).max(64),
-  jenis: z.enum(["PGB", "WAKIL", "PEGAWAI", "LAIN"]),
+  // Awam: tiada "LAIN" (dibuang 2026-10-14 — elak wakil sekolah tersalah tab). Admin masih boleh.
+  jenis: z.enum(["PGB", "WAKIL", "PEGAWAI"]),
   schoolCode: z.string().max(20).optional(),
   pegawaiId: z.number().int().optional(),
   nama: z.string().max(400).optional(),
@@ -289,8 +290,10 @@ async function prosesKehadiran(p: KehadiranPayload): Promise<KehadiranResult> {
       });
     }
 
-    if (p.jenis === "PEGAWAI") {
-      const pegawai = p.pegawaiId ? await getPegawaiPpd(p.pegawaiId) : null;
+    // PEGAWAI: daripada senarai (nama/jawatan dari DB) atau "Tiada dalam senarai" (isi sendiri);
+    // kedua-duanya organisasi PPD Manjung.
+    if (p.pegawaiId) {
+      const pegawai = await getPegawaiPpd(p.pegawaiId);
       if (!pegawai || !pegawai.aktif) return { ok: false, error: "Pegawai tidak dijumpai." };
       return await simpanKehadiran({
         mesyuaratId,
@@ -302,18 +305,17 @@ async function prosesKehadiran(p: KehadiranPayload): Promise<KehadiranResult> {
         pegawaiPpdId: pegawai.id,
       });
     }
-
     const sah = sahkanTeksKehadiran(
-      { nama: p.nama ?? "", jawatan: p.jawatan ?? "", organisasi: p.organisasi ?? "" },
-      { perluOrganisasi: true },
+      { nama: p.nama ?? "", jawatan: p.jawatan ?? "" },
+      { perluOrganisasi: false },
     );
     if (!sah.ok) return { ok: false, error: sah.error };
     return await simpanKehadiran({
       mesyuaratId,
-      jenis: "LAIN",
+      jenis: "PEGAWAI",
       nama: sah.nama,
       jawatan: sah.jawatan,
-      organisasi: sah.organisasi!,
+      organisasi: ORGANISASI_PPD,
       schoolCode: null,
       pegawaiPpdId: null,
     });

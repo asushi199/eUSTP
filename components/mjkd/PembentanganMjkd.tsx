@@ -184,14 +184,15 @@ function SlaidKehadiranPaparan({
           <p className="mb-[1.2vh] text-[clamp(15px,1.15vw,26px)] text-white/60">
             Kiraan kehadiran hari ini · {slaid.hariLabel}
           </p>
-          <div className="grid grid-cols-3 gap-[1vw]">
+          {/* "Lain-lain" hanya ditambah oleh admin (tab awam dibuang) — papar jika ada sahaja. */}
+          <div className={`grid gap-[1vw] ${kiraan.lain > 0 ? "grid-cols-3" : "grid-cols-2"}`}>
             <KiraanBesar
               utama
               label="Sekolah"
               nilai={`${kiraan.sekolahHadir}/${kiraan.sekolahJumlah}`}
             />
             <KiraanBesar label="Pegawai PPD" nilai={kiraan.pegawai} />
-            <KiraanBesar label="Lain-lain" nilai={kiraan.lain} />
+            {kiraan.lain > 0 ? <KiraanBesar label="Lain-lain" nilai={kiraan.lain} /> : null}
           </div>
         </div>
       </div>
