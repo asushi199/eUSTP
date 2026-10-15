@@ -1,5 +1,11 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-10-15 — MJKD admin: "Mengikut perkara" bertukar tanpa muat semula
+
+- Aduan pengguna: klik nombor para (atau tapisan Status / Jenis) melompat ke atas halaman — setiap klik ialah navigasi pelayan, `loading.tsx` menggantikan halaman dengan rangka. Paparan dipindah ke komponen klien `components/mjkd/AdminPaparanPerkara.tsx`: perkara/status/jenis dalam state (data semua perkara sudah dimuat), URL dikemas kini dengan `history.replaceState` (muat semula + `router.refresh()` ★ Sorotan kekal pada perkara sama). Hanya `perkara/sekolah/maklumBalas/items` dihantar ke klien (bukan Map `itemMengikutKunci`). Panel: `PaparanPerkara` + `StatusBadge` dibuang; `key` = nilai URL pelayan.
+- Paparan Matriks masih guna `Penapis` (pautan pelayan) — belum diubah.
+- Disahkan: typecheck, eslint, build; pelayar (admin log masuk): 1.3 → 1.4 dan tapisan Selesai bertukar serta-merta tanpa rangka/muat semula, URL dikemas kini, muat semula kekal pada 1.4 + Selesai. ★ Sorotan (`router.refresh`) tidak diuji — akan menulis data produksi.
+
 ## 2026-10-15 — MJKD awam: bar kemajuan telefon tanpa tatal mendatar
 
 - Maklum balas pengguna: cip nombor para di bar melekat perlu diseret di telefon. Kini (< sm): bar ringkas ~62px — "N / Y lengkap" + jalur titik segmen (dakwat = lengkap) + butang **Senarai ▾**; dibuka = semua cip dibalut (tiada tatal). Tekan cip → senarai ditutup, kemudian tatal (`lompatKe`, dua rAF — bar melekat mengecil mengubah susun atur). `scroll-mt-36` telefon / `sm:scroll-mt-48`. sm+ tidak berubah (cip sentiasa dipaparkan).

@@ -1,6 +1,5 @@
 import Link from "next/link";
-import FotoBuktiThumbs from "@/components/mjkd/FotoBuktiThumbs";
-import PilihBacaKawalan from "@/components/mjkd/PilihBacaKawalan";
+import AdminPaparanPerkara from "@/components/mjkd/AdminPaparanPerkara";
 import TabelAnalisisMjkd from "@/components/mjkd/TabelAnalisisMjkd";
 import { binaAnalisis } from "@/lib/mjkd/pembentangan";
 import {
@@ -36,14 +35,6 @@ type Props = {
   status: StatusMjkd | "";
   jenis: JenisSekolah | "";
 };
-
-function StatusBadge({ status }: { status: string }) {
-  return (
-    <span className="status-badge">
-      {isStatusMjkd(status) ? STATUS_MJKD_LABEL[status] : status}
-    </span>
-  );
-}
 
 function Penapis({
   mesyuaratId,
@@ -352,157 +343,6 @@ function PaparanMatriks({
   );
 }
 
-/* ------------------------------ Mengikut perkara ------------------------------ */
-
-function PaparanPerkara({
-  mesyuaratId,
-  data,
-  perkaraId,
-  status,
-  jenis,
-  paparan,
-}: Props) {
-  const aktif = data.perkara.filter((p) => p.aktif);
-  const perkara = aktif.find((p) => p.id === perkaraId) ?? aktif[0];
-  if (!perkara) {
-    return <p className="card p-6 text-sm text-graphite">Belum ada perkara aktif.</p>;
-  }
-
-  const sekolahMengikutKod = new Map(data.sekolah.map((s) => [s.code, s]));
-  const mbMengikutId = new Map(data.maklumBalas.map((m) => [m.id, m]));
-  const semuaJawapan = data.items
-    .filter((it) => it.perkaraId === perkara.id)
-    .map((it) => {
-      const mb = mbMengikutId.get(it.maklumBalasId)!;
-      return { it, mb, sekolah: sekolahMengikutKod.get(mb.schoolCode) };
-    })
-    .filter((x) => x.sekolah);
-  const bilangan = kiraStatus(semuaJawapan.map((x) => x.it));
-  const dijangka = data.sekolah.filter(
-    (s) => perkaraUntukSekolah([perkara], s).length > 0,
-  ).length;
-
-  // Sorotan (lajur `dipilih`) di atas; tanda sahaja — tidak menentukan susunan pembentangan.
-  const dipilihSusun = semuaJawapan
-    .filter((x) => x.it.dipilih)
-    .sort((a, b) => a.mb.schoolCode.localeCompare(b.mb.schoolCode));
-
-  const lulusTapis = (x: (typeof semuaJawapan)[number]) =>
-    (!status || x.it.status === status) && (!jenis || x.sekolah!.jenis === jenis);
-  const senarai = [
-    ...dipilihSusun.filter(lulusTapis),
-    ...semuaJawapan
-      .filter((x) => !x.it.dipilih && lulusTapis(x))
-      .sort((a, b) => a.mb.schoolCode.localeCompare(b.mb.schoolCode)),
-  ];
-
-  const pautanPerkara = (id: string) => {
-    const q = new URLSearchParams({ tab: "maklum-balas", view: "perkara", p: id });
-    if (status) q.set("status", status);
-    if (jenis) q.set("jenis", jenis);
-    return `/admin/mjkd/${mesyuaratId}?${q.toString()}`;
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap gap-2">
-        {aktif.map((p) => (
-          <Link
-            key={p.id}
-            href={pautanPerkara(p.id)}
-            className={p.id === perkara.id ? "btn-ink btn-sm" : "btn-outline-ink btn-sm"}
-            title={p.perkara}
-          >
-            {p.para}
-          </Link>
-        ))}
-      </div>
-
-      <div className="card p-5">
-        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-graphite">
-          Para {perkara.para}
-          {perkara.mukaSurat ? ` · m/s ${perkara.mukaSurat}` : ""}
-        </p>
-        <p className="mt-2 text-sm leading-relaxed text-ink">{perkara.perkara}</p>
-        <p className="mt-2 text-sm text-graphite">
-          <span className="font-medium text-charcoal">Tindakan:</span> {perkara.tindakan}
-        </p>
-        <ul className="mt-3 flex flex-wrap gap-2">
-          {STATUS_MJKD.map((s) => (
-            <li key={s} className="status-badge">
-              {STATUS_MJKD_LABEL[s]} {bilangan[s]}
-            </li>
-          ))}
-          <li className="status-badge">
-            Belum menjawab {Math.max(dijangka - semuaJawapan.length, 0)}
-          </li>
-        </ul>
-        <p className="mt-2 text-xs text-graphite">
-          {semuaJawapan.length} / {dijangka} sekolah telah menjawab · {dipilihSusun.length} ★ Sorotan
-        </p>
-      </div>
-
-      <Penapis
-        mesyuaratId={mesyuaratId}
-        paparan={paparan}
-        perkaraId={perkara.id}
-        status={status}
-        jenis={jenis}
-      />
-
-      {senarai.length === 0 ? (
-        <p className="card p-6 text-sm text-graphite">Tiada jawapan sepadan dengan tapisan.</p>
-      ) : (
-        <ul className="space-y-3">
-          {senarai.map(({ it, mb, sekolah }) => {
-            return (
-              <li key={it.id} className={`card p-5 ${it.dipilih ? "border-ink" : ""}`}>
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="font-semibold text-ink">
-                      {sekolah!.name}{" "}
-                      <span className="font-mono text-xs font-normal text-graphite">
-                        {sekolah!.code} · {labelJenisSekolah(sekolah!.jenis)} · {sekolah!.zone || "—"}
-                      </span>
-                    </p>
-                    <p className="mt-1 text-xs text-graphite">
-                      {mb.namaPengisi} · {mb.jawatanPengisi}
-                    </p>
-                  </div>
-                  <StatusBadge status={it.status} />
-                </div>
-                {it.catatan ? (
-                  <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-ink">
-                    {it.catatan}
-                  </p>
-                ) : (
-                  <p className="mt-3 text-sm text-graphite">Tiada catatan.</p>
-                )}
-                {it.pautanBukti ? (
-                  <p className="mt-2 text-sm">
-                    <a
-                      href={it.pautanBukti}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="link-blue break-all"
-                    >
-                      Pautan bukti
-                    </a>
-                  </p>
-                ) : null}
-                <FotoBuktiThumbs foto={it.fotoBukti} className="mt-3" />
-                <div className="mt-4">
-                  <PilihBacaKawalan itemId={it.id} dipilih={it.dipilih} />
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </div>
-  );
-}
-
 /* -------------------------------- Panel -------------------------------- */
 
 export default function AdminMaklumBalasPanel(props: Props) {
@@ -538,8 +378,16 @@ export default function AdminMaklumBalasPanel(props: Props) {
       ) : paparan === "matriks" ? (
         <PaparanMatriks {...props} />
       ) : (
-        <PaparanPerkara
-          {...props}
+        <AdminPaparanPerkara
+          // Kunci: tukar paparan/URL dari luar → mula semula dengan nilai URL.
+          key={`${perkaraId}|${status}|${jenis}`}
+          mesyuaratId={mesyuaratId}
+          data={{
+            perkara: props.data.perkara,
+            sekolah: props.data.sekolah,
+            maklumBalas: props.data.maklumBalas,
+            items: props.data.items,
+          }}
           perkaraId={perkaraId}
           status={status}
           jenis={jenis}
