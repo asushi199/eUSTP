@@ -511,6 +511,64 @@
   outline: 1.5px dashed color-mix(in srgb, var(--emas) 55%, transparent);
   outline-offset: -2px;
 }
+/* kotak status Papan Pemuka (klik = perkara berstatus itu) */
+.pentas .pt-kotak-status {
+  border: 0;
+  background: none;
+  text-align: left;
+  padding: 8px 14px 4px;
+  margin: -8px -14px -4px;
+  border-radius: 14px;
+  color: inherit;
+}
+.pentas .pt-kotak-status:hover:not(:disabled) {
+  background: var(--panel2);
+}
+.pentas .pt-kotak-status:disabled {
+  cursor: default;
+}
+.pentas .pt-kotak-status .pt-anak-panah {
+  opacity: 0;
+  margin-left: 6px;
+  transition: opacity 0.15s;
+}
+.pentas .pt-kotak-status:hover:not(:disabled) .pt-anak-panah {
+  opacity: 1;
+}
+.pentas .pt-senarai-status {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0 -14px;
+}
+.pentas .pt-baris-status {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr) 40px;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  border: 0;
+  background: none;
+  text-align: left;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 18px;
+  flex: none;
+}
+.pentas .pt-baris-status:hover {
+  background: var(--panel2);
+}
+.pentas .pt-baris-status[aria-current="true"] {
+  background: var(--panel2);
+  box-shadow: inset 4px 0 0 var(--emas);
+}
+.pentas .pt-baris-status b {
+  text-align: right;
+  font-size: 22px;
+}
 .pentas .pt-para-kecil {
   font-weight: 800;
   color: var(--emas);

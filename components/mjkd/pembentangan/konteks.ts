@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext } from "react";
+import type { StatusMjkd } from "@/lib/mjkd/enums";
 
 /** Konteks bersama slaid (acara, QR kehadiran, navigasi, Spotlight). */
 export type KonteksSlaid = {
@@ -12,6 +13,8 @@ export type KonteksSlaid = {
   bukaSpot: (perkaraId: string, kod: string) => void;
   /** Semua jawapan satu sekolah (slaid Semua soalan). */
   bukaSekolah: (kod: string) => void;
+  /** Perkara & sekolah bagi satu status (kotak status Papan Pemuka). */
+  bukaStatus: (status: StatusMjkd) => void;
   /** URL gambar bukti (lalai: thumbnail Drive). */
   urlFoto: (path: string, sz: number) => string;
 };

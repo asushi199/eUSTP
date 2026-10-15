@@ -7,6 +7,7 @@ import { kenalJenisSekolah } from "@/lib/mjkd/jenis-sekolah";
 import {
   jawapanSekolah,
   namaPendek,
+  ringkasTeks,
   urutanSpotlight,
   type DataPentas,
   type TileSekolah,
@@ -52,6 +53,8 @@ function namaHos(url: string): string {
  * kanan = Catatan (satu perenggan seperti diisi PGB; saiz fon mengecil supaya muat) + jalur
  * bukti (gambar → lightbox, pautan → Buka / QR / Pratonton). ← → antara sekolah yang telah
  * menghantar (susunan mozek). Semua teks `overflow-wrap:anywhere`.
+ * Jika `urutanPerkara` diberi (dibuka dari "Semua soalan"), ← → bertukar PERKARA bagi sekolah yang
+ * sama — bukan sekolah.
  */
 export default function Spotlight({
   data,
@@ -60,6 +63,9 @@ export default function Spotlight({
   jubin,
   kawalan,
   onPilih,
+  urutanPerkara,
+  onPilihPerkara,
+  ketUrutan = "sekolah menghantar",
   onTutup,
   onSorotan,
 }: {
@@ -69,6 +75,11 @@ export default function Spotlight({
   jubin: readonly TileSekolah[];
   kawalan: Ref<KawalanSpot | null>;
   onPilih: (kod: string) => void;
+  /** Perkara yang dijawab sekolah ini (susunan minit) — mod "satu sekolah". */
+  urutanPerkara?: readonly { id: string; para: string }[];
+  onPilihPerkara?: (perkaraId: string) => void;
+  /** Teks selepas "x / n" di bar bawah (mod sekolah). */
+  ketUrutan?: string;
   onTutup: () => void;
   onSorotan: (itemId: string, dipilih: boolean) => void;
 }) {
@@ -89,14 +100,22 @@ export default function Spotlight({
   const nama = namaPendek(sekolah?.name ?? kod);
   const jenis = sekolah ? kenalJenisSekolah(sekolah.name, sekolah.code) : null;
 
-  // Tukar sekolah = tutup lightbox / pratonton.
+  const modPerkara = Boolean(urutanPerkara && onPilihPerkara);
+  const iPerkara = urutanPerkara ? urutanPerkara.findIndex((p) => p.id === perkaraId) : -1;
+
+  // Tukar sekolah / perkara = tutup lightbox / pratonton.
   useEffect(() => {
     setLightbox(null);
     setPratonton(false);
     dialogRef.current?.focus();
-  }, [kod]);
+  }, [kod, perkaraId]);
 
   const langkahSekolah = (d: number) => {
+    if (modPerkara) {
+      const p = urutanPerkara![iPerkara + d];
+      if (p) onPilihPerkara!(p.id);
+      return;
+    }
     if (kedudukan < 0) {
       // Sekolah belum menghantar: lompat ke sekolah menghantar terdekat ikut susunan mozek.
       const i = jubin.findIndex((j) => j.kod === kod);
@@ -169,8 +188,13 @@ export default function Spotlight({
 
         <div className="pt-spot-kiri">
           <p className="pt-label" style={{ fontSize: 18 }}>
-            Para {perkara?.para}
+            {modPerkara ? "Semua soalan · " : ""}Para {perkara?.para}
           </p>
+          {modPerkara && perkara ? (
+            <p className="pt-redup" style={{ fontSize: 18, margin: "-8px 0 0", lineHeight: 1.35, overflowWrap: "anywhere" }}>
+              {ringkasTeks(perkara.perkara, 150)}
+            </p>
+          ) : null}
           <TeksMuat as="h2" maks={72} min={38} style={{ maxHeight: 300, flex: "none" }} kunci={nama}>
             {nama}
           </TeksMuat>
@@ -295,27 +319,51 @@ export default function Spotlight({
           )}
         </div>
 
-        <div className="pt-spot-bawah">
-          <button
-            type="button"
-            style={{ justifySelf: "start", maxWidth: "100%" }}
-            disabled={kedudukan === 0 || urutan.length === 0}
-            onClick={() => langkahSekolah(-1)}
-          >
-            ← {kedudukan > 0 ? namaIkutKod.get(urutan[kedudukan - 1]!) : ""}
-          </button>
-          <span className="pt-samar pt-nombor">
-            {kedudukan >= 0 ? `${kedudukan + 1} / ${urutan.length} sekolah menghantar` : `${urutan.length} sekolah menghantar`}
-          </span>
-          <button
-            type="button"
-            style={{ justifySelf: "end", maxWidth: "100%" }}
-            disabled={kedudukan >= urutan.length - 1 && kedudukan >= 0}
-            onClick={() => langkahSekolah(1)}
-          >
-            {kedudukan >= 0 && kedudukan < urutan.length - 1 ? namaIkutKod.get(urutan[kedudukan + 1]!) : ""} →
-          </button>
-        </div>
+        {modPerkara ? (
+          <div className="pt-spot-bawah">
+            <button
+              type="button"
+              style={{ justifySelf: "start", maxWidth: "100%" }}
+              disabled={iPerkara <= 0}
+              onClick={() => langkahSekolah(-1)}
+            >
+              ← {iPerkara > 0 ? `Para ${urutanPerkara![iPerkara - 1]!.para}` : ""}
+            </button>
+            <span className="pt-samar pt-nombor">
+              {iPerkara >= 0 ? `${iPerkara + 1} / ${urutanPerkara!.length} perkara · ${nama}` : nama}
+            </span>
+            <button
+              type="button"
+              style={{ justifySelf: "end", maxWidth: "100%" }}
+              disabled={iPerkara >= urutanPerkara!.length - 1}
+              onClick={() => langkahSekolah(1)}
+            >
+              {iPerkara >= 0 && iPerkara < urutanPerkara!.length - 1 ? `Para ${urutanPerkara![iPerkara + 1]!.para}` : ""} →
+            </button>
+          </div>
+        ) : (
+          <div className="pt-spot-bawah">
+            <button
+              type="button"
+              style={{ justifySelf: "start", maxWidth: "100%" }}
+              disabled={kedudukan === 0 || urutan.length === 0}
+              onClick={() => langkahSekolah(-1)}
+            >
+              ← {kedudukan > 0 ? namaIkutKod.get(urutan[kedudukan - 1]!) : ""}
+            </button>
+            <span className="pt-samar pt-nombor">
+              {kedudukan >= 0 ? `${kedudukan + 1} / ${urutan.length} ${ketUrutan}` : `${urutan.length} ${ketUrutan}`}
+            </span>
+            <button
+              type="button"
+              style={{ justifySelf: "end", maxWidth: "100%" }}
+              disabled={kedudukan >= urutan.length - 1 && kedudukan >= 0}
+              onClick={() => langkahSekolah(1)}
+            >
+              {kedudukan >= 0 && kedudukan < urutan.length - 1 ? namaIkutKod.get(urutan[kedudukan + 1]!) : ""} →
+            </button>
+          </div>
+        )}
       </div>
 
       {lightbox !== null && foto[lightbox] ? (

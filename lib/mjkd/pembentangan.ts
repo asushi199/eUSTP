@@ -612,6 +612,7 @@ export type InputDek = {
 /** Kunci slaid perkara (stabil merentas penyegaran data). */
 export const kunciPerkara = (perkaraId: string) => `perkara-${perkaraId}`;
 export const KUNCI_SEMUA_SOALAN = "semua-soalan";
+export const KUNCI_PAPAN_PEMUKA = "papan-pemuka";
 
 /**
  * Dek penuh mengikut bab. `kunci` stabil supaya kedudukan semasa dikekalkan selepas data
@@ -662,7 +663,7 @@ export function binaDek({ data, baru }: InputDek): Slaid[] {
 
   dek.push({
     jenis: "papan-pemuka",
-    kunci: "papan-pemuka",
+    kunci: KUNCI_PAPAN_PEMUKA,
     bab: "maklum-balas",
     tajuk: "Papan Pemuka Daerah",
     ...papan,

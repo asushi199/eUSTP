@@ -1,5 +1,12 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-10-15 — MJKD pembentangan: kotak status boleh diklik, kembali ke Papan Pemuka, "Semua soalan" ikut perkara
+
+- **Kotak status Papan Pemuka** (Selesai / Dalam Pelaksanaan / Belum Dilaksanakan / Tidak Berkaitan) kini butang (bilangan jawapan dipapar di sebelah %; dilumpuhkan jika 0) → lapisan baharu `SpotlightStatus.tsx`: kiri = perkara yang ada jawapan berstatus itu (bilangan sekolah), kanan = teks perkara + mozek sekolah berstatus itu sahaja + "Buka slaid perkara →". ← → = perkara sebelum/seterusnya. Klik sekolah = Spotlight sedia ada dengan `jubin` ditapis ikut status (← → antara sekolah berstatus sama; bar bawah "x / n sekolah · <status>"). Esc = kembali selapis demi selapis; kekal di slaid Papan Pemuka.
+- **Kembali ke Papan Pemuka:** butang "← Papan Pemuka" pada setiap slaid perkara + kekunci **P** (dari mana-mana slaid/lapisan). `KUNCI_PAPAN_PEMUKA` dalam `lib/mjkd/pembentangan.ts`.
+- **Semua soalan → klik baris:** Spotlight kini mod "satu sekolah" (`urutanPerkara` + `onPilihPerkara`): ← → bertukar PERKARA yang dijawab sekolah itu (bukan sekolah lain); label "Semua soalan · Para X" + ringkasan teks perkara. Tukar sekolah tetap dari lapisan "Semua soalan" (← →) selepas Spotlight ditutup.
+- Disahkan: typecheck, eslint, `npm run build`, `tests/mjkd/pembentangan.test.ts` (19 lulus), `/dev/pentas` 1600×900: kotak status → perkara → sekolah → Esc; Semua soalan → baris 1.4 → → = 1.6 sekolah sama; butang/P kembali ke `#papan-pemuka`.
+
 ## 2026-10-15 — MJKD pembentangan: "Semua soalan" (semua maklum balas satu sekolah)
 
 - Permintaan pengurusan: dari Papan Pemuka, Tuan PPD boleh terus melihat SEMUA jawapan satu sekolah. Baris akhir lajur kanan Papan Pemuka **"Semua soalan"** (garis putus-putus emas; bar status keseluruhan + x/y sekolah) → slaid baharu `semua-soalan` (hujung bab Maklum Balas, selepas perkara terakhir — aliran ← → perkara tidak berubah).

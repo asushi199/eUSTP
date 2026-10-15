@@ -7,11 +7,12 @@ import KiraNaik from "../KiraNaik";
 import { usePentas } from "../konteks";
 
 /**
- * Papan Pemuka Daerah: KPI penghantaran + peratus status + 2 lajur baris perkara (klik = lompat);
+ * Papan Pemuka Daerah: KPI penghantaran + peratus status (klik = perkara & sekolah berstatus itu)
+ * + 2 lajur baris perkara (klik = lompat);
  * baris akhir "Semua soalan" = slaid mozek sekolah (semua maklum balas satu sekolah).
  */
 export default function SlaidPapanPemuka({ slaid }: { slaid: T }) {
-  const { keKunci } = usePentas();
+  const { keKunci, bukaStatus } = usePentas();
   const { kpi } = slaid;
   const n = kpi.bilangan.jumlah;
   const pc = (v: number) => (n ? Math.round((v / n) * 100) : 0);
@@ -37,7 +38,7 @@ export default function SlaidPapanPemuka({ slaid }: { slaid: T }) {
           <h2 className="pt-tajuk">Papan Pemuka Daerah</h2>
         </div>
         <p className="pt-samar" style={{ fontSize: 18, margin: 0 }}>
-          Klik mana-mana perkara untuk melihat sekolah
+          Klik status atau perkara untuk melihat sekolah
         </p>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 28, marginTop: 26 }}>
@@ -63,17 +64,30 @@ export default function SlaidPapanPemuka({ slaid }: { slaid: T }) {
         >
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0,1fr))", gap: 12 }}>
             {STATUS_MJKD.map((s) => (
-              <div key={s}>
-                <p className="pt-redup" style={{ fontSize: 17, margin: 0, whiteSpace: "nowrap" }}>
+              <button
+                key={s}
+                type="button"
+                className="pt-kotak-status"
+                disabled={kpi.bilangan[s] === 0}
+                onClick={() => bukaStatus(s)}
+                title={`${kpi.bilangan[s]} jawapan — klik untuk perkara & sekolah`}
+              >
+                <span className="pt-redup" style={{ display: "block", fontSize: 17, whiteSpace: "nowrap" }}>
                   <i
                     style={{ display: "inline-block", width: 12, height: 12, borderRadius: "50%", marginRight: 8, background: WARNA_STATUS_VAR[s] }}
                   />
                   {STATUS_MJKD_LABEL[s]}
-                </p>
+                </span>
                 <b style={{ fontSize: 54 }}>
                   <KiraNaik nilai={pc(kpi.bilangan[s])} akhiran="%" />
                 </b>
-              </div>
+                <span className="pt-samar pt-nombor" style={{ fontSize: 17, marginLeft: 10 }}>
+                  {kpi.bilangan[s]}
+                  <span className="pt-anak-panah" aria-hidden>
+                    →
+                  </span>
+                </span>
+              </button>
             ))}
           </div>
           <BarStatus bilangan={kpi.bilangan} jumlah={n} />

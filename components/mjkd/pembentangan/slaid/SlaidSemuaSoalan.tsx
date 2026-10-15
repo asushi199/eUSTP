@@ -1,7 +1,7 @@
 "use client";
 
 import { STATUS_MJKD, STATUS_MJKD_LABEL } from "@/lib/mjkd/enums";
-import type { SlaidSemuaSoalan as T } from "@/lib/mjkd/pembentangan";
+import { KUNCI_PAPAN_PEMUKA, type SlaidSemuaSoalan as T } from "@/lib/mjkd/pembentangan";
 import { DonutStatus, WARNA_STATUS_VAR } from "../Donut";
 import KiraNaik from "../KiraNaik";
 import Mozek from "../Mozek";
@@ -19,7 +19,7 @@ export default function SlaidSemuaSoalan({ slaid }: { slaid: T }) {
       <div className="pt-anim" style={{ display: "flex", flexDirection: "column", minHeight: 0 }}>
         <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
           <span className="pt-lencana-para">Semua soalan</span>
-          <button type="button" className="pt-hantu" style={{ fontSize: 17 }} onClick={() => keKunci("papan-pemuka")}>
+          <button type="button" className="pt-hantu" style={{ fontSize: 17 }} onClick={() => keKunci(KUNCI_PAPAN_PEMUKA)}>
             ← Papan Pemuka
           </button>
         </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { STATUS_MJKD, STATUS_MJKD_LABEL } from "@/lib/mjkd/enums";
-import type { SlaidPerkara as T } from "@/lib/mjkd/pembentangan";
+import { KUNCI_PAPAN_PEMUKA, type SlaidPerkara as T } from "@/lib/mjkd/pembentangan";
 import { DonutStatus, WARNA_STATUS_VAR } from "../Donut";
 import KiraNaik from "../KiraNaik";
 import Mozek from "../Mozek";
@@ -10,7 +10,7 @@ import { usePentas } from "../konteks";
 
 /** Satu perkara: teks + tindakan + donut (kiri, 660px); mozek SEMUA sekolah terpakai (kanan). */
 export default function SlaidPerkara({ slaid }: { slaid: T }) {
-  const { bukaSpot } = usePentas();
+  const { bukaSpot, keKunci } = usePentas();
   const belum = slaid.dijangka - slaid.dihantar;
   return (
     <div style={{ display: "grid", gridTemplateColumns: "660px 1028px", gap: 40, height: "100%" }}>
@@ -22,6 +22,15 @@ export default function SlaidPerkara({ slaid }: { slaid: T }) {
               m/s {slaid.mukaSurat}
             </span>
           ) : null}
+          <button
+            type="button"
+            className="pt-hantu"
+            style={{ fontSize: 17, marginLeft: "auto" }}
+            onClick={() => keKunci(KUNCI_PAPAN_PEMUKA)}
+            title="Kembali ke Papan Pemuka (P)"
+          >
+            ← Papan Pemuka
+          </button>
         </div>
         <TeksMuat as="p" maks={34} min={20} className="pt-teks-perkara" style={{ maxHeight: 300, flex: "none" }} kunci={slaid.perkara}>
           {slaid.perkara}
