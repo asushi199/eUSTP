@@ -1,5 +1,15 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-10-15 — MJKD awam: bar kemajuan telefon tanpa tatal mendatar
+
+- Maklum balas pengguna: cip nombor para di bar melekat perlu diseret di telefon. Kini (< sm): bar ringkas ~62px — "N / Y lengkap" + jalur titik segmen (dakwat = lengkap) + butang **Senarai ▾**; dibuka = semua cip dibalut (tiada tatal). Tekan cip → senarai ditutup, kemudian tatal (`lompatKe`, dua rAF — bar melekat mengecil mengubah susun atur). `scroll-mt-36` telefon / `sm:scroll-mt-48`. sm+ tidak berubah (cip sentiasa dipaparkan).
+- Disahkan: typecheck, eslint, pelayar 375×812 (tertutup 62px, dibuka 210px, lompat ke 17.1–17.3 mendarat 18px di bawah bar) dan 1024px.
+
+## 2026-10-15 — MJKD: ujian hujung-ke-hujung kemaskini (DB produksi, dipadam)
+
+- Atas arahan pengguna: hantar ujian AHA1002 (KV Seri Manjung, nama "UJIAN SISTEM (Claude)", tiada gambar) → Semak (kod + tiket) → Kemaskini (catatan 1.3 diubah, 1.4 Tidak Berkaitan → Dalam Pelaksanaan) melalui dev tempatan. DB disahkan: rekod sama dikemas kini, tiket tidak berubah, 10 item betul. Hantar semula tanpa tiket ditolak dengan butang "Semak / kemaskini maklum balas sekolah ini".
+- Rekod ujian dipadam (item ikut cascade); jumlah maklum balas MJKD 2026 kembali 0. Skrip sementara tidak dikomit.
+
 ## 2026-10-15 — MJKD awam: borang maklum balas lebih jelas (PGB berumur)
 
 - Masalah: nombor para (`text-xs` kelabu) paling kecil dalam kad, sempadan kad lemah, kotak bersarang, bahagian "1./2./3." bertembung dengan para 1.1/1.2. `components/mjkd/MaklumBalasMjkdForm.tsx`:

@@ -108,6 +108,7 @@ export default function MaklumBalasMjkdForm({
   const [receiptToken, setReceiptToken] = useState(initialReceiptToken ?? "");
   const [jawapan, setJawapan] = useState<Record<string, Jawapan>>(() => jawapanAwal(existing));
   const [muatNaik, setMuatNaik] = useState(0);
+  const [navBuka, setNavBuka] = useState(false);
   // Elak menimpa nama/jawatan yang sudah disunting pengguna (atau datang daripada rekod sedia ada).
   const disentuh = useRef(Boolean(existing));
 
@@ -154,6 +155,17 @@ export default function MaklumBalasMjkdForm({
       batal = true;
     };
   }, [schoolCode, dikunci, adminMode]);
+
+  // Tutup senarai dahulu, kemudian tatal — bar melekat mengecil, jadi tatal selepas susun atur baharu.
+  function lompatKe(e: React.MouseEvent<HTMLAnchorElement>, perkaraId: string) {
+    e.preventDefault();
+    setNavBuka(false);
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() =>
+        document.getElementById(`perkara-${perkaraId}`)?.scrollIntoView({ block: "start" }),
+      ),
+    );
+  }
 
   function ubahJawapan(perkaraId: string, patch: Partial<Jawapan>) {
     setJawapan((prev) => ({
@@ -394,24 +406,54 @@ export default function MaklumBalasMjkdForm({
 
         {terpakai.length > 0 ? (
           // Bar kemajuan melekat di bawah TopNav (h-16): lompat terus ke mana-mana perkara.
+          // Telefon: ringkas (kiraan + jalur segmen); senarai nombor dibuka dengan butang supaya
+          // bar melekat tidak memakan skrin. sm+: senarai sentiasa dipaparkan.
           <nav
             aria-label="Lompat ke perkara"
             className="sticky top-16 z-30 rounded-xl border border-steel/60 bg-white/95 px-4 py-3 shadow-lift backdrop-blur"
           >
-            <p className="text-sm font-semibold text-ink">
-              <span className="tabular-nums">
-                {bilLengkap} / {terpakai.length}
-              </span>{" "}
-              perkara lengkap
-              <span className="hidden font-normal text-graphite sm:inline"> · tekan nombor untuk melompat</span>
-            </p>
-            <div className="mt-2 flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0">
+            <div className="flex items-center gap-3">
+              <p className="shrink-0 text-sm font-semibold text-ink">
+                <span className="tabular-nums">
+                  {bilLengkap} / {terpakai.length}
+                </span>{" "}
+                <span className="hidden sm:inline">perkara </span>lengkap
+                <span className="hidden font-normal text-graphite sm:inline"> · tekan nombor untuk melompat</span>
+              </p>
+              <div className="flex min-w-0 flex-1 gap-1 sm:hidden" aria-hidden>
+                {terpakai.map((p) => (
+                  <span
+                    key={p.id}
+                    className={`h-2 flex-1 rounded-full ${
+                      perkaraLengkap(jawapan[p.id]) ? "bg-ink" : "bg-steel/40"
+                    }`}
+                  />
+                ))}
+              </div>
+              <button
+                type="button"
+                className="inline-flex h-9 shrink-0 items-center gap-1 rounded-md border border-steel bg-white px-3 text-sm font-semibold text-ink sm:hidden"
+                aria-expanded={navBuka}
+                aria-controls="mjkd-senarai-perkara"
+                onClick={() => setNavBuka((b) => !b)}
+              >
+                {navBuka ? "Tutup" : "Senarai"}
+                <span aria-hidden className={`transition ${navBuka ? "rotate-180" : ""}`}>
+                  ▾
+                </span>
+              </button>
+            </div>
+            <div
+              id="mjkd-senarai-perkara"
+              className={`${navBuka ? "flex" : "hidden"} mt-3 flex-wrap gap-2 sm:mt-2 sm:flex`}
+            >
               {terpakai.map((p) => {
                 const lengkap = perkaraLengkap(jawapan[p.id]);
                 return (
                   <a
                     key={p.id}
                     href={`#perkara-${p.id}`}
+                    onClick={(e) => lompatKe(e, p.id)}
                     aria-label={`Perkara ${p.para}${lengkap ? " (lengkap)" : ""}`}
                     className={`inline-flex h-10 min-w-[3.5rem] shrink-0 items-center justify-center gap-1 rounded-md border px-3 text-sm font-bold tabular-nums transition ${
                       lengkap
@@ -437,7 +479,7 @@ export default function MaklumBalasMjkdForm({
               key={p.id}
               id={`perkara-${p.id}`}
               // scroll-mt: TopNav (64px) + bar kemajuan melekat.
-              className="scroll-mt-48 overflow-hidden rounded-xl border-2 border-steel/70 bg-white shadow-lift"
+              className="scroll-mt-36 overflow-hidden sm:scroll-mt-48 rounded-xl border-2 border-steel/70 bg-white shadow-lift"
             >
               <header className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-steel/50 bg-cloud px-5 py-4 sm:px-6">
                 <span
