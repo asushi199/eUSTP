@@ -1,5 +1,15 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-10-15 — MJKD awam: borang maklum balas lebih jelas (PGB berumur)
+
+- Masalah: nombor para (`text-xs` kelabu) paling kecil dalam kad, sempadan kad lemah, kotak bersarang, bahagian "1./2./3." bertembung dengan para 1.1/1.2. `components/mjkd/MaklumBalasMjkdForm.tsx`:
+  - Kepala kad `bg-cloud` + lencana para besar dakwat (text-2xl; text-lg jika para panjang cth. "17.1–17.3, 17.6") + "Perkara X daripada Y" + "✓ Lengkap" (syarat sama dengan `sahkanMaklumBalas`: status dipilih dan catatan ≥ 30 aksara kecuali Tidak Berkaitan). Sempadan kad `border-2 border-steel/70`, jarak `space-y-6`.
+  - Bar melekat `top-16` "N / Y perkara lengkap" + cip nombor para (✓ = dakwat) yang melompat ke kad (`#perkara-<id>`, `scroll-mt-48`).
+  - Bahagian dinamakan A/B/C; panduan jadi garis kiri (bukan kotak); Bukti tanpa kotak (garis atas). Teks perkara 17px, butang status `min-h-12` 15px.
+  - Kawasan hantar: ringkasan kemajuan + butang `h-14`. Ralat "sudah menghantar" kini ada butang ke `/laporan-mjkd/semak?kod=…`.
+- Butang kemaskini lebih jelas: `/laporan-mjkd` ganti pautan kecil "Semak status / kemaskini" dengan kad "Sudah menghantar maklum balas?" + butang `btn-outline` h-14 (satu-satunya unsur biru di skrin atas); mod kemaskini (`existing`) papar kad "Mod kemaskini". `/laporan-mjkd/semak`: butang Kemaskini `h-14`, lebar penuh di telefon.
+- Disahkan: typecheck, `npm run build`, pelayar (lebar ~435px dan 800px): cip lompat, ✓ Lengkap, kiraan, kad atas. Butang Kemaskini di `/semak` tidak dismoke (perlu nombor tiket sebenar).
+
 ## 2026-10-14 — MJKD admin: tab Maklum Balas lalai "Mengikut perkara"
 
 - `/admin/mjkd/[id]?tab=maklum-balas` tanpa `view` kini membuka **Mengikut perkara** (perkara pertama) — paparan yang paling kerap diguna untuk menanda ★ Sorotan. Kemajuan/Matriks kekal melalui butang paparan.

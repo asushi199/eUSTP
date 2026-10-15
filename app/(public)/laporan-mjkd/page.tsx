@@ -160,14 +160,43 @@ export default async function LaporanMjkdPage({ searchParams }: Props) {
           mesyuarat.tarikhTamat,
         )}${mesyuarat.tempat ? ` · ${mesyuarat.tempat}` : ""}`}
       />
-      <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-sm">
+      <div className="mt-4 text-sm">
         <Link href="/laporan" className="text-graphite hover:text-ink">
           ← Hub laporan
         </Link>
-        <Link href="/laporan-mjkd/semak" className="link-blue">
-          Semak status / kemaskini
-        </Link>
       </div>
+
+      {existing ? (
+        <div className="card mt-6 border-2 border-ink p-5 sm:p-6" role="status">
+          <p className="text-lg font-semibold text-ink">Mod kemaskini</p>
+          <p className="mt-1 text-[15px] text-charcoal">
+            Jawapan yang telah dihantar dimuatkan di bawah. Ubah mana-mana perkara, kemudian tekan
+            butang <span className="font-semibold">Kemaskini maklum balas</span> di bahagian bawah.
+          </p>
+        </div>
+      ) : terbuka ? (
+        <div className="card mt-6 flex flex-col gap-4 border-2 border-steel/70 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+          <div className="min-w-0">
+            <p className="text-lg font-semibold text-ink">Sudah menghantar maklum balas?</p>
+            <p className="mt-1 text-[15px] text-charcoal">
+              Tidak perlu isi semula. Semak status atau kemaskini jawapan dengan kod sekolah dan
+              nombor tiket.
+            </p>
+          </div>
+          <Link
+            href="/laporan-mjkd/semak"
+            className="btn-outline h-14 w-full shrink-0 text-base sm:w-auto sm:px-8"
+          >
+            Semak / Kemaskini
+          </Link>
+        </div>
+      ) : (
+        <div className="mt-4 text-sm">
+          <Link href="/laporan-mjkd/semak" className="link-blue">
+            Semak status maklum balas
+          </Link>
+        </div>
+      )}
 
       {terbuka && tutup ? <BakiHari tutup={tutup} /> : null}
 

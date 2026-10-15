@@ -161,7 +161,7 @@ export default async function SemakMaklumBalasMjkdPage({ searchParams }: Props) 
           {boleh ? (
             <Link
               href={`/laporan-mjkd?kod=${encodeURIComponent(kod)}&resit=${encodeURIComponent(resit)}&kemaskini=1`}
-              className="btn-primary inline-flex"
+              className="btn-primary h-14 w-full text-base sm:w-auto sm:px-10"
             >
               Kemaskini maklum balas
             </Link>
