@@ -21,6 +21,7 @@ import Krom from "./Krom";
 import { KonteksLapisan } from "./LapisanPenuh";
 import Navigator from "./Navigator";
 import Spotlight from "./Spotlight";
+import SpotlightSekolah, { type KawalanSpotSekolah } from "./SpotlightSekolah";
 import { KonteksPentas, type KonteksSlaid } from "./konteks";
 import { TEMPOH_BARU_MS, useDataLangsung, type SumberData } from "./useDataLangsung";
 import SlaidAturCara from "./slaid/SlaidAturCara";
@@ -31,6 +32,7 @@ import SlaidPapanPemuka from "./slaid/SlaidPapanPemuka";
 import SlaidPembukaan from "./slaid/SlaidPembukaan";
 import SlaidPenutup from "./slaid/SlaidPenutup";
 import SlaidPerkara from "./slaid/SlaidPerkara";
+import SlaidSemuaSoalan from "./slaid/SlaidSemuaSoalan";
 
 /** Sumber lalai + togol Sorotan (server action). */
 export type SumberPentas = SumberData & {
@@ -56,6 +58,8 @@ function Isi({ slaid }: { slaid: Slaid }) {
       return <SlaidPapanPemuka slaid={slaid} />;
     case "perkara":
       return <SlaidPerkara slaid={slaid} />;
+    case "semua-soalan":
+      return <SlaidSemuaSoalan slaid={slaid} />;
     case "atur-cara":
       return <SlaidAturCara slaid={slaid} />;
     case "bahan":
@@ -112,6 +116,8 @@ export default function Pentas({
   const [skrinPenuh, setSkrinPenuh] = useState(false);
   const [sedangKeluar, setSedangKeluar] = useState(false);
   const [spot, setSpot] = useState<{ perkaraId: string; kod: string } | null>(null);
+  /** Kod sekolah — lapisan "semua jawapan satu sekolah" (Spotlight perkara boleh dibuka di atasnya). */
+  const [spotSekolah, setSpotSekolah] = useState<string | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [baru, setBaru] = useState<Map<string, number>>(new Map());
   const escRef = useRef(0);
@@ -214,6 +220,7 @@ export default function Pentas({
       const s = dek[Math.max(0, Math.min(dek.length - 1, i))];
       if (!s) return;
       setSpot(null);
+      setSpotSekolah(null);
       setNav(false);
       setKedudukan({ kunci: s.kunci, bab: s.bab });
     },
@@ -273,6 +280,9 @@ export default function Pentas({
   const jubinSpot = slaidSpot?.jenis === "perkara" ? slaidSpot.jubin : [];
 
   const bukaSpot = useCallback((perkaraId: string, kod: string) => setSpot({ perkaraId, kod }), []);
+  const bukaSekolah = useCallback((kod: string) => setSpotSekolah(kod), []);
+  const slaidSemua = spotSekolah ? dek.find((s) => s.jenis === "semua-soalan") : undefined;
+  const jubinSekolah = slaidSemua?.jenis === "semua-soalan" ? slaidSemua.jubin : [];
 
   const togolSorotan = useCallback(
     async (itemId: string, dipilih: boolean) => {
@@ -308,6 +318,7 @@ export default function Pentas({
   /* ------------------------------ papan kekunci ------------------------------ */
 
   const spotRef = useRef<{ langkah: (d: number) => boolean; esc: () => boolean } | null>(null);
+  const spotSekolahRef = useRef<KawalanSpotSekolah | null>(null);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -321,18 +332,21 @@ export default function Pentas({
           e.preventDefault();
           if (k === " " && document.activeElement instanceof HTMLElement) document.activeElement.blur();
           if (spot) spotRef.current?.langkah(1);
+          else if (spotSekolah) spotSekolahRef.current?.langkah(1);
           else if (!nav) gerak(1);
           break;
         case "ArrowLeft":
         case "PageUp":
           e.preventDefault();
           if (spot) spotRef.current?.langkah(-1);
+          else if (spotSekolah) spotSekolahRef.current?.langkah(-1);
           else if (!nav) gerak(-1);
           break;
         case "Escape":
           if (spot) {
             if (!spotRef.current?.esc()) setSpot(null);
-          } else if (nav) setNav(false);
+          } else if (spotSekolah) setSpotSekolah(null);
+          else if (nav) setNav(false);
           else if (Date.now() - escRef.current < 3000) keluar();
           else {
             escRef.current = Date.now();
@@ -342,6 +356,7 @@ export default function Pentas({
         case "g":
         case "G":
           setSpot(null);
+          setSpotSekolah(null);
           setNav((v) => !v);
           break;
         case "t":
@@ -369,7 +384,7 @@ export default function Pentas({
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [gerak, hitam, keluar, nav, segar, sorotanSeterusnya, spot, toast, togolPenuh, togolTema]);
+  }, [gerak, hitam, keluar, nav, segar, sorotanSeterusnya, spot, spotSekolah, toast, togolPenuh, togolTema]);
 
   // Krom pudar selepas 3 s tanpa gerakan tetikus / kekunci.
   useEffect(() => {
@@ -392,8 +407,8 @@ export default function Pentas({
   /* --------------------------------- paparan --------------------------------- */
 
   const konteks = useMemo<KonteksSlaid>(
-    () => ({ acara, kehadiran, keKunci, gerak, bukaSpot, urlFoto }),
-    [acara, kehadiran, keKunci, gerak, bukaSpot, urlFoto],
+    () => ({ acara, kehadiran, keKunci, gerak, bukaSpot, bukaSekolah, urlFoto }),
+    [acara, kehadiran, keKunci, gerak, bukaSpot, bukaSekolah, urlFoto],
   );
 
   // Masuk animasi hanya bila slaid bertukar (bukan bila data disegarkan).
@@ -401,7 +416,7 @@ export default function Pentas({
 
   return (
     <div ref={akarRef} className={`pentas${tema === "terang" ? " terang" : ""}${sorok && !nav ? " sorok" : ""}`}>
-      <KonteksLapisan.Provider value={{ akar, sorokSemua: nav || hitam, sorokSlaid: spot !== null }}>
+      <KonteksLapisan.Provider value={{ akar, sorokSemua: nav || hitam, sorokSlaid: spot !== null || spotSekolah !== null }}>
         <KonteksPentas.Provider value={konteks}>
           <Kanvas>
             <Krom
@@ -438,6 +453,19 @@ export default function Pentas({
               </main>
             )}
 
+            {spotSekolah && data ? (
+              <SpotlightSekolah
+                data={data}
+                kod={spotSekolah}
+                jubin={jubinSekolah}
+                ditindih={spot !== null}
+                kawalan={spotSekolahRef}
+                onPilih={setSpotSekolah}
+                onPerkara={(perkaraId) => setSpot({ perkaraId, kod: spotSekolah })}
+                onTutup={() => setSpotSekolah(null)}
+              />
+            ) : null}
+
             {spot && data ? (
               <Spotlight
                 data={data}
@@ -445,7 +473,11 @@ export default function Pentas({
                 kod={spot.kod}
                 jubin={jubinSpot}
                 kawalan={spotRef}
-                onPilih={(kod) => setSpot({ perkaraId: spot.perkaraId, kod })}
+                onPilih={(kod) => {
+                  setSpot({ perkaraId: spot.perkaraId, kod });
+                  // Dibuka dari "semua jawapan sekolah": lapisan di bawah mengikut sekolah yang sama.
+                  if (spotSekolah) setSpotSekolah(kod);
+                }}
                 onTutup={() => setSpot(null)}
                 onSorotan={togolSorotan}
               />

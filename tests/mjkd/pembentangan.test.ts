@@ -4,9 +4,12 @@ import {
   binaAnalisis,
   binaDek,
   binaMozek,
+  binaMozekSekolah,
   bezaData,
   cariIndeks,
   jawapanSekolah,
+  jawapanSemuaPerkara,
+  STATUS_HANTAR,
   kiraPapanPemuka,
   labelJenisBahan,
   namaPendek,
@@ -200,6 +203,45 @@ test("binaMozek: perkara SM hanya sekolah menengah; sekolah khusus mengatasi sas
   assert.equal(binaMozek(khusus, sekolah, maklumBalas, []).length, 2);
 });
 
+test("binaMozekSekolah: semua sekolah dijangka; HANTAR / null; susunan SR -> SM", () => {
+  const j = binaMozekSekolah(semuaPerkara, sekolah, maklumBalas.slice(1, 3), { baru: new Set(["ABA1002", "AEA1110"]) });
+  assert.deepEqual(
+    j.map((x) => [x.kod, x.status, x.baru]),
+    [
+      ["ABA1001", null, false],
+      ["ABA1002", STATUS_HANTAR, true],
+      ["ABC1046", STATUS_HANTAR, false],
+      ["AEA1110", null, false], // BARU hanya jika telah menghantar
+    ],
+  );
+  assert.deepEqual(urutanSpotlight(j), ["ABA1002", "ABC1046"]);
+  // Tiada perkara aktif terpakai -> sekolah tidak dijangka.
+  assert.equal(binaMozekSekolah([semuaPerkara[2]!], sekolah, maklumBalas).length, 1);
+});
+
+test("jawapanSemuaPerkara: perkara terpakai sahaja ikut susunan; tiada jawapan = null", () => {
+  const items = [item("m4", "p3", "SELESAI"), item("m4", "p1", "BELUM"), item("m1", "p1", "SELESAI")];
+  const sm = jawapanSemuaPerkara(data({ items }), "AEA1110");
+  assert.equal(sm.mb?.id, "m4");
+  assert.deepEqual(
+    sm.baris.map((b) => [b.perkara.para, b.item?.status ?? null]),
+    [
+      ["1.3", "BELUM"],
+      ["1.4", null],
+      ["3.3", "SELESAI"],
+    ],
+  );
+  // SR: perkara SM (3.3) dan perkara tidak aktif tidak disenaraikan.
+  assert.deepEqual(
+    jawapanSemuaPerkara(data({ items }), "ABA1001").baris.map((b) => b.perkara.para),
+    ["1.3", "1.4"],
+  );
+  const belum = jawapanSemuaPerkara(data({ maklumBalas: [] }), "ABA1001");
+  assert.equal(belum.mb, null);
+  assert.ok(belum.baris.every((b) => b.item === null));
+  assert.deepEqual(jawapanSemuaPerkara(data(), "TIADA").baris, []);
+});
+
 test("ukuranMozek: ~100 sekolah muat 1028×820 tanpa tatal (7 lajur, fon ≈ 15px)", () => {
   for (const n of [96, 100, 102, 110]) {
     const u = ukuranMozek(n, 1028, 820);
@@ -252,6 +294,7 @@ test("binaDek: susunan bab berterusan; satu slaid setiap perkara aktif; tiada sl
       "perkara",
       "perkara",
       "perkara",
+      "semua-soalan",
       "atur-cara",
       "bahan",
       "bahan",

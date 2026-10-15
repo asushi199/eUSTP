@@ -203,6 +203,18 @@ export type SlaidPerkara = Asas & {
   jubin: TileSekolah[];
 };
 
+/** Status jubin mozek "Semua soalan" bagi sekolah yang telah menghantar. */
+export const STATUS_HANTAR = "HANTAR";
+
+/** Semua soalan: mozek sekolah (klik = semua jawapan satu sekolah). */
+export type SlaidSemuaSoalan = Asas & {
+  jenis: "semua-soalan";
+  bilangan: BilanganStatus;
+  sekolahDihantar: number;
+  sekolahJumlah: number;
+  jubin: TileSekolah[];
+};
+
 export type SesiAturCara = {
   /** Kunci slaid bahan. */
   kunci: string;
@@ -247,6 +259,7 @@ export type Slaid =
   | SlaidMinit
   | SlaidPapanPemuka
   | SlaidPerkara
+  | SlaidSemuaSoalan
   | SlaidAturCara
   | SlaidBahan
   | SlaidPenutup;
@@ -446,6 +459,55 @@ function kedudukanPeringkat(j: { kod: string; nama: string }): number {
   return peringkat(jenis) === "SR" ? 0 : 1;
 }
 
+/**
+ * Jubin mozek "Semua soalan": SEMUA sekolah yang sekurang-kurangnya satu perkara aktif terpakai
+ * (sama seperti penyebut KPI "telah menghantar"); status = HANTAR / null. Susunan seperti mozek perkara.
+ */
+export function binaMozekSekolah(
+  perkara: readonly PerkaraPembentangan[],
+  sekolah: readonly SekolahPembentangan[],
+  maklumBalas: readonly MaklumBalasPembentangan[],
+  opts: { baru?: ReadonlySet<string> } = {},
+): TileSekolah[] {
+  const aktif = perkara.filter((p) => p.aktif);
+  const kodHantar = new Set(maklumBalas.map((m) => m.schoolCode));
+  return sekolah
+    .filter((s) => perkaraUntukSekolah(aktif, s).length > 0)
+    .map((s) => {
+      const hantar = kodHantar.has(s.code);
+      return {
+        kod: s.code,
+        nama: s.name,
+        namaPendek: namaPendek(s.name),
+        status: hantar ? STATUS_HANTAR : null,
+        itemId: null,
+        sorotan: false,
+        baru: Boolean(hantar && opts.baru?.has(s.code)),
+      };
+    })
+    .sort((a, b) => kedudukanPeringkat(a) - kedudukanPeringkat(b) || a.kod.localeCompare(b.kod));
+}
+
+export type JawapanPerkara = { perkara: PerkaraPembentangan; item: ItemPembentangan | null };
+
+/** Semua jawapan satu sekolah: setiap perkara aktif yang terpakai (ikut susunan minit). */
+export function jawapanSemuaPerkara(
+  data: Pick<DataPentas, "perkara" | "sekolah" | "maklumBalas" | "items">,
+  kod: string,
+): { sekolah: SekolahPembentangan | null; mb: MaklumBalasPembentangan | null; baris: JawapanPerkara[] } {
+  const sekolah = data.sekolah.find((s) => s.code === kod) ?? null;
+  const mb = data.maklumBalas.find((m) => m.schoolCode === kod) ?? null;
+  if (!sekolah) return { sekolah, mb, baris: [] };
+  const itemIkutPerkara = new Map(
+    mb ? data.items.filter((it) => it.maklumBalasId === mb.id).map((it) => [it.perkaraId, it]) : [],
+  );
+  const baris = isihPerkara(perkaraUntukSekolah(data.perkara.filter((p) => p.aktif), sekolah)).map((p) => ({
+    perkara: p,
+    item: itemIkutPerkara.get(p.id) ?? null,
+  }));
+  return { sekolah, mb, baris };
+}
+
 /** Urutan Spotlight (←/→): sekolah yang telah menghantar sahaja, ikut susunan mozek. */
 export function urutanSpotlight(jubin: readonly TileSekolah[]): string[] {
   return jubin.filter((j) => j.status !== null).map((j) => j.kod);
@@ -549,6 +611,7 @@ export type InputDek = {
 
 /** Kunci slaid perkara (stabil merentas penyegaran data). */
 export const kunciPerkara = (perkaraId: string) => `perkara-${perkaraId}`;
+export const KUNCI_SEMUA_SOALAN = "semua-soalan";
 
 /**
  * Dek penuh mengikut bab. `kunci` stabil supaya kedudukan semasa dikekalkan selepas data
@@ -623,6 +686,17 @@ export function binaDek({ data, baru }: InputDek): Slaid[] {
       jubin: binaMozek(p, data.sekolah, data.maklumBalas, data.items, { baru }),
     });
   }
+  // Semua soalan: di hujung bab Maklum Balas (dibuka dari Papan Pemuka) — aliran ← → perkara kekal.
+  dek.push({
+    jenis: "semua-soalan",
+    kunci: KUNCI_SEMUA_SOALAN,
+    bab: "maklum-balas",
+    tajuk: "Semua Soalan",
+    bilangan: papan.kpi.bilangan,
+    sekolahDihantar: papan.kpi.sekolahDihantar,
+    sekolahJumlah: papan.kpi.sekolahJumlah,
+    jubin: binaMozekSekolah(data.perkara, data.sekolah, data.maklumBalas, { baru }),
+  });
 
   // Bahan: atur cara (ikut hari; bahan dua hari muncul di kedua-duanya) + satu slaid setiap bahan unik.
   const kumpulan = kumpulBahan(data.bahan);

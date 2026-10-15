@@ -1,12 +1,15 @@
 "use client";
 
 import { STATUS_MJKD, STATUS_MJKD_LABEL } from "@/lib/mjkd/enums";
-import { kunciPerkara, type BarisAnalisis, type SlaidPapanPemuka as T } from "@/lib/mjkd/pembentangan";
+import { KUNCI_SEMUA_SOALAN, kunciPerkara, type BarisAnalisis, type SlaidPapanPemuka as T } from "@/lib/mjkd/pembentangan";
 import { BarStatus, CincinKemajuan, WARNA_STATUS_VAR } from "../Donut";
 import KiraNaik from "../KiraNaik";
 import { usePentas } from "../konteks";
 
-/** Papan Pemuka Daerah: KPI penghantaran + peratus status + 2 lajur baris perkara (klik = lompat). */
+/**
+ * Papan Pemuka Daerah: KPI penghantaran + peratus status + 2 lajur baris perkara (klik = lompat);
+ * baris akhir "Semua soalan" = slaid mozek sekolah (semua maklum balas satu sekolah).
+ */
 export default function SlaidPapanPemuka({ slaid }: { slaid: T }) {
   const { keKunci } = usePentas();
   const { kpi } = slaid;
@@ -84,7 +87,22 @@ export default function SlaidPapanPemuka({ slaid }: { slaid: T }) {
         style={{ marginTop: 24, padding: 10, display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", columnGap: 20, animationDelay: ".14s" }}
       >
         <div>{slaid.perkara.slice(0, separuh).map(baris)}</div>
-        <div>{slaid.perkara.slice(separuh).map(baris)}</div>
+        <div>
+          {slaid.perkara.slice(separuh).map(baris)}
+          <button
+            type="button"
+            className="pt-baris-perkara pt-baris-semua"
+            onClick={() => keKunci(KUNCI_SEMUA_SOALAN)}
+            title="Semua maklum balas satu sekolah"
+          >
+            <span className="pt-para-kecil pt-potong">Semua soalan</span>
+            <span className="pt-potong">Lihat semua maklum balas mengikut sekolah →</span>
+            <BarStatus bilangan={kpi.bilangan} jumlah={n} tinggi={18} />
+            <span className="pt-nombor pt-redup" style={{ textAlign: "right" }}>
+              {kpi.sekolahDihantar}/{kpi.sekolahJumlah}
+            </span>
+          </button>
+        </div>
       </div>
     </>
   );

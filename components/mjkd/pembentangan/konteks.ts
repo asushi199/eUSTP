@@ -10,6 +10,8 @@ export type KonteksSlaid = {
   /** Slaid sebelum / seterusnya (zon navigasi di atas iframe). */
   gerak: (d: number) => void;
   bukaSpot: (perkaraId: string, kod: string) => void;
+  /** Semua jawapan satu sekolah (slaid Semua soalan). */
+  bukaSekolah: (kod: string) => void;
   /** URL gambar bukti (lalai: thumbnail Drive). */
   urlFoto: (path: string, sz: number) => string;
 };

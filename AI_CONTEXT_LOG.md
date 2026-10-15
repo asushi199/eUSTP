@@ -1,5 +1,11 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-10-15 — MJKD pembentangan: "Semua soalan" (semua maklum balas satu sekolah)
+
+- Permintaan pengurusan: dari Papan Pemuka, Tuan PPD boleh terus melihat SEMUA jawapan satu sekolah. Baris akhir lajur kanan Papan Pemuka **"Semua soalan"** (garis putus-putus emas; bar status keseluruhan + x/y sekolah) → slaid baharu `semua-soalan` (hujung bab Maklum Balas, selepas perkara terakhir — aliran ← → perkara tidak berubah).
+- Slaid: kiri donut semua jawapan + kiraan menghantar; kanan mozek SEMUA sekolah dijangka (`binaMozekSekolah`, teal `s-HANTAR` = telah menghantar, putus-putus = belum). Klik sekolah → lapisan `SpotlightSekolah`: senarai semua perkara terpakai (`jawapanSemuaPerkara`) — status, catatan 2 baris, bukti; klik baris = Spotlight perkara sedia ada di atasnya (Esc kembali ke senarai sekolah; ← → dalam Spotlight perkara turut menukar sekolah lapisan bawah). ← → dalam lapisan sekolah = sekolah menghantar seterusnya.
+- Disahkan: typecheck, `tests/mjkd/pembentangan.test.ts` (19 lulus, 2 ujian baharu), `/dev/pentas` 1920×1080: baris di Papan Pemuka, slaid, lapisan sekolah, klik baris → Spotlight, Esc, →; tiada ralat konsol.
+
 ## 2026-10-15 — MJKD admin: "Mengikut perkara" bertukar tanpa muat semula
 
 - Aduan pengguna: klik nombor para (atau tapisan Status / Jenis) melompat ke atas halaman — setiap klik ialah navigasi pelayan, `loading.tsx` menggantikan halaman dengan rangka. Paparan dipindah ke komponen klien `components/mjkd/AdminPaparanPerkara.tsx`: perkara/status/jenis dalam state (data semua perkara sudah dimuat), URL dikemas kini dengan `history.replaceState` (muat semula + `router.refresh()` ★ Sorotan kekal pada perkara sama). Hanya `perkara/sekolah/maklumBalas/items` dihantar ke klien (bukan Map `itemMengikutKunci`). Panel: `PaparanPerkara` + `StatusBadge` dibuang; `key` = nilai URL pelayan.

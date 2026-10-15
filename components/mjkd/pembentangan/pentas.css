@@ -412,6 +412,11 @@
   background: var(--tb);
   color: #fff;
 }
+/* "Semua soalan": sekolah telah menghantar (bukan status jawapan) */
+.pentas .s-HANTAR {
+  background: var(--teal);
+  color: #fff;
+}
 .pentas .s-KOSONG {
   background: transparent;
   border: 2px dashed color-mix(in srgb, var(--teks) 28%, transparent);
@@ -500,6 +505,11 @@
 }
 .pentas .pt-baris-perkara:hover {
   background: var(--panel2);
+}
+.pentas .pt-baris-semua {
+  margin-top: 4px;
+  outline: 1.5px dashed color-mix(in srgb, var(--emas) 55%, transparent);
+  outline-offset: -2px;
 }
 .pentas .pt-para-kecil {
   font-weight: 800;
@@ -631,6 +641,58 @@
   min-height: 0;
   flex: 1;
   margin: 0;
+}
+/* semua jawapan satu sekolah */
+.pentas .pt-senarai-jawapan {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-right: 6px;
+}
+.pentas .pt-baris-jawapan {
+  display: grid;
+  grid-template-columns: 130px minmax(0, 1fr) 210px;
+  gap: 18px;
+  align-items: start;
+  width: 100%;
+  border: 1px solid var(--garis);
+  background: var(--panel);
+  border-radius: 14px;
+  padding: 14px 18px;
+  text-align: left;
+  flex: none;
+}
+.pentas .pt-baris-jawapan:hover:not(:disabled) {
+  background: var(--panel2);
+}
+.pentas .pt-baris-jawapan:disabled {
+  cursor: default;
+  opacity: 0.75;
+}
+.pentas .pt-baris-jawapan .pt-para-kecil {
+  font-size: 22px;
+  overflow-wrap: anywhere;
+}
+.pentas .pt-catatan-ringkas {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  font-size: 21px;
+  line-height: 1.3;
+  margin-top: 4px;
+}
+.pentas .pt-status-kecil {
+  justify-self: end;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 16px;
+  font-weight: 800;
+  white-space: nowrap;
 }
 .pentas .pt-bukti {
   display: flex;

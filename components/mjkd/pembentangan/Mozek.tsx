@@ -1,10 +1,16 @@
 "use client";
 
 import { STATUS_MJKD_LABEL, isStatusMjkd } from "@/lib/mjkd/enums";
-import { ukuranMozek, type TileSekolah } from "@/lib/mjkd/pembentangan";
+import { STATUS_HANTAR, ukuranMozek, type TileSekolah } from "@/lib/mjkd/pembentangan";
 
 export const labelStatusJubin = (s: string | null) =>
-  s === null ? "Belum menghantar" : isStatusMjkd(s) ? STATUS_MJKD_LABEL[s] : s;
+  s === null
+    ? "Belum menghantar"
+    : s === STATUS_HANTAR
+      ? "Telah menghantar"
+      : isStatusMjkd(s)
+        ? STATUS_MJKD_LABEL[s]
+        : s;
 
 /**
  * Mozek sekolah: SEMUA sekolah yang perkara itu terpakai, satu grid tanpa zon, diisih SR → SM kemudian kod sekolah;
