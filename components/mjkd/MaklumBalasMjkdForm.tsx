@@ -450,16 +450,11 @@ export default function MaklumBalasMjkdForm({
   );
   const bilLengkap = terpakai.filter((p) => perkaraLengkap(jawapan[p.id])).length;
 
-  // Borang baharu sahaja: sekolah yang sudah menghantar / tiada perkara terpakai tidak perlu mengisi.
+  // Borang baharu sahaja: sekolah yang sudah menghantar tidak perlu mengisi semula.
   const sudahSet = useMemo(() => new Set(sudahHantar ?? []), [sudahHantar]);
   const borangBaharu = !adminMode && !existing;
-  function statusSekolah(s: SchoolOption): "dihantar" | "tiada" | null {
-    if (!borangBaharu) return null;
-    if (sudahSet.has(s.code)) return "dihantar";
-    if (perkaraUntukSekolah(perkara, s).length === 0) return "tiada";
-    return null;
-  }
-  const statusDipilih = selected ? statusSekolah(selected) : null;
+  const sudahDihantar = (s: SchoolOption) => borangBaharu && sudahSet.has(s.code);
+  const statusDipilih = Boolean(selected && sudahDihantar(selected));
 
   // Isi awal nama PGB (nama sahaja) + jawatan daripada direktori apabila sekolah dipilih.
   useEffect(() => {
@@ -627,15 +622,12 @@ export default function MaklumBalasMjkdForm({
               <option value="" disabled>
                 Pilih sekolah…
               </option>
-              {filteredSchools.map((s) => {
-                const st = statusSekolah(s);
-                return (
-                  <option key={s.code} value={s.code}>
-                    {s.code} — {s.name}
-                    {st === "dihantar" ? " (✓ sudah dihantar)" : st === "tiada" ? " (tiada perkara)" : ""}
-                  </option>
-                );
-              })}
+              {filteredSchools.map((s) => (
+                <option key={s.code} value={s.code}>
+                  {s.code} — {s.name}
+                  {sudahDihantar(s) ? " (✓ sudah dihantar)" : ""}
+                </option>
+              ))}
             </select>
             {selected && (
               <p className="mt-1 text-xs text-graphite">
@@ -653,7 +645,6 @@ export default function MaklumBalasMjkdForm({
                 <ul className="max-h-56 overflow-auto rounded-lg border hairline">
                   {filteredSchools.map((s) => {
                     const active = s.code === schoolCode;
-                    const st = statusSekolah(s);
                     return (
                       <li key={s.code} className="border-b hairline last:border-0">
                         <button
@@ -669,9 +660,9 @@ export default function MaklumBalasMjkdForm({
                             {s.code}
                           </span>
                           <span className="min-w-0 flex-1">{s.name}</span>
-                          {st ? (
+                          {sudahDihantar(s) ? (
                             <span className="shrink-0 text-xs font-semibold text-graphite">
-                              {st === "dihantar" ? "✓ Sudah dihantar" : "Tiada perkara"}
+                              ✓ Sudah dihantar
                             </span>
                           ) : null}
                         </button>
@@ -704,33 +695,19 @@ export default function MaklumBalasMjkdForm({
 
       {statusDipilih ? (
         <section className="card border-2 border-ink p-6" role="status">
-          {statusDipilih === "dihantar" ? (
-            <>
-              <p className="text-lg font-semibold text-ink">
-                ✓ Sekolah ini sudah menghantar maklum balas
-              </p>
-              <p className="mt-1 text-[15px] text-charcoal">
-                Tidak perlu mengisi semula. Untuk menyemak atau mengemaskini jawapan, gunakan
-                nombor tiket yang diterima semasa menghantar.
-              </p>
-              <Link
-                href={`/laporan-mjkd/semak?kod=${encodeURIComponent(schoolCode)}`}
-                className="btn-outline-ink mt-4 w-full sm:w-auto"
-              >
-                Semak / kemaskini maklum balas sekolah ini
-              </Link>
-            </>
-          ) : (
-            <>
-              <p className="text-lg font-semibold text-ink">
-                Tiada perkara tindakan untuk sekolah ini
-              </p>
-              <p className="mt-1 text-[15px] text-charcoal">
-                Tiada perkara dalam minit yang terpakai kepada sekolah ini — tidak perlu mengisi
-                maklum balas.
-              </p>
-            </>
-          )}
+          <p className="text-lg font-semibold text-ink">
+            ✓ Sekolah ini sudah menghantar maklum balas
+          </p>
+          <p className="mt-1 text-[15px] text-charcoal">
+            Tidak perlu mengisi semula. Untuk menyemak atau mengemaskini jawapan, gunakan nombor
+            tiket yang diterima semasa menghantar.
+          </p>
+          <Link
+            href={`/laporan-mjkd/semak?kod=${encodeURIComponent(schoolCode)}`}
+            className="btn-outline-ink mt-4 w-full sm:w-auto"
+          >
+            Semak / kemaskini maklum balas sekolah ini
+          </Link>
         </section>
       ) : (
       <>

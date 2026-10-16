@@ -1,10 +1,11 @@
 # AI Context Log — NEXa Manjung
 
-## 2026-10-16 — MJKD borang awam: tanda sekolah "Sudah dihantar" / "Tiada perkara"
+## 2026-10-16 — MJKD borang awam: tanda sekolah "Sudah dihantar"
 
-- `/laporan-mjkd` memuat `listKodSekolahSudahHantar` (queries.ts) dan menghantar `sudahHantar` ke `MaklumBalasMjkdForm`. Borang baharu sahaja (bukan kemaskini/admin): senarai carian + `<select>` tanda "✓ Sudah dihantar" atau "Tiada perkara" (tiada perkara aktif terpakai ikut `perkaraUntukSekolah`).
-- Bila sekolah sedemikian dipilih, bahagian B/C + butang hantar digantikan kad status; sekolah sudah hantar → pautan "Semak / kemaskini" (`/laporan-mjkd/semak?kod=`). Banner draf dan prefill PGB tidak dijalankan untuk sekolah tersebut.
-- Disahkan: typecheck, `npm run build`, pelayar dev: 25/103 sekolah bertanda sudah dihantar, ABA1001 papar kad status.
+- `/laporan-mjkd` memuat `listKodSekolahSudahHantar` (queries.ts) dan menghantar `sudahHantar` ke `MaklumBalasMjkdForm`. Borang baharu sahaja (bukan kemaskini/admin): senarai carian + `<select>` tanda "✓ Sudah dihantar".
+- Bila sekolah sedemikian dipilih, bahagian B/C + butang hantar digantikan kad status dengan pautan "Semak / kemaskini" (`/laporan-mjkd/semak?kod=`, perlu nombor tiket). Banner draf dan prefill PGB tidak dijalankan untuk sekolah tersebut.
+- Tanda "Tiada perkara" (sekolah tanpa perkara terpakai) dicuba kemudian dibuang atas arahan pengguna — kes itu tidak wujud.
+- Disahkan: typecheck, `npm run build`, pelayar dev: 102 sekolah (kod unik; 103 `<option>` termasuk "Pilih sekolah…"), 25 bertanda sudah dihantar, ABA1001 papar kad status.
 
 ## 2026-10-16 — DELIMa: keputusan — bilangan sahaja, tiada senarai nama buat masa ini
 
