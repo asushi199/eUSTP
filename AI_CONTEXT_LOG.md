@@ -1,5 +1,12 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-10-16 — DELIMa: sumber Perak + cron dibuang; d3 sumber tunggal
+
+- Atas arahan pengguna: papan pemuka DELIMa Perak (`delimaperak.vercel.app`) dan CSV Google Sheet "Portal Statistik DELIMa Negeri Perak" tidak lagi dibaca. Dibuang: `app/api/cron/delima-snapshot` + entri `vercel.json` (cron backup kekal; `CRON_SECRET` masih diperlukan), `lib/analisis/delima-csv.ts`, semua fungsi `fetchDelima*`, `saveDelimaSnapshot`/`captureDelimaSnapshot`/`ensureDelimaSnapshot`, butang admin "Simpan snapshot sekarang", tetapan admin pautan/slug daerah, kad "2.0 + 3.0" (guruGabung/kadMurid), `ringkasCsvPpd`.
+- `getDelimaTerkini()` (delima-snapshot.ts) = snapshot `sumber_url = https://d3.delima.edu.my` terbaharu → `getAnalisisData`, `loadDelimaSchools`, `loadDelimaSchoolDetail`, admin "Sumber Data". Snapshot Perak Jan–Sep 2026 kekal dalam DB untuk carta trend. Metrik DB lama `delima_live_url`/`delima_daerah` tidak lagi dibaca (tidak dipadam).
+- d3 SPP (Sistem Pengurusan Pengguna → Guru, pilih PPD + sekolah → Export CSV) diuji untuk satu sekolah: lajur `ID DELIMa, NAMA, NO PENGENALAN, OU, KOD ORGANISASI, NAMA ORGANISASI, NEGERI, DAERAH, LOG TERAKHIR` (kosong = belum pernah log masuk; akaun sementara `g-sk…tmp` juga kosong). Belum disambung ke "Guru Belum Log Masuk" — fail mengandungi No. KP, jangan komit.
+- Disahkan: typecheck, `npm run build`, `tests/analisis/*` (32 lulus), pelayar: modal DELIMa laman utama, `/analisis/delima` senarai + butiran sekolah (tempoh 1 Jan – 16 Okt 2026).
+
 ## 2026-10-16 — DELIMa: snapshot d3.delima.edu.my (rasmi KPM) diimport manual setiap bulan
 
 - Sumber baharu: papan pemuka DELIMa 3.0 KPM (`d3.delima.edu.my` → Utama, PPD MANJUNG, tempoh 1 Jan → tarikh ambil). API sumber (`d3-api.delima.edu.my/analytics/active-teacher-student?orgUnitId&startDate&endDate`) perlukan sesi log masuk pengguna, jadi pelayan TIDAK menarik sendiri: pegawai log masuk dalam pelayar, Claude baca 102 sekolah melalui UI (pilih sekolah → Hantar), simpan `scripts/data/delima-d3-YYYY-MM-DD.csv` (ringkasan sekolah sahaja), lalu `npm run db:import-delima-d3 -- <fail> [--dry-run]`.

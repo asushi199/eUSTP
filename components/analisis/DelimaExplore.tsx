@@ -263,22 +263,11 @@ function aktifGroup(title: string, p: DelimaSchoolPop | null) {
 }
 
 function SchoolDetail({ detail }: { detail: DelimaSchoolDetail }) {
-  const { kadMurid, belumLogin } = detail;
+  const { belumLogin } = detail;
   const school = useMemo(() => gabungSekolah(detail.school), [detail.school]);
   const groups = [
     aktifGroup("Guru", school.guru),
     aktifGroup("Murid", school.murid),
-    kadMurid
-      ? {
-          title: `Jumlah Aktif Murid · DELIMa 2.0 + 3.0 · Sasaran ${kadMurid.sasaran ?? "—"}%`,
-          wide: true,
-          stats: [
-            { label: kadMurid.capai ? "Capai" : "Belum capai", value: pct(kadMurid.peratus) },
-            { label: "Bil. aktif", value: `${num(kadMurid.aktif)} / ${num(kadMurid.jumlah)}` },
-            { label: "Kemas kini", value: kadMurid.kemasKini },
-          ],
-        }
-      : null,
   ].filter((g): g is NonNullable<typeof g> => g != null);
 
   return (
@@ -622,7 +611,6 @@ export default function DelimaExplore({
     setDetailFrom("snapshot");
     setDetail({
       school: row,
-      kadMurid: null,
       tempoh: `${snapshot?.label ?? ""} · ${snapshot?.tempoh ?? ""}`,
       sumberUrl: "",
     });

@@ -5,10 +5,9 @@ import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { analisisBreakdown, analisisMetrics, analisisModul } from "@/lib/schema";
-import { getDelimaConfig } from "@/lib/analisis/queries";
-import { captureDelimaSnapshot, deleteDelimaSnapshot } from "@/lib/analisis/delima-snapshot";
+import { deleteDelimaSnapshot } from "@/lib/analisis/delima-snapshot";
 import { requireKandunganAccess } from "@/lib/rbac";
-import { DELIMA_LIVE_DEFAULT_DAERAH } from "@/lib/analisis/delima-live";
+import { DELIMA_DAERAH } from "@/lib/analisis/delima-live";
 import { parseBelumLoginCsv } from "@/lib/analisis/delima-belum-parse";
 import { replaceDelimaBelumLogin } from "@/lib/analisis/delima-belum-store";
 
@@ -54,16 +53,6 @@ export async function deleteMetric(id: number): Promise<{ ok: boolean }> {
 
 /* ---------- Snapshot DELIMa ---------- */
 
-export async function simpanSnapshotDelima(): Promise<{ ok: boolean; error?: string }> {
-  await requireKandunganAccess();
-  const cfg = await getDelimaConfig();
-  const r = await captureDelimaSnapshot(cfg.url, cfg.daerah);
-  if (!r.ok) return { ok: false, error: r.error };
-  revalidatePath("/");
-  revalidateAnalisis();
-  return { ok: true };
-}
-
 /** Muat naik senarai guru belum log masuk DELIMa (CSV eksport DELIMa — hanya nama dipaparkan). */
 export async function muatNaikBelumLoginDelima(
   formData: FormData,
@@ -76,8 +65,7 @@ export async function muatNaikBelumLoginDelima(
   const tarikh = String(formData.get("tarikh") ?? "").trim();
   if (!/^\d{4}-\d{2}-\d{2}$/.test(tarikh)) return { ok: false, error: "Tarikh data tidak sah" };
   try {
-    const cfg = await getDelimaConfig();
-    const daerah = cfg.daerah ?? DELIMA_LIVE_DEFAULT_DAERAH;
+    const daerah = DELIMA_DAERAH;
     const rows = parseBelumLoginCsv(await file.text(), daerah);
     if (rows.length === 0) {
       return { ok: false, error: `Tiada guru PPD ${daerah} (belum log masuk) dalam fail ini` };

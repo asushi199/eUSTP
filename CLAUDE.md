@@ -90,6 +90,12 @@ GPICT/DELIMa/GPM, Tempahan PKG, Portal Sumber/Analisis/Maklumat Asas). Sumber as
   - Import bulanan: upsert murid guna `setWhere nama IS DISTINCT FROM` —
     jangan buang, UPDATE tanpa perubahan menjana tuple mati (bloat 6× pernah
     berlaku; dibaiki 2026-10-13).
+- **DELIMa — sumber tunggal d3.delima.edu.my (rasmi KPM).** Perlu log masuk pengguna, jadi
+  tiada cron: setiap bulan pegawai log masuk dalam pelayar, Claude baca Utama (PPD + setiap
+  sekolah, 1 Jan → hari ini), simpan `scripts/data/delima-d3-YYYY-MM-DD.csv`, lalu
+  `npm run db:import-delima-d3 -- <fail>` (semak jumlah + padan kod). Paparan = snapshot d3
+  terbaharu (`getDelimaTerkini`). DELIMa Perak tidak lagi dibaca. Eksport CSV pengguna d3 (SPP)
+  mengandungi No. KP — jangan komit / jangan papar.
 - Petak statistik DPD/PSS halaman utama disorok (`SHOW_LAPORAN_TILES=false`
   dalam `app/(public)/page.tsx`) — pelaporan 2026 masih guna Looker Studio.
 - **MJKD 2026 = satu acara, satu rekod `mjkd_mesyuarat`** (kehadiran, minit +

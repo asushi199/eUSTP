@@ -7,7 +7,6 @@ import {
   delimaTrendPoints,
 } from "./queries";
 import { delimaTaburan } from "./delima-live";
-import { DELIMA_D3_SUMBER } from "./delima-d3-parse";
 import { getAinsTahun, listAinsTahun } from "./ains-queries";
 import {
   AINS_BULAN,
@@ -180,40 +179,6 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
           { label: "Sasaran KPI", value: pct(metricNum(delima.metrics, "kpi_murid")) },
         ],
       },
-      ...(live?.guruGabung
-        ? [
-            {
-              title: `Jumlah Aktif Guru · DELIMa 2.0 + 3.0 · Sasaran ${live.guruGabung.sasaran ?? "—"}%`,
-              stats: [
-                {
-                  label: live.guruGabung.capai ? "Capai" : "Belum capai",
-                  value: pct(live.guruGabung.peratus),
-                },
-                {
-                  label: `aktif daripada ${bil(live.guruGabung.jumlah)}`,
-                  value: bil(live.guruGabung.aktif),
-                },
-              ],
-            },
-          ]
-        : []),
-      ...(live?.kadMurid
-        ? [
-            {
-              title: `Jumlah Aktif Murid · DELIMa 2.0 + 3.0 · Sasaran ${live.kadMurid.sasaran ?? "—"}%`,
-              stats: [
-                {
-                  label: live.kadMurid.capai ? "Capai" : "Belum capai",
-                  value: pct(live.kadMurid.peratus),
-                },
-                {
-                  label: `aktif daripada ${bil(live.kadMurid.jumlah)}`,
-                  value: bil(live.kadMurid.aktif),
-                },
-              ],
-            },
-          ]
-        : []),
     ],
     delimaTrend: {
       points: delimaTrendPoints(delima),
@@ -222,11 +187,7 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
     },
     delimaLive: live != null,
     bars: delimaTaburan(delima.liveSchools),
-    note: live
-      ? live.sumberUrl === DELIMA_D3_SUMBER
-        ? `Data DELIMa 3.0 KPM, d3.delima.edu.my (${live.tempoh}).`
-        : `Data langsung DELIMa Perak (${live.tempoh}).`
-      : undefined,
+    note: live ? `Data DELIMa 3.0 KPM, d3.delima.edu.my (${live.tempoh}).` : undefined,
   };
 
   /* ---------- DCS ---------- */

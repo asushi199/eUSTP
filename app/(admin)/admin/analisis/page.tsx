@@ -3,7 +3,7 @@ import { asc, eq } from "drizzle-orm";
 import { requireKandunganAccess } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { analisisBreakdown, analisisMetrics, analisisModul } from "@/lib/schema";
-import { listDelimaSnapshots, periodLabel } from "@/lib/analisis/delima-snapshot";
+import { getDelimaTerkini, listDelimaSnapshots, periodLabel } from "@/lib/analisis/delima-snapshot";
 import { DELIMA_D3_SUMBER } from "@/lib/analisis/delima-d3-parse";
 import {
   deleteBreakdown,
@@ -12,16 +12,11 @@ import {
   padamSnapshotDelima,
   saveBreakdown,
   saveMetric,
-  simpanSnapshotDelima,
 } from "@/lib/actions/analisis";
 import ActionForm from "@/components/admin/ActionForm";
 import DeleteButton from "@/components/admin/DeleteButton";
 import OptikAdminPanel from "@/components/admin/OptikAdminPanel";
-import {
-  DELIMA_LIVE_DEFAULT_DAERAH,
-  DELIMA_LIVE_DEFAULT_URL,
-  fetchDelimaLive,
-} from "@/lib/analisis/delima-live";
+import { DELIMA_DAERAH } from "@/lib/analisis/delima-live";
 import { formatInTimeZone } from "date-fns-tz";
 
 export const dynamic = "force-dynamic";
@@ -61,9 +56,7 @@ export default async function AdminAnalisisPage({
 
   const today = formatInTimeZone(new Date(), "Asia/Kuala_Lumpur", "yyyy-MM-dd");
   const optikMetrics = new Map(metrics.map((m) => [m.key.toLowerCase(), m.value]));
-  const liveUrl = optikMetrics.get("delima_live_url")?.trim() || DELIMA_LIVE_DEFAULT_URL;
-  const liveDaerah = optikMetrics.get("delima_daerah")?.trim() || DELIMA_LIVE_DEFAULT_DAERAH;
-  const live = modul === "delima" ? await fetchDelimaLive(liveUrl, liveDaerah) : null;
+  const live = modul === "delima" ? (await getDelimaTerkini())?.live ?? null : null;
   const hal = Math.max(1, Number.parseInt(sp.hal ?? "1", 10) || 1);
   const sejarah = modul === "delima" ? await listDelimaSnapshots(hal) : null;
 
@@ -100,42 +93,26 @@ export default async function AdminAnalisisPage({
         <>
       {modul === "delima" ? (
         <section className="mt-6">
-          <h2 className="text-lg font-semibold">Sumber Data Langsung</h2>
+          <h2 className="text-lg font-semibold">Sumber Data</h2>
           <p className="mt-1 text-sm text-graphite">
-            Peratus guru/murid aktif dan bilangan sekolah dibaca terus daripada papan pemuka DELIMa
-            Perak (dikemas kini automatik setiap jam). Tukar pautan atau daerah di bawah jika perlu.
+            Data rasmi KPM (d3.delima.edu.my → Utama, PPD Manjung, tempoh 1 Jan → tarikh ambil). Papan
+            pemuka itu memerlukan log masuk, jadi data diambil secara manual setiap bulan dan diimport:{" "}
+            <code>npm run db:import-delima-d3 -- scripts/data/delima-d3-YYYY-MM-DD.csv</code>. Paparan
+            awam memakai snapshot d3 terbaharu.
           </p>
-          <p className="mt-1 text-sm text-graphite">
-            Data rasmi KPM (d3.delima.edu.my → Utama) diimport secara manual setiap bulan kerana
-            memerlukan log masuk: <code>npm run db:import-delima-d3 -- scripts/data/delima-d3-YYYY-MM-DD.csv</code>.
-            Snapshot bertanda <span className="font-semibold">d3 KPM</span> diutamakan dalam paparan awam
-            selagi tempohnya tidak ketinggalan berbanding sumber Perak, dan tidak ditimpa cron harian.
-          </p>
-          <div className="card mt-3 space-y-3 px-4 py-3">
-            {(
-              [
-                ["delima_live_url", "Pautan papan pemuka", liveUrl],
-                ["delima_daerah", "Slug daerah (cth. manjung)", liveDaerah],
-              ] as const
-            ).map(([key, label, value]) => (
-              <ActionForm key={key} action={saveMetric} className="flex flex-wrap items-center gap-2">
-                <input type="hidden" name="modul" value={modul} />
-                <input type="hidden" name="key" value={key} />
-                <span className="w-56 shrink-0 text-sm">{label}</span>
-                <input name="value" defaultValue={value} className="input max-w-xl flex-1" />
-              </ActionForm>
-            ))}
+          <div className="card mt-3 px-4 py-3">
             <p className="text-sm">
-              Status:{" "}
+              Snapshot semasa:{" "}
               {live ? (
                 <span className="font-semibold">
-                  Berjaya — Guru {live.guru.peratus}% ({live.guru.aktif.toLocaleString("ms-MY")}/
-                  {live.guru.jumlah.toLocaleString("ms-MY")}), Murid {live.murid.peratus}% ·{" "}
+                  Guru {live.guru.peratus}% ({live.guru.aktif.toLocaleString("ms-MY")}/
+                  {live.guru.jumlah.toLocaleString("ms-MY")}), Murid {live.murid.peratus}% (
+                  {live.murid.aktif.toLocaleString("ms-MY")}/{live.murid.jumlah.toLocaleString("ms-MY")}) ·{" "}
                   {live.tempoh}
                 </span>
               ) : (
                 <span className="font-semibold text-bloom-deep">
-                  Gagal dicapai — paparan awam guna data pangkalan data (metrik di bawah).
+                  Belum ada import d3 — paparan awam guna metrik di bawah.
                 </span>
               )}
             </p>
@@ -147,7 +124,7 @@ export default async function AdminAnalisisPage({
           <h2 className="text-lg font-semibold">Guru Belum Log Masuk</h2>
           <p className="mt-1 text-sm text-graphite">
             Muat naik CSV eksport DELIMa (lajur email, name, ppd, kodsekolah, login_status). Hanya guru
-            PPD {liveDaerah.toUpperCase()} diambil; hanya nama dan kod sekolah disimpan — e-mel tidak
+            PPD {DELIMA_DAERAH.toUpperCase()} diambil; hanya nama dan kod sekolah disimpan — e-mel tidak
             disimpan. Setiap muat naik menggantikan senarai lama.
           </p>
           <div className="card mt-3 px-4 py-3">
@@ -171,15 +148,11 @@ export default async function AdminAnalisisPage({
       ) : null}
       {sejarah ? (
         <section className="mt-8">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-lg font-semibold">Sejarah Snapshot</h2>
-            <ActionForm action={simpanSnapshotDelima} submitLabel="Simpan snapshot sekarang">
-              <span className="sr-only">Simpan snapshot DELIMa sekarang</span>
-            </ActionForm>
-          </div>
+          <h2 className="text-lg font-semibold">Sejarah Snapshot</h2>
           <p className="mt-1 text-sm text-graphite">
-            Disimpan automatik setiap hari untuk tempoh data semasa (satu baris setiap bulan sumber).
-            Carta trend DELIMa memakai snapshot ini.
+            Satu baris setiap bulan. Mulai Okt 2026 daripada import d3 KPM; bulan terdahulu disimpan
+            daripada papan pemuka DELIMa Perak (kini tidak lagi dibaca). Carta trend DELIMa memakai
+            snapshot ini.
           </p>
           <div className="card mt-3 divide-y divide-fog">
             {sejarah.rows.length === 0 ? (

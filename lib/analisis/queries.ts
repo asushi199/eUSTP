@@ -4,13 +4,11 @@ import { asc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { analisisBreakdown, analisisMetrics } from "@/lib/schema";
 import type { analisisModul } from "@/lib/schema";
-import { after } from "next/server";
-import { bilSekolahCapai, fetchDelimaGuruCapai, fetchDelimaLive, fetchDelimaSchools, type DelimaLive, type DelimaSchoolList } from "./delima-live";
+import { bilSekolahCapai, type DelimaLive, type DelimaSchoolList } from "./delima-live";
 import {
-  ensureDelimaSnapshot,
   getDelimaCapaiTerkini,
   getDelimaSnapshotTrend,
-  pilihDelimaD3,
+  getDelimaTerkini,
   type DelimaTrendPoint,
 } from "./delima-snapshot";
 
@@ -21,9 +19,9 @@ export type MetricMap = Map<string, string>;
 export type BreakdownRow = { kind: string; label: string; value: number };
 
 export type AnalisisData = {
-  /** Data DELIMa langsung (hanya modul `delima`, jika sumber dapat dicapai). */
+  /** Data DELIMa semasa (hanya modul `delima`): snapshot d3 terbaharu; null jika belum diimport. */
   live?: DelimaLive | null;
-  /** Senarai sekolah langsung (modul `delima`) — asas carta taburan tahap. */
+  /** Senarai sekolah snapshot d3 terbaharu (modul `delima`) — asas carta taburan tahap. */
   liveSchools?: DelimaSchoolList | null;
   /** Titik trend daripada snapshot bulanan (modul `delima`); kosong jika belum ada. */
   snapshotTrend?: DelimaTrendPoint[];
@@ -35,22 +33,6 @@ export type AnalisisData = {
   metrics: MetricMap;
   breakdown: BreakdownRow[];
 };
-
-function delimaConfigDariMetrics(metrics: MetricMap) {
-  return {
-    url: metrics.get("delima_live_url")?.trim() || undefined,
-    daerah: metrics.get("delima_daerah")?.trim() || undefined,
-  };
-}
-
-/** Konfigurasi sumber DELIMa langsung sahaja (tanpa ambil data) — untuk server action ringan. */
-export async function getDelimaConfig() {
-  const rows = await db
-    .select()
-    .from(analisisMetrics)
-    .where(eq(analisisMetrics.modul, "delima"));
-  return delimaConfigDariMetrics(new Map(rows.map((r) => [r.key.toLowerCase(), r.value])));
-}
 
 /** Semua data satu modul (metrik KV + pecahan). */
 export async function getAnalisisData(modul: AnalisisModul): Promise<AnalisisData> {
@@ -71,41 +53,16 @@ export async function getAnalisisData(modul: AnalisisModul): Promise<AnalisisDat
   let snapshotTrend: DelimaTrendPoint[] = [];
   let capaiSekolah: AnalisisData["capaiSekolah"] = null;
   if (modul === "delima") {
-    const cfg = delimaConfigDariMetrics(metrics);
-    [live, liveSchools] = await Promise.all([
-      fetchDelimaLive(cfg.url, cfg.daerah),
-      fetchDelimaSchools(cfg.url, cfg.daerah),
-    ]);
-    const perak = live;
-    const perakSchools = liveSchools;
-    // Snapshot d3 (rasmi KPM) menggantikan paparan Perak jika tempohnya tidak ketinggalan.
-    const d3 = await pilihDelimaD3(live);
-    if (d3) {
-      live = d3.live;
-      liveSchools = d3.schools;
-    }
+    // Sumber tunggal: snapshot d3.delima.edu.my terbaharu (import manual bulanan).
+    const terkini = await getDelimaTerkini().catch(() => null);
+    live = terkini?.live ?? null;
+    liveSchools = terkini?.schools ?? null;
     if (live?.bilSekolah != null) metrics.set("bil_sekolah", String(live.bilSekolah));
-    if (perak) {
-      const l = perak;
-      const s = perakSchools;
-      try {
-        // Snapshot bulanan automatik: dicipta selepas respons dihantar jika tempoh ini belum ada.
-        after(() =>
-          ensureDelimaSnapshot(l, s, cfg.url, cfg.daerah).catch((e) =>
-            console.error("[delima-snapshot]", e),
-          ),
-        );
-      } catch {
-        /* di luar skop permintaan (cth. build) — cron akan menyimpan */
-      }
-    }
     snapshotTrend = await getDelimaSnapshotTrend().catch(() => []);
     const snapCapai = await getDelimaCapaiTerkini().catch(() => null);
     const num = (k: string) => Number(metrics.get(k)?.replace(",", "."));
-    // Sumber JPN kini gabungan 2.0 + 3.0 (satu laporan); sasaran dibandingkan dengan peratus aktif setiap sekolah.
-    // Widget gabungan berasingan (jika masih ada) diutamakan untuk guru.
-    const guruCapaiGabung = live?.guruGabung ? await fetchDelimaGuruCapai(cfg.url, cfg.daerah) : null;
-    const guruCapai = guruCapaiGabung ?? bilSekolahCapai(liveSchools, "guru", num("kpi_guru"));
+    // Sasaran dibandingkan dengan peratus aktif setiap sekolah.
+    const guruCapai = bilSekolahCapai(liveSchools, "guru", num("kpi_guru"));
     const muridCapai = bilSekolahCapai(liveSchools, "murid", num("kpi_murid")) ?? snapCapai?.capai ?? null;
     const jumlahSekolah = liveSchools?.schools.length ?? snapCapai?.jumlah ?? null;
     if (guruCapai != null || muridCapai != null) {

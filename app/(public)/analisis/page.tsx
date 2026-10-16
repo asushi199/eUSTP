@@ -166,34 +166,6 @@ export default async function AnalisisPage({
         { label: "Sasaran KPI", value: pct(metricNum(delima.metrics, "kpi_murid")) },
       ],
     },
-    ...(live?.guruGabung
-      ? [
-          {
-            title: `Jumlah Aktif Guru · DELIMa 2.0 + 3.0 · Sasaran ${live.guruGabung.sasaran ?? "—"}%`,
-            stats: [
-              { label: live.guruGabung.capai ? "Capai" : "Belum capai", value: pct(live.guruGabung.peratus) },
-              {
-                label: `aktif daripada ${bil(live.guruGabung.jumlah)}`,
-                value: bil(live.guruGabung.aktif),
-              },
-            ],
-          },
-        ]
-      : []),
-    ...(live?.kadMurid
-      ? [
-          {
-            title: `Jumlah Aktif Murid · DELIMa 2.0 + 3.0 · Sasaran ${live.kadMurid.sasaran ?? "—"}%`,
-            stats: [
-              { label: live.kadMurid.capai ? "Capai" : "Belum capai", value: pct(live.kadMurid.peratus) },
-              {
-                label: `aktif daripada ${bil(live.kadMurid.jumlah)}`,
-                value: bil(live.kadMurid.aktif),
-              },
-            ],
-          },
-        ]
-      : []),
   ];
 
   /* ---------- DCS ---------- */
