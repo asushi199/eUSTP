@@ -2255,3 +2255,7 @@ Corak berselang = instance sihat vs beracun.
 - `TarikhAkhirBanner` diekstrak daripada `DcsExplore` dan dikongsi DCS + ESN.
 - Disahkan: typecheck, build, ujian (`tests/analisis/esn.test.ts` + sedia ada), migrasi + import ke DB, pratonton dev (kad + modal, kiraan 60 hari).
 - Kemas kini bulanan: log masuk ESN dalam pelayar → Claude baca semula Dashboard + Status Pelaksanaan → simpan JSON baharu → import.
+
+## 2026-10-16 — MJKD borang awam: tanda sudah dihantar ringkas (✓)
+
+- Senarai carian dan `<select>` sekolah kini hanya papar "✓" (title/aria-label "Sudah dihantar") bagi sekolah yang sudah menghantar — bukan teks "Sudah dihantar" yang memakan ruang. Kad status selepas memilih sekolah tidak diubah. Typecheck + eslint lulus.
