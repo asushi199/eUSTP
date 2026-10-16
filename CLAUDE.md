@@ -95,7 +95,9 @@ GPICT/DELIMa/GPM, Tempahan PKG, Portal Sumber/Analisis/Maklumat Asas). Sumber as
   sekolah, 1 Jan → hari ini), simpan `scripts/data/delima-d3-YYYY-MM-DD.csv`, lalu
   `npm run db:import-delima-d3 -- <fail>` (semak jumlah + padan kod). Paparan = snapshot d3
   terbaharu (`getDelimaTerkini`). DELIMa Perak tidak lagi dibaca. Eksport CSV pengguna d3 (SPP)
-  mengandungi No. KP — jangan komit / jangan papar.
+  mengandungi No. KP — jangan komit / jangan papar. Buat masa ini paparan **bilangan sahaja**
+  (tiada senarai nama guru belum log masuk); senarai nama hanya jika diminta → "Pelan 2" dalam
+  `AI_CONTEXT_LOG.md` (2026-10-16).
 - Petak statistik DPD/PSS halaman utama disorok (`SHOW_LAPORAN_TILES=false`
   dalam `app/(public)/page.tsx`) — pelaporan 2026 masih guna Looker Studio.
 - **MJKD 2026 = satu acara, satu rekod `mjkd_mesyuarat`** (kehadiran, minit +

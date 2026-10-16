@@ -1,5 +1,11 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-10-16 — DELIMa: keputusan — bilangan sahaja, tiada senarai nama buat masa ini
+
+- JPN tidak lagi membekalkan CSV "belum log masuk"; d3 SPP hanya boleh eksport satu sekolah sekali (PPD sahaja = 0 baris). Eksport pukal PII oleh Claude disekat polisi keselamatan.
+- Keputusan pengguna: paparan DELIMa guna **bilangan aktif / jumlah** setiap sekolah (snapshot d3) sahaja. Muat naik "Guru Belum Log Masuk" sedia ada dibiarkan (data lama), tidak dikemas kini.
+- Jika senarai nama diperlukan kelak: **Pelan 2** — skrip konsol pelayar yang dijalankan sendiri oleh pegawai (log masuk d3) untuk gelung 102 sekolah, keluarkan hanya kod sekolah + nama bagi akaun `LOG TERAKHIR` kosong (kecuali akaun sementara `g-sk…tmp`); No. KP / ID / e-mel dibuang di pelayar pengguna. Belum dibina; semak dahulu kesesuaian dengan terma penggunaan d3.
+
 ## 2026-10-16 — DELIMa: sumber Perak + cron dibuang; d3 sumber tunggal
 
 - Atas arahan pengguna: papan pemuka DELIMa Perak (`delimaperak.vercel.app`) dan CSV Google Sheet "Portal Statistik DELIMa Negeri Perak" tidak lagi dibaca. Dibuang: `app/api/cron/delima-snapshot` + entri `vercel.json` (cron backup kekal; `CRON_SECRET` masih diperlukan), `lib/analisis/delima-csv.ts`, semua fungsi `fetchDelima*`, `saveDelimaSnapshot`/`captureDelimaSnapshot`/`ensureDelimaSnapshot`, butang admin "Simpan snapshot sekarang", tetapan admin pautan/slug daerah, kad "2.0 + 3.0" (guruGabung/kadMurid), `ringkasCsvPpd`.
