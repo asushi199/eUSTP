@@ -2218,3 +2218,9 @@ Corak berselang = instance sihat vs beracun.
 
 - Modal DCS (`HomeAnalisisBand`) kini render `DcsExplore` (dimuat malas, `ssr:false`) melalui `AnalisisHomeModule.dcsExplore` (`summary.ts`) — pilih Tahun 2025/2026 dan senarai Selesai/Belum selesai sama seperti `/analisis#dcs`. `DcsBackup` dipindah ke `lib/analisis/dcs-types.ts`.
 - Disahkan: typecheck, eslint, smoke halaman utama (buka kad DCS → butang 101/37/64, tapis Selesai = 37 baris, tukar ke 2025 papar carta TOV/KPI/Capai).
+
+## 2026-10-16 — DCS: modal lebih lebar + telefon tanpa tatal mendatar
+
+- Modal DCS halaman utama `max-w-5xl` (dahulu `max-w-2xl`, sesak).
+- `DcsExplore`: petak KPI grid 2×2 (telefon) / 4 sebaris; jadual tahap jadi grid lajur tetap (T6/T3/T5 di telefon, bilangan di bawah peratus) — tiada `min-w`. Senarai sekolah: telefon = senarai kad (`useSkrinLebar`, ≥640px = jadual), 20 baris + "Papar lagi"; butang status 3 lajur, PKG + carian satu baris.
+- Disahkan: typecheck, eslint; smoke 375px (tiada unsur melebihi lebar, 20 kad + Papar lagi (81)) dan 1280px (modal 1024px, 4 petak sebaris, jadual tanpa tatal).

@@ -354,6 +354,8 @@ export default function HomeAnalisisBand({
                 className={`relative z-[71] max-h-[88vh] w-full overflow-y-auto rounded-t-2xl bg-white p-5 shadow-modal sm:rounded-2xl sm:p-6 ${
                   openId === "bengkel" || openId === "tebus-buku"
                     ? "max-w-3xl"
+                    : openId === "dcs"
+                      ? "max-w-5xl"
                     : openId === "penyertaan"
                       ? "max-w-4xl"
                     : (openId === "optik" && optikLayer !== "overview") ||
