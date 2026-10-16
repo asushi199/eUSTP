@@ -239,8 +239,11 @@ export default function HomeAnalisisBand({
   const closeRef = useRef<HTMLButtonElement>(null);
   const tebus = indikator.find((m) => m.id === "tebus-buku") ?? null;
   const penyertaan = indikator.find((m) => m.id === "penyertaan") ?? null;
-  const lead = indikator.filter((m) => m.id !== "tebus-buku" && m.id !== "penyertaan");
-  const mesyuarat = [tebus, penyertaan].filter((m): m is AnalisisHomeModule => m != null);
+  const bengkel = indikator.find((m) => m.id === "bengkel") ?? null;
+  // Baris atas: indikator USTP (6). Baris bawah: bengkel, tebus buku, penyertaan + 3 perkhidmatan (6),
+  // supaya grid 3 lajur penuh tanpa kad yatim.
+  const lead = indikator.filter((m) => m.id !== "bengkel" && m.id !== "tebus-buku" && m.id !== "penyertaan");
+  const mesyuarat = [bengkel, tebus, penyertaan].filter((m): m is AnalisisHomeModule => m != null);
   const active =
     lead.find((m) => m.id === openId) ??
     mesyuarat.find((m) => m.id === openId) ??
