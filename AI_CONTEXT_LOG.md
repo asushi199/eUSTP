@@ -1,5 +1,11 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-10-16 — MJKD borang awam: tanda sekolah "Sudah dihantar" / "Tiada perkara"
+
+- `/laporan-mjkd` memuat `listKodSekolahSudahHantar` (queries.ts) dan menghantar `sudahHantar` ke `MaklumBalasMjkdForm`. Borang baharu sahaja (bukan kemaskini/admin): senarai carian + `<select>` tanda "✓ Sudah dihantar" atau "Tiada perkara" (tiada perkara aktif terpakai ikut `perkaraUntukSekolah`).
+- Bila sekolah sedemikian dipilih, bahagian B/C + butang hantar digantikan kad status; sekolah sudah hantar → pautan "Semak / kemaskini" (`/laporan-mjkd/semak?kod=`). Banner draf dan prefill PGB tidak dijalankan untuk sekolah tersebut.
+- Disahkan: typecheck, `npm run build`, pelayar dev: 25/103 sekolah bertanda sudah dihantar, ABA1001 papar kad status.
+
 ## 2026-10-16 — DELIMa: keputusan — bilangan sahaja, tiada senarai nama buat masa ini
 
 - JPN tidak lagi membekalkan CSV "belum log masuk"; d3 SPP hanya boleh eksport satu sekolah sekali (PPD sahaja = 0 baris). Eksport pukal PII oleh Claude disekat polisi keselamatan.

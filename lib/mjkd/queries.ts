@@ -116,6 +116,15 @@ export async function getMaklumBalasByReceipt(
   return mb;
 }
 
+/** Kod sekolah yang sudah menghantar maklum balas (awam: tanda "Sudah dihantar" pada borang). */
+export async function listKodSekolahSudahHantar(mesyuaratId: string): Promise<string[]> {
+  const rows = await db
+    .select({ schoolCode: mjkdMaklumBalas.schoolCode })
+    .from(mjkdMaklumBalas)
+    .where(eq(mjkdMaklumBalas.mesyuaratId, mesyuaratId));
+  return rows.map((r) => r.schoolCode);
+}
+
 /** Semua maklum balas + item satu mesyuarat (untuk admin). */
 export async function listMaklumBalasMesyuarat(mesyuaratId: string): Promise<{
   maklumBalas: MaklumBalasRow[];

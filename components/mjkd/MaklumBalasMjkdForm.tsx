@@ -61,6 +61,8 @@ type Props = {
   initialReceiptToken?: string;
   /** Mod admin: sekolah dikunci, tiada nombor tiket, simpan melalui tindakan admin. */
   adminMode?: boolean;
+  /** Kod sekolah yang sudah menghantar — borang baharu dikunci untuk sekolah ini. */
+  sudahHantar?: string[];
 };
 
 type Jawapan = { status: string; catatan: string; pautanBukti: string; fotoBukti: string[] };
@@ -169,6 +171,7 @@ export default function MaklumBalasMjkdForm({
   existing,
   initialReceiptToken,
   adminMode = false,
+  sudahHantar,
 }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -447,9 +450,20 @@ export default function MaklumBalasMjkdForm({
   );
   const bilLengkap = terpakai.filter((p) => perkaraLengkap(jawapan[p.id])).length;
 
+  // Borang baharu sahaja: sekolah yang sudah menghantar / tiada perkara terpakai tidak perlu mengisi.
+  const sudahSet = useMemo(() => new Set(sudahHantar ?? []), [sudahHantar]);
+  const borangBaharu = !adminMode && !existing;
+  function statusSekolah(s: SchoolOption): "dihantar" | "tiada" | null {
+    if (!borangBaharu) return null;
+    if (sudahSet.has(s.code)) return "dihantar";
+    if (perkaraUntukSekolah(perkara, s).length === 0) return "tiada";
+    return null;
+  }
+  const statusDipilih = selected ? statusSekolah(selected) : null;
+
   // Isi awal nama PGB (nama sahaja) + jawatan daripada direktori apabila sekolah dipilih.
   useEffect(() => {
-    if (!schoolCode || (dikunci && !adminMode) || disentuh.current) return;
+    if (!schoolCode || (dikunci && !adminMode) || disentuh.current || statusDipilih) return;
     let batal = false;
     getPrefillPgbMjkd(schoolCode)
       .then((p) => {
@@ -463,7 +477,7 @@ export default function MaklumBalasMjkdForm({
     return () => {
       batal = true;
     };
-  }, [schoolCode, dikunci, adminMode]);
+  }, [schoolCode, dikunci, adminMode, statusDipilih]);
 
   // Tutup senarai dahulu, kemudian tatal — bar melekat mengecil, jadi tatal selepas susun atur baharu.
   function lompatKe(e: React.MouseEvent<HTMLAnchorElement>, perkaraId: string) {
@@ -559,7 +573,7 @@ export default function MaklumBalasMjkdForm({
 
   return (
     <form onSubmit={onSubmit} className="space-y-6">
-      {drafDipulih !== null ? (
+      {drafDipulih !== null && !statusDipilih ? (
         <div className="flex flex-col gap-3 rounded-xl border-2 border-ink bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-[15px] text-ink">
             <span className="font-semibold">Draf anda telah dipulihkan</span>
@@ -613,11 +627,15 @@ export default function MaklumBalasMjkdForm({
               <option value="" disabled>
                 Pilih sekolah…
               </option>
-              {filteredSchools.map((s) => (
-                <option key={s.code} value={s.code}>
-                  {s.code} — {s.name}
-                </option>
-              ))}
+              {filteredSchools.map((s) => {
+                const st = statusSekolah(s);
+                return (
+                  <option key={s.code} value={s.code}>
+                    {s.code} — {s.name}
+                    {st === "dihantar" ? " (✓ sudah dihantar)" : st === "tiada" ? " (tiada perkara)" : ""}
+                  </option>
+                );
+              })}
             </select>
             {selected && (
               <p className="mt-1 text-xs text-graphite">
@@ -635,6 +653,7 @@ export default function MaklumBalasMjkdForm({
                 <ul className="max-h-56 overflow-auto rounded-lg border hairline">
                   {filteredSchools.map((s) => {
                     const active = s.code === schoolCode;
+                    const st = statusSekolah(s);
                     return (
                       <li key={s.code} className="border-b hairline last:border-0">
                         <button
@@ -649,7 +668,12 @@ export default function MaklumBalasMjkdForm({
                           <span className="shrink-0 font-mono text-xs text-graphite">
                             {s.code}
                           </span>
-                          <span>{s.name}</span>
+                          <span className="min-w-0 flex-1">{s.name}</span>
+                          {st ? (
+                            <span className="shrink-0 text-xs font-semibold text-graphite">
+                              {st === "dihantar" ? "✓ Sudah dihantar" : "Tiada perkara"}
+                            </span>
+                          ) : null}
                         </button>
                       </li>
                     );
@@ -678,6 +702,38 @@ export default function MaklumBalasMjkdForm({
         ) : null}
       </section>
 
+      {statusDipilih ? (
+        <section className="card border-2 border-ink p-6" role="status">
+          {statusDipilih === "dihantar" ? (
+            <>
+              <p className="text-lg font-semibold text-ink">
+                ✓ Sekolah ini sudah menghantar maklum balas
+              </p>
+              <p className="mt-1 text-[15px] text-charcoal">
+                Tidak perlu mengisi semula. Untuk menyemak atau mengemaskini jawapan, gunakan
+                nombor tiket yang diterima semasa menghantar.
+              </p>
+              <Link
+                href={`/laporan-mjkd/semak?kod=${encodeURIComponent(schoolCode)}`}
+                className="btn-outline-ink mt-4 w-full sm:w-auto"
+              >
+                Semak / kemaskini maklum balas sekolah ini
+              </Link>
+            </>
+          ) : (
+            <>
+              <p className="text-lg font-semibold text-ink">
+                Tiada perkara tindakan untuk sekolah ini
+              </p>
+              <p className="mt-1 text-[15px] text-charcoal">
+                Tiada perkara dalam minit yang terpakai kepada sekolah ini — tidak perlu mengisi
+                maklum balas.
+              </p>
+            </>
+          )}
+        </section>
+      ) : (
+      <>
       <section className="card p-6">
         <h2 className="text-lg font-semibold">B. Pengisi maklum balas</h2>
         <p className="mt-1 text-sm text-graphite">
@@ -999,6 +1055,8 @@ export default function MaklumBalasMjkdForm({
           {muatNaik > 0 ? "Memuat naik gambar…" : pending ? "Menghantar…" : existing ? "Kemaskini maklum balas" : "Hantar maklum balas"}
         </button>
       </div>
+      </>
+      )}
     </form>
   );
 }

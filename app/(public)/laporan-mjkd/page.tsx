@@ -11,6 +11,7 @@ import { bakiHariTutup, formatTarikhMs, maklumBalasTerbuka } from "@/lib/mjkd/en
 import {
   getMaklumBalasByReceipt,
   getMesyuaratAwamTerkini,
+  listKodSekolahSudahHantar,
   listPerkara,
 } from "@/lib/mjkd/queries";
 import { pautanMuatSemula } from "@/lib/mjkd/ralat-db";
@@ -45,9 +46,11 @@ async function muatData(sp: { kod?: string; resit?: string; kemaskini?: string }
   let schools: Awaited<ReturnType<typeof listSchoolOptions>> = [];
   let perkara: Awaited<ReturnType<typeof listPerkara>> = [];
   let existing: Awaited<ReturnType<typeof getMaklumBalasByReceipt>> = null;
+  let sudahHantar: string[] = [];
   if (terbuka) {
     schools = await listSchoolOptions();
     perkara = await listPerkara(mesyuarat.id, { aktifSahaja: true });
+    sudahHantar = await listKodSekolahSudahHantar(mesyuarat.id);
     const kod = sp.kod?.trim().toUpperCase();
     const resit = sp.resit?.trim().toUpperCase();
     existing =
@@ -55,7 +58,7 @@ async function muatData(sp: { kod?: string; resit?: string; kemaskini?: string }
         ? await getMaklumBalasByReceipt(mesyuarat.id, kod, resit)
         : null;
   }
-  return { mesyuarat, terbuka, schools, perkara, existing };
+  return { mesyuarat, terbuka, schools, perkara, existing, sudahHantar };
 }
 
 /** Kiraan hari hingga maklum balas ditutup — merah bila ≤ 2 hari. */
@@ -140,7 +143,7 @@ export default async function LaporanMjkdPage({ searchParams }: Props) {
     );
   }
 
-  const { mesyuarat, terbuka, schools, perkara, existing } = data;
+  const { mesyuarat, terbuka, schools, perkara, existing, sudahHantar } = data;
   const resit = sp.resit?.trim().toUpperCase();
   const tutup = mesyuarat.tarikhTutupMaklumBalas;
 
@@ -273,6 +276,7 @@ export default async function LaporanMjkdPage({ searchParams }: Props) {
                   : null
               }
               initialReceiptToken={existing ? resit : undefined}
+              sudahHantar={sudahHantar}
             />
           ) : (
             <div className="card p-6">
