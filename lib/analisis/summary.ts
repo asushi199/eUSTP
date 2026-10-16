@@ -16,6 +16,7 @@ import {
   type AinsBackup,
 } from "./ains-types";
 import { getDcsTerkiniIkutTahun } from "./dcs-queries";
+import type { DcsBackup, DcsSnapshot } from "./dcs-types";
 import { getOptikHomeView, optikKpiGroupStats, optikKpiReferenceLines } from "./optik-queries";
 
 /** Bentuk data boleh-serialize untuk kad + modal analisis di halaman utama. */
@@ -81,6 +82,8 @@ export type AnalisisHomeModule = {
   delimaLive?: boolean;
   /** Ains: terokai tahun/bulan/sekolah/murid dalam modal (data dimuat malas daripada pelayan). */
   ainsExplore?: { years: number[]; backup: AinsBackup };
+  /** DCS: pilih tahun (2025 sandaran / snapshot dcs.moe.edu.my) + senarai sekolah dalam modal. */
+  dcsExplore?: { snapshots: DcsSnapshot[]; backup: DcsBackup };
   bars: HomeBarChart[];
   line?: HomeLineChart;
   note?: string;
@@ -193,7 +196,8 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
 
   /* ---------- DCS ---------- */
   const dcsCapai = metricNum(dcs.metrics, "capai");
-  const dcsSnap = (await getDcsTerkiniIkutTahun().catch(() => []))[0] ?? null;
+  const dcsSnapshots = await getDcsTerkiniIkutTahun().catch(() => [] as DcsSnapshot[]);
+  const dcsSnap = dcsSnapshots[0] ?? null;
   const dcs2025: AnalisisHomeModule = {
     id: "dcs",
     label: "DCS",
@@ -244,6 +248,17 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
         },
       ],
       note: `Data dcs.moe.edu.my (dibaca ${dcsSnap.capturedOn.split("-").reverse().join("/")}).`,
+      dcsExplore: {
+        snapshots: dcsSnapshots,
+        backup: {
+          tahun: 2025,
+          bars: dcs2025.bars[0]?.data ?? [],
+          updatedText: metricText(dcs.metrics, "updated_text", "kemaskini"),
+          footer: metricText(dcs.metrics, "footer", "footer_text").replace(/\\n/g, "\n"),
+          sourceUrl: metricText(dcs.metrics, "source_url"),
+          sourceLabel: metricText(dcs.metrics, "source_label") || "Buka sumber DCS",
+        },
+      },
     };
   }
 

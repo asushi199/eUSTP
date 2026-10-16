@@ -4,18 +4,9 @@ import { useMemo, useState } from "react";
 import AnalisisKpiTiles from "@/components/analisis/AnalisisKpiTiles";
 import TahunSelect from "@/components/analisis/TahunSelect";
 import BreakdownBarChart from "@/components/stats/BreakdownBarChart";
-import { DCS_TAHAP, type DcsSekolah, type DcsSnapshot } from "@/lib/analisis/dcs-types";
-import type { BreakdownPoint } from "@/lib/stats/types";
+import { DCS_TAHAP, type DcsBackup, type DcsSekolah, type DcsSnapshot } from "@/lib/analisis/dcs-types";
 
-/** Data DCS 2025 (metrik KV lama daripada Google Sheet) — dikekalkan sebagai pilihan tahun. */
-export type DcsBackup = {
-  tahun: number;
-  bars: BreakdownPoint[];
-  updatedText: string;
-  footer: string;
-  sourceUrl: string;
-  sourceLabel: string;
-};
+export type { DcsBackup };
 
 type Status = "semua" | "selesai" | "belum";
 

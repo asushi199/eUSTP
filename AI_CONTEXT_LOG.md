@@ -2213,3 +2213,8 @@ Corak berselang = instance sihat vs beracun.
 
 - `DcsExplore`: status dua nilai ikut takrif "sekolah siap" DCS (murid didaftarkan > 0 dan semua selesai) — sepadan angka Ranking (daerah 37/101, Sitiawan 9/22). Butang Semua / Selesai / Belum selesai (dengan bilangan), tapis PKG, carian nama/kod, lajur Status. Sekolah 0/0 = "Belum daftar murid" (dikira belum selesai).
 - Disahkan: typecheck, eslint, smoke pratonton dev sementara (kiraan butang, tapis PKG, carian) — laluan dev dibuang.
+
+## 2026-10-16 — DCS: penapis tahun + senarai sekolah dalam modal halaman utama
+
+- Modal DCS (`HomeAnalisisBand`) kini render `DcsExplore` (dimuat malas, `ssr:false`) melalui `AnalisisHomeModule.dcsExplore` (`summary.ts`) — pilih Tahun 2025/2026 dan senarai Selesai/Belum selesai sama seperti `/analisis#dcs`. `DcsBackup` dipindah ke `lib/analisis/dcs-types.ts`.
+- Disahkan: typecheck, eslint, smoke halaman utama (buka kad DCS → butang 101/37/64, tapis Selesai = 37 baris, tukar ke 2025 papar carta TOV/KPI/Capai).

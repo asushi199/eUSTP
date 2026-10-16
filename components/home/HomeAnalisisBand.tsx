@@ -26,6 +26,10 @@ const AinsExplore = dynamic(() => import("@/components/analisis/AinsExplore"), {
   ssr: false,
   loading: chartLoading,
 });
+const DcsExplore = dynamic(() => import("@/components/analisis/DcsExplore"), {
+  ssr: false,
+  loading: chartLoading,
+});
 const PenyertaanExplore = dynamic(() => import("@/components/analisis/PenyertaanExplore"), {
   ssr: false,
   loading: chartLoading,
@@ -411,6 +415,12 @@ export default function HomeAnalisisBand({
                     key={openId}
                     years={active.ainsExplore.years}
                     backup={active.ainsExplore.backup}
+                  />
+                ) : active.id === "dcs" && active.dcsExplore ? (
+                  <DcsExplore
+                    key={openId}
+                    snapshots={active.dcsExplore.snapshots}
+                    backup={active.dcsExplore.backup}
                   />
                 ) : active.id === "penyertaan" ? (
                   <PenyertaanExplore key={openId} />

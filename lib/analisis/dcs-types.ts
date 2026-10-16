@@ -53,6 +53,16 @@ export type DcsSnapshot = {
   sekolah: DcsSekolah[];
 };
 
+/** Data DCS 2025 (metrik KV lama daripada Google Sheet) — dikekalkan sebagai pilihan tahun. */
+export type DcsBackup = {
+  tahun: number;
+  bars: { label: string; jumlah: number }[];
+  updatedText: string;
+  footer: string;
+  sourceUrl: string;
+  sourceLabel: string;
+};
+
 /** Semakan konsisten: jumlah murid sekolah = angka PKG (halaman Ranking). */
 export function semakDcs(s: DcsSnapshot): string[] {
   const ralat: string[] = [];
