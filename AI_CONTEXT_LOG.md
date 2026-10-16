@@ -2192,3 +2192,11 @@ Corak berselang = instance sihat vs beracun.
 
 - Arahan pimpinan: kad "Bintang" pada ringkasan (overview) tidak dipaparkan. Lajur Bintang dalam senarai murid dan CSV KEKAL (sengaja).
 - Medan `star` kekal dalam import, DB dan jenis.
+
+## 2026-10-16 — DCS 2026 daripada dcs.moe.edu.my (penapis tahun 2025/2026)
+
+- Sumber: dcs.moe.edu.my, 5 akaun PKG Manjung (Sitiawan, Seri Manjung, Pantai Remis, Beruas, Ayer Tawar). Pegawai log masuk sendiri dalam pelayar; Claude baca Dashboard, Progress, Top Schools (T6/T3/T5) dan PKG Ranking (50 PKG Perak) setiap akaun. Tiada nama murid/pengurus disimpan.
+- Data: `scripts/data/dcs-2026-10-16.json` (5 PKG, 101 sekolah, murid 1,296/1,657). Jadual baharu `analisis_dcs_snapshots` (jsonb `data` = `DcsSnapshot`, unik `captured_on`, RLS dihidupkan) — migrasi `0055_dcs_snapshots`. Import: `npm run db:import-dcs -- <fail.json> [--dry-run]` (semak jumlah sekolah/murid = angka Ranking).
+- `/analisis#dcs`: `DcsExplore` — pilih Tahun; 2026 = petak KPI, kedudukan PKG dalam Perak, % ikut tahap, jadual sekolah (tapis PKG/status). 2025 = carta TOV/KPI/Capai lama (metrik `analisis_metrics` dcs dikekalkan).
+- Modal halaman utama (`summary.ts`): kad DCS guna snapshot terkini jika ada (78.2% murid selesai), jatuh balik ke 2025.
+- Disahkan: typecheck, build, migrasi + import ke DB, smoke kad/modal halaman utama + pratonton dev sementara `DcsExplore` (desktop & telefon, tukar tahun, tapis PKG) — laluan dev dibuang selepas semakan.

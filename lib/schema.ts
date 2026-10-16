@@ -525,6 +525,24 @@ export const analisisBreakdown = pgTable(
 );
 
 /**
+ * Snapshot DCS daripada dcs.moe.edu.my (import manual, `npm run db:import-dcs`).
+ * `data` = DcsSnapshot (lib/analisis/dcs-types.ts). Satu baris setiap tarikh bacaan.
+ */
+export const analisisDcsSnapshots = pgTable(
+  "analisis_dcs_snapshots",
+  {
+    id: serial("id").primaryKey(),
+    tahun: integer("tahun").notNull(),
+    capturedOn: date("captured_on").notNull(),
+    data: jsonb("data").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    capturedIdx: uniqueIndex("analisis_dcs_snapshots_captured_idx").on(t.capturedOn),
+  }),
+);
+
+/**
  * Snapshot bulanan DELIMa daripada sumber langsung (DELIMa Perak). Satu baris
  * setiap tempoh data sumber (`period` = "YYYY-MM" hujung tempoh); cron harian
  * mengemas kini baris tempoh semasa, tempoh baharu jadi baris baharu.

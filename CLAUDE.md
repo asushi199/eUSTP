@@ -98,6 +98,10 @@ GPICT/DELIMa/GPM, Tempahan PKG, Portal Sumber/Analisis/Maklumat Asas). Sumber as
   mengandungi No. KP — jangan komit / jangan papar. Buat masa ini paparan **bilangan sahaja**
   (tiada senarai nama guru belum log masuk); senarai nama hanya jika diminta → "Pelan 2" dalam
   `AI_CONTEXT_LOG.md` (2026-10-16).
+- **DCS — sumber dcs.moe.edu.my (5 akaun PKG Manjung).** Perlu log masuk pengguna setiap akaun
+  (Claude TIDAK memasukkan kata laluan). Claude baca Dashboard/Progress/Top Schools/Ranking, simpan
+  `scripts/data/dcs-YYYY-MM-DD.json`, lalu `npm run db:import-dcs -- <fail>`. Paparan = snapshot
+  terkini setiap tahun (`getDcsTerkiniIkutTahun`); 2025 = metrik lama `analisis_metrics` (dcs).
 - Petak statistik DPD/PSS halaman utama disorok (`SHOW_LAPORAN_TILES=false`
   dalam `app/(public)/page.tsx`) — pelaporan 2026 masih guna Looker Studio.
 - **MJKD 2026 = satu acara, satu rekod `mjkd_mesyuarat`** (kehadiran, minit +

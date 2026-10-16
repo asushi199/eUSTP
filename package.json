@@ -20,6 +20,7 @@
     "db:import-optik": "tsx scripts/import-optik-snapshots.ts",
     "db:import-ains": "tsx scripts/import-ains.ts",
     "db:import-delima-d3": "tsx scripts/import-delima-d3.ts",
+    "db:import-dcs": "tsx scripts/import-dcs.ts",
     "db:seed-mjkd": "tsx scripts/seed-mjkd-2026-bil1.ts",
     "db:import-pegawai-ppd": "tsx scripts/import-pegawai-ppd.ts",
     "telegram:set-webhook": "tsx scripts/setup-telegram-webhook.ts"

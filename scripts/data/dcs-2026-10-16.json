@@ -1,0 +1,1417 @@
+{
+ "tahun": 2026,
+ "capturedOn": "2026-10-16",
+ "sumber": "http://dcs.moe.edu.my/",
+ "jumlahPkgPerak": 50,
+ "pkg": [
+  {
+   "pkg": "Sitiawan",
+   "rankPerak": 5,
+   "sekolahSiap": 9,
+   "sekolahJumlah": 22,
+   "muridSiap": 346,
+   "muridJumlah": 403,
+   "pct": 85.9,
+   "bilSr": 16,
+   "bilSm": 6,
+   "tahap": {
+    "t6": {
+     "pct": 75,
+     "bil": 150
+    },
+    "t3": {
+     "pct": 100,
+     "bil": 114
+    },
+    "t5": {
+     "pct": 93,
+     "bil": 82
+    }
+   },
+   "tahapSekolah": {
+    "t6": {
+     "pct": 55,
+     "bil": 6
+    },
+    "t3": {
+     "pct": 50,
+     "bil": 2
+    },
+    "t5": {
+     "pct": 50,
+     "bil": 2
+    }
+   }
+  },
+  {
+   "pkg": "Seri Manjung",
+   "rankPerak": 8,
+   "sekolahSiap": 7,
+   "sekolahJumlah": 22,
+   "muridSiap": 290,
+   "muridJumlah": 350,
+   "pct": 82.9,
+   "bilSr": 16,
+   "bilSm": 6,
+   "tahap": {
+    "t6": {
+     "pct": 83,
+     "bil": 104
+    },
+    "t3": {
+     "pct": 80,
+     "bil": 106
+    },
+    "t5": {
+     "pct": 86,
+     "bil": 80
+    }
+   },
+   "tahapSekolah": {
+    "t6": {
+     "pct": 86,
+     "bil": 6
+    },
+    "t3": {
+     "pct": 100,
+     "bil": 5
+    },
+    "t5": {
+     "pct": 100,
+     "bil": 5
+    }
+   }
+  },
+  {
+   "pkg": "Pantai Remis",
+   "rankPerak": 14,
+   "sekolahSiap": 6,
+   "sekolahJumlah": 17,
+   "muridSiap": 217,
+   "muridJumlah": 288,
+   "pct": 75.3,
+   "bilSr": 15,
+   "bilSm": 2,
+   "tahap": {
+    "t6": {
+     "pct": 67,
+     "bil": 128
+    },
+    "t3": {
+     "pct": 100,
+     "bil": 40
+    },
+    "t5": {
+     "pct": 88,
+     "bil": 49
+    }
+   },
+   "tahapSekolah": {
+    "t6": {
+     "pct": 50,
+     "bil": 5
+    },
+    "t3": {
+     "pct": 100,
+     "bil": 2
+    },
+    "t5": {
+     "pct": 100,
+     "bil": 2
+    }
+   }
+  },
+  {
+   "pkg": "Beruas",
+   "rankPerak": 17,
+   "sekolahSiap": 8,
+   "sekolahJumlah": 17,
+   "muridSiap": 141,
+   "muridJumlah": 190,
+   "pct": 74.2,
+   "bilSr": 15,
+   "bilSm": 2,
+   "tahap": {
+    "t6": {
+     "pct": 67,
+     "bil": 101
+    },
+    "t3": {
+     "pct": 100,
+     "bil": 20
+    },
+    "t5": {
+     "pct": 100,
+     "bil": 20
+    }
+   },
+   "tahapSekolah": {
+    "t6": {
+     "pct": 64,
+     "bil": 7
+    },
+    "t3": {
+     "pct": 100,
+     "bil": 1
+    },
+    "t5": {
+     "pct": 100,
+     "bil": 1
+    }
+   }
+  },
+  {
+   "pkg": "Ayer Tawar",
+   "rankPerak": 24,
+   "sekolahSiap": 7,
+   "sekolahJumlah": 23,
+   "muridSiap": 302,
+   "muridJumlah": 426,
+   "pct": 70.9,
+   "bilSr": 18,
+   "bilSm": 5,
+   "tahap": {
+    "t6": {
+     "pct": 53,
+     "bil": 103
+    },
+    "t3": {
+     "pct": 99,
+     "bil": 90
+    },
+    "t5": {
+     "pct": 78,
+     "bil": 109
+    }
+   },
+   "tahapSekolah": {
+    "t6": {
+     "pct": 60,
+     "bil": 6
+    },
+    "t3": {
+     "pct": 50,
+     "bil": 2
+    },
+    "t5": {
+     "pct": 60,
+     "bil": 3
+    }
+   }
+  }
+ ],
+ "sekolah": [
+  {
+   "kod": "ABA1015",
+   "nama": "SK SERI SELAMAT",
+   "pkg": "Sitiawan",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABA1017",
+   "nama": "SK LEKIR",
+   "pkg": "Sitiawan",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABA1019",
+   "nama": "SK BATU SEPULUH",
+   "pkg": "Sitiawan",
+   "kelasSiap": 0,
+   "kelasJumlah": 1,
+   "muridSiap": 0,
+   "muridJumlah": 20,
+   "skorT6": 0,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABA1020",
+   "nama": "SK SUNGAI TIRAM",
+   "pkg": "Sitiawan",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABA1030",
+   "nama": "SK GUGUSAN LEKIR",
+   "pkg": "Sitiawan",
+   "kelasSiap": 0,
+   "kelasJumlah": 1,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABB1039",
+   "nama": "SK METHODIST (ACS)",
+   "pkg": "Sitiawan",
+   "kelasSiap": 1,
+   "kelasJumlah": 1,
+   "muridSiap": 20,
+   "muridJumlah": 20,
+   "skorT6": 3.73,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABB1042",
+   "nama": "SK CONVENT",
+   "pkg": "Sitiawan",
+   "kelasSiap": 2,
+   "kelasJumlah": 2,
+   "muridSiap": 40,
+   "muridJumlah": 40,
+   "skorT6": 3.61,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABB1043",
+   "nama": "SK SIMPANG EMPAT",
+   "pkg": "Sitiawan",
+   "kelasSiap": 0,
+   "kelasJumlah": 1,
+   "muridSiap": 17,
+   "muridJumlah": 20,
+   "skorT6": 3.63,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABB1044",
+   "nama": "SK ST. FRANCIS",
+   "pkg": "Sitiawan",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABC1052",
+   "nama": "SJK(C) CHUNG CHENG",
+   "pkg": "Sitiawan",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABC1054",
+   "nama": "SJK(C) CHINESE NATIONAL",
+   "pkg": "Sitiawan",
+   "kelasSiap": 0,
+   "kelasJumlah": 3,
+   "muridSiap": 2,
+   "muridJumlah": 20,
+   "skorT6": 3.1,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABC1055",
+   "nama": "SJK(C) UK DIH",
+   "pkg": "Sitiawan",
+   "kelasSiap": 1,
+   "kelasJumlah": 1,
+   "muridSiap": 20,
+   "muridJumlah": 20,
+   "skorT6": 3.52,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABC1056",
+   "nama": "SJK(C) CHIEN HUA",
+   "pkg": "Sitiawan",
+   "kelasSiap": 1,
+   "kelasJumlah": 1,
+   "muridSiap": 14,
+   "muridJumlah": 14,
+   "skorT6": 3.17,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABC1057",
+   "nama": "SJK(C) PEKAN GURNEY",
+   "pkg": "Sitiawan",
+   "kelasSiap": 1,
+   "kelasJumlah": 2,
+   "muridSiap": 10,
+   "muridJumlah": 20,
+   "skorT6": 2.83,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABC1058",
+   "nama": "SJK(C) SIMPANG LIMA",
+   "pkg": "Sitiawan",
+   "kelasSiap": 1,
+   "kelasJumlah": 1,
+   "muridSiap": 7,
+   "muridJumlah": 7,
+   "skorT6": 3.09,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABD1073",
+   "nama": "SJK(T) MAHA GANESA VIDDYASALAI",
+   "pkg": "Sitiawan",
+   "kelasSiap": 1,
+   "kelasJumlah": 1,
+   "muridSiap": 20,
+   "muridJumlah": 20,
+   "skorT6": 3.57,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "AEA1112",
+   "nama": "SMK BATU SEPULUH",
+   "pkg": "Sitiawan",
+   "kelasSiap": 1,
+   "kelasJumlah": 3,
+   "muridSiap": 63,
+   "muridJumlah": 63,
+   "skorT6": null,
+   "skorT3": 3.33,
+   "skorT5": 3.41
+  },
+  {
+   "kod": "AEB1027",
+   "nama": "SMK CONVENT",
+   "pkg": "Sitiawan",
+   "kelasSiap": 2,
+   "kelasJumlah": 2,
+   "muridSiap": 40,
+   "muridJumlah": 40,
+   "skorT6": null,
+   "skorT3": 3.54,
+   "skorT5": 3.76
+  },
+  {
+   "kod": "AEB1031",
+   "nama": "SMK NAN HWA",
+   "pkg": "Sitiawan",
+   "kelasSiap": 1,
+   "kelasJumlah": 2,
+   "muridSiap": 45,
+   "muridJumlah": 51,
+   "skorT6": null,
+   "skorT3": 3.52,
+   "skorT5": 3.82
+  },
+  {
+   "kod": "AEE1026",
+   "nama": "SMK METHODIST (ACS)",
+   "pkg": "Sitiawan",
+   "kelasSiap": 4,
+   "kelasJumlah": 4,
+   "muridSiap": 48,
+   "muridJumlah": 48,
+   "skorT6": null,
+   "skorT3": 4.05,
+   "skorT5": 4
+  },
+  {
+   "kod": "AEE1030",
+   "nama": "SMK TOK PERDANA",
+   "pkg": "Sitiawan",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "AFT1001",
+   "nama": "SABK MAAHAD ISLAHIAH ADDINIAH",
+   "pkg": "Sitiawan",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABA1018",
+   "nama": "SK MUHAMAD SAMAN",
+   "pkg": "Seri Manjung",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABA1021",
+   "nama": "SK DATO ISHAK",
+   "pkg": "Seri Manjung",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABA1022",
+   "nama": "SK LUMUT",
+   "pkg": "Seri Manjung",
+   "kelasSiap": 1,
+   "kelasJumlah": 1,
+   "muridSiap": 20,
+   "muridJumlah": 20,
+   "skorT6": 3.35,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABA1023",
+   "nama": "SK SERI PANGKOR",
+   "pkg": "Seri Manjung",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABA1026",
+   "nama": "SK KAYAN",
+   "pkg": "Seri Manjung",
+   "kelasSiap": 0,
+   "kelasJumlah": 1,
+   "muridSiap": 2,
+   "muridJumlah": 23,
+   "skorT6": 3.58,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABA1027",
+   "nama": "SK PANGKALAN TLDM",
+   "pkg": "Seri Manjung",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABA1028",
+   "nama": "SK SERI MANJUNG",
+   "pkg": "Seri Manjung",
+   "kelasSiap": 1,
+   "kelasJumlah": 1,
+   "muridSiap": 20,
+   "muridJumlah": 20,
+   "skorT6": 3.82,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABA1031",
+   "nama": "SK PANGKALAN TLDM 2",
+   "pkg": "Seri Manjung",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABA1032",
+   "nama": "SK KPG DATO SERI KAMARUDDIN",
+   "pkg": "Seri Manjung",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABB1040",
+   "nama": "SK METHODIST (ACS) LUMUT",
+   "pkg": "Seri Manjung",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABC1046",
+   "nama": "SJK(C) HWA LIAN 1",
+   "pkg": "Seri Manjung",
+   "kelasSiap": 1,
+   "kelasJumlah": 1,
+   "muridSiap": 20,
+   "muridJumlah": 20,
+   "skorT6": 3.46,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABC1048",
+   "nama": "SJK(C) ENG LING",
+   "pkg": "Seri Manjung",
+   "kelasSiap": 1,
+   "kelasJumlah": 1,
+   "muridSiap": 19,
+   "muridJumlah": 19,
+   "skorT6": 3.26,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABC1049",
+   "nama": "SJK(C) PING MIN",
+   "pkg": "Seri Manjung",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABC1053",
+   "nama": "SJK(C) UK ING",
+   "pkg": "Seri Manjung",
+   "kelasSiap": 3,
+   "kelasJumlah": 3,
+   "muridSiap": 20,
+   "muridJumlah": 20,
+   "skorT6": 4.03,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABD1075",
+   "nama": "SJK(T) PANGKOR",
+   "pkg": "Seri Manjung",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABD1091",
+   "nama": "SJK(T) KPG KAYAN",
+   "pkg": "Seri Manjung",
+   "kelasSiap": 1,
+   "kelasJumlah": 1,
+   "muridSiap": 3,
+   "muridJumlah": 3,
+   "skorT6": 3.24,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "AEA1109",
+   "nama": "SMK SERI MANJUNG",
+   "pkg": "Seri Manjung",
+   "kelasSiap": 0,
+   "kelasJumlah": 2,
+   "muridSiap": 44,
+   "muridJumlah": 46,
+   "skorT6": null,
+   "skorT3": 3.39,
+   "skorT5": 3.63
+  },
+  {
+   "kod": "AEA1111",
+   "nama": "SMK PANGKALAN TLDM",
+   "pkg": "Seri Manjung",
+   "kelasSiap": 0,
+   "kelasJumlah": 3,
+   "muridSiap": 17,
+   "muridJumlah": 30,
+   "skorT6": null,
+   "skorT3": 0,
+   "skorT5": 3.47
+  },
+  {
+   "kod": "AEA1116",
+   "nama": "SMK KPG DATO SERI KAMARUDDIN",
+   "pkg": "Seri Manjung",
+   "kelasSiap": 0,
+   "kelasJumlah": 3,
+   "muridSiap": 30,
+   "muridJumlah": 46,
+   "skorT6": null,
+   "skorT3": 3.29,
+   "skorT5": 4.38
+  },
+  {
+   "kod": "AEB1033",
+   "nama": "SMK DINDINGS",
+   "pkg": "Seri Manjung",
+   "kelasSiap": 0,
+   "kelasJumlah": 2,
+   "muridSiap": 55,
+   "muridJumlah": 63,
+   "skorT6": null,
+   "skorT3": 3.32,
+   "skorT5": 3.28
+  },
+  {
+   "kod": "AEE1037",
+   "nama": "SMK PANGKOR",
+   "pkg": "Seri Manjung",
+   "kelasSiap": 3,
+   "kelasJumlah": 5,
+   "muridSiap": 40,
+   "muridJumlah": 40,
+   "skorT6": null,
+   "skorT3": 3.67,
+   "skorT5": 3.65
+  },
+  {
+   "kod": "AHA1002",
+   "nama": "KOLEJ VOKASIONAL SERI MANJUNG",
+   "pkg": "Seri Manjung",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABA1007",
+   "nama": "SK PANCHOR",
+   "pkg": "Pantai Remis",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABA1008",
+   "nama": "SK PENGKALAN BAHARU",
+   "pkg": "Pantai Remis",
+   "kelasSiap": 0,
+   "kelasJumlah": 1,
+   "muridSiap": 15,
+   "muridJumlah": 20,
+   "skorT6": 3.43,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABA1009",
+   "nama": "SK SUNGAI BATU",
+   "pkg": "Pantai Remis",
+   "kelasSiap": 1,
+   "kelasJumlah": 1,
+   "muridSiap": 20,
+   "muridJumlah": 20,
+   "skorT6": 3.83,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABA1010",
+   "nama": "SK LADANG HUNTLY",
+   "pkg": "Pantai Remis",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABA1011",
+   "nama": "SK SEGARI",
+   "pkg": "Pantai Remis",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABA1012",
+   "nama": "SK NAKHODA MUHAMMAD TAIB",
+   "pkg": "Pantai Remis",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABA1029",
+   "nama": "SK PANTAI REMIS",
+   "pkg": "Pantai Remis",
+   "kelasSiap": 1,
+   "kelasJumlah": 1,
+   "muridSiap": 20,
+   "muridJumlah": 20,
+   "skorT6": 3.34,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABC1066",
+   "nama": "SJK(C) KHUEN HEAN",
+   "pkg": "Pantai Remis",
+   "kelasSiap": 0,
+   "kelasJumlah": 1,
+   "muridSiap": 19,
+   "muridJumlah": 21,
+   "skorT6": 3.17,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABC1067",
+   "nama": "SJK(C) SUNGAI BATU",
+   "pkg": "Pantai Remis",
+   "kelasSiap": 1,
+   "kelasJumlah": 1,
+   "muridSiap": 33,
+   "muridJumlah": 33,
+   "skorT6": 3.06,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABC1068",
+   "nama": "SJK(C) PEI MIN",
+   "pkg": "Pantai Remis",
+   "kelasSiap": 1,
+   "kelasJumlah": 1,
+   "muridSiap": 7,
+   "muridJumlah": 7,
+   "skorT6": 2.8,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABC1069",
+   "nama": "SJK(C) TIT BIN",
+   "pkg": "Pantai Remis",
+   "kelasSiap": 0,
+   "kelasJumlah": 1,
+   "muridSiap": 4,
+   "muridJumlah": 40,
+   "skorT6": 3.73,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABC1071",
+   "nama": "SJK(C) YEN MIN",
+   "pkg": "Pantai Remis",
+   "kelasSiap": 1,
+   "kelasJumlah": 1,
+   "muridSiap": 8,
+   "muridJumlah": 8,
+   "skorT6": 3.75,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABD1077",
+   "nama": "SJK(T) PENGKALAN BARU",
+   "pkg": "Pantai Remis",
+   "kelasSiap": 0,
+   "kelasJumlah": 1,
+   "muridSiap": 2,
+   "muridJumlah": 15,
+   "skorT6": 3.83,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABD1078",
+   "nama": "SJK(T) LADANG HUNTLY",
+   "pkg": "Pantai Remis",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABD1079",
+   "nama": "SJK(T) LADANG SOGOMANA",
+   "pkg": "Pantai Remis",
+   "kelasSiap": 0,
+   "kelasJumlah": 1,
+   "muridSiap": 0,
+   "muridJumlah": 8,
+   "skorT6": 0,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "AEA1113",
+   "nama": "SMK PANTAI REMIS",
+   "pkg": "Pantai Remis",
+   "kelasSiap": 1,
+   "kelasJumlah": 3,
+   "muridSiap": 50,
+   "muridJumlah": 50,
+   "skorT6": null,
+   "skorT3": 3.48,
+   "skorT5": 3.25
+  },
+  {
+   "kod": "AEE1038",
+   "nama": "SMK DATO IDRIS",
+   "pkg": "Pantai Remis",
+   "kelasSiap": 0,
+   "kelasJumlah": 2,
+   "muridSiap": 39,
+   "muridJumlah": 46,
+   "skorT6": null,
+   "skorT3": 3.1,
+   "skorT5": 3.4
+  },
+  {
+   "kod": "ABA1001",
+   "nama": "SK DENDANG",
+   "pkg": "Beruas",
+   "kelasSiap": 0,
+   "kelasJumlah": 1,
+   "muridSiap": 0,
+   "muridJumlah": 10,
+   "skorT6": 0,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABA1002",
+   "nama": "SK BERUAS",
+   "pkg": "Beruas",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABA1003",
+   "nama": "SK KAMPUNG KOTA",
+   "pkg": "Beruas",
+   "kelasSiap": 0,
+   "kelasJumlah": 1,
+   "muridSiap": 8,
+   "muridJumlah": 19,
+   "skorT6": 3.48,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABA1004",
+   "nama": "SK GELONG GAJAH",
+   "pkg": "Beruas",
+   "kelasSiap": 0,
+   "kelasJumlah": 2,
+   "muridSiap": 3,
+   "muridJumlah": 20,
+   "skorT6": 3.51,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABA1005",
+   "nama": "SK CHANGKAT CHERMIN",
+   "pkg": "Beruas",
+   "kelasSiap": 1,
+   "kelasJumlah": 1,
+   "muridSiap": 18,
+   "muridJumlah": 18,
+   "skorT6": 3.2,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABA1006",
+   "nama": "SK AYER TAWAR",
+   "pkg": "Beruas",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABA1024",
+   "nama": "SK TELAGA NENAS",
+   "pkg": "Beruas",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABB1045",
+   "nama": "SK GANGGA",
+   "pkg": "Beruas",
+   "kelasSiap": 1,
+   "kelasJumlah": 1,
+   "muridSiap": 31,
+   "muridJumlah": 31,
+   "skorT6": 3.47,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABC1063",
+   "nama": "SJK(C) KAMPUNG JERING",
+   "pkg": "Beruas",
+   "kelasSiap": 1,
+   "kelasJumlah": 1,
+   "muridSiap": 19,
+   "muridJumlah": 19,
+   "skorT6": 2.83,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABC1064",
+   "nama": "SJK(C) PEI MIN",
+   "pkg": "Beruas",
+   "kelasSiap": 1,
+   "kelasJumlah": 1,
+   "muridSiap": 4,
+   "muridJumlah": 4,
+   "skorT6": 3.84,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABC1065",
+   "nama": "SJK(C) KAMPUNG MERBAU",
+   "pkg": "Beruas",
+   "kelasSiap": 1,
+   "kelasJumlah": 1,
+   "muridSiap": 12,
+   "muridJumlah": 12,
+   "skorT6": 2.58,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABC1070",
+   "nama": "SJK(C) PEI CHING",
+   "pkg": "Beruas",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABD1083",
+   "nama": "SJK(T) KAMPUNG TUN SAMBANTHAN",
+   "pkg": "Beruas",
+   "kelasSiap": 1,
+   "kelasJumlah": 1,
+   "muridSiap": 3,
+   "muridJumlah": 3,
+   "skorT6": 4.19,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABD1084",
+   "nama": "SJK(T) LADANG CASHWOOD",
+   "pkg": "Beruas",
+   "kelasSiap": 0,
+   "kelasJumlah": 1,
+   "muridSiap": 0,
+   "muridJumlah": 11,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABD1093",
+   "nama": "SJK(T) BERUAS",
+   "pkg": "Beruas",
+   "kelasSiap": 1,
+   "kelasJumlah": 1,
+   "muridSiap": 3,
+   "muridJumlah": 3,
+   "skorT6": 3.93,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "AEA1115",
+   "nama": "SMK CHANGKAT BERUAS",
+   "pkg": "Beruas",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "AEE1032",
+   "nama": "SMK RAJA SHAHRIMAN",
+   "pkg": "Beruas",
+   "kelasSiap": 2,
+   "kelasJumlah": 2,
+   "muridSiap": 40,
+   "muridJumlah": 40,
+   "skorT6": null,
+   "skorT3": 3.6,
+   "skorT5": 3.69
+  },
+  {
+   "kod": "ABA1013",
+   "nama": "SK SG RAMAI",
+   "pkg": "Ayer Tawar",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABA1014",
+   "nama": "SK SG WANGI",
+   "pkg": "Ayer Tawar",
+   "kelasSiap": 0,
+   "kelasJumlah": 1,
+   "muridSiap": 0,
+   "muridJumlah": 20,
+   "skorT6": 0,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABA1016",
+   "nama": "SK SITIAWAN",
+   "pkg": "Ayer Tawar",
+   "kelasSiap": 2,
+   "kelasJumlah": 3,
+   "muridSiap": 20,
+   "muridJumlah": 20,
+   "skorT6": 3.68,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABA1025",
+   "nama": "SK KG BAHARU (L)",
+   "pkg": "Ayer Tawar",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABA1033",
+   "nama": "SK SERI SITIAWAN",
+   "pkg": "Ayer Tawar",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABA1034",
+   "nama": "SK SERI BAYU",
+   "pkg": "Ayer Tawar",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABA1035",
+   "nama": "SK SERI SAMUDERA",
+   "pkg": "Ayer Tawar",
+   "kelasSiap": 2,
+   "kelasJumlah": 2,
+   "muridSiap": 22,
+   "muridJumlah": 22,
+   "skorT6": 4.25,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABB1041",
+   "nama": "SK METHODIST",
+   "pkg": "Ayer Tawar",
+   "kelasSiap": 0,
+   "kelasJumlah": 1,
+   "muridSiap": 19,
+   "muridJumlah": 20,
+   "skorT6": 3.2,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABC1051",
+   "nama": "SJK(C) KUR SENG",
+   "pkg": "Ayer Tawar",
+   "kelasSiap": 1,
+   "kelasJumlah": 1,
+   "muridSiap": 15,
+   "muridJumlah": 15,
+   "skorT6": 3.04,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABC1059",
+   "nama": "SJK(C) KOK MING",
+   "pkg": "Ayer Tawar",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABC1061",
+   "nama": "SJK(C) AYER TAWAR",
+   "pkg": "Ayer Tawar",
+   "kelasSiap": 0,
+   "kelasJumlah": 2,
+   "muridSiap": 0,
+   "muridJumlah": 51,
+   "skorT6": 0,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABC1062",
+   "nama": "SJK(C) MIN TE",
+   "pkg": "Ayer Tawar",
+   "kelasSiap": 0,
+   "kelasJumlah": 1,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": 0,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABD1082",
+   "nama": "SJK(T) LDG AYER TAWAR",
+   "pkg": "Ayer Tawar",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABD1085",
+   "nama": "SJK(T) KG COLUMBIA",
+   "pkg": "Ayer Tawar",
+   "kelasSiap": 1,
+   "kelasJumlah": 1,
+   "muridSiap": 9,
+   "muridJumlah": 9,
+   "skorT6": 2.93,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABD1086",
+   "nama": "SJK(T) LDG WALBROOK",
+   "pkg": "Ayer Tawar",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABD1087",
+   "nama": "SJK(T) LDG SG WANGI II",
+   "pkg": "Ayer Tawar",
+   "kelasSiap": 0,
+   "kelasJumlah": 1,
+   "muridSiap": 0,
+   "muridJumlah": 20,
+   "skorT6": 0,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABD1089",
+   "nama": "SJK(T) MUKIM PUNDUT",
+   "pkg": "Ayer Tawar",
+   "kelasSiap": 1,
+   "kelasJumlah": 1,
+   "muridSiap": 18,
+   "muridJumlah": 18,
+   "skorT6": 3.35,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "ABD1092",
+   "nama": "SJK(T) AYER TAWAR",
+   "pkg": "Ayer Tawar",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": null
+  },
+  {
+   "kod": "AEA1110",
+   "nama": "SMK AHMAD BOESTAMAM",
+   "pkg": "Ayer Tawar",
+   "kelasSiap": 2,
+   "kelasJumlah": 2,
+   "muridSiap": 45,
+   "muridJumlah": 45,
+   "skorT6": null,
+   "skorT3": 3.47,
+   "skorT5": 3.82
+  },
+  {
+   "kod": "AEA1114",
+   "nama": "SMK SERI SAMUDERA",
+   "pkg": "Ayer Tawar",
+   "kelasSiap": 1,
+   "kelasJumlah": 3,
+   "muridSiap": 82,
+   "muridJumlah": 90,
+   "skorT6": null,
+   "skorT3": 3.48,
+   "skorT5": 3.68
+  },
+  {
+   "kod": "AEB1034",
+   "nama": "SMK AYER TAWAR",
+   "pkg": "Ayer Tawar",
+   "kelasSiap": 2,
+   "kelasJumlah": 2,
+   "muridSiap": 40,
+   "muridJumlah": 40,
+   "skorT6": null,
+   "skorT3": 4.02,
+   "skorT5": 3.85
+  },
+  {
+   "kod": "AEB1036",
+   "nama": "SMK METHODIST",
+   "pkg": "Ayer Tawar",
+   "kelasSiap": 0,
+   "kelasJumlah": 1,
+   "muridSiap": 0,
+   "muridJumlah": 20,
+   "skorT6": null,
+   "skorT3": null,
+   "skorT5": 0
+  },
+  {
+   "kod": "AEE1036",
+   "nama": "SMK AMBROSE",
+   "pkg": "Ayer Tawar",
+   "kelasSiap": 2,
+   "kelasJumlah": 4,
+   "muridSiap": 32,
+   "muridJumlah": 36,
+   "skorT6": null,
+   "skorT3": 3.58,
+   "skorT5": 3.15
+  }
+ ]
+}

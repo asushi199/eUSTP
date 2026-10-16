@@ -15,6 +15,7 @@ import {
   lulusIkutJenis,
   type AinsBackup,
 } from "./ains-types";
+import { getDcsTerkiniIkutTahun } from "./dcs-queries";
 import { getOptikHomeView, optikKpiGroupStats, optikKpiReferenceLines } from "./optik-queries";
 
 /** Bentuk data boleh-serialize untuk kad + modal analisis di halaman utama. */
@@ -192,7 +193,8 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
 
   /* ---------- DCS ---------- */
   const dcsCapai = metricNum(dcs.metrics, "capai");
-  const dcsModule: AnalisisHomeModule = {
+  const dcsSnap = (await getDcsTerkiniIkutTahun().catch(() => []))[0] ?? null;
+  const dcs2025: AnalisisHomeModule = {
     id: "dcs",
     label: "DCS",
     headlineValue: pct(dcsCapai),
@@ -213,6 +215,37 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
     ],
     note: metricText(dcs.metrics, "updated_text", "kemaskini"),
   };
+  let dcsModule = dcs2025;
+  if (dcsSnap) {
+    const siap = dcsSnap.pkg.reduce((a, p) => a + p.muridSiap, 0);
+    const jumlah = dcsSnap.pkg.reduce((a, p) => a + p.muridJumlah, 0);
+    const sekSiap = dcsSnap.pkg.reduce((a, p) => a + p.sekolahSiap, 0);
+    const sekJumlah = dcsSnap.pkg.reduce((a, p) => a + p.sekolahJumlah, 0);
+    const pkgUrut = [...dcsSnap.pkg].sort((a, b) => a.rankPerak - b.rankPerak);
+    dcsModule = {
+      id: "dcs",
+      label: "DCS",
+      headlineValue: pct(jumlah > 0 ? Math.round((siap / jumlah) * 1000) / 10 : null),
+      headlineLabel: "Murid selesai DCS",
+      yearLabel: `Data ${dcsSnap.tahun}`,
+      tiles: [
+        { label: "Murid selesai", value: `${siap.toLocaleString("ms-MY")} / ${jumlah.toLocaleString("ms-MY")}` },
+        { label: "Sekolah siap", value: `${sekSiap} / ${sekJumlah}` },
+        {
+          label: `Kedudukan terbaik (${dcsSnap.jumlahPkgPerak} PKG Perak)`,
+          value: pkgUrut[0] ? `#${pkgUrut[0].rankPerak} ${pkgUrut[0].pkg}` : "",
+        },
+      ],
+      bars: [
+        {
+          title: "Murid selesai ikut PKG (%)",
+          seriesName: "%",
+          data: pkgUrut.map((p) => ({ label: p.pkg, jumlah: p.pct })),
+        },
+      ],
+      note: `Data dcs.moe.edu.my (dibaca ${dcsSnap.capturedOn.split("-").reverse().join("/")}).`,
+    };
+  }
 
   /* ---------- AINS ---------- */
   // Data bulanan terkini (PPD Manjung) jika ada; jika tidak, jatuh balik ke metrik lama (sandaran 2025).

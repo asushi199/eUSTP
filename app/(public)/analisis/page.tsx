@@ -11,6 +11,8 @@ import OptikExplore from "@/components/analisis/OptikExplore";
 import { delimaTaburan } from "@/lib/analisis/delima-live";
 import DelimaExplore from "@/components/analisis/DelimaExplore";
 import AinsExplore from "@/components/analisis/AinsExplore";
+import DcsExplore, { type DcsBackup } from "@/components/analisis/DcsExplore";
+import { getDcsTerkiniIkutTahun } from "@/lib/analisis/dcs-queries";
 import { getAinsTahun, listAinsTahun } from "@/lib/analisis/ains-queries";
 import { capaianStats } from "@/lib/analisis/summary";
 import AnalisisTahunSelect from "@/components/analisis/AnalisisTahunSelect";
@@ -114,6 +116,10 @@ export default async function AnalisisPage({
   const yearHint = clampStatsYear(sp.tahun, currentYear);
   const delima = await getAnalisisData("delima");
   const dcs = await getAnalisisData("dcs");
+  const dcsSnapshots = await getDcsTerkiniIkutTahun().catch((e) => {
+    console.error("[analisis] dcs:", e instanceof Error ? e.message : e);
+    return [];
+  });
   const ains = await getAnalisisData("ains");
   const pensijilan = await getAnalisisData("pensijilan");
   const optik = await getAnalisisData("optik");
@@ -174,6 +180,15 @@ export default async function AnalisisPage({
     { label: "KPI", jumlah: metricNum(dcs.metrics, "kpi") ?? 0 },
     { label: "Capai", jumlah: metricNum(dcs.metrics, "capai") ?? 0 },
   ].filter((b) => b.jumlah > 0);
+  // Metrik DCS lama (Google Sheet) = data 2025; 2026 dibaca daripada dcs.moe.edu.my.
+  const dcsBackup: DcsBackup = {
+    tahun: 2025,
+    bars: dcsBars,
+    updatedText: metricText(dcs.metrics, "updated_text", "kemaskini"),
+    footer: metricText(dcs.metrics, "footer", "footer_text").replace(/\\n/g, "\n"),
+    sourceUrl: metricText(dcs.metrics, "source_url"),
+    sourceLabel: metricText(dcs.metrics, "source_label") || "Buka sumber DCS",
+  };
 
   /* ---------- AINS ---------- */
   // Metrik Ains sedia ada (sebelum import bulanan) dikekalkan sebagai data sandaran 2025.
@@ -309,34 +324,8 @@ export default async function AnalisisPage({
 
       {/* ---------- DCS ---------- */}
       <section id="dcs" className="mt-12 scroll-mt-28">
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-          <h2 className="text-xl font-semibold">Digital Competency Score (DCS)</h2>
-          <span className="text-sm font-semibold text-ink">Data 2025</span>
-          <span className="inline-flex items-center gap-1.5 rounded bg-ink px-2.5 py-1 text-xs font-semibold text-white">
-            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-bloom-coral" aria-hidden />
-            2026 masih berlangsung
-          </span>
-        </div>
-        <div className="mt-4 grid gap-4 lg:grid-cols-2">
-          <BreakdownBarChart title="TOV · KPI · Pencapaian 2025 (%)" data={dcsBars} seriesName="%" />
-          <div className="card p-5 text-sm leading-relaxed text-graphite">
-            {metricText(dcs.metrics, "updated_text", "kemaskini") ? (
-              <p>
-                <span className="font-semibold text-ink">Kemas kini: </span>
-                {metricText(dcs.metrics, "updated_text", "kemaskini")}
-              </p>
-            ) : null}
-            {metricText(dcs.metrics, "footer", "footer_text") ? (
-              <p className="mt-2 whitespace-pre-line">
-                {metricText(dcs.metrics, "footer", "footer_text").replace(/\\n/g, "\n")}
-              </p>
-            ) : null}
-            <SourceLink
-              url={metricText(dcs.metrics, "source_url")}
-              label={metricText(dcs.metrics, "source_label") || "Buka sumber DCS"}
-            />
-          </div>
-        </div>
+        <h2 className="text-xl font-semibold">Digital Competency Score (DCS)</h2>
+        <DcsExplore snapshots={dcsSnapshots} backup={dcsBackup} />
       </section>
 
       {/* ---------- AINS ---------- */}
