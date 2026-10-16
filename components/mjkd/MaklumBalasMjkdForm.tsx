@@ -625,7 +625,7 @@ export default function MaklumBalasMjkdForm({
               {filteredSchools.map((s) => (
                 <option key={s.code} value={s.code}>
                   {s.code} — {s.name}
-                  {sudahDihantar(s) ? " (✓ sudah dihantar)" : ""}
+                  {sudahDihantar(s) ? " ✓" : ""}
                 </option>
               ))}
             </select>
@@ -661,8 +661,12 @@ export default function MaklumBalasMjkdForm({
                           </span>
                           <span className="min-w-0 flex-1">{s.name}</span>
                           {sudahDihantar(s) ? (
-                            <span className="shrink-0 text-xs font-semibold text-graphite">
-                              ✓ Sudah dihantar
+                            <span
+                              className="shrink-0 text-sm font-semibold text-ink"
+                              title="Sudah dihantar"
+                              aria-label="Sudah dihantar"
+                            >
+                              ✓
                             </span>
                           ) : null}
                         </button>
