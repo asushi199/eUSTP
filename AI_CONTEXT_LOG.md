@@ -2224,3 +2224,8 @@ Corak berselang = instance sihat vs beracun.
 - Modal DCS halaman utama `max-w-5xl` (dahulu `max-w-2xl`, sesak).
 - `DcsExplore`: petak KPI grid 2×2 (telefon) / 4 sebaris; jadual tahap jadi grid lajur tetap (T6/T3/T5 di telefon, bilangan di bawah peratus) — tiada `min-w`. Senarai sekolah: telefon = senarai kad (`useSkrinLebar`, ≥640px = jadual), 20 baris + "Papar lagi"; butang status 3 lajur, PKG + carian satu baris.
 - Disahkan: typecheck, eslint; smoke 375px (tiada unsur melebihi lebar, 20 kad + Papar lagi (81)) dan 1280px (modal 1024px, 4 petak sebaris, jadual tanpa tatal).
+
+## 2026-10-16 — DCS: jalur tarikh akhir 1 Disember 2026
+
+- `DCS_TARIKH_AKHIR` (`lib/analisis/dcs-types.ts`, ikut tahun) — `DcsExplore` papar jalur dakwat gelap tebal di bawah pemilih tahun: "Tarikh akhir: 1 Disember 2026 · Semua murid mesti selesai menjawab · lagi N hari" (kiraan waktu Malaysia). Hanya untuk tahun yang ada tarikh akhir; 2025 tidak.
+- Disahkan: typecheck, eslint, smoke modal halaman utama ("lagi 46 hari" pada 16 Okt 2026).

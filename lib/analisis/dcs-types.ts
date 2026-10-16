@@ -12,6 +12,11 @@ export const DCS_TAHAP: { key: DcsTahapKey; label: string }[] = [
   { key: "t5", label: "Tingkatan 5" },
 ];
 
+/** Tarikh akhir murid mesti selesai menjawab DCS, ikut tahun (YYYY-MM-DD). */
+export const DCS_TARIKH_AKHIR: Record<number, string> = {
+  2026: "2026-12-01",
+};
+
 /** Petak papan pemuka PKG: peratus siap + bilangan (murid/sekolah) siap. */
 export type DcsTahapStat = { pct: number; bil: number };
 

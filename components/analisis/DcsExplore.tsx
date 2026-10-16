@@ -3,7 +3,7 @@
 import { useMemo, useState, useSyncExternalStore } from "react";
 import TahunSelect from "@/components/analisis/TahunSelect";
 import BreakdownBarChart from "@/components/stats/BreakdownBarChart";
-import { DCS_TAHAP, type DcsBackup, type DcsSekolah, type DcsSnapshot } from "@/lib/analisis/dcs-types";
+import { DCS_TAHAP, DCS_TARIKH_AKHIR, type DcsBackup, type DcsSekolah, type DcsSnapshot } from "@/lib/analisis/dcs-types";
 
 export type { DcsBackup };
 
@@ -13,6 +13,10 @@ const num = (n: number) => n.toLocaleString("ms-MY");
 const pct = (n: number) => `${n.toLocaleString("ms-MY", { maximumFractionDigits: 1 })}%`;
 const bahagi = (a: number, b: number) => (b > 0 ? (a / b) * 100 : 0);
 const BULAN = ["Jan", "Feb", "Mac", "Apr", "Mei", "Jun", "Jul", "Ogos", "Sep", "Okt", "Nov", "Dis"];
+const BULAN_PENUH = [
+  "Januari", "Februari", "Mac", "April", "Mei", "Jun",
+  "Julai", "Ogos", "September", "Oktober", "November", "Disember",
+];
 const tarikh = (iso: string) => {
   const [y, m, d] = iso.split("-").map(Number);
   return `${d} ${BULAN[m - 1]} ${y}`;
@@ -106,7 +110,31 @@ export default function DcsExplore({
           </p>
         ) : null}
       </div>
+      {snap && DCS_TARIKH_AKHIR[snap.tahun] ? <TarikhAkhir iso={DCS_TARIKH_AKHIR[snap.tahun]} /> : null}
       {snap ? <DcsTahun key={snap.tahun} snap={snap} /> : <DcsSandaran backup={backup} />}
+    </div>
+  );
+}
+
+/** Hari berbaki hingga tarikh akhir (waktu Malaysia); negatif = sudah lepas. */
+function hariBerbaki(iso: string): number {
+  const hariIni = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kuala_Lumpur" });
+  return Math.round((Date.parse(iso) - Date.parse(hariIni)) / 86_400_000);
+}
+
+function TarikhAkhir({ iso }: { iso: string }) {
+  const [y, m, d] = iso.split("-").map(Number);
+  const baki = hariBerbaki(iso);
+  return (
+    <div className="mt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-lg bg-ink px-4 py-3 text-white">
+      <p className="flex items-center gap-2 text-base font-extrabold tracking-tight sm:text-lg">
+        <span className="h-2 w-2 shrink-0 rounded-full bg-bloom-coral" aria-hidden />
+        Tarikh akhir: {d} {BULAN_PENUH[m - 1]} {y}
+      </p>
+      <p className="text-sm font-semibold text-white/80" suppressHydrationWarning>
+        Semua murid mesti selesai menjawab
+        {baki > 0 ? ` · lagi ${baki} hari` : baki === 0 ? " · hari ini" : " · tarikh akhir telah tamat"}
+      </p>
     </div>
   );
 }
