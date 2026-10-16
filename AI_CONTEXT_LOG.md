@@ -1,5 +1,11 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-10-16 — MJKD: status "Belum Dilaksanakan" → "Akan Dilaksanakan"
+
+- Atas arahan pengguna: label `STATUS_MJKD_LABEL.BELUM` (lib/mjkd/enums.ts) ditukar kepada "Akan Dilaksanakan"; huruf matriks `B` → `A`. Kod DB kekal `BELUM` (tiada migrasi) — semua jawapan yang sudah dihantar terus dipaparkan dengan label baharu (borang, semak, admin, pembentangan).
+- Teks catatan bebas yang ditaip sekolah tidak diubah.
+- Disahkan: typecheck, `npm run build`, pelayar `/dev/pentas` papar "Akan Dilaksanakan".
+
 ## 2026-10-16 — MJKD borang awam: tanda sekolah "Sudah dihantar"
 
 - `/laporan-mjkd` memuat `listKodSekolahSudahHantar` (queries.ts) dan menghantar `sudahHantar` ke `MaklumBalasMjkdForm`. Borang baharu sahaja (bukan kemaskini/admin): senarai carian + `<select>` tanda "✓ Sudah dihantar".

@@ -11,7 +11,8 @@ export type StatusMjkd = (typeof STATUS_MJKD)[number];
 export const STATUS_MJKD_LABEL: Record<StatusMjkd, string> = {
   SELESAI: "Selesai",
   DALAM_PELAKSANAAN: "Dalam Pelaksanaan",
-  BELUM: "Belum Dilaksanakan",
+  // Kod DB kekal "BELUM"; label ditukar 2026-10-16 (semua jawapan lama ikut sama).
+  BELUM: "Akan Dilaksanakan",
   TIDAK_BERKAITAN: "Tidak Berkaitan",
 };
 
@@ -19,7 +20,7 @@ export const STATUS_MJKD_LABEL: Record<StatusMjkd, string> = {
 export const STATUS_MJKD_SINGKAT: Record<StatusMjkd, string> = {
   SELESAI: "S",
   DALAM_PELAKSANAAN: "D",
-  BELUM: "B",
+  BELUM: "A",
   TIDAK_BERKAITAN: "T",
 };
 
