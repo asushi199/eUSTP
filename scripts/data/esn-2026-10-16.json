@@ -36,8 +36,8 @@
    "sekolah": {
     "selesai": 0,
     "proses": 0,
-    "belum": 22,
-    "jumlah": 22
+    "belum": 21,
+    "jumlah": 21
    },
    "murid": [
     {
@@ -1077,17 +1077,6 @@
    "kelasJumlah": 0,
    "muridSiap": 0,
    "muridJumlah": 0
-  },
-  {
-   "kod": "ABC1234",
-   "nama": "SMK BERTESTING",
-   "jenis": "menengah",
-   "status": "belum",
-   "kelasSiap": 0,
-   "kelasJumlah": 0,
-   "muridSiap": 0,
-   "muridJumlah": 0,
-   "ujian": true
   }
  ]
 }

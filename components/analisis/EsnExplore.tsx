@@ -144,7 +144,6 @@ function EsnTahun({ snap }: { snap: EsnSnapshot }) {
     const q = cari.trim().toLowerCase();
     return snap.sekolah.filter(
       (s) =>
-        !s.ujian &&
         (!jenis || s.jenis === jenis) &&
         (!q || s.nama.toLowerCase().includes(q) || s.kod.toLowerCase().includes(q)),
     );

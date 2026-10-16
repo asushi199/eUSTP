@@ -38,8 +38,6 @@ export type EsnSekolah = {
   kelasJumlah: number;
   muridSiap: number;
   muridJumlah: number;
-  /** Rekod ujian dalam sistem ESN (cth. SMK BERTESTING) — dikira dalam jumlah rasmi, tidak disenaraikan. */
-  ujian?: boolean;
 };
 
 export type EsnSnapshot = {

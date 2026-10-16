@@ -9,8 +9,8 @@ test("snapshot ESN 2026: senarai sekolah sepadan angka Dashboard", () => {
   assert.deepEqual(semakEsn(snap), []);
 });
 
-test("jumlah ESN 2026: 103 sekolah, 335/3837 murid selesai", () => {
-  assert.equal(jumlahSekolahEsn(snap).jumlah, 103);
+test("jumlah ESN 2026: 102 sekolah, 335/3837 murid selesai", () => {
+  assert.equal(jumlahSekolahEsn(snap).jumlah, 102);
   const m = jumlahMuridEsn(snap);
   assert.equal(m.siap, 335);
   assert.equal(m.jumlah, 3837);

@@ -2249,7 +2249,7 @@ Corak berselang = instance sihat vs beracun.
 ## 2026-10-16 — Kad ESN (Etika Siber Nasional) dalam CoE Analytics
 
 - Sumber: esn.moe.edu.my (log masuk akaun PPD Manjung oleh pengguna; Claude tidak memasukkan kata laluan). Dashboard (ringkasan sekolah/murid rendah & menengah) + Status Pelaksanaan (`/admin/ppd-progress/50/{1,2}`, DataTables server-side — `length` besar beri 504, guna 10 sebaris + cuba semula). Tiada nama murid/guru disimpan.
-- Data: `scripts/data/esn-2026-10-16.json` (103 sekolah: 81 rendah + 22 menengah; murid 335/3,837; sekolah selesai 1, dalam proses 20, belum mula 82). `SMK BERTESTING` (ABC1234) ialah rekod ujian ESN — dikira dalam jumlah rasmi, bertanda `ujian` dan tidak disenaraikan dalam UI.
+- Data: `scripts/data/esn-2026-10-16.json` (102 sekolah: 81 rendah + 21 menengah; murid 335/3,837; sekolah selesai 1, dalam proses 20, belum mula 81). Rekod ujian ESN `SMK BERTESTING` (ABC1234) dibuang daripada data (jumlah rasmi ESN 103/22 termasuk rekod ini).
 - Jadual baharu `analisis_esn_snapshots` (jsonb `data` = `EsnSnapshot`, unik `captured_on`, RLS dihidupkan) — migrasi `0057_esn_snapshots`. Import: `npm run db:import-esn -- <fail.json> [--dry-run]` (semak senarai sekolah = angka Dashboard).
 - Kad "ESN" ditambah dalam jalur CoE Analytics halaman utama (`summary.ts` id `esn`, headline % murid selesai 8.7%). Modal `EsnExplore`: jalur tarikh akhir **15 Disember 2026** (`ESN_TARIKH_AKHIR`), petak KPI, ringkasan rendah/menengah, senarai sekolah (tapis status/jenis/carian).
 - `TarikhAkhirBanner` diekstrak daripada `DcsExplore` dan dikongsi DCS + ESN.
