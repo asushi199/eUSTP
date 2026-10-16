@@ -327,18 +327,33 @@ export default function MaklumBalasMjkdForm({
       }
       const isi = isiRef.current;
       drafAdaDiPelayan.current[kodStabil] = Boolean(res.draf);
-      if (res.draf) {
-        const d = res.draf;
-        const tempatanLebihBaru =
-          adaIsi(isi.jawapan) &&
-          tempatan.current.kod === kodStabil &&
-          tempatan.current.ts >= d.disimpan;
-        if (!tempatanLebihBaru) {
+      // Isi yang dipaparkan masih draf pelayan sekolah LAIN (tidak disunting) — bukan milik sekolah ini.
+      const isiSekolahLain =
+        Boolean(sebelum) &&
+        sebelum !== kodStabil &&
+        dimuatJson.current !== null &&
+        JSON.stringify(isi) === dimuatJson.current;
+      // Draf pelayar peranti ini untuk sekolah ini (dibaca semula — isi borang mungkin milik sekolah lain).
+      const lokalRaw = kunciDraf ? bacaDraf(kunciDraf) : null;
+      const lokal =
+        lokalRaw && lokalRaw.schoolCode === kodStabil && adaIsi(lokalRaw.jawapan) ? lokalRaw : null;
+      const pelayan = res.draf;
+      // Pilih yang lebih baharu antara draf pelayan dan draf pelayar untuk sekolah ini.
+      const guna = lokal && (!pelayan || lokal.disimpan >= pelayan.disimpan) ? "lokal" : pelayan ? "pelayan" : null;
+      if (guna) {
+        const d = guna === "lokal" ? lokal! : pelayan!;
+        // Isi sedia ada sudah milik sekolah ini dan sama baharu → kekalkan (elak menimpa suntingan).
+        const kekal =
+          guna === "lokal" && !isiSekolahLain && adaIsi(isi.jawapan) && tempatan.current.kod === kodStabil;
+        if (!kekal) {
           disentuh.current = true; // jangan ditimpa oleh prefill direktori
           setNamaPengisi(d.namaPengisi);
           setJawatanPengisi(d.jawatanPengisi);
           setJawapan(d.jawapan);
           setDrafDipulih(d.disimpan);
+          if (guna === "lokal") tempatan.current = { kod: kodStabil, ts: d.disimpan };
+        }
+        if (guna === "pelayan") {
           const json = JSON.stringify({
             namaPengisi: d.namaPengisi,
             jawatanPengisi: d.jawatanPengisi,
@@ -346,14 +361,13 @@ export default function MaklumBalasMjkdForm({
           });
           dimuatJson.current = json;
           terakhirJson.current = json;
+        } else {
+          // Draf pelayar lebih baharu: isi ini milik sekolah ini — benarkan ia disegerakkan ke pelayan.
+          dimuatJson.current = null;
+          terakhirJson.current = "";
         }
-      } else if (
-        sebelum &&
-        sebelum !== kodStabil &&
-        dimuatJson.current &&
-        JSON.stringify(isi) === dimuatJson.current
-      ) {
-        // Isi yang dipaparkan ialah draf sekolah lain (tidak diubah) — kosongkan untuk sekolah ini.
+      } else if (isiSekolahLain) {
+        // Tiada draf untuk sekolah ini dan isi yang dipaparkan milik sekolah lain — kosongkan.
         dimuatJson.current = null;
         terakhirJson.current = "";
         disentuh.current = false;
