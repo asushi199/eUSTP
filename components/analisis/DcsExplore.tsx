@@ -17,7 +17,7 @@ export type DcsBackup = {
   sourceLabel: string;
 };
 
-type Status = "semua" | "siap" | "belum" | "tiada";
+type Status = "semua" | "selesai" | "belum";
 
 const num = (n: number) => n.toLocaleString("ms-MY");
 const pct = (n: number) => `${n.toLocaleString("ms-MY", { maximumFractionDigits: 1 })}%`;
@@ -28,10 +28,16 @@ const tarikh = (iso: string) => {
   return `${d} ${BULAN[m - 1]} ${y}`;
 };
 
+/** Takrif DCS "sekolah siap": ada murid didaftarkan dan semuanya selesai menjawab. */
 function statusSekolah(s: DcsSekolah): Exclude<Status, "semua"> {
-  if (s.muridJumlah === 0) return "tiada";
-  return s.muridSiap >= s.muridJumlah ? "siap" : "belum";
+  return s.muridJumlah > 0 && s.muridSiap >= s.muridJumlah ? "selesai" : "belum";
 }
+
+const STATUS_PILIHAN: { id: Status; label: string }[] = [
+  { id: "semua", label: "Semua" },
+  { id: "selesai", label: "Selesai" },
+  { id: "belum", label: "Belum selesai" },
+];
 
 function skorTeks(s: DcsSekolah): string {
   const bahagian = [
@@ -121,6 +127,7 @@ function DcsSandaran({ backup }: { backup: DcsBackup }) {
 function DcsTahun({ snap }: { snap: DcsSnapshot }) {
   const [pkgPilih, setPkgPilih] = useState<string>("");
   const [status, setStatus] = useState<Status>("semua");
+  const [cari, setCari] = useState("");
 
   const muridSiap = snap.pkg.reduce((a, p) => a + p.muridSiap, 0);
   const muridJumlah = snap.pkg.reduce((a, p) => a + p.muridJumlah, 0);
@@ -129,18 +136,28 @@ function DcsTahun({ snap }: { snap: DcsSnapshot }) {
   const terbaik = [...snap.pkg].sort((a, b) => a.rankPerak - b.rankPerak)[0];
   const pkgUrut = [...snap.pkg].sort((a, b) => a.rankPerak - b.rankPerak);
 
+  const dalamPkg = useMemo(() => {
+    const q = cari.trim().toLowerCase();
+    return snap.sekolah.filter(
+      (s) =>
+        (!pkgPilih || s.pkg === pkgPilih) &&
+        (!q || s.nama.toLowerCase().includes(q) || s.kod.toLowerCase().includes(q)),
+    );
+  }, [snap.sekolah, pkgPilih, cari]);
+
   const sekolah = useMemo(() => {
-    return snap.sekolah
-      .filter((s) => (!pkgPilih || s.pkg === pkgPilih) && (status === "semua" || statusSekolah(s) === status))
+    return dalamPkg
+      .filter((s) => status === "semua" || statusSekolah(s) === status)
       .sort((a, b) => {
         const ta = a.muridJumlah === 0 ? -1 : bahagi(a.muridSiap, a.muridJumlah);
         const tb = b.muridJumlah === 0 ? -1 : bahagi(b.muridSiap, b.muridJumlah);
         return tb - ta || b.muridJumlah - a.muridJumlah || a.kod.localeCompare(b.kod);
       });
-  }, [snap.sekolah, pkgPilih, status]);
+  }, [dalamPkg, status]);
 
-  const bilStatus = (st: Exclude<Status, "semua">) =>
-    snap.sekolah.filter((s) => (!pkgPilih || s.pkg === pkgPilih) && statusSekolah(s) === st).length;
+  const bilStatus = (st: Status) =>
+    st === "semua" ? dalamPkg.length : dalamPkg.filter((s) => statusSekolah(s) === st).length;
+  const belumDaftar = dalamPkg.filter((s) => s.muridJumlah === 0).length;
 
   return (
     <>
@@ -233,47 +250,59 @@ function DcsTahun({ snap }: { snap: DcsSnapshot }) {
       </div>
 
       <div className="card mt-4 p-5">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <p className="font-semibold">Pencapaian sekolah</p>
-            <p className="mt-1 text-xs text-graphite">
-              {sekolah.length} sekolah · murid 100% selesai {bilStatus("siap")} · belum {bilStatus("belum")} · tiada murid
-              didaftarkan {bilStatus("tiada")}
-            </p>
+        <p className="font-semibold">Senarai sekolah selesai / belum selesai</p>
+        <p className="mt-1 text-xs text-graphite">
+          Selesai = semua murid yang didaftarkan sudah menjawab (takrif &quot;sekolah siap&quot; DCS).
+          {belumDaftar > 0 ? ` Belum selesai termasuk ${belumDaftar} sekolah yang belum mendaftarkan murid.` : ""}
+        </p>
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap gap-1.5" role="group" aria-label="Tapis status">
+            {STATUS_PILIHAN.map((it) => {
+              const aktif = status === it.id;
+              return (
+                <button
+                  key={it.id}
+                  type="button"
+                  aria-pressed={aktif}
+                  onClick={() => setStatus(it.id)}
+                  className={`h-9 rounded border px-3 text-sm font-semibold tabular-nums transition-colors ${
+                    aktif ? "border-ink bg-ink text-white" : "border-fog bg-white text-graphite hover:border-steel"
+                  }`}
+                >
+                  {it.label} ({bilStatus(it.id)})
+                </button>
+              );
+            })}
           </div>
-          <div className="flex flex-wrap gap-2">
-            <select
-              className="input h-9 w-auto px-2 py-0 text-sm"
-              value={pkgPilih}
-              onChange={(e) => setPkgPilih(e.target.value)}
-              aria-label="Tapis PKG"
-            >
-              <option value="">Semua PKG</option>
-              {pkgUrut.map((p) => (
-                <option key={p.pkg} value={p.pkg}>
-                  PKG {p.pkg}
-                </option>
-              ))}
-            </select>
-            <select
-              className="input h-9 w-auto px-2 py-0 text-sm"
-              value={status}
-              onChange={(e) => setStatus(e.target.value as Status)}
-              aria-label="Tapis status"
-            >
-              <option value="semua">Semua status</option>
-              <option value="siap">Murid 100% selesai</option>
-              <option value="belum">Belum 100%</option>
-              <option value="tiada">Tiada murid didaftarkan</option>
-            </select>
-          </div>
+          <select
+            className="input h-9 w-auto px-2 py-0 text-sm"
+            value={pkgPilih}
+            onChange={(e) => setPkgPilih(e.target.value)}
+            aria-label="Tapis PKG"
+          >
+            <option value="">Semua PKG</option>
+            {pkgUrut.map((p) => (
+              <option key={p.pkg} value={p.pkg}>
+                PKG {p.pkg}
+              </option>
+            ))}
+          </select>
+          <input
+            type="search"
+            className="input h-9 w-full px-2 py-0 text-sm sm:w-56"
+            placeholder="Cari nama / kod sekolah"
+            value={cari}
+            onChange={(e) => setCari(e.target.value)}
+            aria-label="Cari sekolah"
+          />
         </div>
         <div className="mt-4 overflow-x-auto">
-          <table className="w-full min-w-[40rem] text-sm">
+          <table className="w-full min-w-[46rem] text-sm">
             <thead>
               <tr className="border-b border-fog text-left text-xs text-graphite">
                 <th className="py-2 pr-2 font-semibold">Sekolah</th>
                 <th className="px-2 py-2 font-semibold">PKG</th>
+                <th className="px-2 py-2 font-semibold">Status</th>
                 <th className="px-2 py-2 text-right font-semibold">Kelas siap</th>
                 <th className="w-44 px-2 py-2 font-semibold">Murid selesai</th>
                 <th className="py-2 pl-2 text-right font-semibold">Skor purata</th>
@@ -289,6 +318,19 @@ function DcsTahun({ snap }: { snap: DcsSnapshot }) {
                       <span className="ml-1.5 text-xs text-graphite">{s.kod}</span>
                     </td>
                     <td className="whitespace-nowrap px-2 py-2 text-graphite">{s.pkg}</td>
+                    <td className="whitespace-nowrap px-2 py-2">
+                      {statusSekolah(s) === "selesai" ? (
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink">
+                          <span className="h-1.5 w-1.5 rounded-full bg-ink" aria-hidden />
+                          Selesai
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 text-xs text-graphite">
+                          <span className="h-1.5 w-1.5 rounded-full border border-graphite" aria-hidden />
+                          Belum selesai
+                        </span>
+                      )}
+                    </td>
                     <td className="px-2 py-2 text-right tabular-nums">
                       {s.kelasJumlah > 0 ? `${s.kelasSiap}/${s.kelasJumlah}` : "—"}
                     </td>
@@ -303,7 +345,7 @@ function DcsTahun({ snap }: { snap: DcsSnapshot }) {
                           </span>
                         </div>
                       ) : (
-                        <span className="text-xs text-graphite">Tiada murid didaftarkan</span>
+                        <span className="text-xs text-graphite">Belum daftar murid</span>
                       )}
                     </td>
                     <td className="whitespace-nowrap py-2 pl-2 text-right text-xs tabular-nums">{skorTeks(s)}</td>
@@ -312,7 +354,7 @@ function DcsTahun({ snap }: { snap: DcsSnapshot }) {
               })}
               {sekolah.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-6 text-center text-sm text-graphite">
+                  <td colSpan={6} className="py-6 text-center text-sm text-graphite">
                     Tiada sekolah sepadan.
                   </td>
                 </tr>

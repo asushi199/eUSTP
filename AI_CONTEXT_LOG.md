@@ -2208,3 +2208,8 @@ Corak berselang = instance sihat vs beracun.
 - Dibuka semula → draf dipulihkan (hanya jika ada jawapan sebenar) + banner "Draf anda telah dipulihkan" dengan butang "Buang draf". Draf dipadam selepas berjaya menghantar; jika sama dengan rekod asal, tidak disimpan.
 - Had: draf hanya dalam pelayar/peranti yang sama (bukan pelayan).
 - Disahkan: typecheck, eslint, smoke dev (isi → muat semula → dipulihkan → Buang draf kosongkan + padam kunci; tiada ralat konsol). `npm run build` tidak dijalankan kerana pelayan dev sesi lain sedang guna `.next`.
+
+## 2026-10-16 — DCS: senarai sekolah selesai / belum selesai
+
+- `DcsExplore`: status dua nilai ikut takrif "sekolah siap" DCS (murid didaftarkan > 0 dan semua selesai) — sepadan angka Ranking (daerah 37/101, Sitiawan 9/22). Butang Semua / Selesai / Belum selesai (dengan bilangan), tapis PKG, carian nama/kod, lajur Status. Sekolah 0/0 = "Belum daftar murid" (dikira belum selesai).
+- Disahkan: typecheck, eslint, smoke pratonton dev sementara (kiraan butang, tapis PKG, carian) — laluan dev dibuang.
