@@ -1,0 +1,1093 @@
+{
+ "tahun": 2026,
+ "capturedOn": "2026-10-16",
+ "sumber": "https://esn.moe.edu.my/admin/admin/dashboard",
+ "ppd": "PPD Manjung",
+ "ringkasan": [
+  {
+   "jenis": "rendah",
+   "label": "Sekolah Rendah",
+   "sekolah": {
+    "selesai": 1,
+    "proses": 20,
+    "belum": 60,
+    "jumlah": 81
+   },
+   "murid": [
+    {
+     "label": "Murid Tahap 1",
+     "selesai": 167,
+     "proses": 41,
+     "belum": 992,
+     "jumlah": 1200
+    },
+    {
+     "label": "Murid Tahap 2",
+     "selesai": 168,
+     "proses": 158,
+     "belum": 867,
+     "jumlah": 1193
+    }
+   ]
+  },
+  {
+   "jenis": "menengah",
+   "label": "Sekolah Menengah",
+   "sekolah": {
+    "selesai": 0,
+    "proses": 0,
+    "belum": 22,
+    "jumlah": 22
+   },
+   "murid": [
+    {
+     "label": "Murid Menengah Rendah",
+     "selesai": 0,
+     "proses": 0,
+     "belum": 821,
+     "jumlah": 821
+    },
+    {
+     "label": "Murid Menengah Atas",
+     "selesai": 0,
+     "proses": 0,
+     "belum": 623,
+     "jumlah": 623
+    }
+   ]
+  }
+ ],
+ "sekolah": [
+  {
+   "kod": "ABA1001",
+   "nama": "SEKOLAH KEBANGSAAN DENDANG",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 2,
+   "muridSiap": 0,
+   "muridJumlah": 23
+  },
+  {
+   "kod": "ABA1002",
+   "nama": "SEKOLAH KEBANGSAAN BERUAS",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABA1003",
+   "nama": "SEKOLAH KEBANGSAAN KAMPUNG KOTA",
+   "jenis": "rendah",
+   "status": "proses",
+   "kelasSiap": 0,
+   "kelasJumlah": 2,
+   "muridSiap": 21,
+   "muridJumlah": 40
+  },
+  {
+   "kod": "ABA1004",
+   "nama": "SEKOLAH KEBANGSAAN GELONG GAJAH",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 4,
+   "muridSiap": 0,
+   "muridJumlah": 45
+  },
+  {
+   "kod": "ABA1005",
+   "nama": "SEKOLAH KEBANGSAAN CHANGKAT CHERMIN",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABA1006",
+   "nama": "SEKOLAH KEBANGSAAN AYER TAWAR",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABA1007",
+   "nama": "SEKOLAH KEBANGSAAN PANCHOR",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABA1008",
+   "nama": "SEKOLAH KEBANGSAAN PENGKALAN BAHARU",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABA1009",
+   "nama": "SEKOLAH KEBANGSAAN SUNGAI BATU",
+   "jenis": "rendah",
+   "status": "proses",
+   "kelasSiap": 0,
+   "kelasJumlah": 4,
+   "muridSiap": 63,
+   "muridJumlah": 100
+  },
+  {
+   "kod": "ABA1010",
+   "nama": "SEKOLAH KEBANGSAAN LADANG HUNTLY",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABA1011",
+   "nama": "SEKOLAH KEBANGSAAN SEGARI",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABA1012",
+   "nama": "SEKOLAH KEBANGSAAN NAKHODA MUHAMMAD TAIB",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABA1013",
+   "nama": "SEKOLAH KEBANGSAAN SUNGAI RAMAI",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABA1014",
+   "nama": "SEKOLAH KEBANGSAAN SUNGAI WANGI",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABA1015",
+   "nama": "SEKOLAH KEBANGSAAN SERI SELAMAT",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABA1016",
+   "nama": "SEKOLAH KEBANGSAAN SITIAWAN",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 4,
+   "muridSiap": 0,
+   "muridJumlah": 139
+  },
+  {
+   "kod": "ABA1017",
+   "nama": "SEKOLAH KEBANGSAAN LEKIR",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 4,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABA1018",
+   "nama": "SEKOLAH KEBANGSAAN MUHAMMAD SAMAN",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABA1019",
+   "nama": "SEKOLAH KEBANGSAAN BATU SEPULUH",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABA1020",
+   "nama": "SEKOLAH KEBANGSAAN SUNGAI TIRAM",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABA1021",
+   "nama": "SEKOLAH KEBANGSAAN DATO' ISHAK",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABA1022",
+   "nama": "SEKOLAH KEBANGSAAN LUMUT",
+   "jenis": "rendah",
+   "status": "proses",
+   "kelasSiap": 0,
+   "kelasJumlah": 2,
+   "muridSiap": 11,
+   "muridJumlah": 39
+  },
+  {
+   "kod": "ABA1023",
+   "nama": "SEKOLAH KEBANGSAAN SERI PANGKOR",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABA1024",
+   "nama": "SEKOLAH KEBANGSAAN TELAGA NENAS",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABA1025",
+   "nama": "SEKOLAH KEBANGSAAN KAMPUNG BAHARU",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABA1026",
+   "nama": "SEKOLAH KEBANGSAAN KAYAN",
+   "jenis": "rendah",
+   "status": "proses",
+   "kelasSiap": 0,
+   "kelasJumlah": 2,
+   "muridSiap": 2,
+   "muridJumlah": 38
+  },
+  {
+   "kod": "ABA1027",
+   "nama": "SEKOLAH KEBANGSAAN PANGKALAN TLDM",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABA1028",
+   "nama": "SEKOLAH KEBANGSAAN SERI MANJUNG",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 18,
+   "muridSiap": 0,
+   "muridJumlah": 28
+  },
+  {
+   "kod": "ABA1029",
+   "nama": "SEKOLAH KEBANGSAAN PANTAI REMIS",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 4,
+   "muridSiap": 0,
+   "muridJumlah": 76
+  },
+  {
+   "kod": "ABA1030",
+   "nama": "SEKOLAH KEBANGSAAN GUGUSAN LEKIR",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABA1031",
+   "nama": "SEKOLAH KEBANGSAAN PANGKALAN TLDM II",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABA1032",
+   "nama": "SEKOLAH KEBANGSAAN KPG. DATO' SERI KAMARUDDIN",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABA1033",
+   "nama": "SEKOLAH KEBANGSAAN SERI SITIAWAN",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABA1034",
+   "nama": "SEKOLAH KEBANGSAAN SERI BAYU",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABA1035",
+   "nama": "SEKOLAH KEBANGSAAN SERI SAMUDERA",
+   "jenis": "rendah",
+   "status": "proses",
+   "kelasSiap": 0,
+   "kelasJumlah": 6,
+   "muridSiap": 15,
+   "muridJumlah": 241
+  },
+  {
+   "kod": "ABB1039",
+   "nama": "SEKOLAH KEBANGSAAN METHODIST (ACS)",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 3,
+   "muridSiap": 0,
+   "muridJumlah": 73
+  },
+  {
+   "kod": "ABB1040",
+   "nama": "SEKOLAH KEBANGSAAN METHODIST (ACS)",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABB1041",
+   "nama": "SEKOLAH KEBANGSAAN METHODIST",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABB1042",
+   "nama": "SEKOLAH KEBANGSAAN CONVENT",
+   "jenis": "rendah",
+   "status": "proses",
+   "kelasSiap": 0,
+   "kelasJumlah": 4,
+   "muridSiap": 62,
+   "muridJumlah": 120
+  },
+  {
+   "kod": "ABB1043",
+   "nama": "SEKOLAH KEBANGSAAN SERI SERDANG",
+   "jenis": "rendah",
+   "status": "proses",
+   "kelasSiap": 0,
+   "kelasJumlah": 6,
+   "muridSiap": 0,
+   "muridJumlah": 168
+  },
+  {
+   "kod": "ABB1044",
+   "nama": "SEKOLAH KEBANGSAAN ST. FRANCIS",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABB1045",
+   "nama": "SEKOLAH KEBANGSAAN GANGGA",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABC1046",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (CINA) HWA LIAN (1)",
+   "jenis": "rendah",
+   "status": "proses",
+   "kelasSiap": 0,
+   "kelasJumlah": 2,
+   "muridSiap": 0,
+   "muridJumlah": 34
+  },
+  {
+   "kod": "ABC1047",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (CINA) HWA LIAN (2)",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABC1048",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (CINA) ENG LING",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABC1049",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (CINA) PING MIN",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABC1051",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (CINA) KUR SENG",
+   "jenis": "rendah",
+   "status": "proses",
+   "kelasSiap": 0,
+   "kelasJumlah": 2,
+   "muridSiap": 0,
+   "muridJumlah": 27
+  },
+  {
+   "kod": "ABC1052",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (CINA) CHUNG CHENG",
+   "jenis": "rendah",
+   "status": "proses",
+   "kelasSiap": 0,
+   "kelasJumlah": 8,
+   "muridSiap": 0,
+   "muridJumlah": 181
+  },
+  {
+   "kod": "ABC1053",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (CINA) UK ING",
+   "jenis": "rendah",
+   "status": "proses",
+   "kelasSiap": 0,
+   "kelasJumlah": 6,
+   "muridSiap": 2,
+   "muridJumlah": 166
+  },
+  {
+   "kod": "ABC1054",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (CINA) CHINESE NATIONAL",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 5,
+   "muridSiap": 0,
+   "muridJumlah": 66
+  },
+  {
+   "kod": "ABC1055",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (CINA) UK DIH",
+   "jenis": "rendah",
+   "status": "proses",
+   "kelasSiap": 0,
+   "kelasJumlah": 2,
+   "muridSiap": 23,
+   "muridJumlah": 54
+  },
+  {
+   "kod": "ABC1056",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (CINA) CHIEN HUA",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABC1057",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (CINA) PEKAN GURNEY",
+   "jenis": "rendah",
+   "status": "proses",
+   "kelasSiap": 1,
+   "kelasJumlah": 2,
+   "muridSiap": 28,
+   "muridJumlah": 36
+  },
+  {
+   "kod": "ABC1058",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (CINA) SIMPANG LIMA",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABC1059",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (CINA) KOK MING",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABC1061",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (CINA) AYER TAWAR",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABC1062",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (CINA) MIN TE",
+   "jenis": "rendah",
+   "status": "proses",
+   "kelasSiap": 0,
+   "kelasJumlah": 5,
+   "muridSiap": 0,
+   "muridJumlah": 126
+  },
+  {
+   "kod": "ABC1063",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (CINA) KAMPUNG JERING",
+   "jenis": "rendah",
+   "status": "proses",
+   "kelasSiap": 1,
+   "kelasJumlah": 2,
+   "muridSiap": 5,
+   "muridJumlah": 24
+  },
+  {
+   "kod": "ABC1064",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (CINA) PEI MIN",
+   "jenis": "rendah",
+   "status": "proses",
+   "kelasSiap": 0,
+   "kelasJumlah": 2,
+   "muridSiap": 0,
+   "muridJumlah": 8
+  },
+  {
+   "kod": "ABC1065",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (CINA) KAMPONG MERBAU",
+   "jenis": "rendah",
+   "status": "selesai",
+   "kelasSiap": 2,
+   "kelasJumlah": 2,
+   "muridSiap": 15,
+   "muridJumlah": 15
+  },
+  {
+   "kod": "ABC1066",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (CINA) KHUEN HEAN",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 2,
+   "muridSiap": 0,
+   "muridJumlah": 41
+  },
+  {
+   "kod": "ABC1067",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (CINA) SUNGAI BATU",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 2,
+   "muridSiap": 0,
+   "muridJumlah": 59
+  },
+  {
+   "kod": "ABC1068",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (CINA) PEI MIN",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABC1069",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (CINA) TIT BIN",
+   "jenis": "rendah",
+   "status": "proses",
+   "kelasSiap": 0,
+   "kelasJumlah": 7,
+   "muridSiap": 40,
+   "muridJumlah": 188
+  },
+  {
+   "kod": "ABC1070",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (CINA) PEI CHING",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABC1071",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (CINA) YEN MIN",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABD1073",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (TAMIL) MAHA GANESA VIDDYASALAI",
+   "jenis": "rendah",
+   "status": "proses",
+   "kelasSiap": 0,
+   "kelasJumlah": 5,
+   "muridSiap": 45,
+   "muridJumlah": 133
+  },
+  {
+   "kod": "ABD1075",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (TAMIL) PANGKOR",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABD1077",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (TAMIL) PENGKALAN BARU",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABD1078",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (TAMIL) LADANG HUNTLY",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABD1079",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (TAMIL) LADANG SOGOMANA",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABD1082",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (TAMIL) LADANG AYER TAWAR",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABD1083",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (TAMIL) KAMPONG TUN SAMBANTHAN",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 2,
+   "muridSiap": 0,
+   "muridJumlah": 5
+  },
+  {
+   "kod": "ABD1084",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (TAMIL) LADANG CASHWOOD",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 2,
+   "muridSiap": 0,
+   "muridJumlah": 19
+  },
+  {
+   "kod": "ABD1085",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (TAMIL) KAMPUNG COLUMBIA",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABD1086",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (TAMIL) LADANG WALBROOK",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABD1087",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (TAMIL) LADANG SG WANGI II",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 2,
+   "muridSiap": 0,
+   "muridJumlah": 41
+  },
+  {
+   "kod": "ABD1089",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (TAMIL) MUKIM PUNDUT",
+   "jenis": "rendah",
+   "status": "proses",
+   "kelasSiap": 0,
+   "kelasJumlah": 2,
+   "muridSiap": 0,
+   "muridJumlah": 34
+  },
+  {
+   "kod": "ABD1091",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (TAMIL) KAMPUNG KAYAN",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABD1092",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (TAMIL) AYER TAWAR",
+   "jenis": "rendah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABD1093",
+   "nama": "SEKOLAH JENIS KEBANGSAAN (TAMIL) BERUAS",
+   "jenis": "rendah",
+   "status": "proses",
+   "kelasSiap": 1,
+   "kelasJumlah": 2,
+   "muridSiap": 3,
+   "muridJumlah": 6
+  },
+  {
+   "kod": "AEA1109",
+   "nama": "SEKOLAH MENENGAH KEBANGSAAN SERI MANJUNG",
+   "jenis": "menengah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "AEA1110",
+   "nama": "SEKOLAH MENENGAH KEBANGSAAN AHMAD BOESTAMAM",
+   "jenis": "menengah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 16,
+   "muridSiap": 0,
+   "muridJumlah": 31
+  },
+  {
+   "kod": "AEA1111",
+   "nama": "SEKOLAH MENENGAH KEBANGSAAN PANGKALAN TLDM",
+   "jenis": "menengah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "AEA1112",
+   "nama": "SEKOLAH MENENGAH KEBANGSAAN BATU SEPULUH",
+   "jenis": "menengah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "AEA1113",
+   "nama": "SEKOLAH MENENGAH KEBANGSAAN PANTAI REMIS",
+   "jenis": "menengah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "AEA1114",
+   "nama": "SEKOLAH MENENGAH KEBANGSAAN SERI SAMUDERA",
+   "jenis": "menengah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "AEA1115",
+   "nama": "SEKOLAH MENENGAH KEBANGSAAN CHANGKAT BERUAS",
+   "jenis": "menengah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "AEA1116",
+   "nama": "SEKOLAH MENENGAH KEBANGSAAN KG. DATO' SERI KAMARUDDIN",
+   "jenis": "menengah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "AEB1027",
+   "nama": "SEKOLAH MENENGAH KEBANGSAAN CONVENT",
+   "jenis": "menengah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 6,
+   "muridSiap": 0,
+   "muridJumlah": 123
+  },
+  {
+   "kod": "AEB1031",
+   "nama": "SEKOLAH MENENGAH KEBANGSAAN NAN HWA",
+   "jenis": "menengah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "AEB1033",
+   "nama": "SEKOLAH MENENGAH KEBANGSAAN DINDINGS",
+   "jenis": "menengah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 10,
+   "muridSiap": 0,
+   "muridJumlah": 305
+  },
+  {
+   "kod": "AEB1034",
+   "nama": "SEKOLAH MENENGAH KEBANGSAAN AYER TAWAR",
+   "jenis": "menengah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "AEB1036",
+   "nama": "SEKOLAH MENENGAH KEBANGSAAN METHODIST",
+   "jenis": "menengah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 8,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "AEE1026",
+   "nama": "SEKOLAH MENENGAH KEBANGSAAN METHODIST (ACS)",
+   "jenis": "menengah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 18,
+   "muridSiap": 0,
+   "muridJumlah": 602
+  },
+  {
+   "kod": "AEE1030",
+   "nama": "SEKOLAH MENENGAH KEBANGSAAN TOK PERDANA",
+   "jenis": "menengah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "AEE1032",
+   "nama": "SEKOLAH MENENGAH KEBANGSAAN RAJA SHAHRIMAN",
+   "jenis": "menengah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 8,
+   "muridSiap": 0,
+   "muridJumlah": 200
+  },
+  {
+   "kod": "AEE1036",
+   "nama": "SEKOLAH MENENGAH KEBANGSAAN AMBROSE",
+   "jenis": "menengah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "AEE1037",
+   "nama": "SEKOLAH MENENGAH KEBANGSAAN PANGKOR",
+   "jenis": "menengah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 9,
+   "muridSiap": 0,
+   "muridJumlah": 183
+  },
+  {
+   "kod": "AEE1038",
+   "nama": "SEKOLAH MENENGAH KEBANGSAAN DATO' IDRIS",
+   "jenis": "menengah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "AFT1001",
+   "nama": "MAAHAD ISLAHIAH ADDINIAH",
+   "jenis": "menengah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "AHA1002",
+   "nama": "KOLEJ VOKASIONAL SERI MANJUNG",
+   "jenis": "menengah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0
+  },
+  {
+   "kod": "ABC1234",
+   "nama": "SMK BERTESTING",
+   "jenis": "menengah",
+   "status": "belum",
+   "kelasSiap": 0,
+   "kelasJumlah": 0,
+   "muridSiap": 0,
+   "muridJumlah": 0,
+   "ujian": true
+  }
+ ]
+}

@@ -17,6 +17,8 @@ import {
 } from "./ains-types";
 import { getDcsTerkiniIkutTahun } from "./dcs-queries";
 import type { DcsBackup, DcsSnapshot } from "./dcs-types";
+import { getEsnTerkiniIkutTahun } from "./esn-queries";
+import { jumlahMuridEsn, jumlahSekolahEsn, type EsnSnapshot } from "./esn-types";
 import { getOptikHomeView, optikKpiGroupStats, optikKpiReferenceLines } from "./optik-queries";
 
 /** Bentuk data boleh-serialize untuk kad + modal analisis di halaman utama. */
@@ -57,6 +59,7 @@ export type AnalisisHomeModule = {
   id:
     | "delima"
     | "dcs"
+    | "esn"
     | "ains"
     | "pensijilan"
     | "optik"
@@ -84,6 +87,8 @@ export type AnalisisHomeModule = {
   ainsExplore?: { years: number[]; backup: AinsBackup };
   /** DCS: pilih tahun (2025 sandaran / snapshot dcs.moe.edu.my) + senarai sekolah dalam modal. */
   dcsExplore?: { snapshots: DcsSnapshot[]; backup: DcsBackup };
+  /** ESN: snapshot esn.moe.edu.my ikut tahun + senarai sekolah dalam modal. */
+  esnExplore?: { snapshots: EsnSnapshot[] };
   bars: HomeBarChart[];
   line?: HomeLineChart;
   note?: string;
@@ -262,6 +267,30 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
     };
   }
 
+  /* ---------- ESN ---------- */
+  const esnSnapshots = await getEsnTerkiniIkutTahun().catch(() => [] as EsnSnapshot[]);
+  const esnSnap = esnSnapshots[0] ?? null;
+  let esnModule: AnalisisHomeModule | null = null;
+  if (esnSnap) {
+    const m = jumlahMuridEsn(esnSnap);
+    const s = jumlahSekolahEsn(esnSnap);
+    esnModule = {
+      id: "esn",
+      label: "ESN",
+      headlineValue: pct(m.jumlah > 0 ? Math.round((m.siap / m.jumlah) * 1000) / 10 : null),
+      headlineLabel: "Murid selesai ESN",
+      yearLabel: `Data ${esnSnap.tahun}`,
+      tiles: [
+        { label: "Murid selesai", value: `${bil(m.siap)} / ${bil(m.jumlah)}` },
+        { label: "Sekolah selesai", value: `${bil(s.selesai)} / ${bil(s.jumlah)}` },
+        { label: "Sekolah dalam proses", value: bil(s.proses) },
+      ],
+      bars: [],
+      note: `Data esn.moe.edu.my (dibaca ${esnSnap.capturedOn.split("-").reverse().join("/")}).`,
+      esnExplore: { snapshots: esnSnapshots },
+    };
+  }
+
   /* ---------- AINS ---------- */
   // Data bulanan terkini (PPD Manjung) jika ada; jika tidak, jatuh balik ke metrik lama (sandaran 2025).
   const ainsYears = await listAinsTahun().catch(() => [] as number[]);
@@ -408,5 +437,12 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
     },
   };
 
-  return [delimaModule, dcsModule, ainsModule, pensijilanModule, optikModule];
+  return [
+    delimaModule,
+    dcsModule,
+    ainsModule,
+    pensijilanModule,
+    optikModule,
+    ...(esnModule ? [esnModule] : []),
+  ];
 }

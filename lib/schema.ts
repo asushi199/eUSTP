@@ -543,6 +543,25 @@ export const analisisDcsSnapshots = pgTable(
 );
 
 /**
+ * Snapshot ESN (Etika Siber Nasional) daripada esn.moe.edu.my (import manual,
+ * `npm run db:import-esn`). `data` = EsnSnapshot (lib/analisis/esn-types.ts).
+ * Satu baris setiap tarikh bacaan.
+ */
+export const analisisEsnSnapshots = pgTable(
+  "analisis_esn_snapshots",
+  {
+    id: serial("id").primaryKey(),
+    tahun: integer("tahun").notNull(),
+    capturedOn: date("captured_on").notNull(),
+    data: jsonb("data").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    capturedIdx: uniqueIndex("analisis_esn_snapshots_captured_idx").on(t.capturedOn),
+  }),
+);
+
+/**
  * Snapshot bulanan DELIMa daripada sumber langsung (DELIMa Perak). Satu baris
  * setiap tempoh data sumber (`period` = "YYYY-MM" hujung tempoh); cron harian
  * mengemas kini baris tempoh semasa, tempoh baharu jadi baris baharu.

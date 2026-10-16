@@ -102,6 +102,11 @@ GPICT/DELIMa/GPM, Tempahan PKG, Portal Sumber/Analisis/Maklumat Asas). Sumber as
   (Claude TIDAK memasukkan kata laluan). Claude baca Dashboard/Progress/Top Schools/Ranking, simpan
   `scripts/data/dcs-YYYY-MM-DD.json`, lalu `npm run db:import-dcs -- <fail>`. Paparan = snapshot
   terkini setiap tahun (`getDcsTerkiniIkutTahun`); 2025 = metrik lama `analisis_metrics` (dcs).
+- **ESN — sumber esn.moe.edu.my (akaun PPD Manjung).** Perlu log masuk pengguna (Claude TIDAK
+  memasukkan kata laluan). Claude baca Dashboard + Status Pelaksanaan (`/ppd/progress`; API
+  `/admin/ppd-progress/50/{1,2}` — ambil 10 rekod sehalaman, `length` besar beri 504), simpan
+  `scripts/data/esn-YYYY-MM-DD.json`, lalu `npm run db:import-esn -- <fail>`. Tarikh akhir
+  15 Dis 2026 dalam `ESN_TARIKH_AKHIR`. `SMK BERTESTING` = rekod ujian (`ujian: true`).
 - Petak statistik DPD/PSS halaman utama disorok (`SHOW_LAPORAN_TILES=false`
   dalam `app/(public)/page.tsx`) — pelaporan 2026 masih guna Looker Studio.
 - **MJKD 2026 = satu acara, satu rekod `mjkd_mesyuarat`** (kehadiran, minit +

@@ -2245,3 +2245,13 @@ Corak berselang = instance sihat vs beracun.
 - Disahkan: typecheck, eslint, `tsx --test tests/mjkd` (91 lulus). BELUM diuji hujung-ke-hujung dengan DB (tiada DB dalam sesi ini) dan `npm run build` belum dijalankan; migrasi `0056` perlu `npm run db:migrate`.
 
 - Pembetulan (draf MJKD): menukar ke sekolah lain yang ada draf lalu kembali ke sekolah asal pada peranti yang sama boleh mengekalkan isi sekolah lain (draf pelayar dianggap lebih baharu tetapi tidak dimuat semula ke borang). Kini pemilihan draf bagi sekolah stabil membandingkan draf pelayan vs draf pelayar (dibaca semula) dan memuatkan yang lebih baharu; isi yang masih milik sekolah lain tidak pernah dikekalkan. Typecheck + eslint lulus; belum diuji dengan DB.
+
+## 2026-10-16 — Kad ESN (Etika Siber Nasional) dalam CoE Analytics
+
+- Sumber: esn.moe.edu.my (log masuk akaun PPD Manjung oleh pengguna; Claude tidak memasukkan kata laluan). Dashboard (ringkasan sekolah/murid rendah & menengah) + Status Pelaksanaan (`/admin/ppd-progress/50/{1,2}`, DataTables server-side — `length` besar beri 504, guna 10 sebaris + cuba semula). Tiada nama murid/guru disimpan.
+- Data: `scripts/data/esn-2026-10-16.json` (103 sekolah: 81 rendah + 22 menengah; murid 335/3,837; sekolah selesai 1, dalam proses 20, belum mula 82). `SMK BERTESTING` (ABC1234) ialah rekod ujian ESN — dikira dalam jumlah rasmi, bertanda `ujian` dan tidak disenaraikan dalam UI.
+- Jadual baharu `analisis_esn_snapshots` (jsonb `data` = `EsnSnapshot`, unik `captured_on`, RLS dihidupkan) — migrasi `0057_esn_snapshots`. Import: `npm run db:import-esn -- <fail.json> [--dry-run]` (semak senarai sekolah = angka Dashboard).
+- Kad "ESN" ditambah dalam jalur CoE Analytics halaman utama (`summary.ts` id `esn`, headline % murid selesai 8.7%). Modal `EsnExplore`: jalur tarikh akhir **15 Disember 2026** (`ESN_TARIKH_AKHIR`), petak KPI, ringkasan rendah/menengah, senarai sekolah (tapis status/jenis/carian).
+- `TarikhAkhirBanner` diekstrak daripada `DcsExplore` dan dikongsi DCS + ESN.
+- Disahkan: typecheck, build, ujian (`tests/analisis/esn.test.ts` + sedia ada), migrasi + import ke DB, pratonton dev (kad + modal, kiraan 60 hari).
+- Kemas kini bulanan: log masuk ESN dalam pelayar → Claude baca semula Dashboard + Status Pelaksanaan → simpan JSON baharu → import.

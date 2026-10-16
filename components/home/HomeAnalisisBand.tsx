@@ -30,6 +30,10 @@ const DcsExplore = dynamic(() => import("@/components/analisis/DcsExplore"), {
   ssr: false,
   loading: chartLoading,
 });
+const EsnExplore = dynamic(() => import("@/components/analisis/EsnExplore"), {
+  ssr: false,
+  loading: chartLoading,
+});
 const PenyertaanExplore = dynamic(() => import("@/components/analisis/PenyertaanExplore"), {
   ssr: false,
   loading: chartLoading,
@@ -354,7 +358,7 @@ export default function HomeAnalisisBand({
                 className={`relative z-[71] max-h-[88vh] w-full overflow-y-auto rounded-t-2xl bg-white p-5 shadow-modal sm:rounded-2xl sm:p-6 ${
                   openId === "bengkel" || openId === "tebus-buku"
                     ? "max-w-3xl"
-                    : openId === "dcs"
+                    : openId === "dcs" || openId === "esn"
                       ? "max-w-5xl"
                     : openId === "penyertaan"
                       ? "max-w-4xl"
@@ -424,6 +428,8 @@ export default function HomeAnalisisBand({
                     snapshots={active.dcsExplore.snapshots}
                     backup={active.dcsExplore.backup}
                   />
+                ) : active.id === "esn" && active.esnExplore ? (
+                  <EsnExplore key={openId} snapshots={active.esnExplore.snapshots} />
                 ) : active.id === "penyertaan" ? (
                   <PenyertaanExplore key={openId} />
                 ) : (
