@@ -2229,3 +2229,10 @@ Corak berselang = instance sihat vs beracun.
 
 - `DCS_TARIKH_AKHIR` (`lib/analisis/dcs-types.ts`, ikut tahun) — `DcsExplore` papar jalur dakwat gelap tebal di bawah pemilih tahun: "Tarikh akhir: 1 Disember 2026 · Semua murid mesti selesai menjawab · lagi N hari" (kiraan waktu Malaysia). Hanya untuk tahun yang ada tarikh akhir; 2025 tidak.
 - Disahkan: typecheck, eslint, smoke modal halaman utama ("lagi 46 hari" pada 16 Okt 2026).
+
+## 2026-10-16 — MJKD: draf maklum balas disimpan di pelayan (merentas peranti)
+
+- Jadual baharu `mjkd_draf` (migrasi `0056_mjkd_draf`, RLS dikunci): satu draf per (mesyuarat, sekolah), `data` jsonb. Tiada kod/tiket draf — hanya PGB mengisi; sesiapa memilih sekolah itu melihat drafnya (keputusan pengguna). Kemaskini selepas dihantar tetap perlukan nombor tiket.
+- `lib/actions/mjkd.ts`: `bacaDrafMjkd`, `simpanDrafMjkd` (ditolak jika ditutup / sudah dihantar), `padamDrafMjkd`; draf dipadam selepas `submitMaklumBalasMjkd` berjaya.
+- `MaklumBalasMjkdForm`: borang baharu sahaja (bukan kemaskini/admin). localStorage kekal sebagai cache; draf pelayan dibaca bila sekolah stabil 700ms, ditimpa ke borang kecuali draf pelayar sekolah yang sama lebih baharu. Simpan ke pelayan selepas 2.5s tanpa menaip (disiri), tidak menyimpan jika bacaan gagal (elak menimpa). Tersalah pilih sekolah: draf yang dicipta sesi itu untuk sekolah lama dipadam. Butang "Buang draf" kini padam juga draf pelayan.
+- Disahkan: typecheck, eslint, `tsx --test tests/mjkd` (91 lulus). BELUM diuji hujung-ke-hujung dengan DB (tiada DB dalam sesi ini) dan `npm run build` belum dijalankan; migrasi `0056` perlu `npm run db:migrate`.

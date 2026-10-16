@@ -5,7 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   adminSimpanMaklumBalasMjkd,
+  bacaDrafMjkd,
   getPrefillPgbMjkd,
+  padamDrafMjkd,
+  simpanDrafMjkd,
   submitMaklumBalasMjkd,
 } from "@/lib/actions/mjkd";
 import {
@@ -88,9 +91,12 @@ function jawapanAwal(existing?: JawapanAwal | null): Record<string, Jawapan> {
   return out;
 }
 
-// ── Draf auto-simpan (localStorage pelayar ini sahaja) ──────────────────────
-// Pengisi yang menutup tab separuh jalan boleh menyambung semula tanpa menaip lagi.
+// ── Draf auto-simpan ────────────────────────────────────────────────────────
+// 1) localStorage pelayar ini (cache segera / tanpa talian).
+// 2) Borang BAHARU (bukan kemaskini/admin): draf juga disimpan di pelayan per sekolah, jadi PGB boleh
+//    menyambung dari peranti lain dengan memilih sekolah yang sama (tiada kod/tiket diperlukan).
 // Draf dibuang selepas berjaya menghantar, atau apabila pengguna menekan "Buang draf".
+// Kemaskini selepas dihantar tetap perlukan nombor tiket (tiada draf pelayan).
 type Draf = {
   schoolCode: string;
   namaPengisi: string;
@@ -138,6 +144,12 @@ function buangDraf(kunci: string) {
   }
 }
 
+function adaIsi(jawapan: Record<string, Jawapan>): boolean {
+  return Object.values(jawapan).some(
+    (j) => j.status || j.catatan.trim() || j.pautanBukti.trim() || j.fotoBukti.length,
+  );
+}
+
 function masaDraf(iso: string): string {
   const t = new Date(iso);
   if (Number.isNaN(t.getTime())) return "";
@@ -183,6 +195,23 @@ export default function MaklumBalasMjkdForm({
       : `mjkd-draf:${mesyuarat.id}`;
   const [drafSedia, setDrafSedia] = useState(false);
   const [drafDipulih, setDrafDipulih] = useState<string | null>(null);
+  // Draf pelayan hanya untuk borang baharu awam.
+  const drafPelayan = Boolean(kunciDraf) && !existing;
+  const [kodStabil, setKodStabil] = useState("");
+  const [kodDimuat, setKodDimuat] = useState("");
+  const [statusPelayan, setStatusPelayan] = useState<
+    { jenis: "menyimpan" | "disimpan" | "gagal"; masa?: string } | null
+  >(null);
+  const adaUbah = useRef(false); // pengguna sebenarnya menyunting (bukan pemulihan/prefill)
+  const tempatan = useRef({ kod: "", ts: "" }); // draf pelayar terakhir: sekolah + masa
+  const drafAdaDiPelayan = useRef<Record<string, boolean>>({});
+  const dicipta = useRef<string | null>(null); // sekolah yang drafnya dicipta sesi ini
+  const dimuatJson = useRef<string | null>(null); // kandungan yang dimuat dari draf pelayan
+  const terakhirJson = useRef("");
+  const kodSebelum = useRef("");
+  const rantai = useRef<Promise<void>>(Promise.resolve());
+  const isiRef = useRef({ namaPengisi, jawatanPengisi, jawapan });
+  isiRef.current = { namaPengisi, jawatanPengisi, jawapan };
   const asalJson = useRef(
     JSON.stringify({
       schoolCode: initialSchoolCode ?? "",
@@ -198,10 +227,8 @@ export default function MaklumBalasMjkdForm({
     const d = bacaDraf(kunciDraf);
     if (d) {
       // Hanya pulihkan jika ada jawapan sebenar (bukan sekadar sekolah dipilih + prefill nama).
-      const adaIsi = Object.values(d.jawapan).some(
-        (j) => j.status || j.catatan.trim() || j.pautanBukti.trim() || j.fotoBukti.length,
-      );
-      if (adaIsi) {
+      if (adaIsi(d.jawapan)) {
+        tempatan.current = { kod: d.schoolCode, ts: d.disimpan };
         if (d.namaPengisi || d.jawatanPengisi) {
           disentuh.current = true; // jangan ditimpa oleh prefill direktori
           setNamaPengisi(d.namaPengisi);
@@ -226,10 +253,14 @@ export default function MaklumBalasMjkdForm({
       buangDraf(kunciDraf);
       return;
     }
+    // Pemulihan / draf pelayan / prefill bukan suntingan — jangan segarkan masa draf tempatan.
+    if (!adaUbah.current) return;
+    const kini2 = new Date().toISOString();
+    tempatan.current = { kod: schoolCode, ts: kini2 };
     try {
       window.localStorage.setItem(
         kunciDraf,
-        JSON.stringify({ schoolCode, namaPengisi, jawatanPengisi, jawapan, disimpan: new Date().toISOString() }),
+        JSON.stringify({ schoolCode, namaPengisi, jawatanPengisi, jawapan, disimpan: kini2 }),
       );
     } catch {
       /* localStorage penuh / tidak tersedia — borang masih berfungsi */
@@ -248,7 +279,135 @@ export default function MaklumBalasMjkdForm({
     setJawapan(asal.jawapan);
     setDrafDipulih(null);
     buangDraf(kunciDraf);
+    if (drafPelayan && schoolCode) {
+      void padamDrafMjkd(mesyuarat.id, schoolCode);
+      drafAdaDiPelayan.current[schoolCode] = false;
+      dicipta.current = null;
+      dimuatJson.current = null;
+      terakhirJson.current = "";
+      adaUbah.current = false;
+      setStatusPelayan(null);
+    }
   }
+
+  // ── Draf pelayan (merentas peranti) ──
+  // Kod sekolah dianggap "stabil" selepas 700ms — carian menukar pilihan sekolah semasa menaip.
+  useEffect(() => {
+    if (!drafPelayan) return;
+    const t = setTimeout(() => setKodStabil(schoolCode), schoolCode ? 700 : 0);
+    return () => clearTimeout(t);
+  }, [drafPelayan, schoolCode]);
+
+  // Baca draf pelayan apabila sekolah (stabil) berubah.
+  useEffect(() => {
+    if (!drafPelayan || !drafSedia || !kodStabil) return;
+    let batal = false;
+    const sebelum = kodSebelum.current;
+    kodSebelum.current = kodStabil;
+    setKodDimuat("");
+    setStatusPelayan(null);
+    // Tersalah pilih sekolah: padam draf yang dicipta sesi ini untuk sekolah sebelumnya.
+    if (sebelum && sebelum !== kodStabil && dicipta.current === sebelum) {
+      void padamDrafMjkd(mesyuarat.id, sebelum);
+      drafAdaDiPelayan.current[sebelum] = false;
+      dicipta.current = null;
+    }
+    (async () => {
+      let res = await bacaDrafMjkd(mesyuarat.id, kodStabil);
+      for (let cuba = 0; !res.ok && cuba < 2 && !batal; cuba++) {
+        await new Promise((r) => setTimeout(r, 2000));
+        if (batal) return;
+        res = await bacaDrafMjkd(mesyuarat.id, kodStabil);
+      }
+      if (batal) return;
+      if (!res.ok) {
+        // Jangan simpan ke pelayan jika bacaan gagal — elak menimpa draf yang sedia ada.
+        setStatusPelayan({ jenis: "gagal" });
+        return;
+      }
+      const isi = isiRef.current;
+      drafAdaDiPelayan.current[kodStabil] = Boolean(res.draf);
+      if (res.draf) {
+        const d = res.draf;
+        const tempatanLebihBaru =
+          adaIsi(isi.jawapan) &&
+          tempatan.current.kod === kodStabil &&
+          tempatan.current.ts >= d.disimpan;
+        if (!tempatanLebihBaru) {
+          disentuh.current = true; // jangan ditimpa oleh prefill direktori
+          setNamaPengisi(d.namaPengisi);
+          setJawatanPengisi(d.jawatanPengisi);
+          setJawapan(d.jawapan);
+          setDrafDipulih(d.disimpan);
+          const json = JSON.stringify({
+            namaPengisi: d.namaPengisi,
+            jawatanPengisi: d.jawatanPengisi,
+            jawapan: d.jawapan,
+          });
+          dimuatJson.current = json;
+          terakhirJson.current = json;
+        }
+      } else if (
+        sebelum &&
+        sebelum !== kodStabil &&
+        dimuatJson.current &&
+        JSON.stringify(isi) === dimuatJson.current
+      ) {
+        // Isi yang dipaparkan ialah draf sekolah lain (tidak diubah) — kosongkan untuk sekolah ini.
+        dimuatJson.current = null;
+        terakhirJson.current = "";
+        disentuh.current = false;
+        setNamaPengisi("");
+        setJawatanPengisi("");
+        setJawapan({});
+        setDrafDipulih(null);
+        getPrefillPgbMjkd(kodStabil)
+          .then((p) => {
+            if (batal || disentuh.current) return;
+            setNamaPengisi(p.nama);
+            setJawatanPengisi(p.jawatan);
+          })
+          .catch(() => undefined);
+      }
+      setKodDimuat(kodStabil);
+    })();
+    return () => {
+      batal = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- hanya apabila sekolah stabil berubah
+  }, [drafPelayan, drafSedia, kodStabil]);
+
+  // Simpan draf ke pelayan (debounce), hanya selepas draf sekolah itu selesai dibaca.
+  useEffect(() => {
+    if (!drafPelayan || !drafSedia || pending || muatNaik > 0) return;
+    if (!schoolCode || kodDimuat !== schoolCode || kodStabil !== schoolCode) return;
+    if (!adaIsi(jawapan)) return;
+    const json = JSON.stringify({ namaPengisi, jawatanPengisi, jawapan });
+    if (json === terakhirJson.current) return;
+    const kod = schoolCode;
+    const t = setTimeout(() => {
+      // Serialkan simpanan supaya yang lama tidak menimpa yang baharu.
+      rantai.current = rantai.current.then(async () => {
+        setStatusPelayan({ jenis: "menyimpan" });
+        const res = await simpanDrafMjkd({
+          mesyuaratId: mesyuarat.id,
+          schoolCode: kod,
+          namaPengisi,
+          jawatanPengisi,
+          jawapan,
+        }).catch(() => ({ ok: false as const, disimpan: undefined }));
+        if (res.ok) {
+          terakhirJson.current = json;
+          if (!drafAdaDiPelayan.current[kod]) dicipta.current = kod;
+          drafAdaDiPelayan.current[kod] = true;
+          setStatusPelayan({ jenis: "disimpan", masa: masaDraf(res.disimpan ?? new Date().toISOString()) });
+        } else {
+          setStatusPelayan({ jenis: "gagal" });
+        }
+      });
+    }, 2500);
+    return () => clearTimeout(t);
+  }, [drafPelayan, drafSedia, pending, muatNaik, schoolCode, kodDimuat, kodStabil, namaPengisi, jawatanPengisi, jawapan, mesyuarat.id]);
 
   const filteredSchools = useMemo(
     () => schools.filter((school) => matchesSchoolQuery(school, query)),
@@ -304,6 +463,7 @@ export default function MaklumBalasMjkdForm({
   }
 
   function ubahJawapan(perkaraId: string, patch: Partial<Jawapan>) {
+    adaUbah.current = true;
     setJawapan((prev) => ({
       ...prev,
       [perkaraId]: {
@@ -523,6 +683,7 @@ export default function MaklumBalasMjkdForm({
               value={namaPengisi}
               onChange={(e) => {
                 disentuh.current = true;
+                adaUbah.current = true;
                 setNamaPengisi(e.target.value);
               }}
             />
@@ -539,6 +700,7 @@ export default function MaklumBalasMjkdForm({
               value={jawatanPengisi}
               onChange={(e) => {
                 disentuh.current = true;
+                adaUbah.current = true;
                 setJawatanPengisi(e.target.value);
               }}
             />
@@ -791,7 +953,21 @@ export default function MaklumBalasMjkdForm({
               perkara lengkap
               {bilLengkap < terpakai.length ? " — lengkapkan semua sebelum menghantar." : "."}
             </p>
-            {kunciDraf ? (
+            {drafPelayan ? (
+              <p className="mt-1 text-sm text-graphite">
+                Draf disimpan secara automatik untuk sekolah ini — boleh disambung dari peranti lain
+                dengan memilih sekolah yang sama.{" "}
+                <span className="font-medium text-ink" role="status">
+                  {statusPelayan?.jenis === "menyimpan"
+                    ? "Menyimpan…"
+                    : statusPelayan?.jenis === "disimpan"
+                      ? `Disimpan ke pelayan${statusPelayan.masa ? ` (${statusPelayan.masa})` : ""}.`
+                      : statusPelayan?.jenis === "gagal"
+                        ? "Belum dapat disimpan ke pelayan — buat masa ini hanya dalam pelayar ini."
+                        : ""}
+                </span>
+              </p>
+            ) : kunciDraf ? (
               <p className="mt-1 text-sm text-graphite">
                 Draf disimpan secara automatik dalam pelayar ini — jika tertutup, buka semula
                 halaman ini untuk menyambung.

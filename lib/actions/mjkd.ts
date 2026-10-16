@@ -6,6 +6,7 @@ import { and, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db, withDbTimeout } from "@/lib/db";
 import {
+  mjkdDraf,
   mjkdMaklumBalas,
   mjkdMaklumBalasItem,
   mjkdMesyuarat,
@@ -311,6 +312,13 @@ export async function submitMaklumBalasMjkd(
   try {
     const hasil = await withDbTimeout(simpan());
     await buangFotoDrive(fotoUntukDibuang);
+    if (hasil.ok) {
+      // Draf pelayan sudah tidak diperlukan (best-effort — draf yatim tidak dibaca selepas dihantar).
+      await db
+        .delete(mjkdDraf)
+        .where(and(eq(mjkdDraf.mesyuaratId, mesyuarat.id), eq(mjkdDraf.schoolCode, school.code)))
+        .catch(() => undefined);
+    }
     return hasil;
   } catch (e) {
     if (isRalatTimeoutDb(e)) return { ok: false, error: MESEJ_PENGHANTARAN_TIDAK_PASTI };
@@ -417,6 +425,137 @@ export async function getPrefillPgbMjkd(
   } catch {
     // Prefill hanyalah kemudahan — jika DB perlahan, pengguna isi sendiri.
     return { nama: "", jawatan: "" };
+  }
+}
+
+/* ============================ Awam: draf merentas peranti ============================ */
+
+// Draf belum dihantar disimpan di pelayan per sekolah (tiada kod/tiket — hanya PGB mengisi).
+// Selepas dihantar draf dipadam; kemaskini selepas itu tetap perlukan nombor tiket.
+
+const drafSchema = z.object({
+  mesyuaratId: z.string().min(1).max(64),
+  schoolCode: z.string().min(1).max(20),
+  namaPengisi: z.string().max(400),
+  jawatanPengisi: z.string().max(400),
+  jawapan: z
+    .record(
+      z.string().max(64),
+      z.object({
+        status: z.string().max(40),
+        catatan: z.string().max(4000),
+        pautanBukti: z.string().max(1000),
+        fotoBukti: z.array(z.string().max(200)).max(10),
+      }),
+    )
+    .refine((r) => Object.keys(r).length <= 200),
+});
+
+export type DrafServer = {
+  namaPengisi: string;
+  jawatanPengisi: string;
+  jawapan: Record<
+    string,
+    { status: string; catatan: string; pautanBukti: string; fotoBukti: string[] }
+  >;
+  /** ISO — masa terakhir disimpan di pelayan. */
+  disimpan: string;
+};
+
+const DRAF_MAKS_AKSARA = 400_000;
+
+/** Awam: draf sekolah ini di pelayan (null jika tiada / sudah dihantar / ditutup). */
+export async function bacaDrafMjkd(
+  mesyuaratId: string,
+  schoolCode: string,
+): Promise<{ ok: boolean; draf: DrafServer | null }> {
+  const kod = String(schoolCode ?? "").trim().toUpperCase().slice(0, 20);
+  try {
+    return await withDbTimeout(
+      (async () => {
+        const mesyuarat = await getMesyuarat(String(mesyuaratId ?? ""));
+        if (!mesyuarat || !maklumBalasTerbuka(mesyuarat) || !kod) return { ok: true, draf: null };
+        const [hantar] = await db
+          .select({ id: mjkdMaklumBalas.id })
+          .from(mjkdMaklumBalas)
+          .where(and(eq(mjkdMaklumBalas.mesyuaratId, mesyuarat.id), eq(mjkdMaklumBalas.schoolCode, kod)))
+          .limit(1);
+        if (hantar) return { ok: true, draf: null };
+        const [row] = await db
+          .select()
+          .from(mjkdDraf)
+          .where(and(eq(mjkdDraf.mesyuaratId, mesyuarat.id), eq(mjkdDraf.schoolCode, kod)))
+          .limit(1);
+        if (!row) return { ok: true, draf: null };
+        const sah = drafSchema.safeParse({ mesyuaratId: mesyuarat.id, schoolCode: kod, ...(row.data as object) });
+        if (!sah.success) return { ok: true, draf: null };
+        return {
+          ok: true,
+          draf: {
+            namaPengisi: sah.data.namaPengisi,
+            jawatanPengisi: sah.data.jawatanPengisi,
+            jawapan: sah.data.jawapan,
+            disimpan: row.updatedAt.toISOString(),
+          },
+        };
+      })(),
+    );
+  } catch {
+    // Gagal baca = gunakan draf pelayar sahaja; klien tidak boleh menimpa draf pelayan.
+    return { ok: false, draf: null };
+  }
+}
+
+/** Awam: simpan draf sekolah (menimpa). Ditolak jika sekolah sudah menghantar atau ditutup. */
+export async function simpanDrafMjkd(
+  raw: z.input<typeof drafSchema>,
+): Promise<{ ok: boolean; error?: string; disimpan?: string }> {
+  const parsed = drafSchema.safeParse(raw);
+  if (!parsed.success) return { ok: false, error: "Draf tidak sah." };
+  const { mesyuaratId, schoolCode, ...isi } = parsed.data;
+  if (JSON.stringify(isi).length > DRAF_MAKS_AKSARA) return { ok: false, error: "Draf terlalu besar." };
+  const kod = schoolCode.trim().toUpperCase();
+  try {
+    return await withDbTimeout(
+      (async () => {
+        const mesyuarat = await getMesyuarat(mesyuaratId);
+        if (!mesyuarat || !maklumBalasTerbuka(mesyuarat)) return { ok: false, error: "Maklum balas ditutup." };
+        const school = await getSchoolByCode(kod);
+        if (!school) return { ok: false, error: "Kod sekolah tidak dijumpai." };
+        const [hantar] = await db
+          .select({ id: mjkdMaklumBalas.id })
+          .from(mjkdMaklumBalas)
+          .where(and(eq(mjkdMaklumBalas.mesyuaratId, mesyuarat.id), eq(mjkdMaklumBalas.schoolCode, school.code)))
+          .limit(1);
+        if (hantar) return { ok: false, error: "Sekolah ini sudah menghantar." };
+        const now = new Date();
+        await db
+          .insert(mjkdDraf)
+          .values({ mesyuaratId: mesyuarat.id, schoolCode: school.code, data: isi, updatedAt: now })
+          .onConflictDoUpdate({
+            target: [mjkdDraf.mesyuaratId, mjkdDraf.schoolCode],
+            set: { data: isi, updatedAt: now },
+          });
+        return { ok: true, disimpan: now.toISOString() };
+      })(),
+    );
+  } catch {
+    return { ok: false, error: "Draf belum disimpan di pelayan." };
+  }
+}
+
+/** Awam: padam draf pelayan sekolah ini (butang "Buang draf" / tersalah pilih sekolah). */
+export async function padamDrafMjkd(mesyuaratId: string, schoolCode: string): Promise<{ ok: boolean }> {
+  const kod = String(schoolCode ?? "").trim().toUpperCase().slice(0, 20);
+  const id = String(mesyuaratId ?? "");
+  if (!kod || !/^[0-9a-f-]{36}$/i.test(id)) return { ok: false };
+  try {
+    await withDbTimeout(
+      db.delete(mjkdDraf).where(and(eq(mjkdDraf.mesyuaratId, id), eq(mjkdDraf.schoolCode, kod))),
+    );
+    return { ok: true };
+  } catch {
+    return { ok: false };
   }
 }
 

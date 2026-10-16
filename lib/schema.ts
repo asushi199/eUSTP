@@ -1621,6 +1621,28 @@ export const mjkdMaklumBalasItem = pgTable(
   }),
 );
 
+/**
+ * Draf maklum balas (belum dihantar) — satu per sekolah setiap mesyuarat, dikongsi merentas peranti.
+ * Tiada kod/tiket: hanya PGB mengisi; selepas dihantar draf dipadam dan kemaskini perlu nombor tiket.
+ * `data` = { namaPengisi, jawatanPengisi, jawapan: { [perkaraId]: {...} } }.
+ */
+export const mjkdDraf = pgTable(
+  "mjkd_draf",
+  {
+    mesyuaratId: uuid("mesyuarat_id")
+      .notNull()
+      .references(() => mjkdMesyuarat.id, { onDelete: "cascade" }),
+    schoolCode: text("school_code")
+      .notNull()
+      .references(() => schools.code, { onDelete: "cascade" }),
+    data: jsonb("data").notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.mesyuaratId, t.schoolCode] }),
+  }),
+);
+
 /** Pegawai PPD untuk kehadiran (BUKAN jadual `users`/`pegawai` USTP). Tiada IC/nama pengguna. */
 export const pegawaiPpd = pgTable("pegawai_ppd", {
   id: serial("id").primaryKey(),
