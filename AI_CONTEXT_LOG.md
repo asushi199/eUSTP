@@ -2200,3 +2200,11 @@ Corak berselang = instance sihat vs beracun.
 - `/analisis#dcs`: `DcsExplore` — pilih Tahun; 2026 = petak KPI, kedudukan PKG dalam Perak, % ikut tahap, jadual sekolah (tapis PKG/status). 2025 = carta TOV/KPI/Capai lama (metrik `analisis_metrics` dcs dikekalkan).
 - Modal halaman utama (`summary.ts`): kad DCS guna snapshot terkini jika ada (78.2% murid selesai), jatuh balik ke 2025.
 - Disahkan: typecheck, build, migrasi + import ke DB, smoke kad/modal halaman utama + pratonton dev sementara `DcsExplore` (desktop & telefon, tukar tahun, tapis PKG) — laluan dev dibuang selepas semakan.
+
+## 2026-10-16 — MJKD maklum balas: draf auto-simpan
+
+- Aduan pengetua: borang maklum balas `/laporan-mjkd` hilang jika tab tertutup separuh jalan.
+- `components/mjkd/MaklumBalasMjkdForm.tsx`: draf (sekolah, nama/jawatan, semua jawapan termasuk URL gambar bukti) disimpan ke `localStorage` setiap kali borang berubah. Kunci `mjkd-draf:<mesyuaratId>` (borang baharu) atau `mjkd-draf:<mesyuaratId>:<kodSekolah>` (kemaskini). Mod admin tiada draf.
+- Dibuka semula → draf dipulihkan (hanya jika ada jawapan sebenar) + banner "Draf anda telah dipulihkan" dengan butang "Buang draf". Draf dipadam selepas berjaya menghantar; jika sama dengan rekod asal, tidak disimpan.
+- Had: draf hanya dalam pelayar/peranti yang sama (bukan pelayan).
+- Disahkan: typecheck, eslint, smoke dev (isi → muat semula → dipulihkan → Buang draf kosongkan + padam kunci; tiada ralat konsol). `npm run build` tidak dijalankan kerana pelayan dev sesi lain sedang guna `.next`.

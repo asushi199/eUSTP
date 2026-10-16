@@ -88,6 +88,67 @@ function jawapanAwal(existing?: JawapanAwal | null): Record<string, Jawapan> {
   return out;
 }
 
+// ── Draf auto-simpan (localStorage pelayar ini sahaja) ──────────────────────
+// Pengisi yang menutup tab separuh jalan boleh menyambung semula tanpa menaip lagi.
+// Draf dibuang selepas berjaya menghantar, atau apabila pengguna menekan "Buang draf".
+type Draf = {
+  schoolCode: string;
+  namaPengisi: string;
+  jawatanPengisi: string;
+  jawapan: Record<string, Jawapan>;
+  disimpan: string;
+};
+
+function str(v: unknown): string {
+  return typeof v === "string" ? v : "";
+}
+
+function bacaDraf(kunci: string): Draf | null {
+  try {
+    const raw = window.localStorage.getItem(kunci);
+    if (!raw) return null;
+    const d = JSON.parse(raw) as Partial<Draf>;
+    const jawapan: Record<string, Jawapan> = {};
+    for (const [id, j] of Object.entries(d.jawapan ?? {})) {
+      if (!j || typeof j !== "object") continue;
+      jawapan[id] = {
+        status: str(j.status),
+        catatan: str(j.catatan),
+        pautanBukti: str(j.pautanBukti),
+        fotoBukti: Array.isArray(j.fotoBukti) ? j.fotoBukti.filter((f) => typeof f === "string") : [],
+      };
+    }
+    return {
+      schoolCode: str(d.schoolCode),
+      namaPengisi: str(d.namaPengisi),
+      jawatanPengisi: str(d.jawatanPengisi),
+      jawapan,
+      disimpan: str(d.disimpan),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function buangDraf(kunci: string) {
+  try {
+    window.localStorage.removeItem(kunci);
+  } catch {
+    /* localStorage tidak tersedia */
+  }
+}
+
+function masaDraf(iso: string): string {
+  const t = new Date(iso);
+  if (Number.isNaN(t.getTime())) return "";
+  return t.toLocaleString("ms-MY", {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export default function MaklumBalasMjkdForm({
   mesyuarat,
   schools,
@@ -113,6 +174,81 @@ export default function MaklumBalasMjkdForm({
   const disentuh = useRef(Boolean(existing));
 
   const dikunci = adminMode || Boolean(existing && initialReceiptToken);
+
+  // Draf: borang baharu = satu draf per mesyuarat; kemaskini = satu draf per sekolah. Admin tiada draf.
+  const kunciDraf = adminMode
+    ? null
+    : existing
+      ? `mjkd-draf:${mesyuarat.id}:${initialSchoolCode ?? ""}`
+      : `mjkd-draf:${mesyuarat.id}`;
+  const [drafSedia, setDrafSedia] = useState(false);
+  const [drafDipulih, setDrafDipulih] = useState<string | null>(null);
+  const asalJson = useRef(
+    JSON.stringify({
+      schoolCode: initialSchoolCode ?? "",
+      namaPengisi: existing?.namaPengisi ?? "",
+      jawatanPengisi: existing?.jawatanPengisi ?? "",
+      jawapan: jawapanAwal(existing),
+    }),
+  );
+
+  // Pulihkan draf sekali selepas mount (localStorage tiada semasa SSR).
+  useEffect(() => {
+    if (!kunciDraf) return;
+    const d = bacaDraf(kunciDraf);
+    if (d) {
+      // Hanya pulihkan jika ada jawapan sebenar (bukan sekadar sekolah dipilih + prefill nama).
+      const adaIsi = Object.values(d.jawapan).some(
+        (j) => j.status || j.catatan.trim() || j.pautanBukti.trim() || j.fotoBukti.length,
+      );
+      if (adaIsi) {
+        if (d.namaPengisi || d.jawatanPengisi) {
+          disentuh.current = true; // jangan ditimpa oleh prefill direktori
+          setNamaPengisi(d.namaPengisi);
+          setJawatanPengisi(d.jawatanPengisi);
+        }
+        if (!existing && d.schoolCode && schools.some((s) => s.code === d.schoolCode)) {
+          setSchoolCode(d.schoolCode);
+        }
+        setJawapan((prev) => ({ ...prev, ...d.jawapan }));
+        setDrafDipulih(d.disimpan);
+      }
+    }
+    setDrafSedia(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- sekali sahaja semasa mount
+  }, []);
+
+  // Simpan draf setiap kali borang berubah (selepas pemulihan selesai).
+  useEffect(() => {
+    if (!kunciDraf || !drafSedia) return;
+    const kini = JSON.stringify({ schoolCode, namaPengisi, jawatanPengisi, jawapan });
+    if (kini === asalJson.current) {
+      buangDraf(kunciDraf);
+      return;
+    }
+    try {
+      window.localStorage.setItem(
+        kunciDraf,
+        JSON.stringify({ schoolCode, namaPengisi, jawatanPengisi, jawapan, disimpan: new Date().toISOString() }),
+      );
+    } catch {
+      /* localStorage penuh / tidak tersedia — borang masih berfungsi */
+    }
+  }, [kunciDraf, drafSedia, schoolCode, namaPengisi, jawatanPengisi, jawapan]);
+
+  function buangDrafDanSetSemula() {
+    if (!kunciDraf) return;
+    if (!window.confirm("Buang draf dan kosongkan jawapan yang belum dihantar?")) return;
+    const asal = JSON.parse(asalJson.current) as Omit<Draf, "disimpan">;
+    disentuh.current = Boolean(existing);
+    setSchoolCode(asal.schoolCode);
+    setQuery("");
+    setNamaPengisi(asal.namaPengisi);
+    setJawatanPengisi(asal.jawatanPengisi);
+    setJawapan(asal.jawapan);
+    setDrafDipulih(null);
+    buangDraf(kunciDraf);
+  }
 
   const filteredSchools = useMemo(
     () => schools.filter((school) => matchesSchoolQuery(school, query)),
@@ -241,6 +377,7 @@ export default function MaklumBalasMjkdForm({
         setError("Gagal menghantar.");
         return;
       }
+      if (kunciDraf) buangDraf(kunciDraf);
       const q = new URLSearchParams({ kod: res.schoolCode, resit: res.receiptToken });
       router.push(`/laporan-mjkd/berjaya?${q.toString()}`);
     });
@@ -248,6 +385,23 @@ export default function MaklumBalasMjkdForm({
 
   return (
     <form onSubmit={onSubmit} className="space-y-6">
+      {drafDipulih !== null ? (
+        <div className="flex flex-col gap-3 rounded-xl border-2 border-ink bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-[15px] text-ink">
+            <span className="font-semibold">Draf anda telah dipulihkan</span>
+            {masaDraf(drafDipulih) ? ` (disimpan ${masaDraf(drafDipulih)})` : ""}. Sambung mengisi
+            dan tekan hantar apabila selesai.
+          </p>
+          <button
+            type="button"
+            className="btn-outline-ink shrink-0"
+            onClick={buangDrafDanSetSemula}
+          >
+            Buang draf
+          </button>
+        </div>
+      ) : null}
+
       <section className="card p-6">
         <h2 className="text-lg font-semibold">A. Sekolah</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -629,13 +783,21 @@ export default function MaklumBalasMjkdForm({
 
       <div className="flex flex-col gap-3 rounded-xl border-2 border-steel/70 bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
         {terpakai.length > 0 ? (
-          <p className="text-[15px] text-charcoal">
-            <span className="font-semibold tabular-nums text-ink">
-              {bilLengkap} / {terpakai.length}
-            </span>{" "}
-            perkara lengkap
-            {bilLengkap < terpakai.length ? " — lengkapkan semua sebelum menghantar." : "."}
-          </p>
+          <div>
+            <p className="text-[15px] text-charcoal">
+              <span className="font-semibold tabular-nums text-ink">
+                {bilLengkap} / {terpakai.length}
+              </span>{" "}
+              perkara lengkap
+              {bilLengkap < terpakai.length ? " — lengkapkan semua sebelum menghantar." : "."}
+            </p>
+            {kunciDraf ? (
+              <p className="mt-1 text-sm text-graphite">
+                Draf disimpan secara automatik dalam pelayar ini — jika tertutup, buka semula
+                halaman ini untuk menyambung.
+              </p>
+            ) : null}
+          </div>
         ) : (
           <p className="text-[15px] text-graphite">Pilih sekolah dahulu.</p>
         )}
