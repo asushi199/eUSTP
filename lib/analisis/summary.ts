@@ -7,6 +7,7 @@ import {
   delimaTrendPoints,
 } from "./queries";
 import { delimaTaburan } from "./delima-live";
+import { DELIMA_D3_SUMBER } from "./delima-d3-parse";
 import { getAinsTahun, listAinsTahun } from "./ains-queries";
 import {
   AINS_BULAN,
@@ -222,7 +223,9 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
     delimaLive: live != null,
     bars: delimaTaburan(delima.liveSchools),
     note: live
-      ? `Data langsung DELIMa Perak (${live.tempoh}).`
+      ? live.sumberUrl === DELIMA_D3_SUMBER
+        ? `Data DELIMa 3.0 KPM, d3.delima.edu.my (${live.tempoh}).`
+        : `Data langsung DELIMa Perak (${live.tempoh}).`
       : undefined,
   };
 

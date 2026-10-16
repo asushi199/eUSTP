@@ -10,6 +10,7 @@ import {
   ensureDelimaSnapshot,
   getDelimaCapaiTerkini,
   getDelimaSnapshotTrend,
+  pilihDelimaD3,
   type DelimaTrendPoint,
 } from "./delima-snapshot";
 
@@ -75,10 +76,18 @@ export async function getAnalisisData(modul: AnalisisModul): Promise<AnalisisDat
       fetchDelimaLive(cfg.url, cfg.daerah),
       fetchDelimaSchools(cfg.url, cfg.daerah),
     ]);
+    const perak = live;
+    const perakSchools = liveSchools;
+    // Snapshot d3 (rasmi KPM) menggantikan paparan Perak jika tempohnya tidak ketinggalan.
+    const d3 = await pilihDelimaD3(live);
+    if (d3) {
+      live = d3.live;
+      liveSchools = d3.schools;
+    }
     if (live?.bilSekolah != null) metrics.set("bil_sekolah", String(live.bilSekolah));
-    if (live) {
-      const l = live;
-      const s = liveSchools;
+    if (perak) {
+      const l = perak;
+      const s = perakSchools;
       try {
         // Snapshot bulanan automatik: dicipta selepas respons dihantar jika tempoh ini belum ada.
         after(() =>

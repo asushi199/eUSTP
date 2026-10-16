@@ -4,6 +4,7 @@ import { requireKandunganAccess } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { analisisBreakdown, analisisMetrics, analisisModul } from "@/lib/schema";
 import { listDelimaSnapshots, periodLabel } from "@/lib/analisis/delima-snapshot";
+import { DELIMA_D3_SUMBER } from "@/lib/analisis/delima-d3-parse";
 import {
   deleteBreakdown,
   deleteMetric,
@@ -104,6 +105,12 @@ export default async function AdminAnalisisPage({
             Peratus guru/murid aktif dan bilangan sekolah dibaca terus daripada papan pemuka DELIMa
             Perak (dikemas kini automatik setiap jam). Tukar pautan atau daerah di bawah jika perlu.
           </p>
+          <p className="mt-1 text-sm text-graphite">
+            Data rasmi KPM (d3.delima.edu.my → Utama) diimport secara manual setiap bulan kerana
+            memerlukan log masuk: <code>npm run db:import-delima-d3 -- scripts/data/delima-d3-YYYY-MM-DD.csv</code>.
+            Snapshot bertanda <span className="font-semibold">d3 KPM</span> diutamakan dalam paparan awam
+            selagi tempohnya tidak ketinggalan berbanding sumber Perak, dan tidak ditimpa cron harian.
+          </p>
           <div className="card mt-3 space-y-3 px-4 py-3">
             {(
               [
@@ -183,6 +190,13 @@ export default async function AdminAnalisisPage({
                   <div className="w-40 shrink-0">
                     <p className="font-medium">{periodLabel(r.period)}</p>
                     <p className="text-xs text-graphite">{r.tempoh}</p>
+                    <p className="text-xs text-graphite">
+                      {r.sumberUrl === DELIMA_D3_SUMBER ? (
+                        <span className="font-semibold text-ink">d3 KPM</span>
+                      ) : (
+                        "DELIMa Perak"
+                      )}
+                    </p>
                   </div>
                   <p className="tabular-nums">
                     Guru {r.guruPct}% <span className="text-xs text-graphite">({r.guruAktif}/{r.guruJumlah})</span>

@@ -1,5 +1,13 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-10-16 — DELIMa: snapshot d3.delima.edu.my (rasmi KPM) diimport manual setiap bulan
+
+- Sumber baharu: papan pemuka DELIMa 3.0 KPM (`d3.delima.edu.my` → Utama, PPD MANJUNG, tempoh 1 Jan → tarikh ambil). API sumber (`d3-api.delima.edu.my/analytics/active-teacher-student?orgUnitId&startDate&endDate`) perlukan sesi log masuk pengguna, jadi pelayan TIDAK menarik sendiri: pegawai log masuk dalam pelayar, Claude baca 102 sekolah melalui UI (pilih sekolah → Hantar), simpan `scripts/data/delima-d3-YYYY-MM-DD.csv` (ringkasan sekolah sahaja), lalu `npm run db:import-delima-d3 -- <fail> [--dry-run]`.
+- Import: semak jumlah sekolah = jumlah daerah, padan nama → kod ikut senarai sekolah snapshot terdahulu (nama berulang SK Methodist (ACS) / SJKC Pei Min dipadan ikut jumlah guru+murid), tulis snapshot `period` YYYY-MM dengan `sumber_url = https://d3.delima.edu.my` (tiada migrasi).
+- `saveDelimaSnapshot` / `ensureDelimaSnapshot` tidak menimpa baris d3. `pilihDelimaD3` (delima-snapshot.ts): paparan awam (`getAnalisisData`, `loadDelimaSchools`, `loadDelimaSchoolDetail`) guna d3 selagi tempohnya ≥ tempoh langsung Perak; jika tertinggal, kembali ke Perak. Nota paparan: "Data DELIMa 3.0 KPM, d3.delima.edu.my (…)". Admin: label sumber pada Sejarah Snapshot.
+- Snapshot pertama 2026-10 (1 Jan – 16 Okt 2026): guru 3,699/3,757 (98.46%), murid 21,724/41,501 (52.35%), 41/102 sekolah capai KPI murid. Angka jumlah sekolah sama tepat dengan senarai Perak.
+- Disahkan: typecheck, `npm run build`, `tests/analisis/delima-d3.test.ts` (6 lulus), pelayar: modal DELIMa laman utama + `/analisis/delima` papar angka d3.
+
 ## 2026-10-15 — MJKD pembentangan: kotak status boleh diklik, kembali ke Papan Pemuka, "Semua soalan" ikut perkara
 
 - **Kotak status Papan Pemuka** (Selesai / Dalam Pelaksanaan / Belum Dilaksanakan / Tidak Berkaitan) kini butang (bilangan jawapan dipapar di sebelah %; dilumpuhkan jika 0) → lapisan baharu `SpotlightStatus.tsx`: kiri = perkara yang ada jawapan berstatus itu (bilangan sekolah), kanan = teks perkara + mozek sekolah berstatus itu sahaja + "Buka slaid perkara →". ← → = perkara sebelum/seterusnya. Klik sekolah = Spotlight sedia ada dengan `jubin` ditapis ikut status (← → antara sekolah berstatus sama; bar bawah "x / n sekolah · <status>"). Esc = kembali selapis demi selapis; kekal di slaid Papan Pemuka.

@@ -15,6 +15,7 @@ import {
   type DelimaSchoolRow,
   type DelimaTahap,
 } from "./delima-live";
+import { DELIMA_D3_SUMBER } from "./delima-d3-parse";
 
 export const DELIMA_HISTORY_PAGE_SIZE = 10;
 
@@ -42,6 +43,7 @@ export type DelimaSnapshotRow = {
   period: string;
   tempoh: string;
   daerah: string;
+  sumberUrl: string;
   capturedOn: string;
   guruAktif: number;
   guruJumlah: number;
@@ -145,10 +147,17 @@ export async function saveDelimaSnapshot(
 
   return db.transaction(async (tx) => {
     const ada = await tx
-      .select({ id: analisisDelimaSnapshots.id, guru30Pct: analisisDelimaSnapshots.guru30Pct })
+      .select({
+        id: analisisDelimaSnapshots.id,
+        guru30Pct: analisisDelimaSnapshots.guru30Pct,
+        sumberUrl: analisisDelimaSnapshots.sumberUrl,
+      })
       .from(analisisDelimaSnapshots)
       .where(eq(analisisDelimaSnapshots.period, period))
       .limit(1);
+
+    // Tempoh yang sudah diimport daripada d3.delima.edu.my (sumber rasmi) tidak ditimpa sumber Perak.
+    if (ada[0]?.sumberUrl === DELIMA_D3_SUMBER) return { id: ada[0].id, period, created: false };
 
     let id: number;
     if (ada[0]) {
@@ -227,10 +236,12 @@ export async function ensureDelimaSnapshot(
         bilCapai: analisisDelimaSnapshots.bilCapai,
         guru30Pct: analisisDelimaSnapshots.guru30Pct,
         guruGabPct: analisisDelimaSnapshots.guruGabPct,
+        sumberUrl: analisisDelimaSnapshots.sumberUrl,
       })
       .from(analisisDelimaSnapshots)
       .where(eq(analisisDelimaSnapshots.period, period))
       .limit(1);
+    if (ada[0]?.sumberUrl === DELIMA_D3_SUMBER) return;
     // Sudah ada, bilangan sekolah capai sudah dikira dan (jika CSV 3.0 ada) 3.0 sudah direkod: tiada apa perlu dibuat.
     if (
       ada[0] &&
@@ -284,6 +295,7 @@ export async function listDelimaSnapshots(
       period: analisisDelimaSnapshots.period,
       tempoh: analisisDelimaSnapshots.tempoh,
       daerah: analisisDelimaSnapshots.daerah,
+      sumberUrl: analisisDelimaSnapshots.sumberUrl,
       capturedOn: analisisDelimaSnapshots.capturedOn,
       guruAktif: analisisDelimaSnapshots.guruAktif,
       guruJumlah: analisisDelimaSnapshots.guruJumlah,
@@ -365,4 +377,44 @@ export async function getDelimaSnapshotTrend(): Promise<DelimaTrendPoint[]> {
 
 export async function deleteDelimaSnapshot(id: number): Promise<void> {
   await db.delete(analisisDelimaSnapshots).where(eq(analisisDelimaSnapshots.id, id));
+}
+
+/** Snapshot d3 terbaharu dalam bentuk data langsung (ringkasan daerah + senarai sekolah). */
+export type DelimaD3View = { period: string; live: DelimaLive; schools: DelimaSchoolList };
+
+export async function getDelimaD3Terkini(): Promise<DelimaD3View | null> {
+  const [s] = await db
+    .select()
+    .from(analisisDelimaSnapshots)
+    .where(eq(analisisDelimaSnapshots.sumberUrl, DELIMA_D3_SUMBER))
+    .orderBy(desc(analisisDelimaSnapshots.period))
+    .limit(1);
+  if (!s) return null;
+  const sekolah = await getDelimaSnapshotSchools(s.id);
+  return {
+    period: s.period,
+    live: {
+      daerah: s.daerah,
+      guru: { aktif: s.guruAktif, jumlah: s.guruJumlah, peratus: s.guruPct },
+      murid: { aktif: s.muridAktif, jumlah: s.muridJumlah, peratus: s.muridPct },
+      v30: null,
+      guruGabung: null,
+      kadMurid: null,
+      bilSekolah: s.bilSekolah,
+      tempoh: s.tempoh,
+      sumberUrl: s.sumberUrl,
+    },
+    schools: { schools: sekolah?.schools ?? [], tempoh: s.tempoh, daerah: s.daerah },
+  };
+}
+
+/**
+ * Sumber paparan DELIMa: snapshot d3 (rasmi KPM, import manual bulanan) diutamakan selagi tempohnya
+ * sama atau lebih baharu daripada data langsung DELIMa Perak; jika d3 tertinggal, guna Perak.
+ */
+export async function pilihDelimaD3(live: DelimaLive | null): Promise<DelimaD3View | null> {
+  const d3 = await getDelimaD3Terkini().catch(() => null);
+  if (!d3) return null;
+  const periodLive = live ? periodDariTempoh(live.tempoh) : null;
+  return !periodLive || d3.period >= periodLive ? d3 : null;
 }
