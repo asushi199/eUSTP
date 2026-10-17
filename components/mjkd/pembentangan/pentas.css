@@ -92,11 +92,11 @@
   right: 0;
   top: 0;
   height: 76px;
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  padding: 0 40px;
+  gap: 28px;
+  padding: 0 32px;
   border-bottom: 1px solid var(--garis);
   background: linear-gradient(var(--bg0), color-mix(in srgb, var(--bg0) 70%, transparent));
   z-index: 20;
@@ -127,20 +127,24 @@
   display: block;
 }
 .pentas .pt-jenama b {
-  display: block;
-  font-size: 19px;
+  font-size: 17px;
   letter-spacing: 0.14em;
   color: var(--emas);
-}
-.pentas .pt-jenama small {
-  display: block;
-  font-size: 14px;
-  color: var(--samar);
   white-space: nowrap;
 }
+.pentas .pt-krom .pt-plak {
+  padding: 4px 8px;
+  border-radius: 8px;
+  box-shadow: none;
+}
+.pentas .pt-krom .pt-plak img {
+  height: 34px;
+}
 .pentas .pt-bab {
+  justify-self: center;
   display: flex;
-  gap: 4px;
+  gap: 2px;
+  min-width: 0;
   padding: 5px;
   border-radius: 999px;
   border: 1px solid var(--garis);
@@ -150,11 +154,15 @@
   border: 0;
   background: none;
   border-radius: 999px;
-  padding: 9px 18px;
-  font-size: 16px;
+  padding: 8px 16px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--redup);
   white-space: nowrap;
+}
+.pentas .pt-bab button:not([aria-current="true"]):hover {
+  color: var(--teks);
+  background: var(--panel2);
 }
 .pentas .pt-bab button[aria-current="true"] {
   background: var(--emas);
@@ -163,7 +171,7 @@
 .pentas .pt-kanan {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   font-size: 16px;
   color: var(--redup);
 }
@@ -185,6 +193,64 @@
 .pentas .pt-langsung.lapuk i {
   background: var(--tb);
   animation: none;
+}
+.pentas .pt-krom .pt-langsung {
+  margin-right: 6px;
+}
+/* ← n / N → dalam satu kapsul */
+.pentas .pt-gerak {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--garis);
+  border-radius: 999px;
+  height: 40px;
+  white-space: nowrap;
+}
+.pentas .pt-gerak button {
+  border: 0;
+  background: none;
+  width: 40px;
+  height: 38px;
+  border-radius: 999px;
+  font-size: 18px;
+  color: var(--teks);
+}
+.pentas .pt-gerak button:hover:not(:disabled) {
+  background: var(--panel2);
+}
+.pentas .pt-gerak button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.pentas .pt-gerak .pt-nombor {
+  min-width: 64px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--teks);
+}
+.pentas .pt-gerak .pt-nombor small {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--samar);
+}
+.pentas .pt-krom .pt-hantu {
+  height: 40px;
+  padding: 0 18px;
+}
+/* Butang ikon bulat (tema, semua slaid, skrin penuh) */
+.pentas .pt-ikon {
+  width: 40px;
+  height: 40px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid var(--garis);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--teks);
+}
+.pentas .pt-ikon:hover {
+  background: var(--panel2);
 }
 .pentas .pt-hantu {
   border: 1px solid var(--garis);

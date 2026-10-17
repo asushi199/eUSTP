@@ -2289,3 +2289,8 @@ Corak berselang = instance sihat vs beracun.
 - `next.config.mjs`: `publicExcludes` + `!mjkd/slaid-utama/**/*` supaya ~50 MB ini TIDAK diprecache oleh service worker PWA untuk semua pengguna.
 - Slaid utama ialah reka bentuk asal Canva (pengecualian tema pentas — tidak berubah dengan T). Jika Canva dikemas kini sebelum acara: eksport PPTX semula → jalankan skrip → ganti JPG/teks.
 - Disahkan: typecheck, eslint, `tsx --test tests/mjkd/pembentangan.test.ts` (20 lulus, termasuk ujian baharu slaid utama), smoke `/dev/pentas` (imej, teks agenda, video dari Blob, kawalan ← → dua kali + Space, Navigator G, 8 tab bab muat).
+
+## 2026-10-17 — MJKD mod pembentangan: bar atas (krom) disusun semula
+
+- Dengan 8 bab, krom bertindih (jenama terlindung, "1 / 45" terbalut). Kini grid 3 lajur: logo + "MJKD 2026" | tab bab di tengah | status, kapsul ← n / N →, butang ikon (tema, semua slaid, skrin penuh — tooltip menunjukkan kekunci T/G/F) dan Keluar. Tarikh acara dibuang daripada krom (ada pada slaid Pembukaan). Tab "Pembentangan Sektor" dipendekkan kepada "Sektor" (`SENARAI_BAB.pendek`; Navigator kekal label penuh). Status langsung hanya papar masa (titik hijau); status lapuk/luar talian kekal teks penuh.
+- Disahkan: typecheck, eslint, ujian pembentangan, smoke `/dev/pentas` 1920×1080 tema terang + gelap (satu baris, tiada pertindihan).

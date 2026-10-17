@@ -492,7 +492,6 @@ export default function Pentas({
         <KonteksPentas.Provider value={konteks}>
           <Kanvas>
             <Krom
-              tarikh={acara.tarikh}
               bab={slaid?.bab ?? kedudukan.bab}
               onBab={keBab}
               status={status}

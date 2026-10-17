@@ -120,14 +120,15 @@ export type Bab =
   | "pembentangan"
   | "penutup";
 
-export const SENARAI_BAB: readonly { id: Bab; label: string }[] = [
+/** `pendek` = label tab bar atas (krom); `label` penuh untuk Navigator. */
+export const SENARAI_BAB: readonly { id: Bab; label: string; pendek?: string }[] = [
   { id: "pembukaan", label: "Pembukaan" },
   { id: "kehadiran", label: "Kehadiran" },
   { id: "majlis", label: "Majlis" },
   { id: "perutusan", label: "Perutusan" },
   { id: "minit", label: "Minit" },
   { id: "maklum-balas", label: "Maklum Balas" },
-  { id: "pembentangan", label: "Pembentangan Sektor" },
+  { id: "pembentangan", label: "Pembentangan Sektor", pendek: "Sektor" },
   { id: "penutup", label: "Penutup" },
 ];
 
