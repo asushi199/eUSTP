@@ -1,5 +1,12 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-10-17 — MJKD borang: draf pelayar bertanda "belum segerak" + simpan segera ke latar belakang
+
+- Keputusan: draf pelayar (localStorage) **dikekalkan** sebagai jaring keselamatan (tulis serta-merta, pulih automatik tanpa pilih sekolah, berfungsi bila DB gagal / semasa muat naik gambar).
+- Draf pelayar kini menyimpan `belumSegerak` (ada suntingan yang belum sampai ke pelayan). Semasa memilih sekolah, draf pelayar menang **hanya** jika `belumSegerak` — tidak lagi banding masa jam telefon vs jam pelayan (jam telefon tersasar boleh menimpa draf yang lebih baharu dari peranti lain). Draf lama tanpa tanda: banding masa seperti dahulu. Selepas simpanan pelayan berjaya, `tandaSegerak` menetapkan `belumSegerak: false` jika isi pelayar masih sama.
+- Simpanan pelayan diekstrak ke `simpanSekarang` (ref); debounce 2.5 s memanggilnya, dan juga `visibilitychange` (hidden) + `pagehide` — telefon menjeda pemasa semasa bertukar aplikasi. Rantai simpanan melangkau jika isi sudah disimpan.
+- Disahkan: typecheck, eslint, `npm run build`; pelayar dev dengan simpanan disekat (fetch dipintas, tiada tulisan DB — disemak): simpan dicuba 48 ms selepas `hidden` dan semasa `pagehide`, draf pelayar `belumSegerak: true`, status "Belum dapat disimpan ke pelayan". Laluan simpanan berjaya → tanda segerak tidak diuji hujung-ke-hujung (dev guna DB produksi).
+
 ## 2026-10-17 — MJKD borang: kunci bahagian C semasa draf pelayan dimuat
 
 - Siasatan aduan SK Convent, Sitiawan (ABB1042) "jawapan hilang": draf pelayan wujud (17 Okt 11:41, hanya perkara 1.3). Sistem hanya simpan salinan terkini — bilangan cubaan tidak dapat dikesan. Punca paling mungkin: dibuka semula dalam pelayar/aplikasi lain (localStorage kosong → borang kosong sehingga sekolah dipilih semula).

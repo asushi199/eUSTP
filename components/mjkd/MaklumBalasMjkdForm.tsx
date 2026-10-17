@@ -105,6 +105,8 @@ type Draf = {
   jawatanPengisi: string;
   jawapan: Record<string, Jawapan>;
   disimpan: string;
+  /** Ada suntingan yang belum sampai ke pelayan. Tiada (draf lama) = banding masa `disimpan`. */
+  belumSegerak?: boolean;
 };
 
 function str(v: unknown): string {
@@ -132,9 +134,29 @@ function bacaDraf(kunci: string): Draf | null {
       jawatanPengisi: str(d.jawatanPengisi),
       jawapan,
       disimpan: str(d.disimpan),
+      belumSegerak: typeof d.belumSegerak === "boolean" ? d.belumSegerak : undefined,
     };
   } catch {
     return null;
+  }
+}
+
+/** Tanda draf pelayar sudah disegerakkan — hanya jika isinya masih sama dengan yang disimpan ke pelayan. */
+function tandaSegerak(kunci: string, kod: string, json: string) {
+  try {
+    const raw = window.localStorage.getItem(kunci);
+    if (!raw) return;
+    const d = JSON.parse(raw) as Record<string, unknown>;
+    if (d.schoolCode !== kod) return;
+    const isi = JSON.stringify({
+      namaPengisi: d.namaPengisi,
+      jawatanPengisi: d.jawatanPengisi,
+      jawapan: d.jawapan,
+    });
+    if (isi !== json || d.belumSegerak === false) return;
+    window.localStorage.setItem(kunci, JSON.stringify({ ...d, belumSegerak: false }));
+  } catch {
+    /* localStorage tidak tersedia */
   }
 }
 
@@ -263,15 +285,27 @@ export default function MaklumBalasMjkdForm({
     if (!adaUbah.current) return;
     const kini2 = new Date().toISOString();
     tempatan.current = { kod: schoolCode, ts: kini2 };
+    // Sama dengan salinan terakhir di pelayan untuk sekolah ini → sudah segerak.
+    const segerak =
+      drafPelayan &&
+      kodDimuat === schoolCode &&
+      JSON.stringify({ namaPengisi, jawatanPengisi, jawapan }) === terakhirJson.current;
     try {
       window.localStorage.setItem(
         kunciDraf,
-        JSON.stringify({ schoolCode, namaPengisi, jawatanPengisi, jawapan, disimpan: kini2 }),
+        JSON.stringify({
+          schoolCode,
+          namaPengisi,
+          jawatanPengisi,
+          jawapan,
+          disimpan: kini2,
+          belumSegerak: !segerak,
+        }),
       );
     } catch {
       /* localStorage penuh / tidak tersedia — borang masih berfungsi */
     }
-  }, [kunciDraf, drafSedia, schoolCode, namaPengisi, jawatanPengisi, jawapan]);
+  }, [kunciDraf, drafSedia, drafPelayan, kodDimuat, schoolCode, namaPengisi, jawatanPengisi, jawapan]);
 
   function buangDrafDanSetSemula() {
     if (!kunciDraf) return;
@@ -346,8 +380,12 @@ export default function MaklumBalasMjkdForm({
       const lokal =
         lokalRaw && lokalRaw.schoolCode === kodStabil && adaIsi(lokalRaw.jawapan) ? lokalRaw : null;
       const pelayan = res.draf;
-      // Pilih yang lebih baharu antara draf pelayan dan draf pelayar untuk sekolah ini.
-      const guna = lokal && (!pelayan || lokal.disimpan >= pelayan.disimpan) ? "lokal" : pelayan ? "pelayan" : null;
+      // Draf pelayar menang hanya jika ada suntingan yang belum sampai ke pelayan — bukan banding masa
+      // (jam telefon boleh tersasar daripada jam pelayan). Draf pelayar lama tanpa tanda: banding masa.
+      const lokalMenang =
+        lokal !== null &&
+        (!pelayan || (lokal.belumSegerak ?? lokal.disimpan >= pelayan.disimpan));
+      const guna = lokalMenang ? "lokal" : pelayan ? "pelayan" : lokal ? "lokal" : null;
       if (guna) {
         const d = guna === "lokal" ? lokal! : pelayan!;
         // Isi sedia ada sudah milik sekolah ini dan sama baharu → kekalkan (elak menimpa suntingan).
@@ -400,37 +438,63 @@ export default function MaklumBalasMjkdForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- hanya apabila sekolah stabil berubah
   }, [drafPelayan, drafSedia, kodStabil]);
 
-  // Simpan draf ke pelayan (debounce), hanya selepas draf sekolah itu selesai dibaca.
-  useEffect(() => {
+  // Simpan draf ke pelayan SEKARANG jika ada perubahan — hanya selepas draf sekolah itu selesai dibaca.
+  // Dipanggil oleh debounce dan apabila halaman ke latar belakang (ref: pendengar acara nampak keadaan terkini).
+  const simpanSekarang = useRef<() => void>(() => undefined);
+  simpanSekarang.current = () => {
     if (!drafPelayan || !drafSedia || pending || muatNaik > 0) return;
     if (!schoolCode || kodDimuat !== schoolCode || kodStabil !== schoolCode) return;
     if (!adaIsi(jawapan)) return;
     const json = JSON.stringify({ namaPengisi, jawatanPengisi, jawapan });
     if (json === terakhirJson.current) return;
     const kod = schoolCode;
-    const t = setTimeout(() => {
-      // Serialkan simpanan supaya yang lama tidak menimpa yang baharu.
-      rantai.current = rantai.current.then(async () => {
-        setStatusPelayan({ jenis: "menyimpan" });
-        const res = await simpanDrafMjkd({
-          mesyuaratId: mesyuarat.id,
-          schoolCode: kod,
-          namaPengisi,
-          jawatanPengisi,
-          jawapan,
-        }).catch(() => ({ ok: false as const, disimpan: undefined }));
-        if (res.ok) {
-          terakhirJson.current = json;
-          if (!drafAdaDiPelayan.current[kod]) dicipta.current = kod;
-          drafAdaDiPelayan.current[kod] = true;
-          setStatusPelayan({ jenis: "disimpan", masa: masaDraf(res.disimpan ?? new Date().toISOString()) });
-        } else {
-          setStatusPelayan({ jenis: "gagal" });
-        }
-      });
-    }, 2500);
+    const isi = { namaPengisi, jawatanPengisi, jawapan };
+    // Serialkan simpanan supaya yang lama tidak menimpa yang baharu.
+    rantai.current = rantai.current.then(async () => {
+      if (json === terakhirJson.current) return; // sudah disimpan oleh panggilan sebelum ini
+      setStatusPelayan({ jenis: "menyimpan" });
+      const res = await simpanDrafMjkd({
+        mesyuaratId: mesyuarat.id,
+        schoolCode: kod,
+        ...isi,
+      }).catch(() => ({ ok: false as const, disimpan: undefined }));
+      if (res.ok) {
+        terakhirJson.current = json;
+        if (kunciDraf) tandaSegerak(kunciDraf, kod, json);
+        if (!drafAdaDiPelayan.current[kod]) dicipta.current = kod;
+        drafAdaDiPelayan.current[kod] = true;
+        setStatusPelayan({ jenis: "disimpan", masa: masaDraf(res.disimpan ?? new Date().toISOString()) });
+      } else {
+        setStatusPelayan({ jenis: "gagal" });
+      }
+    });
+  };
+
+  // Debounce 2.5 s selepas suntingan terakhir.
+  useEffect(() => {
+    if (!drafPelayan || !drafSedia || pending || muatNaik > 0) return;
+    if (!schoolCode || kodDimuat !== schoolCode || kodStabil !== schoolCode) return;
+    if (!adaIsi(jawapan)) return;
+    if (JSON.stringify({ namaPengisi, jawatanPengisi, jawapan }) === terakhirJson.current) return;
+    const t = setTimeout(() => simpanSekarang.current(), 2500);
     return () => clearTimeout(t);
   }, [drafPelayan, drafSedia, pending, muatNaik, schoolCode, kodDimuat, kodStabil, namaPengisi, jawatanPengisi, jawapan, mesyuarat.id]);
+
+  // Telefon: bertukar aplikasi/tab menjeda pemasa debounce dan pelayar boleh membuang tab di latar
+  // belakang — simpan serta-merta semasa halaman disembunyikan / ditutup.
+  useEffect(() => {
+    if (!drafPelayan) return;
+    const tersembunyi = () => {
+      if (document.visibilityState === "hidden") simpanSekarang.current();
+    };
+    const keluar = () => simpanSekarang.current();
+    document.addEventListener("visibilitychange", tersembunyi);
+    window.addEventListener("pagehide", keluar);
+    return () => {
+      document.removeEventListener("visibilitychange", tersembunyi);
+      window.removeEventListener("pagehide", keluar);
+    };
+  }, [drafPelayan]);
 
   const filteredSchools = useMemo(
     () => schools.filter((school) => matchesSchoolQuery(school, query)),
