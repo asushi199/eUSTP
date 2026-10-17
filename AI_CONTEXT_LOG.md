@@ -2279,3 +2279,13 @@ Corak berselang = instance sihat vs beracun.
 ## 2026-10-16 — MJKD borang awam: tanda sudah dihantar ringkas (✓)
 
 - Senarai carian dan `<select>` sekolah kini hanya papar "✓" (title/aria-label "Sudah dihantar") bagi sekolah yang sudah menghantar — bukan teks "Sudah dihantar" yang memakan ruang. Kad status selepas memilih sekolah tidak diubah. Typecheck + eslint lulus.
+
+## 2026-10-17 — MJKD mod pembentangan: slaid utama rasmi Canva disepadukan
+
+- Sumber: Canva "SLIDE UTAMA MJKD BIL. 2/2026" (25 halaman) — connector Canva tidak dapat mengeksport (akses pautan sahaja), jadi pengguna memuat turun PPTX. Setiap halaman dikomposit kepada JPG 1920×1080 (`scripts/mjkd-slaid-utama.py`), disimpan di `public/mjkd/slaid-utama/` (halaman sama dikongsi: `muka-depan.jpg`, `latar-agenda.jpg`). Halaman 2 = video lagu (2 min 49 s, berbunyi) → `lagu.mp4` 1080p30 ~46 MB (asal 97 MB).
+- `lib/mjkd/slaid-utama.ts` (`HALAMAN_UTAMA`): bab, tajuk, imej; halaman agenda/petugas = latar + teks HTML League Spartan (`next/font/google`) mengikut kedudukan PPTX. Jenis slaid baharu `utama`; bab baharu **Majlis** (hlm 1–8) dan **Perutusan** (hlm 9–19, Agenda 1).
+- Susunan dek: Pembukaan → Kehadiran → Majlis → Perutusan → [Agenda 2] Minit → [Agenda 3] Papan Pemuka… → [Agenda 4] Atur Cara/bahan → Agenda 5, Agenda 6, "Tahun Ini Tahun Kita" → Penutup. `cariIndeks` melangkau pembahagi agenda bila kunci hilang.
+- Video: main automatik dengan bunyi bila slaid dibuka (kekunci = gerak isyarat); butang "▶ Main video" jika pelayar menyekat. Semasa video dimainkan ← → perlu ditekan dua kali (dalam 3 s); Space = main/jeda. `pramuatUtama()` memuat imej + video penuh ke Blob semasa Pentas dibuka (tidak bergantung pada Wi-Fi hotel selepas itu).
+- `next.config.mjs`: `publicExcludes` + `!mjkd/slaid-utama/**/*` supaya ~50 MB ini TIDAK diprecache oleh service worker PWA untuk semua pengguna.
+- Slaid utama ialah reka bentuk asal Canva (pengecualian tema pentas — tidak berubah dengan T). Jika Canva dikemas kini sebelum acara: eksport PPTX semula → jalankan skrip → ganti JPG/teks.
+- Disahkan: typecheck, eslint, `tsx --test tests/mjkd/pembentangan.test.ts` (20 lulus, termasuk ujian baharu slaid utama), smoke `/dev/pentas` (imej, teks agenda, video dari Blob, kawalan ← → dua kali + Space, Navigator G, 8 tab bab muat).

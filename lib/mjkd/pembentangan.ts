@@ -1,7 +1,8 @@
 /**
  * Mod Pembentangan MJKD 2026 (v2) — logik tulen (tiada akses DB; selamat dibawa ke klien).
- * Satu dek berterusan mengikut bab: Pembukaan → Kehadiran → Minit → Maklum Balas → Pembentangan
- * Sektor → Penutup. Jumlah sekolah SENTIASA dikira daripada data (tiada nombor tetap); tiada zon.
+ * Satu dek berterusan mengikut bab: Pembukaan → Kehadiran → Majlis → Perutusan → Minit → Maklum
+ * Balas → Pembentangan Sektor → Penutup (Majlis/Perutusan/pembahagi agenda = slaid utama Canva,
+ * `slaid-utama.ts`). Jumlah sekolah SENTIASA dikira daripada data (tiada nombor tetap); tiada zon.
  */
 import { kumpulBahan, urlEmbedBahan, urlMuatTurunBahan } from "./bahan";
 import { STATUS_MJKD, formatTarikhMs, labelMesyuarat } from "./enums";
@@ -15,6 +16,7 @@ import {
 import { kenalJenisSekolah, peringkat } from "./jenis-sekolah";
 import { hitungKemajuan, kiraStatus, type BilanganStatus } from "./ringkasan";
 import { perkaraUntukSekolah } from "./sasaran";
+import { halamanUtama, urlGambarUtama, VIDEO_SLAID_UTAMA, type TeksUtama } from "./slaid-utama";
 
 export const NAMA_MESYUARAT_PENUH = "Mesyuarat Jawatankuasa Kurikulum Daerah Manjung";
 export const PANJANG_RINGKAS = 240;
@@ -108,11 +110,21 @@ export type VersiPentas = { utama: string; hadir: string };
 
 /* ------------------------------- jenis slaid ------------------------------- */
 
-export type Bab = "pembukaan" | "kehadiran" | "minit" | "maklum-balas" | "pembentangan" | "penutup";
+export type Bab =
+  | "pembukaan"
+  | "kehadiran"
+  | "majlis"
+  | "perutusan"
+  | "minit"
+  | "maklum-balas"
+  | "pembentangan"
+  | "penutup";
 
 export const SENARAI_BAB: readonly { id: Bab; label: string }[] = [
   { id: "pembukaan", label: "Pembukaan" },
   { id: "kehadiran", label: "Kehadiran" },
+  { id: "majlis", label: "Majlis" },
+  { id: "perutusan", label: "Perutusan" },
   { id: "minit", label: "Minit" },
   { id: "maklum-balas", label: "Maklum Balas" },
   { id: "pembentangan", label: "Pembentangan Sektor" },
@@ -245,6 +257,16 @@ export type SlaidBahan = Asas & {
   daripada: number;
 };
 
+/** Halaman slaid utama rasmi (Canva) — imej penuh 1920×1080, teks agenda atau video lagu. */
+export type SlaidUtama = Asas & {
+  jenis: "utama";
+  halaman: number;
+  gambar: string;
+  teks: TeksUtama[];
+  /** URL video (halaman lagu) atau null. */
+  video: string | null;
+};
+
 export type SlaidPenutup = Asas & {
   jenis: "penutup";
   sekolahHadir: number;
@@ -262,6 +284,7 @@ export type Slaid =
   | SlaidSemuaSoalan
   | SlaidAturCara
   | SlaidBahan
+  | SlaidUtama
   | SlaidPenutup;
 
 /* --------------------------------- bantuan --------------------------------- */
@@ -614,9 +637,25 @@ export const kunciPerkara = (perkaraId: string) => `perkara-${perkaraId}`;
 export const KUNCI_SEMUA_SOALAN = "semua-soalan";
 export const KUNCI_PAPAN_PEMUKA = "papan-pemuka";
 
+/** Slaid utama Canva halaman `dari`..`hingga` (kunci `utama-{n}`). */
+function slaidUtama(dari: number, hingga: number): SlaidUtama[] {
+  return halamanUtama(dari, hingga).map((h) => ({
+    jenis: "utama",
+    kunci: `utama-${h.halaman}`,
+    bab: h.bab,
+    tajuk: h.tajuk,
+    halaman: h.halaman,
+    gambar: urlGambarUtama(h),
+    teks: h.teks ?? [],
+    video: h.video ? VIDEO_SLAID_UTAMA : null,
+  }));
+}
+
 /**
  * Dek penuh mengikut bab. `kunci` stabil supaya kedudukan semasa dikekalkan selepas data
  * disegarkan. Perkara: satu slaid bagi SETIAP perkara aktif (walaupun belum ada jawapan).
+ * Slaid utama rasmi (Canva) disisip: majlis + perutusan selepas Kehadiran, dan halaman pembahagi
+ * agenda di hadapan bab Minit / Maklum Balas / Pembentangan / Penutup.
  */
 export function binaDek({ data, baru }: InputDek): Slaid[] {
   const kodSekolah = data.sekolah.map((s) => s.code);
@@ -645,6 +684,7 @@ export function binaDek({ data, baru }: InputDek): Slaid[] {
       pegawaiSektor: pegawaiMengikutSektor(rekodHariIni),
       lain: kiraanHariIni.lain,
     },
+    ...slaidUtama(1, 20),
   ];
 
   const aktif = isihPerkara(data.perkara.filter((p) => p.aktif));
@@ -661,6 +701,7 @@ export function binaDek({ data, baru }: InputDek): Slaid[] {
     para: aktif.map((p) => p.para),
   });
 
+  dek.push(...slaidUtama(21, 21));
   dek.push({
     jenis: "papan-pemuka",
     kunci: KUNCI_PAPAN_PEMUKA,
@@ -714,6 +755,7 @@ export function binaDek({ data, baru }: InputDek): Slaid[] {
     }
   }
   const nomborIkutId = new Map(urutan.map((b, i) => [b.id, i + 1]));
+  dek.push(...slaidUtama(22, 22));
   dek.push({
     jenis: "atur-cara",
     kunci: "atur-cara",
@@ -755,6 +797,7 @@ export function binaDek({ data, baru }: InputDek): Slaid[] {
 
   const hadirAcara = [...kodSekolahHadir(data.kehadiran.rekod)].filter((k) => kodSah.has(k)).length;
   const { bilangan } = papan.kpi;
+  dek.push(...slaidUtama(23, 25));
   dek.push({
     jenis: "penutup",
     kunci: "penutup",
@@ -767,10 +810,15 @@ export function binaDek({ data, baru }: InputDek): Slaid[] {
   return dek;
 }
 
-/** Indeks slaid selepas dek dibina semula: ikut `kunci`; jika hilang, slaid pertama bab yang sama. */
+/**
+ * Indeks slaid selepas dek dibina semula: ikut `kunci`; jika hilang, slaid data pertama bab yang
+ * sama (langkau pembahagi agenda Canva), atau slaid pertama bab itu.
+ */
 export function cariIndeks(dek: readonly Slaid[], kunci: string, bab: Bab, lalai = 0): number {
   const i = dek.findIndex((s) => s.kunci === kunci);
   if (i >= 0) return i;
+  const d = dek.findIndex((s) => s.bab === bab && s.jenis !== "utama");
+  if (d >= 0) return d;
   const j = dek.findIndex((s) => s.bab === bab);
   return j >= 0 ? j : Math.min(lalai, dek.length - 1);
 }

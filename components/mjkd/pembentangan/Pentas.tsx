@@ -30,6 +30,7 @@ import SpotlightSekolah, { type KawalanSpotSekolah } from "./SpotlightSekolah";
 import SpotlightStatus, { type KawalanSpotStatus } from "./SpotlightStatus";
 import { KonteksPentas, type KonteksSlaid } from "./konteks";
 import { TEMPOH_BARU_MS, useDataLangsung, type SumberData } from "./useDataLangsung";
+import { pramuatUtama } from "./pramuat-utama";
 import SlaidAturCara from "./slaid/SlaidAturCara";
 import SlaidBahan from "./slaid/SlaidBahan";
 import SlaidKehadiran from "./slaid/SlaidKehadiran";
@@ -39,6 +40,7 @@ import SlaidPembukaan from "./slaid/SlaidPembukaan";
 import SlaidPenutup from "./slaid/SlaidPenutup";
 import SlaidPerkara from "./slaid/SlaidPerkara";
 import SlaidSemuaSoalan from "./slaid/SlaidSemuaSoalan";
+import SlaidUtama, { KELAS_VIDEO_UTAMA } from "./slaid/SlaidUtama";
 
 /** Sumber lalai + togol Sorotan (server action). */
 export type SumberPentas = SumberData & {
@@ -70,6 +72,8 @@ function Isi({ slaid }: { slaid: Slaid }) {
       return <SlaidAturCara slaid={slaid} />;
     case "bahan":
       return <SlaidBahan slaid={slaid} />;
+    case "utama":
+      return <SlaidUtama slaid={slaid} />;
     case "penutup":
       return <SlaidPenutup slaid={slaid} />;
   }
@@ -79,7 +83,8 @@ function Isi({ slaid }: { slaid: Slaid }) {
  * Mod Pembentangan MJKD 2026 (v2): satu dek berterusan (← → / PgUp PgDn / Space merentas bab),
  * kanvas tetap 1920×1080 diskala, data langsung (polling + cache localStorage), Spotlight sekolah.
  * Kekunci: P Papan Pemuka · G semua slaid · T tema · F skrin penuh · B skrin hitam · R segar data · S sorotan
- * seterusnya · Esc tutup lapisan / (dua kali) keluar.
+ * seterusnya · Esc tutup lapisan / (dua kali) keluar. Slaid utama Canva (majlis, perutusan, pembahagi
+ * agenda) disisip dalam dek; pada slaid video lagu, Space = main/jeda dan ← → perlu ditekan dua kali.
  */
 export default function Pentas({
   mesyuaratId,
@@ -189,6 +194,7 @@ export default function Pentas({
 
   useEffect(() => {
     setAkar(akarRef.current);
+    pramuatUtama();
     try {
       const t = window.localStorage.getItem(KUNCI_TEMA);
       if (t === "gelap" || t === "terang") setTema(t);
@@ -343,6 +349,28 @@ export default function Pentas({
 
   /* ------------------------------ papan kekunci ------------------------------ */
 
+  /**
+   * Video lagu sedang dimainkan: ← → perlu ditekan DUA KALI (dalam 3 s) untuk meninggalkan slaid —
+   * elak lagu terhenti kerana tersentuh pembalik slaid.
+   */
+  const langkauVideoRef = useRef(0);
+  const videoBerjalan = useCallback(() => {
+    const v = akarRef.current?.querySelector<HTMLVideoElement>(`video.${KELAS_VIDEO_UTAMA}`);
+    return v && !v.paused && !v.ended ? v : null;
+  }, []);
+  const gerakSlaid = useCallback(
+    (d: number) => {
+      if (videoBerjalan() && Date.now() - langkauVideoRef.current > 3000) {
+        langkauVideoRef.current = Date.now();
+        toast("Video sedang dimainkan — tekan sekali lagi untuk ke slaid lain.");
+        return;
+      }
+      langkauVideoRef.current = 0;
+      gerak(d);
+    },
+    [gerak, toast, videoBerjalan],
+  );
+
   const spotRef = useRef<{ langkah: (d: number) => boolean; esc: () => boolean } | null>(null);
   const spotSekolahRef = useRef<KawalanSpotSekolah | null>(null);
   const spotStatusRef = useRef<KawalanSpotStatus | null>(null);
@@ -361,7 +389,13 @@ export default function Pentas({
           if (spot) spotRef.current?.langkah(1);
           else if (spotSekolah) spotSekolahRef.current?.langkah(1);
           else if (spotStatus) spotStatusRef.current?.langkah(1);
-          else if (!nav) gerak(1);
+          else if (nav) break;
+          else if (k === " " && slaid?.jenis === "utama" && slaid.video) {
+            // Space pada slaid video = main / jeda.
+            const v = akarRef.current?.querySelector<HTMLVideoElement>(`video.${KELAS_VIDEO_UTAMA}`);
+            if (v?.paused || v?.ended) void v.play().catch(() => undefined);
+            else v?.pause();
+          } else gerakSlaid(1);
           break;
         case "ArrowLeft":
         case "PageUp":
@@ -369,7 +403,7 @@ export default function Pentas({
           if (spot) spotRef.current?.langkah(-1);
           else if (spotSekolah) spotSekolahRef.current?.langkah(-1);
           else if (spotStatus) spotStatusRef.current?.langkah(-1);
-          else if (!nav) gerak(-1);
+          else if (!nav) gerakSlaid(-1);
           break;
         case "Escape":
           if (spot) {
@@ -420,7 +454,7 @@ export default function Pentas({
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [gerak, hitam, keKunci, keluar, nav, segar, sorotanSeterusnya, spot, spotSekolah, spotStatus, toast, togolPenuh, togolTema]);
+  }, [gerakSlaid, hitam, keKunci, keluar, nav, segar, slaid, sorotanSeterusnya, spot, spotSekolah, spotStatus, toast, togolPenuh, togolTema]);
 
   // Krom pudar selepas 3 s tanpa gerakan tetikus / kekunci.
   useEffect(() => {
@@ -464,7 +498,7 @@ export default function Pentas({
               status={status}
               kedudukan={indeks}
               jumlah={dek.length}
-              onGerak={gerak}
+              onGerak={gerakSlaid}
               tema={tema}
               onTema={togolTema}
               onNav={() => setNav(true)}
@@ -545,7 +579,7 @@ export default function Pentas({
             </div>
             <div className="pt-maju" style={{ width: `${dek.length ? ((indeks + 1) / dek.length) * 100 : 0}%` }} />
             <div className="pt-petunjuk">
-              ← → slaid · P papan pemuka · G semua slaid · T tema · F skrin penuh · B skrin hitam · R segar · klik sekolah untuk jawapan
+              ← → slaid · Space main/jeda video · P papan pemuka · G semua slaid · T tema · F skrin penuh · B skrin hitam · R segar · klik sekolah untuk jawapan
             </div>
             {hitam ? <div className="pt-hitam" onClick={() => setHitam(false)} /> : null}
           </Kanvas>

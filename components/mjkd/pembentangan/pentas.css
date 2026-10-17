@@ -1107,3 +1107,52 @@
   color: #fff;
   background: rgba(6, 24, 32, 0.55);
 }
+
+/* --------------------- slaid utama rasmi (Canva) --------------------- */
+/* Reka bentuk asal Canva — tidak mengikut tema terang/gelap pentas. */
+.pentas .pt-utama {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  animation: pt-pudar 0.35s ease-out both;
+}
+.pentas .pt-utama > img,
+.pentas .pt-utama-video {
+  position: absolute;
+  inset: 0;
+  width: 1920px;
+  height: 1080px;
+  display: block;
+  object-fit: cover;
+  user-select: none;
+}
+.pentas .pt-utama-video {
+  background: #000;
+  cursor: pointer;
+}
+.pentas .pt-utama-teks {
+  position: absolute;
+  color: #000;
+  font-weight: 700;
+  text-underline-offset: 0.12em;
+  text-decoration-thickness: 0.06em;
+  overflow-wrap: break-word;
+}
+.pentas .pt-utama-main {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  padding: 28px 56px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.72);
+  color: #fff;
+  font-size: 40px;
+  font-weight: 700;
+}
+@keyframes pt-pudar {
+  from {
+    opacity: 0;
+  }
+}

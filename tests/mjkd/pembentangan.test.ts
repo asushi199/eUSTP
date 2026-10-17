@@ -289,15 +289,21 @@ test("binaDek: susunan bab berterusan; satu slaid setiap perkara aktif; tiada sl
     [
       "pembukaan",
       "kehadiran",
+      ...Array<string>(20).fill("utama"),
       "minit",
+      "utama",
       "papan-pemuka",
       "perkara",
       "perkara",
       "perkara",
       "semua-soalan",
+      "utama",
       "atur-cara",
       "bahan",
       "bahan",
+      "utama",
+      "utama",
+      "utama",
       "penutup",
     ],
   );
@@ -429,6 +435,30 @@ test("jawapanSekolah: cari maklum balas + item bagi perkara", () => {
   assert.equal(j.sekolah!.name, "SK BERUAS");
   assert.equal(j.item!.status, "DALAM_PELAKSANAAN");
   assert.equal(jawapanSekolah(d, "p2", "ABA1002").item, null);
+});
+
+test("binaDek: slaid utama Canva — 25 halaman ikut susunan, pembahagi agenda sebelum bab data", () => {
+  const dek = binaDek({ data: data() });
+  const utama = dek.filter((s) => s.jenis === "utama");
+  assert.deepEqual(
+    utama.map((s) => s.jenis === "utama" && s.halaman),
+    Array.from({ length: 25 }, (_, i) => i + 1),
+  );
+  const kunci = (k: string) => dek.findIndex((s) => s.kunci === k);
+  assert.equal(kunci("utama-20") + 1, kunci("minit"));
+  assert.equal(kunci("utama-21") + 1, kunci("papan-pemuka"));
+  assert.equal(kunci("utama-22") + 1, kunci("atur-cara"));
+  assert.equal(kunci("utama-25") + 1, kunci("penutup"));
+  assert.deepEqual(
+    utama.filter((s) => s.jenis === "utama" && s.video).map((s) => s.kunci),
+    ["utama-2"],
+  );
+  const s9 = utama.find((s) => s.kunci === "utama-9");
+  assert.equal(s9?.bab, "perutusan");
+  assert.ok(s9?.jenis === "utama" && s9.teks.length === 2 && s9.gambar.startsWith("/mjkd/slaid-utama/"));
+  // Bab Maklum Balas: lompat bab (keBab) mendarat pada pembahagi agenda; cariIndeks melangkaunya.
+  assert.equal(dek[cariIndeks(dek, "tiada", "maklum-balas")]!.kunci, "papan-pemuka");
+  assert.equal(dek[cariIndeks(dek, "tiada", "majlis")]!.kunci, "utama-1");
 });
 
 test("pegawaiMengikutSektor & labelJenisBahan", () => {
