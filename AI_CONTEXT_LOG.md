@@ -2300,3 +2300,8 @@ Corak berselang = instance sihat vs beracun.
 - Pepijat skrip komposit: baris logo bawah (2030 Perak Sejahtera, Generasi Madani, Malaysia Madani, Reformasi Pendidikan, Together We Can Achieve More) berada dalam kumpulan `<p:grpSp>` dalam PPTX; skrip lama mengabaikan jelmaan kumpulan, jadi logo terlukis di kiri atas. `scripts/mjkd-slaid-utama.py` kini menghurai XML secara rekursif dan menjelmakan off/ext/chOff/chExt kumpulan.
 - Hanya halaman 1, 4, 8, 19 (muka depan) terjejas — semua halaman lain sama piksel demi piksel, teks agenda sama. `01.jpg` dan `muka-depan.jpg` dijana semula; logo kini di bawah seperti reka bentuk Canva.
 - Pengajaran: slaid rasmi TIDAK boleh berubah daripada Canva — setiap kali jana semula, bandingkan setiap halaman dengan Canva sebelum commit.
+
+## 2026-10-17 — MJKD mod pembentangan: krom hanya muncul bila tetikus di atas
+
+- Sebelum ini krom (bar atas) muncul semula setiap kali kekunci ditekan (← → menukar slaid) atau tetikus bergerak di mana-mana. Kini: dipapar 3 s semasa mod dibuka, kemudian HANYA bila tetikus berada di jalur atas (≤ 24px di bawah krom); disorok 0.7 s selepas tetikus keluar. Kekunci tidak lagi memaparkannya. Navigator (G) masih memaparkan krom.
+- Disahkan: typecheck, eslint, smoke `/dev/pentas` (→ tidak memaparkan krom; tetikus di atas = papar & kekal; keluar zon = sorok).

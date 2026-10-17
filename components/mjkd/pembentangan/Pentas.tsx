@@ -51,6 +51,8 @@ const KUNCI_TEMA = "mjkd-pentas-tema";
 const SELANG_KEHADIRAN_MS = 15_000;
 const SELANG_LAIN_MS = 30_000;
 const SOROK_KROM_MS = 3_000;
+/** Tempoh krom kekal selepas tetikus meninggalkan jalur atas. */
+const SOROK_KELUAR_ZON_MS = 700;
 
 type Toast = { id: number; teks: string; ralat?: boolean };
 
@@ -456,21 +458,31 @@ export default function Pentas({
     return () => window.removeEventListener("keydown", onKey);
   }, [gerakSlaid, hitam, keKunci, keluar, nav, segar, slaid, sorotanSeterusnya, spot, spotSekolah, spotStatus, toast, togolPenuh, togolTema]);
 
-  // Krom pudar selepas 3 s tanpa gerakan tetikus / kekunci.
+  // Krom dipapar 3 s semasa dibuka, kemudian HANYA bila tetikus berada di jalur atas (di atas krom).
+  // Kekunci (← → dsb.) tidak memaparkannya — slaid kekal bersih semasa pembentangan.
   useEffect(() => {
     let t = 0;
-    const aktif = () => {
-      setSorok(false);
+    let diZon = false;
+    const sorokSelepas = (ms: number) => {
       window.clearTimeout(t);
-      t = window.setTimeout(() => setSorok(true), SOROK_KROM_MS);
+      t = window.setTimeout(() => setSorok(true), ms);
     };
-    aktif();
-    window.addEventListener("mousemove", aktif);
-    window.addEventListener("keydown", aktif);
+    setSorok(false);
+    sorokSelepas(SOROK_KROM_MS);
+    const onGerak = (e: MouseEvent) => {
+      const krom = akarRef.current?.querySelector(".pt-krom");
+      const bawah = krom ? krom.getBoundingClientRect().bottom : 80;
+      const dalam = e.clientY <= bawah + 24;
+      if (dalam && !diZon) {
+        window.clearTimeout(t);
+        setSorok(false);
+      } else if (!dalam && diZon) sorokSelepas(SOROK_KELUAR_ZON_MS);
+      diZon = dalam;
+    };
+    window.addEventListener("mousemove", onGerak);
     return () => {
       window.clearTimeout(t);
-      window.removeEventListener("mousemove", aktif);
-      window.removeEventListener("keydown", aktif);
+      window.removeEventListener("mousemove", onGerak);
     };
   }, []);
 
