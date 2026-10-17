@@ -2294,3 +2294,9 @@ Corak berselang = instance sihat vs beracun.
 
 - Dengan 8 bab, krom bertindih (jenama terlindung, "1 / 45" terbalut). Kini grid 3 lajur: logo + "MJKD 2026" | tab bab di tengah | status, kapsul ← n / N →, butang ikon (tema, semua slaid, skrin penuh — tooltip menunjukkan kekunci T/G/F) dan Keluar. Tarikh acara dibuang daripada krom (ada pada slaid Pembukaan). Tab "Pembentangan Sektor" dipendekkan kepada "Sektor" (`SENARAI_BAB.pendek`; Navigator kekal label penuh). Status langsung hanya papar masa (titik hijau); status lapuk/luar talian kekal teks penuh.
 - Disahkan: typecheck, eslint, ujian pembentangan, smoke `/dev/pentas` 1920×1080 tema terang + gelap (satu baris, tiada pertindihan).
+
+## 2026-10-17 — MJKD slaid utama: pembetulan kedudukan logo muka depan
+
+- Pepijat skrip komposit: baris logo bawah (2030 Perak Sejahtera, Generasi Madani, Malaysia Madani, Reformasi Pendidikan, Together We Can Achieve More) berada dalam kumpulan `<p:grpSp>` dalam PPTX; skrip lama mengabaikan jelmaan kumpulan, jadi logo terlukis di kiri atas. `scripts/mjkd-slaid-utama.py` kini menghurai XML secara rekursif dan menjelmakan off/ext/chOff/chExt kumpulan.
+- Hanya halaman 1, 4, 8, 19 (muka depan) terjejas — semua halaman lain sama piksel demi piksel, teks agenda sama. `01.jpg` dan `muka-depan.jpg` dijana semula; logo kini di bawah seperti reka bentuk Canva.
+- Pengajaran: slaid rasmi TIDAK boleh berubah daripada Canva — setiap kali jana semula, bandingkan setiap halaman dengan Canva sebelum commit.
