@@ -1,5 +1,12 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-10-17 — MJKD borang: kunci bahagian C semasa draf pelayan dimuat
+
+- Siasatan aduan SK Convent, Sitiawan (ABB1042) "jawapan hilang": draf pelayan wujud (17 Okt 11:41, hanya perkara 1.3). Sistem hanya simpan salinan terkini — bilangan cubaan tidak dapat dikesan. Punca paling mungkin: dibuka semula dalam pelayar/aplikasi lain (localStorage kosong → borang kosong sehingga sekolah dipilih semula).
+- Lompang sebenar yang ditemui: selepas memilih sekolah, perkara terus dipaparkan tetapi draf pelayan tiba ~1–5 s kemudian (700 ms + bacaan DB, cuba semula 2×2 s) dan menimpa apa yang baru ditaip.
+- Pembaikan (`MaklumBalasMjkdForm.tsx`): state `kodDisemak` (sekolah yang bacaan drafnya selesai, berjaya atau gagal); `memuatDraf` → senarai perkara dibalut `<fieldset disabled>` + mesej "Memuatkan draf…". Bacaan gagal tetap membuka kunci (isian disimpan dalam pelayar sahaja, simpanan pelayan kekal disekat seperti dahulu). Bahagian B (nama/jawatan) tidak dikunci.
+- Disahkan: typecheck, `npm run build`, pelayar dev: pilih sekolah → dikunci ~1 s → dibuka; tiada ralat konsol (tiada draf ditulis semasa ujian).
+
 ## 2026-10-16 — MJKD: status "Belum Dilaksanakan" → "Akan Dilaksanakan"
 
 - Atas arahan pengguna: label `STATUS_MJKD_LABEL.BELUM` (lib/mjkd/enums.ts) ditukar kepada "Akan Dilaksanakan"; huruf matriks `B` → `A`. Kod DB kekal `BELUM` (tiada migrasi) — semua jawapan yang sudah dihantar terus dipaparkan dengan label baharu (borang, semak, admin, pembentangan).

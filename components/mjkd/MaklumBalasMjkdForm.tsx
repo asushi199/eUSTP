@@ -202,6 +202,9 @@ export default function MaklumBalasMjkdForm({
   const drafPelayan = Boolean(kunciDraf) && !existing;
   const [kodStabil, setKodStabil] = useState("");
   const [kodDimuat, setKodDimuat] = useState("");
+  // Sekolah yang bacaan draf pelayannya sudah selesai (berjaya ATAU gagal) — bahagian C dikunci sehingga
+  // itu, supaya draf yang tiba lewat tidak menimpa apa yang baru ditaip.
+  const [kodDisemak, setKodDisemak] = useState("");
   const [statusPelayan, setStatusPelayan] = useState<
     { jenis: "menyimpan" | "disimpan" | "gagal"; masa?: string } | null
   >(null);
@@ -325,7 +328,9 @@ export default function MaklumBalasMjkdForm({
       if (batal) return;
       if (!res.ok) {
         // Jangan simpan ke pelayan jika bacaan gagal — elak menimpa draf yang sedia ada.
+        // Buka kunci borang: pengguna masih boleh mengisi (disimpan dalam pelayar sahaja).
         setStatusPelayan({ jenis: "gagal" });
+        setKodDisemak(kodStabil);
         return;
       }
       const isi = isiRef.current;
@@ -387,6 +392,7 @@ export default function MaklumBalasMjkdForm({
           .catch(() => undefined);
       }
       setKodDimuat(kodStabil);
+      setKodDisemak(kodStabil);
     })();
     return () => {
       batal = true;
@@ -455,6 +461,7 @@ export default function MaklumBalasMjkdForm({
   const borangBaharu = !adminMode && !existing;
   const sudahDihantar = (s: SchoolOption) => borangBaharu && sudahSet.has(s.code);
   const statusDipilih = Boolean(selected && sudahDihantar(selected));
+  const memuatDraf = drafPelayan && Boolean(schoolCode) && !statusDipilih && kodDisemak !== schoolCode;
 
   // Isi awal nama PGB (nama sahaja) + jawatan daripada direktori apabila sekolah dipilih.
   useEffect(() => {
@@ -837,6 +844,28 @@ export default function MaklumBalasMjkdForm({
           </nav>
         ) : null}
 
+        {memuatDraf && terpakai.length > 0 ? (
+          <p
+            role="status"
+            className="flex items-center gap-3 rounded-xl border-2 border-ink bg-white px-5 py-4 text-[15px] text-ink"
+          >
+            <span
+              aria-hidden
+              className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-steel border-t-ink"
+            />
+            <span>
+              <span className="font-semibold">Memuatkan draf…</span> Sila tunggu sebentar sebelum
+              mengisi.
+            </span>
+          </p>
+        ) : null}
+
+        {/* Dikunci semasa draf pelayan sekolah ini dimuat — draf yang tiba lewat akan menimpa isian. */}
+        <fieldset
+          disabled={memuatDraf}
+          aria-busy={memuatDraf}
+          className={`min-w-0 space-y-6 transition-opacity ${memuatDraf ? "opacity-50" : ""}`}
+        >
         {terpakai.map((p, i) => {
           const j = jawapan[p.id];
           const tidakBerkaitan = j?.status === "TIDAK_BERKAITAN";
@@ -977,6 +1006,7 @@ export default function MaklumBalasMjkdForm({
             </article>
           );
         })}
+        </fieldset>
       </section>
 
       {error && (
