@@ -121,7 +121,7 @@ export default function Pentas({
 
   const akarRef = useRef<HTMLDivElement>(null);
   const [akar, setAkar] = useState<HTMLElement | null>(null);
-  const [kedudukan, setKedudukan] = useState<{ kunci: string; bab: Bab }>({ kunci: "pembukaan", bab: "pembukaan" });
+  const [kedudukan, setKedudukan] = useState<{ kunci: string; bab: Bab }>({ kunci: "kehadiran", bab: "kehadiran" });
   const [tema, setTema] = useState<"terang" | "gelap">("terang");
   const [nav, setNav] = useState(false);
   const [hitam, setHitam] = useState(false);
@@ -149,7 +149,7 @@ export default function Pentas({
     window.setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 5000);
   }, []);
 
-  const babSemasaRef = useRef<Bab>("pembukaan");
+  const babSemasaRef = useRef<Bab>("kehadiran");
   const dataRef = useRef<DataPentas | null>(awal);
   const { data, status, segar, ubahSetempat } = useDataLangsung({
     mesyuaratId,

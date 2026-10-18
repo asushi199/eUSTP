@@ -2305,3 +2305,8 @@ Corak berselang = instance sihat vs beracun.
 
 - Sebelum ini krom (bar atas) muncul semula setiap kali kekunci ditekan (← → menukar slaid) atau tetikus bergerak di mana-mana. Kini: dipapar 3 s semasa mod dibuka, kemudian HANYA bila tetikus berada di jalur atas (≤ 24px di bawah krom); disorok 0.7 s selepas tetikus keluar. Kekunci tidak lagi memaparkannya. Navigator (G) masih memaparkan krom.
 - Disahkan: typecheck, eslint, smoke `/dev/pentas` (→ tidak memaparkan krom; tetikus di atas = papar & kekal; keluar zon = sorok).
+
+## 2026-10-18 — MJKD mod pembentangan: Kehadiran sebelum Pembukaan
+
+- Arahan pengurusan: imbas QR kehadiran dahulu, baru paparkan muka depan Pembukaan. `binaDek` kini Kehadiran → Pembukaan → slaid utama (Majlis …); `SENARAI_BAB` (tab krom + Navigator) ikut susunan sama; Pentas dibuka pada `kehadiran`. Kandungan slaid tidak berubah.
+- Disahkan: typecheck, `tsx --test tests/mjkd/pembentangan.test.ts` (20 lulus, susunan dikemas kini), smoke `/dev/pentas` (dibuka pada #kehadiran, → ke #pembukaan, tab Kehadiran | Pembukaan | Majlis).

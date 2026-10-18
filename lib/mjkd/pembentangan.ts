@@ -111,8 +111,8 @@ export type VersiPentas = { utama: string; hadir: string };
 /* ------------------------------- jenis slaid ------------------------------- */
 
 export type Bab =
-  | "pembukaan"
   | "kehadiran"
+  | "pembukaan"
   | "majlis"
   | "perutusan"
   | "minit"
@@ -122,8 +122,8 @@ export type Bab =
 
 /** `pendek` = label tab bar atas (krom); `label` penuh untuk Navigator. */
 export const SENARAI_BAB: readonly { id: Bab; label: string; pendek?: string }[] = [
-  { id: "pembukaan", label: "Pembukaan" },
   { id: "kehadiran", label: "Kehadiran" },
+  { id: "pembukaan", label: "Pembukaan" },
   { id: "majlis", label: "Majlis" },
   { id: "perutusan", label: "Perutusan" },
   { id: "minit", label: "Minit" },
@@ -655,7 +655,7 @@ function slaidUtama(dari: number, hingga: number): SlaidUtama[] {
 /**
  * Dek penuh mengikut bab. `kunci` stabil supaya kedudukan semasa dikekalkan selepas data
  * disegarkan. Perkara: satu slaid bagi SETIAP perkara aktif (walaupun belum ada jawapan).
- * Slaid utama rasmi (Canva) disisip: majlis + perutusan selepas Kehadiran, dan halaman pembahagi
+ * Slaid utama rasmi (Canva) disisip: majlis + perutusan selepas Pembukaan, dan halaman pembahagi
  * agenda di hadapan bab Minit / Maklum Balas / Pembentangan / Penutup.
  */
 export function binaDek({ data, baru }: InputDek): Slaid[] {
@@ -665,15 +665,8 @@ export function binaDek({ data, baru }: InputDek): Slaid[] {
   const kiraanHariIni = kiraanKehadiranHari(data.kehadiran.rekod, kodSekolah, data.kehadiran.hariIni);
   const papan = kiraPapanPemuka(data);
 
+  // Kehadiran (imbas QR) dahulu, baru Pembukaan — keputusan pengurusan 2026-10-18.
   const dek: Slaid[] = [
-    {
-      jenis: "pembukaan",
-      kunci: "pembukaan",
-      bab: "pembukaan",
-      tajuk: "Pembukaan",
-      sekolahHadir: kiraanHariIni.sekolahHadir,
-      pegawaiHadir: kiraanHariIni.pegawai,
-    },
     {
       jenis: "kehadiran",
       kunci: "kehadiran",
@@ -684,6 +677,14 @@ export function binaDek({ data, baru }: InputDek): Slaid[] {
       pegawaiHadir: kiraanHariIni.pegawai,
       pegawaiSektor: pegawaiMengikutSektor(rekodHariIni),
       lain: kiraanHariIni.lain,
+    },
+    {
+      jenis: "pembukaan",
+      kunci: "pembukaan",
+      bab: "pembukaan",
+      tajuk: "Pembukaan",
+      sekolahHadir: kiraanHariIni.sekolahHadir,
+      pegawaiHadir: kiraanHariIni.pegawai,
     },
     ...slaidUtama(1, 20),
   ];

@@ -287,8 +287,8 @@ test("binaDek: susunan bab berterusan; satu slaid setiap perkara aktif; tiada sl
   assert.deepEqual(
     dek.map((s) => s.jenis),
     [
-      "pembukaan",
       "kehadiran",
+      "pembukaan",
       ...Array<string>(20).fill("utama"),
       "minit",
       "utama",
