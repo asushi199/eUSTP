@@ -31,7 +31,7 @@ export default function SlaidPembukaan({ slaid }: { slaid: T }) {
           Pejabat Pendidikan Daerah Manjung
         </p>
         <h1>
-          Mesyuarat Jawatankuasa Kurikulum Daerah <span className="pt-emas-grad">2026</span>
+          Mesyuarat Jawatankuasa Kurikulum Daerah <span className="pt-emas-grad">Bil. 2/2026</span>
         </h1>
         <div className="pt-meta">
           <span>{acara.tarikh}</span>

@@ -2310,3 +2310,8 @@ Corak berselang = instance sihat vs beracun.
 
 - Arahan pengurusan: imbas QR kehadiran dahulu, baru paparkan muka depan Pembukaan. `binaDek` kini Kehadiran → Pembukaan → slaid utama (Majlis …); `SENARAI_BAB` (tab krom + Navigator) ikut susunan sama; Pentas dibuka pada `kehadiran`. Kandungan slaid tidak berubah.
 - Disahkan: typecheck, `tsx --test tests/mjkd/pembentangan.test.ts` (20 lulus, susunan dikemas kini), smoke `/dev/pentas` (dibuka pada #kehadiran, → ke #pembukaan, tab Kehadiran | Pembukaan | Majlis).
+
+## 2026-10-18 — MJKD slaid Pembukaan: tajuk "… Daerah Bil. 2/2026"
+
+- Arahan pengurusan: tajuk muka depan kini "Mesyuarat Jawatankuasa Kurikulum Daerah Bil. 2/2026"; "Bil. 2/2026" guna warna emas yang sama (`pt-emas-grad`). Label paparan sahaja — rekod `mjkd_mesyuarat` kekal satu acara.
+- Disahkan: smoke `/dev/pentas` (Bil. 2/2026 emas, satu baris sendiri, tiada pertindihan dengan cincin).
