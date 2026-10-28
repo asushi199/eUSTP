@@ -21,6 +21,10 @@ function keCsv(rows: (string | number)[][]): string {
 const bulanMurid = (m: AinsMuridRow, bulan: number): AinsMuridBulan | null =>
   m.b.find((x) => x.bulan === bulan) ?? null;
 
+/** Jumlah buku diluluskan dari Januari hingga `bulan` (termasuk) — supaya guru tak perlu tambah sendiri. */
+export const lulusTerkumpul = (m: AinsMuridRow, bulan: number): number =>
+  m.b.reduce((n, x) => (x.bulan <= bulan ? n + x.lulus : n), 0);
+
 export type AinsCsvTapis = {
   /** Carian nama (kosong = semua). */
   q: string;
@@ -61,6 +65,7 @@ export function csvMuridSatuBulan(murid: AinsMuridRow[], bulan: number): string 
       "Nama murid",
       "Status",
       "Diluluskan",
+      `Terkumpul Jan-${namaBulan(bulan)}`,
       "Ditolak",
       "BM",
       "BI",
@@ -75,6 +80,7 @@ export function csvMuridSatuBulan(murid: AinsMuridRow[], bulan: number): string 
       m.nama,
       (c?.lulus ?? 0) > 0 ? "Sudah membaca" : "Belum membaca",
       c?.lulus ?? 0,
+      lulusTerkumpul(m, bulan),
       c?.ditolak ?? 0,
       c?.bm ?? 0,
       c?.eng ?? 0,

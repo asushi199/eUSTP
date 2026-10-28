@@ -1,5 +1,10 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-10-29 — Ains: lajur "Terkumpul" pada senarai murid
+
+- Permintaan guru: tak perlu tambah manual Jan + Feb + … untuk tahu jumlah buku murid. Senarai murid (`SekolahView` dalam `AinsExplore.tsx`) kini ada lajur **Terkumpul Jan–<bulan terpilih>** (jumlah `lulus` semua bulan ≤ bulan terpilih), juga pada kad telefon dan CSV satu bulan (selepas "Diluluskan"). Pembantu `lulusTerkumpul` dalam `lib/analisis/ains-csv.ts`. CSV semua bulan sudah ada "Jumlah Diluluskan".
+- Disahkan: ujian ains-csv, typecheck.
+
 ## 2026-10-17 — MJKD borang: draf pelayar bertanda "belum segerak" + simpan segera ke latar belakang
 
 - Keputusan: draf pelayar (localStorage) **dikekalkan** sebagai jaring keselamatan (tulis serta-merta, pulih automatik tanpa pilih sekolah, berfungsi bila DB gagal / semasa muat naik gambar).

@@ -39,9 +39,14 @@ test("csvMuridSatuBulan: BOM, status dan angka bulan dipilih", () => {
   assert.ok(csv.startsWith("﻿Nama murid,Status,"));
   const lines = csv.trim().split("\r\n");
   assert.equal(lines.length, 4);
-  assert.equal(lines[1], "ALI BIN ABU,Belum membaca,0,1,0,1,0,0,2");
-  assert.equal(lines[2], '"SITI ""COMEL"", NUR",Sudah membaca,4,0,4,1,0,40,2');
-  assert.equal(lines[3], "'=CMD(),Belum membaca,0,0,0,0,0,0,0");
+  assert.equal(
+    lines[0].replace("﻿", ""),
+    "Nama murid,Status,Diluluskan,Terkumpul Jan-Feb,Ditolak,BM,BI,Lain-lain,Muka surat,Bintang",
+  );
+  // Ali: Jan 3 + Feb 0 → terkumpul 3 (Mac tidak dikira)
+  assert.equal(lines[1], "ALI BIN ABU,Belum membaca,0,3,1,0,1,0,0,2");
+  assert.equal(lines[2], '"SITI ""COMEL"", NUR",Sudah membaca,4,4,0,4,1,0,40,2');
+  assert.equal(lines[3], "'=CMD(),Belum membaca,0,0,0,0,0,0,0,0");
 });
 
 test("csvMuridSemuaBulan: lajur ikut bulan ada data, jumlah betul", () => {

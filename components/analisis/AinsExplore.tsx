@@ -9,6 +9,7 @@ import { loadAinsMurid, loadAinsTahun } from "@/lib/actions/ains-explore";
 import {
   csvMuridSatuBulan,
   csvMuridSemuaBulan,
+  lulusTerkumpul,
   namaFailAins,
   tapisMuridCsv,
 } from "@/lib/analisis/ains-csv";
@@ -949,6 +950,9 @@ function SekolahView({
                       BM {num(cur?.bm ?? 0)} · BI {num(cur?.eng ?? 0)} · Lain {num(cur?.lain ?? 0)}{" "}
                       · Ditolak {num(cur?.ditolak ?? 0)}
                     </p>
+                    <p className="mt-1 text-xs font-medium tabular-nums text-ink">
+                      Terkumpul Jan–{namaBulan(bulan)}: {num(lulusTerkumpul(m, bulan))} buku
+                    </p>
                     {terbuka ? (
                       <div className="mt-3">
                         <p className="text-xs tabular-nums text-graphite">
@@ -983,11 +987,12 @@ function SekolahView({
             </ul>
           ) : (
             <div className="card mt-3 overflow-x-auto">
-              <table className="w-full min-w-[44rem] text-left text-sm">
+              <table className="w-full min-w-[48rem] text-left text-sm">
                 <thead>
                   <tr className="border-b border-fog text-[11px] font-semibold uppercase tracking-[0.6px] text-steel">
                     <th className="px-4 py-3">Murid</th>
                     <th className="px-4 py-3 text-right">Diluluskan</th>
+                    <th className="px-4 py-3 text-right">Terkumpul Jan–{namaBulan(bulan)}</th>
                     <th className="px-4 py-3 text-right">Ditolak</th>
                     <th className="px-4 py-3 text-right">BM</th>
                     <th className="px-4 py-3 text-right">BI</th>
@@ -1014,6 +1019,9 @@ function SekolahView({
                         <td className="px-4 py-2.5 text-right font-medium tabular-nums">
                           {num(cur?.lulus ?? 0)}
                         </td>
+                        <td className="px-4 py-2.5 text-right font-medium tabular-nums">
+                          {num(lulusTerkumpul(m, bulan))}
+                        </td>
                         <td className="px-4 py-2.5 text-right tabular-nums">
                           {num(cur?.ditolak ?? 0)}
                         </td>
@@ -1036,7 +1044,7 @@ function SekolahView({
                     return [
                       row,
                       <tr key={`${m.id}-trend`} className="border-b border-fog/60 bg-cloud/40">
-                        <td colSpan={8} className="px-4 py-3">
+                        <td colSpan={9} className="px-4 py-3">
                           <p className="text-xs font-semibold uppercase tracking-[0.6px] text-steel">
                             Perkembangan bulanan
                           </p>
@@ -1063,7 +1071,7 @@ function SekolahView({
                   })}
                   {baris.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="px-4 py-8 text-center text-sm text-graphite">
+                      <td colSpan={9} className="px-4 py-8 text-center text-sm text-graphite">
                         Tiada murid sepadan.
                       </td>
                     </tr>
