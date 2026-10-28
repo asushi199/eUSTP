@@ -27,7 +27,7 @@ import {
 
 type Layer = "overview" | "schools" | "school";
 type SekolahSort = "kod" | "nama" | "lulus-desc" | "lulus-asc" | "baca-asc" | "baca-desc";
-type MuridSort = "lulus-desc" | "lulus-asc" | "nama";
+type MuridSort = "lulus-desc" | "lulus-asc" | "jumlah-desc" | "jumlah-asc" | "nama";
 
 const BIRU = "#024ad8";
 const DAKWAT = "#1a1a1a";
@@ -684,7 +684,11 @@ function SekolahView({
         ? a.m.nama.localeCompare(b.m.nama, "ms")
         : sort === "lulus-asc"
           ? (a.cur?.lulus ?? 0) - (b.cur?.lulus ?? 0)
-          : (b.cur?.lulus ?? 0) - (a.cur?.lulus ?? 0),
+          : sort === "jumlah-desc"
+            ? lulusTerkumpul(b.m, bulan) - lulusTerkumpul(a.m, bulan)
+            : sort === "jumlah-asc"
+              ? lulusTerkumpul(a.m, bulan) - lulusTerkumpul(b.m, bulan)
+              : (b.cur?.lulus ?? 0) - (a.cur?.lulus ?? 0),
     );
     return out;
   }, [murid, q, status, sort, bulan]);
@@ -856,6 +860,8 @@ function SekolahView({
             >
               <option value="lulus-desc">Diluluskan (tinggi → rendah)</option>
               <option value="lulus-asc">Diluluskan (rendah → tinggi)</option>
+              <option value="jumlah-desc">Jumlah terkumpul (tinggi → rendah)</option>
+              <option value="jumlah-asc">Jumlah terkumpul (rendah → tinggi)</option>
               <option value="nama">Nama</option>
             </select>
           </div>

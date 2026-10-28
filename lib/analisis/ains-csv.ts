@@ -29,7 +29,7 @@ export type AinsCsvTapis = {
   /** Carian nama (kosong = semua). */
   q: string;
   status: "" | "baca" | "belum";
-  sort: "lulus-desc" | "lulus-asc" | "nama";
+  sort: "lulus-desc" | "lulus-asc" | "jumlah-desc" | "jumlah-asc" | "nama";
   /** Bulan terpilih = "sudah membaca" dalam bulan itu; null = dalam mana-mana bulan. */
   bulan: number | null;
 };
@@ -49,12 +49,19 @@ export function tapisMuridCsv(murid: AinsMuridRow[], t: AinsCsvTapis): AinsMurid
     if (t.status === "belum") return lulus(m) === 0;
     return true;
   });
+  // Jumlah terkumpul Jan–bulan terpilih (semua bulan jika `bulan: null`).
+  const jumlah = (m: AinsMuridRow) =>
+    t.bulan === null ? lulus(m) : lulusTerkumpul(m, t.bulan);
   return out.sort((a, b) =>
     t.sort === "nama"
       ? a.nama.localeCompare(b.nama, "ms")
       : t.sort === "lulus-asc"
         ? lulus(a) - lulus(b)
-        : lulus(b) - lulus(a),
+        : t.sort === "jumlah-desc"
+          ? jumlah(b) - jumlah(a)
+          : t.sort === "jumlah-asc"
+            ? jumlah(a) - jumlah(b)
+            : lulus(b) - lulus(a),
   );
 }
 

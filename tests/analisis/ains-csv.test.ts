@@ -100,3 +100,21 @@ test("tapisMuridCsv: 'sudah' ikut bulan vs mana-mana bulan", () => {
   // Tidak mengubah tatasusunan asal.
   assert.equal(murid[0].nama, "ALI BIN ABU");
 });
+
+test("tapisMuridCsv: susun ikut jumlah terkumpul hingga bulan terpilih", () => {
+  const nama = (r: AinsMuridRow[]) => r.map((m) => m.nama);
+  // Hingga Feb: Ali 3 (Mac tidak dikira), Siti 4, =CMD() 0.
+  assert.deepEqual(
+    nama(tapisMuridCsv(murid, { q: "", status: "", sort: "jumlah-desc", bulan: 2 })),
+    ['SITI "COMEL", NUR', "ALI BIN ABU", "=CMD()"],
+  );
+  assert.deepEqual(
+    nama(tapisMuridCsv(murid, { q: "", status: "", sort: "jumlah-asc", bulan: 2 })),
+    ["=CMD()", "ALI BIN ABU", 'SITI "COMEL", NUR'],
+  );
+  // Hingga Mac: Ali 8 > Siti 4.
+  assert.deepEqual(
+    nama(tapisMuridCsv(murid, { q: "", status: "", sort: "jumlah-desc", bulan: 3 })),
+    ["ALI BIN ABU", 'SITI "COMEL", NUR', "=CMD()"],
+  );
+});
