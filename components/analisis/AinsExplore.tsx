@@ -651,7 +651,7 @@ function SekolahView({
   onBack: () => void;
 }) {
   const [q, setQ] = useState("");
-  const [status, setStatus] = useState<"" | "baca" | "belum">("");
+  const [status, setStatus] = useState<"" | "baca" | "belum" | "kosong">("");
   const [sort, setSort] = useState<MuridSort>("lulus-desc");
   const [papar, setPapar] = useState(MURID_HALAMAN);
   const [buka, setBuka] = useState<number | null>(null);
@@ -677,6 +677,7 @@ function SekolahView({
         const lulus = cur?.lulus ?? 0;
         if (status === "baca") return lulus > 0;
         if (status === "belum") return lulus === 0;
+        if (status === "kosong") return lulusTerkumpul(m, bulan) === 0;
         return true;
       });
     out.sort((a, b) =>
@@ -709,7 +710,13 @@ function SekolahView({
       kod,
       tahun,
       semuaBulan ? "semua-bulan" : namaBulan(bulan),
-      status === "baca" ? "sudah-membaca" : status === "belum" ? "belum-membaca" : null,
+      status === "baca"
+        ? "sudah-membaca"
+        : status === "belum"
+          ? "belum-membaca"
+          : status === "kosong"
+            ? "tiada-langsung"
+            : null,
       q.trim() ? "carian" : null,
     ]);
     a.click();
@@ -722,6 +729,8 @@ function SekolahView({
     [murid, q, status, sort],
   );
   const bilBelum = murid ? murid.length - bilMembaca : 0;
+  /** Murid tanpa sebarang bacaan diluluskan dari Januari hingga bulan terpilih. */
+  const bilKosong = murid ? murid.filter((m) => lulusTerkumpul(m, bulan) === 0).length : 0;
   const peratusBaca = murid ? bahagi(bilMembaca, murid.length) : 0;
 
   // Skrol hampir ke hujung senarai → paparkan lagi murid secara automatik.
@@ -880,12 +889,13 @@ function SekolahView({
                 setPapar(MURID_HALAMAN);
               }}
             />
-            <div role="group" aria-label="Status bacaan" className="mt-2 grid grid-cols-3 gap-2">
+            <div role="group" aria-label="Status bacaan" className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
               {(
                 [
                   ["", `Semua (${murid.length})`],
                   ["baca", `Sudah (${bilMembaca})`],
                   ["belum", `Belum (${bilBelum})`],
+                  ["kosong", `Tiada langsung (${bilKosong})`],
                 ] as const
               ).map(([nilai, label]) => (
                 <button
@@ -928,7 +938,7 @@ function SekolahView({
           </div>
           <p className="mt-1 text-xs text-graphite">
             CSV mengikut carian &amp; status di atas. CSV {namaBulan(bulan)}: &quot;sudah/belum&quot;
-            dalam {namaBulan(bulan)}. CSV semua bulan: &quot;sudah&quot; = ada bacaan dalam mana-mana
+            dalam {namaBulan(bulan)}. &quot;Tiada langsung&quot; = tiada bacaan dari Januari hingga {namaBulan(bulan)}. CSV semua bulan: &quot;sudah&quot; = ada bacaan dalam mana-mana
             bulan.
           </p>
           {/* Telefon: kad setiap murid tanpa tatal mendatar */}

@@ -5,6 +5,7 @@
 - Permintaan guru: tak perlu tambah manual Jan + Feb + … untuk tahu jumlah buku murid. Senarai murid (`SekolahView` dalam `AinsExplore.tsx`) kini ada lajur **Terkumpul Jan–<bulan terpilih>** (jumlah `lulus` semua bulan ≤ bulan terpilih), juga pada kad telefon dan CSV satu bulan (selepas "Diluluskan"). Pembantu `lulusTerkumpul` dalam `lib/analisis/ains-csv.ts`. CSV semua bulan sudah ada "Jumlah Diluluskan".
 - Disahkan: ujian ains-csv, typecheck.
 - Susunan baharu "Jumlah terkumpul (tinggi → rendah / rendah → tinggi)" pada senarai murid; CSV satu bulan turut menghormatinya (`tapisMuridCsv`, sort `jumlah-desc|asc`). Ujian ditambah.
+- Penapis status ke-4 "Tiada langsung (n)" pada senarai murid: murid tanpa sebarang bacaan diluluskan dari Januari hingga bulan terpilih (pilih bulan terkini → tiada bacaan langsung tahun ini). Ikut pada CSV (`status: "kosong"` dalam `tapisMuridCsv`); nama fail CSV `tiada-langsung`. Ujian ditambah.
 
 ## 2026-10-17 — MJKD borang: draf pelayar bertanda "belum segerak" + simpan segera ke latar belakang
 

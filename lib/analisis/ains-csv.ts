@@ -28,7 +28,8 @@ export const lulusTerkumpul = (m: AinsMuridRow, bulan: number): number =>
 export type AinsCsvTapis = {
   /** Carian nama (kosong = semua). */
   q: string;
-  status: "" | "baca" | "belum";
+  /** "kosong" = tiada bacaan langsung dari Januari hingga bulan terpilih (semua bulan jika `bulan: null`). */
+  status: "" | "baca" | "belum" | "kosong";
   sort: "lulus-desc" | "lulus-asc" | "jumlah-desc" | "jumlah-asc" | "nama";
   /** Bulan terpilih = "sudah membaca" dalam bulan itu; null = dalam mana-mana bulan. */
   bulan: number | null;
@@ -43,15 +44,16 @@ export function tapisMuridCsv(murid: AinsMuridRow[], t: AinsCsvTapis): AinsMurid
   const kata = t.q.trim().toLowerCase();
   const lulus = (m: AinsMuridRow) =>
     t.bulan === null ? m.b.reduce((n, x) => n + x.lulus, 0) : (bulanMurid(m, t.bulan)?.lulus ?? 0);
+  // Jumlah terkumpul Jan–bulan terpilih (semua bulan jika `bulan: null`).
+  const jumlah = (m: AinsMuridRow) =>
+    t.bulan === null ? lulus(m) : lulusTerkumpul(m, t.bulan);
   const out = murid.filter((m) => {
     if (kata && !m.nama.toLowerCase().includes(kata)) return false;
     if (t.status === "baca") return lulus(m) > 0;
     if (t.status === "belum") return lulus(m) === 0;
+    if (t.status === "kosong") return jumlah(m) === 0;
     return true;
   });
-  // Jumlah terkumpul Jan–bulan terpilih (semua bulan jika `bulan: null`).
-  const jumlah = (m: AinsMuridRow) =>
-    t.bulan === null ? lulus(m) : lulusTerkumpul(m, t.bulan);
   return out.sort((a, b) =>
     t.sort === "nama"
       ? a.nama.localeCompare(b.nama, "ms")

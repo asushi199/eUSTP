@@ -118,3 +118,21 @@ test("tapisMuridCsv: susun ikut jumlah terkumpul hingga bulan terpilih", () => {
     ["ALI BIN ABU", 'SITI "COMEL", NUR', "=CMD()"],
   );
 });
+
+test("tapisMuridCsv: 'kosong' = tiada bacaan dari Januari hingga bulan terpilih", () => {
+  const nama = (r: AinsMuridRow[]) => r.map((m) => m.nama);
+  // Hingga Jan: Siti (mula Feb) dan =CMD() belum ada bacaan; Ali ada.
+  assert.deepEqual(
+    nama(tapisMuridCsv(murid, { q: "", status: "kosong", sort: "nama", bulan: 1 })),
+    ["=CMD()", 'SITI "COMEL", NUR'],
+  );
+  // Hingga Feb: Siti sudah ada → hanya =CMD(). Ali (Feb 0 tetapi Jan 3) bukan kosong.
+  assert.deepEqual(
+    nama(tapisMuridCsv(murid, { q: "", status: "kosong", sort: "nama", bulan: 2 })),
+    ["=CMD()"],
+  );
+  assert.deepEqual(
+    nama(tapisMuridCsv(murid, { q: "", status: "kosong", sort: "nama", bulan: null })),
+    ["=CMD()"],
+  );
+});
