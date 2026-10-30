@@ -107,6 +107,9 @@ GPICT/DELIMa/GPM, Tempahan PKG, Portal Sumber/Analisis/Maklumat Asas). Sumber as
   `/admin/ppd-progress/50/{1,2}` — ambil 10 rekod sehalaman, `length` besar beri 504), simpan
   `scripts/data/esn-YYYY-MM-DD.json`, lalu `npm run db:import-esn -- <fail>`. Tarikh akhir
   15 Dis 2026 dalam `ESN_TARIKH_AKHIR`. Buang rekod ujian ESN (cth. `SMK BERTESTING` / ABC1234) daripada JSON sebelum import.
+- **Kiosk tempahan** `/kiosk/[pkg]` (awam, kanvas menegak 1080×1920) — hanya PKG dalam
+  `KIOSK_CONFIG` (`lib/tempahan/kiosk.ts`; kini Sitiawan, 3 bilik disewa). Approved sahaja,
+  papar aktiviti + nama pemohon sahaja. Warna titik per bilik = pengecualian reka bentuk.
 - Petak statistik DPD/PSS halaman utama disorok (`SHOW_LAPORAN_TILES=false`
   dalam `app/(public)/page.tsx`) — pelaporan 2026 masih guna Looker Studio.
 - **MJKD 2026 = satu acara, satu rekod `mjkd_mesyuarat`** (kehadiran, minit +

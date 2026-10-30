@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import TempahanAdminView from "@/components/tempahan/TempahanAdminView";
 import { requireTempahanAccess } from "@/lib/rbac";
 import { parseBulan, todayParts } from "@/lib/month-view";
+import { getKioskConfig } from "@/lib/tempahan/kiosk";
 import {
   getPkg,
   listPendingBookings,
@@ -45,6 +46,16 @@ export default async function AdminPkgTempahanPage({
           <h1 className="mt-1 text-2xl font-semibold tracking-tight">{pkg.name}</h1>
         </div>
         <div className="flex gap-2">
+          {getKioskConfig(pkgId) && (
+            <a
+              href={`/kiosk/${pkgId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-outline-ink btn-sm"
+            >
+              Paparan Kiosk ↗
+            </a>
+          )}
           <Link href={`/admin/tempahan/${pkgId}/bilik`} className="btn-outline-ink btn-sm">
             Urus Bilik
           </Link>

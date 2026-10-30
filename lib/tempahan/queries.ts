@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, count, desc, eq, gte, inArray, lt, ne, or } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, inArray, lt, lte, ne, or } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { attendees, bookings, pkgs, rooms, users } from "@/lib/schema";
 
@@ -178,6 +178,36 @@ export async function listPkgMonthBookings(
         ne(bookings.status, "pending"),
         gte(bookings.date, first),
         lt(bookings.date, nextFirst),
+      ),
+    )
+    .orderBy(asc(bookings.date));
+}
+
+/** Tempahan diluluskan sahaja bagi bilik terpilih dalam julat tarikh — untuk paparan kiosk awam. */
+export async function listKioskBookings(
+  pkgId: string,
+  roomSlugs: string[],
+  fromDate: string,
+  toDate: string,
+) {
+  if (roomSlugs.length === 0) return [];
+  return db
+    .select({
+      id: bookings.id,
+      roomSlug: bookings.roomSlug,
+      date: bookings.date,
+      slot: bookings.slot,
+      name: bookings.name,
+      purpose: bookings.purpose,
+    })
+    .from(bookings)
+    .where(
+      and(
+        eq(bookings.pkgId, pkgId),
+        eq(bookings.status, "approved"),
+        inArray(bookings.roomSlug, roomSlugs),
+        gte(bookings.date, fromDate),
+        lte(bookings.date, toDate),
       ),
     )
     .orderBy(asc(bookings.date));

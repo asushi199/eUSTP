@@ -1,5 +1,15 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-10-30 — Tempahan: paparan kiosk menegak PKG Sitiawan (`/kiosk/sitiawan`)
+
+- Permintaan pengurusan: skrin kiosk berdiri (menegak) di lobi PKG Sitiawan memaparkan penggunaan bilik supaya orang lalu-lalang tahu bilik mana ditempah / kosong. Hanya Sitiawan ada kiosk.
+- Laluan awam baharu `app/kiosk/[pkg]/page.tsx` (luar kumpulan `(public)` → tiada TopNav/footer, tiada log masuk; `noindex`). PKG tanpa entri `KIOSK_CONFIG` → 404.
+- `lib/tempahan/kiosk.ts`: `KIOSK_CONFIG` — Sitiawan hanya 3 bilik yang benar-benar disewa (Bilik Cenderawasih, Bilik Multimedia, Studio Digital Maker Hub) dengan label + warna; tarikh ikut waktu Malaysia (`todayIsoKL`). Query `listKioskBookings` (queries.ts): **status approved sahaja**, pending tidak dipaparkan.
+- Reka letak (`components/tempahan/kiosk/KioskBoard.tsx`): kanvas tetap 1080×1920 diskala ke skrin (macam Kanvas MJKD). Atas: kalendar bulan semasa, setiap tarikh 3 titik (satu bilik, warna + kedudukan tetap; kelabu = kosong), jalur biru muda = 5 hari dipaparkan. Bawah: 5 hari berturut dari hari ini (termasuk Sabtu/Ahad) × 3 lajur bilik, setiap sel Pagi/Petang; dipaparkan hanya aktiviti (`purpose`) + nama pemohon (`name`). Pagi+petang aktiviti sama digabung jadi "Sepanjang hari". Muat semula setiap 5 minit + bila tarikh bertukar.
+- Pengecualian reka bentuk: warna titik/jalur per bilik (oren/hijau/ungu) — skrin awam, atas permintaan pengurusan.
+- Butang "Paparan Kiosk ↗" pada `/admin/tempahan/[pkg]` (hanya PKG dalam `KIOSK_CONFIG`).
+- Disahkan: typecheck, `npm run build`, pelayar dev 540×960: data sebenar 30 Okt–3 Nov dipapar betul, tiada ralat konsol. Butang admin tidak diuji dalam pelayar (perlu log masuk).
+
 ## 2026-10-29 — Ains: lajur "Terkumpul" pada senarai murid
 
 - Permintaan guru: tak perlu tambah manual Jan + Feb + … untuk tahu jumlah buku murid. Senarai murid (`SekolahView` dalam `AinsExplore.tsx`) kini ada lajur **Terkumpul Jan–<bulan terpilih>** (jumlah `lulus` semua bulan ≤ bulan terpilih), juga pada kad telefon dan CSV satu bulan (selepas "Diluluskan"). Pembantu `lulusTerkumpul` dalam `lib/analisis/ains-csv.ts`. CSV semua bulan sudah ada "Jumlah Diluluskan".
