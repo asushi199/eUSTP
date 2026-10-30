@@ -8,7 +8,7 @@ export type KioskRoom = {
   slug: string;
   /** Label paparan (nama bilik dalam DB terlalu panjang / huruf besar). */
   label: string;
-  /** Warna titik kalendar + jalur kepala lajur. */
+  /** Warna titik kalendar, kepala lajur dan blok tempahan (teks putih di atasnya). */
   color: string;
 };
 
@@ -17,9 +17,9 @@ export type KioskConfig = { rooms: KioskRoom[] };
 export const KIOSK_CONFIG: Record<string, KioskConfig> = {
   sitiawan: {
     rooms: [
-      { slug: "bilik_cenderawasih", label: "Bilik Cenderawasih", color: "#e0592a" },
-      { slug: "bilik_multimedia", label: "Bilik Multimedia", color: "#16a06a" },
-      { slug: "studio_digital_maker_hub", label: "Studio Digital Maker Hub", color: "#7c5cdb" },
+      { slug: "bilik_cenderawasih", label: "Bilik Cenderawasih", color: "#d9541f" },
+      { slug: "bilik_multimedia", label: "Bilik Multimedia", color: "#0e9160" },
+      { slug: "studio_digital_maker_hub", label: "Studio Digital Maker Hub", color: "#6d4fd6" },
     ],
   },
 };

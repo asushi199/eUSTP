@@ -9,6 +9,8 @@
 - Pengecualian reka bentuk: warna titik/jalur per bilik (oren/hijau/ungu) — skrin awam, atas permintaan pengurusan.
 - Butang "Paparan Kiosk ↗" pada `/admin/tempahan/[pkg]` (hanya PKG dalam `KIOSK_CONFIG`).
 - Disahkan: typecheck, `npm run build`, pelayar dev 540×960: data sebenar 30 Okt–3 Nov dipapar betul, tiada ralat konsol. Butang admin tidak diuji dalam pelayar (perlu log masuk).
+- Susulan "kurang menonjol": latar kelabu-biru + kad putih berbayang (kalendar, setiap hari satu kad), kepala lajur bilik blok warna penuh, blok tempahan diisi warna bilik (teks putih, bayang), sel kosong kelabu lembut tanpa garis putus; bilik kosong pagi+petang digabung jadi satu blok "Kosong · Sepanjang hari". Warna bilik digelapkan sedikit untuk kontras teks putih.
+- Blok tempahan tidak lagi tulis "Pagi/Petang/Sepanjang hari" (slot difahami dari kedudukan blok) — baris kedua hanya nama pegawai; blok sepanjang hari benarkan nama 2 baris.
 
 ## 2026-10-29 — Ains: lajur "Terkumpul" pada senarai murid
 

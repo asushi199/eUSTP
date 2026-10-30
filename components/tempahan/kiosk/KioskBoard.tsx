@@ -26,6 +26,8 @@ const REFRESH_MS = 5 * 60 * 1000;
 const JAM_MS = 15 * 1000;
 
 const WEEK_HEAD = ["Isn", "Sel", "Rab", "Kha", "Jum", "Sab", "Ahd"];
+/** Bayang kad — kad putih terangkat di atas latar kelabu-biru. */
+const KAD = "shadow-[0_4px_14px_rgba(15,40,80,0.10)]";
 
 /**
  * Papan kiosk menegak: kanvas tetap 1080×1920 diskala seragam ke skrin (jalur putih
@@ -83,7 +85,7 @@ export default function KioskBoard({
   const cols = `120px repeat(${rooms.length}, minmax(0, 1fr))`;
 
   return (
-    <div className="fixed inset-0 cursor-none overflow-hidden bg-white text-ink">
+    <div className="fixed inset-0 cursor-none overflow-hidden bg-[#e9eef5] text-ink">
       <div
         className="absolute left-1/2 top-1/2 flex flex-col px-14 py-14"
         style={{
@@ -119,7 +121,7 @@ export default function KioskBoard({
         </header>
 
         {/* Kalendar bulan: satu titik setiap bilik */}
-        <section className="mt-8 rounded-xl border-2 border-fog px-6 pb-4 pt-5">
+        <section className={`mt-8 rounded-2xl bg-white px-6 pb-4 pt-5 ${KAD}`}>
           <div className="flex items-center justify-between">
             <h2 className="text-[30px] font-semibold">{monthLabel}</h2>
             <div className="flex gap-6">
@@ -138,7 +140,7 @@ export default function KioskBoard({
               </div>
             ))}
             {calendar.flat().map((c, i) => {
-              if (!c) return <div key={`k${i}`} className="h-[52px]" />;
+              if (!c) return <div key={`k${i}`} className="h-[48px]" />;
               const inWindow = c.date >= today && c.date <= windowEnd;
               const isToday = c.date === today;
               const past = c.date < today;
@@ -154,7 +156,7 @@ export default function KioskBoard({
                 <div
                   key={c.date}
                   className={[
-                    "flex h-[52px] flex-col items-center justify-center",
+                    "flex h-[48px] flex-col items-center justify-center",
                     inWindow ? "bg-primary-soft/50" : "",
                     startBand ? "rounded-l-lg" : "",
                     endBand ? "rounded-r-lg" : "",
@@ -174,7 +176,7 @@ export default function KioskBoard({
                     {rooms.map((r, ri) => (
                       <span
                         key={r.slug}
-                        className="h-3 w-3 rounded-full"
+                        className="h-3.5 w-3.5 rounded-full"
                         style={{ background: c.booked[ri] ? r.color : "#e8e8e8" }}
                       />
                     ))}
@@ -186,32 +188,32 @@ export default function KioskBoard({
         </section>
 
         {/* Kepala lajur bilik */}
-        <div className="mt-8 grid gap-3" style={{ gridTemplateColumns: cols }}>
+        <div className="mt-7 grid gap-3 px-3" style={{ gridTemplateColumns: cols }}>
           <div />
           {rooms.map((r) => (
             <div
               key={r.slug}
-              className="border-t-[6px] pt-2 text-[24px] font-semibold leading-tight"
-              style={{ borderTopColor: r.color }}
+              className={`flex min-h-[76px] items-center rounded-xl px-4 py-2 text-[24px] font-bold leading-tight text-white ${KAD}`}
+              style={{ background: r.color }}
             >
               {r.label}
             </div>
           ))}
         </div>
 
-        {/* 5 hari terperinci */}
-        <div className="mt-3 grid min-h-0 flex-1 grid-rows-5 gap-3.5">
+        {/* 5 hari terperinci — setiap hari satu kad */}
+        <div className="mt-4 grid min-h-0 flex-1 grid-rows-5 gap-4">
           {days.map((d) => {
             const isToday = d.date === today;
             const dow = weekdayOf(d.date);
             return (
               <div
                 key={d.date}
-                className={`grid min-h-0 gap-3 rounded-lg ${isToday ? "outline outline-[3px] outline-offset-[5px] outline-primary" : ""}`}
+                className={`grid min-h-0 gap-3 rounded-2xl bg-white p-3 ${KAD} ${isToday ? "ring-4 ring-primary" : ""}`}
                 style={{ gridTemplateColumns: cols }}
               >
-                <div className="flex flex-col justify-center">
-                  <p className="text-[26px] font-semibold leading-tight">{HARI_PENUH[dow]}</p>
+                <div className="flex flex-col justify-center pl-1">
+                  <p className="text-[26px] font-bold leading-tight">{HARI_PENUH[dow]}</p>
                   <p className="text-[20px] text-graphite">
                     {Number(d.date.slice(8, 10))} {BULAN_PENDEK[Number(d.date.slice(5, 7)) - 1]}
                   </p>
@@ -230,10 +232,15 @@ export default function KioskBoard({
         <footer className="mt-6 flex items-center justify-between text-[18px] text-graphite">
           <div className="flex items-center gap-6">
             <span className="flex items-center gap-2">
-              <span className="h-5 w-5 rounded bg-ink" /> Ditempah
+              <span className="flex gap-1">
+                {rooms.map((r) => (
+                  <span key={r.slug} className="h-5 w-3 rounded-sm" style={{ background: r.color }} />
+                ))}
+              </span>
+              Ditempah
             </span>
             <span className="flex items-center gap-2">
-              <span className="h-5 w-5 rounded border-2 border-dashed border-steel" /> Kosong
+              <span className="h-5 w-5 rounded bg-white" /> Kosong
             </span>
             <span>Pagi 8:00–12:00 · Petang 2:00–5:00</span>
           </div>
@@ -246,47 +253,34 @@ export default function KioskBoard({
 
 function RoomCell({ cell, color }: { cell: KioskCell; color: string }) {
   if (cell.kind === "full") {
-    return <Booked entry={cell.entry} slotLabel="Sepanjang hari" color={color} lines={4} />;
+    return <Booked entry={cell.entry} color={color} lines={4} />;
   }
+  // Bilik kosong sepanjang hari: satu blok, bukan dua — kurangkan bunyi visual.
+  if (!cell.am && !cell.pm) return <Empty slotLabel="Sepanjang hari" />;
   return (
     <div className="grid min-h-0 grid-rows-2 gap-1.5">
-      {cell.am ? (
-        <Booked entry={cell.am} slotLabel="Pagi" color={color} lines={2} />
-      ) : (
-        <Empty slotLabel="Pagi" />
-      )}
-      {cell.pm ? (
-        <Booked entry={cell.pm} slotLabel="Petang" color={color} lines={2} />
-      ) : (
-        <Empty slotLabel="Petang" />
-      )}
+      {cell.am ? <Booked entry={cell.am} color={color} lines={2} /> : <Empty slotLabel="Pagi" />}
+      {cell.pm ? <Booked entry={cell.pm} color={color} lines={2} /> : <Empty slotLabel="Petang" />}
     </div>
   );
 }
 
-function Booked({
-  entry,
-  slotLabel,
-  color,
-  lines,
-}: {
-  entry: KioskEntry;
-  slotLabel: string;
-  color: string;
-  lines: 2 | 4;
-}) {
+/** Slot difahami daripada kedudukan blok (atas = pagi, bawah = petang, penuh = sepanjang hari). */
+function Booked({ entry, color, lines }: { entry: KioskEntry; color: string; lines: 2 | 4 }) {
   return (
     <div
-      className="flex min-h-0 flex-col justify-center overflow-hidden rounded-lg border-l-[6px] bg-ink px-3 py-2 text-white"
-      style={{ borderLeftColor: color }}
+      className="flex min-h-0 flex-col justify-center overflow-hidden rounded-xl px-3.5 py-1.5 text-white shadow-[0_6px_14px_rgba(15,30,60,0.28),inset_0_1px_0_rgba(255,255,255,0.25)]"
+      style={{ background: color }}
     >
       <p
-        className={`text-[21px] font-semibold leading-[1.15] ${lines === 4 ? "line-clamp-4" : "line-clamp-2"}`}
+        className={`font-bold leading-[1.1] ${lines === 4 ? "line-clamp-4 text-[22px]" : "line-clamp-2 text-[20px]"}`}
       >
         {entry.purpose}
       </p>
-      <p className="mt-1 truncate text-[17px] text-white/75">
-        {slotLabel} · {entry.name}
+      <p
+        className={`mt-0.5 text-[17px] font-medium leading-tight text-white/90 ${lines === 4 ? "line-clamp-2" : "truncate"}`}
+      >
+        {entry.name}
       </p>
     </div>
   );
@@ -294,8 +288,9 @@ function Booked({
 
 function Empty({ slotLabel }: { slotLabel: string }) {
   return (
-    <div className="flex min-h-0 items-center justify-center rounded-lg border-2 border-dashed border-fog text-[19px] text-steel">
-      {slotLabel} · Kosong
+    <div className="flex min-h-0 flex-col items-center justify-center rounded-xl bg-[#f2f5f9] text-steel">
+      <span className="text-[22px] font-semibold text-[#9aa5b1]">Kosong</span>
+      <span className="text-[15px] text-[#b0b9c3]">{slotLabel}</span>
     </div>
   );
 }
