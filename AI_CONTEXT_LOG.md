@@ -1,5 +1,10 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-10-30 — Admin tempahan: butang Kiosk/Urus Bilik/Tetapan mesra telefon
+
+- Pada telefon, tiga butang di kepala `/admin/tempahan/[pkg]` berbalut 2 baris (lebar tidak cukup). Kini: telefon = grid jubin sama lebar (`grid-flow-col auto-cols-fr`), ikon di atas + label satu baris (`whitespace-nowrap`, tinggi ≥ 64px); label kiosk dipendekkan kepada "Kiosk ↗" (aria-label penuh). `sm+` = butang kecil sebaris seperti dahulu, dengan ikon kecil.
+- Tiada biru (ikon graphite, sempadan fog). Disahkan: typecheck; tangkapan skrin 360px/393px/1024px melalui laluan dev sementara (dipadam) — halaman sebenar perlu log masuk + DB.
+
 ## 2026-10-30 — Tempahan: paparan kiosk menegak PKG Sitiawan (`/kiosk/sitiawan`)
 
 - Permintaan pengurusan: skrin kiosk berdiri (menegak) di lobi PKG Sitiawan memaparkan penggunaan bilik supaya orang lalu-lalang tahu bilik mana ditempah / kosong. Hanya Sitiawan ada kiosk.
