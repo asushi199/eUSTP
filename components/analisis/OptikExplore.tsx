@@ -139,7 +139,7 @@ export default function OptikExplore({
   }, [initialSchoolCode, schoolsProp]);
 
   if (layer === "teachers") {
-    const belum = detail?.teachers.filter((row) => row.plcStatus !== "Selesai").length ?? 0;
+    const belum = detail?.teachers.filter((row) => row.plcStatus === "Belum").length ?? 0;
     const murid =
       detail && detail.school.muridJumlah > 0
         ? ` · Murid ${detail.school.muridAi.toLocaleString("ms-MY")} / ${detail.school.muridJumlah.toLocaleString("ms-MY")} guna AI Tools`

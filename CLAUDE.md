@@ -111,7 +111,8 @@ GPICT/DELIMa/GPM, Tempahan PKG, Portal Sumber/Analisis/Maklumat Asas). Sumber as
   murid, belum-login guru, xlsx "Paling Aktif" Perak). Jalankan `npm run db:import-optik -- --guru-belum …
   --murid-belum … --login-belum … --xlsx … --tarikh YYYY-MM-DD` (`--dry-run` dahulu). Hanya `PPD MANJUNG`
   diambil; e-mel & nama murid TIDAK disimpan; jangan komit CSV/xlsx mentah. "Selesai" = guru pernah guna AI
-  Tools; belum log masuk dikira belum selesai. KPI kebangsaan/TOV disimpan dalam `analisis_metrics` (modul
+  Tools; belum log masuk **dikira selesai buat masa ini** (`BELUM_LOGIN_DIKIRA_SELESAI` dalam
+  `lib/analisis/optik-parse.ts`, keputusan pengurusan — peratus tak boleh turun) tetapi dipapar berasingan. KPI kebangsaan/TOV disimpan dalam `analisis_metrics` (modul
   `optik`) — ubah melalui skrip/DB, bukan UI.
 - **Kiosk tempahan** `/kiosk/[pkg]` (awam, kanvas menegak 1080×1920) — hanya PKG dalam
   `KIOSK_CONFIG` (`lib/tempahan/kiosk.ts`; kini Sitiawan, 3 bilik disewa). Approved sahaja,

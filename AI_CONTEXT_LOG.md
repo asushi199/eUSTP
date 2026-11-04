@@ -2365,3 +2365,10 @@ Corak berselang = instance sihat vs beracun.
 - Paparan awam: kad KPI "Guru Belum Log Masuk" + "Murid Guna AI Tools" (`optik-groups.ts`, dikongsi halaman utama & `/analisis`); jadual sekolah ada % Murid; senarai guru ada status Belum guna / Belum log masuk / Selesai + hari aktif; lapisan baharu "Penggunaan & guru paling aktif" (kedalaman 1–2 / 3–9 / 10–29 / 30+ hari + 10 guru teratas, dimuat malas melalui `loadOptikPenggunaan`).
 - **Admin OPTIK dibuang**: panel KPI/TOV, muat naik CSV, arkib, route muat turun CSV dan `lib/actions/analisis-optik.ts`. Tab OPTIK disorok daripada `/admin/analisis`. Nilai KPI/TOV/sumber kekal dalam `analisis_metrics` (ubah melalui Claude/skrip). Tab DELIMa/DCS/Ains/Pensijilan dikekalkan.
 - Disahkan: migrasi + import sebenar, typecheck, `npm run build`, tests/analisis (40 lulus), smoke `/analisis/ai-tools`, modal OPTIK halaman utama, lapisan Penggunaan, senarai guru ABA1027.
+
+## 2026-11-04 — AI Tools: guru belum log masuk dikira selesai (buat masa ini)
+
+- Keputusan pengurusan: peratus tidak boleh lebih rendah daripada bulan lepas, jadi 87 guru belum log masuk DELIMa dikira **selesai** dalam peratus/bilangan. Pemalar `BELUM_LOGIN_DIKIRA_SELESAI` (`lib/analisis/optik-parse.ts`) — tukar ke `false` untuk kembali mengira mereka belum selesai.
+- Snapshot Okt 2026 diimport semula: guru 3,599 / 3,819 = **94.24%**, belum selesai 220 (= 217 senarai belum AI Tools + 3 aktif tiada dalam mana-mana senarai); sekolah 96 selesai, 6 belum. Status "Belum log masuk" dan kad "Guru Belum Log Masuk" (87) kekal dipapar berasingan; murid tidak berubah (12.51%).
+- Disahkan: tests/analisis/optik-parse (7 lulus), typecheck, import semula.
+- Penapis jadual sekolah AI Tools: pilihan baharu "Ada guru belum log masuk (48)"; bilangan belum log masuk juga dipapar di bawah nama sekolah (mudah alih & desktop). Disahkan di pelayar (48 sekolah).

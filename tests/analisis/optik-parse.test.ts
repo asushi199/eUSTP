@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  BELUM_LOGIN_DIKIRA_SELESAI,
   binaSnapshotOptik,
   chartLabelFromDate,
   kedalamanGuru,
@@ -37,16 +38,17 @@ function contoh() {
   });
 }
 
-test("guru: belum log masuk dikira dalam jumlah dan sebagai belum selesai", () => {
+test("guru: belum log masuk dikira dalam jumlah dan (buat masa ini) sebagai selesai", () => {
+  assert.equal(BELUM_LOGIN_DIKIRA_SELESAI, true);
   const r = contoh();
   assert.equal(r.totalBil, 6);
-  assert.equal(r.selesaiBil, 4);
-  assert.equal(r.belumBil, 2);
+  assert.equal(r.selesaiBil, 5);
+  assert.equal(r.belumBil, 1);
   assert.equal(r.guruBelumLogin, 1);
-  assert.equal(r.selesaiPct, 66.67);
+  assert.equal(r.selesaiPct, 83.33);
   const dendang = r.schools.find((s) => s.schoolCode === "ABA1001");
   assert.equal(dendang?.totalBil, 3);
-  assert.equal(dendang?.selesaiBil, 1);
+  assert.equal(dendang?.selesaiBil, 2);
   assert.equal(dendang?.guruBelumLogin, 1);
   assert.equal(dendang?.plcStatus, "Belum");
   assert.equal(dendang?.schoolName, "SK DENDANG");

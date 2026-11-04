@@ -8,8 +8,13 @@
  *  - CSV belum-login-guru               → guru yang tidak pernah log masuk DELIMa
  *
  * Takrif: guru "Selesai" = pernah guna AI Tools. "Belum" = log masuk tetapi tidak guna.
- * "Belum log masuk" = tidak pernah log masuk (kira sebagai belum selesai).
+ * "Belum log masuk" = tidak pernah log masuk. Buat masa ini DIKIRA SELESAI dalam peratus/bilangan
+ * (keputusan pengurusan 2026-11-04: peratus tidak boleh lebih rendah daripada bulan lepas) tetapi
+ * status dan bilangan mereka tetap dipaparkan berasingan. Tukar `BELUM_LOGIN_DIKIRA_SELESAI` ke
+ * `false` untuk mengira mereka sebagai belum selesai.
  */
+
+export const BELUM_LOGIN_DIKIRA_SELESAI = true;
 
 export const OPTIK_PLC_SELESAI_MIN_PCT = 80;
 
@@ -141,7 +146,7 @@ export function binaSnapshotOptik(input: OptikBinaInput): OptikParseResult {
   for (const g of guru.values()) {
     const s = bySchool.get(g.kod) ?? { done: 0, total: 0, login: 0 };
     s.total += 1;
-    if (g.status === "Selesai") s.done += 1;
+    if (g.status === "Selesai" || (BELUM_LOGIN_DIKIRA_SELESAI && g.status === "Belum log masuk")) s.done += 1;
     if (g.status === "Belum log masuk") s.login += 1;
     bySchool.set(g.kod, s);
   }

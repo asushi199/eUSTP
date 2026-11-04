@@ -52,12 +52,14 @@ export default function OptikSchoolTable({
   onSelectSchool?: (row: OptikSchoolPublicRow) => void;
 }) {
   const [query, setQuery] = useState("");
-  const [status, setStatus] = useState<"all" | "Selesai" | "Belum">("all");
+  const [status, setStatus] = useState<"all" | "Selesai" | "Belum" | "BelumLogin">("all");
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return schools.filter((row) => {
-      if (status !== "all" && row.plcStatus !== status) return false;
+      if (status === "BelumLogin") {
+        if (row.guruBelumLogin <= 0) return false;
+      } else if (status !== "all" && row.plcStatus !== status) return false;
       if (!q) return true;
       return `${row.schoolCode} ${row.schoolName}`.toLowerCase().includes(q);
     });
@@ -65,6 +67,7 @@ export default function OptikSchoolTable({
 
   const selesai = schools.filter((row) => row.plcStatus === "Selesai").length;
   const belum = schools.length - selesai;
+  const belumLogin = schools.filter((row) => row.guruBelumLogin > 0).length;
 
   return (
     <div>
@@ -94,6 +97,9 @@ export default function OptikSchoolTable({
             <option value="all">Semua ({schools.length})</option>
             <option value="Selesai">Selesai ({selesai})</option>
             <option value="Belum">Belum ({belum})</option>
+            {belumLogin > 0 ? (
+              <option value="BelumLogin">Ada guru belum log masuk ({belumLogin})</option>
+            ) : null}
           </select>
         </div>
       </div>
@@ -111,6 +117,7 @@ export default function OptikSchoolTable({
                 <p className="tabular-nums text-graphite">
                   Guru {row.selesaiBil}/{row.totalBil} · {formatPct(row.pctAi)}
                   {row.muridJumlah > 0 ? ` · Murid ${muridPct(row)}` : ""}
+                  {row.guruBelumLogin > 0 ? ` · ${row.guruBelumLogin} belum log masuk` : ""}
                 </p>
                 <PlcBadge status={row.plcStatus} />
               </div>
@@ -136,7 +143,10 @@ export default function OptikSchoolTable({
               <tr key={row.schoolCode} className="border-b border-fog/60 last:border-0">
                 <td className="min-w-[12rem] px-4 py-3">
                   <SchoolName row={row} onSelectSchool={onSelectSchool} />
-                  <p className="mt-0.5 text-xs text-graphite">{row.schoolCode}</p>
+                  <p className="mt-0.5 text-xs text-graphite">
+                    {row.schoolCode}
+                    {row.guruBelumLogin > 0 ? ` · ${row.guruBelumLogin} belum log masuk` : ""}
+                  </p>
                 </td>
                 <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">{row.selesaiBil}</td>
                 <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">{row.totalBil}</td>
