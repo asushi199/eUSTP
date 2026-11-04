@@ -1,10 +1,27 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { normalizeMalaysianMobile } from "@/lib/direktori/config";
 import type { DirektoriPpdItem } from "@/lib/direktori-ppd/queries";
 
 const norm = (v: string) => v.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
-const telHref = (v: string) => `tel:${v.replace(/[^\d+]/g, "")}`;
+
+function Kenalan({ telefon }: { telefon: string }) {
+  if (!telefon) return <span className="text-graphite">—</span>;
+  const mobile = normalizeMalaysianMobile(telefon);
+  const digits = telefon.replace(/\D/g, "");
+  return (
+    <>
+      <span className="tabular-nums text-graphite">{telefon}</span>
+      <a href={`tel:${mobile ? `+${mobile}` : digits}`} className="btn-outline-ink btn-sm">Telefon</a>
+      {mobile && (
+        <a href={`https://wa.me/${mobile}`} target="_blank" rel="noopener noreferrer" className="btn-outline-ink btn-sm">
+          WhatsApp
+        </a>
+      )}
+    </>
+  );
+}
 
 export default function DirektoriPpdList({ rows }: { rows: DirektoriPpdItem[] }) {
   const [query, setQuery] = useState("");
@@ -44,13 +61,9 @@ export default function DirektoriPpdList({ rows }: { rows: DirektoriPpdItem[] })
                 <p className="font-semibold text-ink">{r.nama}</p>
                 <p className="mt-0.5 text-sm text-graphite">{r.jawatan || "—"}</p>
               </div>
-              <div className="flex shrink-0 items-center gap-3 text-sm">
+              <div className="flex shrink-0 flex-wrap items-center gap-2 text-sm">
                 {r.gred && <span className="status-badge">{r.gred}</span>}
-                {r.telefon ? (
-                  <a href={telHref(r.telefon)} className="link-blue tabular-nums">{r.telefon}</a>
-                ) : (
-                  <span className="text-graphite">—</span>
-                )}
+                <Kenalan telefon={r.telefon} />
               </div>
             </li>
           ))}
