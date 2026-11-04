@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, isNotNull } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
   analisisOptikSchools,
@@ -15,14 +15,22 @@ import {
   optikTovValue,
   type MetricMap,
 } from "@/lib/analisis/queries";
-import { roundPct } from "@/lib/analisis/optik-parse";
+import { kedalamanGuru, roundPct } from "@/lib/analisis/optik-parse";
 import type {
+  OptikGuruTeratasRow,
+  OptikKedalamanRow,
   OptikSchoolPublicRow,
   OptikSnapshotSummary,
   OptikTeacherPublicRow,
 } from "@/lib/analisis/optik-types";
 
-export type { OptikSchoolPublicRow, OptikSnapshotSummary, OptikTeacherPublicRow };
+export type {
+  OptikGuruTeratasRow,
+  OptikKedalamanRow,
+  OptikSchoolPublicRow,
+  OptikSnapshotSummary,
+  OptikTeacherPublicRow,
+};
 
 export type OptikPublicView = {
   metrics: MetricMap;
@@ -53,6 +61,10 @@ function toSummary(
     sekolahSelesai: row.sekolahSelesai,
     sekolahBelum: row.sekolahBelum,
     sekolahCount: row.sekolahCount,
+    guruBelumLogin: row.guruBelumLogin,
+    muridAi: row.muridAi,
+    muridJumlah: row.muridJumlah,
+    muridPct: row.muridPct,
     isCurrent: row.isCurrent,
     includeChart: row.includeChart,
     createdAt: row.createdAt,
@@ -100,6 +112,9 @@ export async function getOptikSchoolsForSnapshot(
     totalBil: row.totalBil,
     pctAi: row.pctAi,
     plcStatus: row.plcStatus,
+    guruBelumLogin: row.guruBelumLogin,
+    muridAi: row.muridAi,
+    muridJumlah: row.muridJumlah,
   }));
 }
 
@@ -246,12 +261,16 @@ export async function getOptikSchoolDetail(schoolCode: string): Promise<{
       totalBil: match.totalBil,
       pctAi: match.pctAi,
       plcStatus: match.plcStatus,
+      guruBelumLogin: match.guruBelumLogin,
+      muridAi: match.muridAi,
+      muridJumlah: match.muridJumlah,
     },
   ]);
   const teachers = await db
     .select({
       name: analisisOptikTeachers.name,
       plcStatus: analisisOptikTeachers.plcStatus,
+      hariAktif: analisisOptikTeachers.hariAktif,
     })
     .from(analisisOptikTeachers)
     .where(
@@ -269,8 +288,56 @@ export async function getOptikSchoolDetail(schoolCode: string): Promise<{
       totalBil: match.totalBil,
       pctAi: match.pctAi,
       plcStatus: match.plcStatus,
+      guruBelumLogin: match.guruBelumLogin,
+      muridAi: match.muridAi,
+      muridJumlah: match.muridJumlah,
     },
     teachers,
+    snapshotLabel: current.chartLabel,
+  };
+}
+
+/** Kedalaman penggunaan guru + papan guru paling aktif untuk snapshot semasa. */
+export async function getOptikPenggunaan(limit = 10): Promise<{
+  kedalaman: OptikKedalamanRow[];
+  teratas: OptikGuruTeratasRow[];
+  median: number | null;
+  snapshotLabel: string;
+} | null> {
+  const current = await getCurrentOptikSnapshot();
+  if (!current) return null;
+  const rows = await db
+    .select({
+      name: analisisOptikTeachers.name,
+      schoolCode: analisisOptikTeachers.schoolCode,
+      hariAktif: analisisOptikTeachers.hariAktif,
+    })
+    .from(analisisOptikTeachers)
+    .where(
+      and(
+        eq(analisisOptikTeachers.snapshotId, current.id),
+        isNotNull(analisisOptikTeachers.hariAktif),
+      ),
+    );
+  if (rows.length === 0) return null;
+  const hari = rows.map((r) => r.hariAktif ?? 0).sort((a, b) => a - b);
+  const median = hari[Math.floor(hari.length / 2)] ?? null;
+  const top = [...rows]
+    .sort((a, b) => (b.hariAktif ?? 0) - (a.hariAktif ?? 0) || a.name.localeCompare(b.name, "ms"))
+    .slice(0, limit);
+  const schools = await applySchoolDirectoryNames(
+    await getOptikSchoolsForSnapshot(current.id),
+  );
+  const names = new Map(schools.map((s) => [s.schoolCode, s.schoolName]));
+  return {
+    kedalaman: kedalamanGuru(rows.map((r) => r.hariAktif)),
+    teratas: top.map((r) => ({
+      name: r.name,
+      schoolCode: r.schoolCode,
+      schoolName: names.get(r.schoolCode) ?? r.schoolCode,
+      hariAktif: r.hariAktif ?? 0,
+    })),
+    median,
     snapshotLabel: current.chartLabel,
   };
 }

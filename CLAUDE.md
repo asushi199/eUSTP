@@ -107,6 +107,12 @@ GPICT/DELIMa/GPM, Tempahan PKG, Portal Sumber/Analisis/Maklumat Asas). Sumber as
   `/admin/ppd-progress/50/{1,2}` — ambil 10 rekod sehalaman, `length` besar beri 504), simpan
   `scripts/data/esn-YYYY-MM-DD.json`, lalu `npm run db:import-esn -- <fail>`. Tarikh akhir
   15 Dis 2026 dalam `ESN_TARIKH_AKHIR`. Buang rekod ujian ESN (cth. `SMK BERTESTING` / ABC1234) daripada JSON sebelum import.
+- **AI Tools (OPTIK) — tiada admin; data melalui Claude.** Sumber: eksport DELIMa (belum-ai-tools guru &
+  murid, belum-login guru, xlsx "Paling Aktif" Perak). Jalankan `npm run db:import-optik -- --guru-belum …
+  --murid-belum … --login-belum … --xlsx … --tarikh YYYY-MM-DD` (`--dry-run` dahulu). Hanya `PPD MANJUNG`
+  diambil; e-mel & nama murid TIDAK disimpan; jangan komit CSV/xlsx mentah. "Selesai" = guru pernah guna AI
+  Tools; belum log masuk dikira belum selesai. KPI kebangsaan/TOV disimpan dalam `analisis_metrics` (modul
+  `optik`) — ubah melalui skrip/DB, bukan UI.
 - **Kiosk tempahan** `/kiosk/[pkg]` (awam, kanvas menegak 1080×1920) — hanya PKG dalam
   `KIOSK_CONFIG` (`lib/tempahan/kiosk.ts`; kini Sitiawan, 3 bilik disewa). Approved sahaja,
   papar aktiviti + nama pemohon sahaja. Warna titik per bilik = pengecualian reka bentuk.

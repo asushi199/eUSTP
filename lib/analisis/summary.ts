@@ -19,6 +19,7 @@ import { getDcsTerkiniIkutTahun } from "./dcs-queries";
 import type { DcsBackup, DcsSnapshot } from "./dcs-types";
 import { getEsnTerkiniIkutTahun } from "./esn-queries";
 import { jumlahMuridEsn, jumlahSekolahEsn, type EsnSnapshot } from "./esn-types";
+import { optikTambahanGroups } from "./optik-groups";
 import { getOptikHomeView, optikKpiGroupStats, optikKpiReferenceLines } from "./optik-queries";
 
 /** Bentuk data boleh-serialize untuk kad + modal analisis di halaman utama. */
@@ -424,6 +425,7 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
           { label: "Bil. Belum Selesai", value: bil(optikBelumBil) },
         ],
       },
+      ...optikTambahanGroups(optikView.current),
     ],
     bars: [],
     line: {

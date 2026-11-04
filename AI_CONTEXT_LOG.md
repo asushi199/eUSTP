@@ -2355,3 +2355,13 @@ Corak berselang = instance sihat vs beracun.
 
 - Arahan pengurusan: tajuk muka depan kini "Mesyuarat Jawatankuasa Kurikulum Daerah Bil. 2/2026"; "Bil. 2/2026" guna warna emas yang sama (`pt-emas-grad`). Label paparan sahaja — rekod `mjkd_mesyuarat` kekal satu acara.
 - Disahkan: smoke `/dev/pentas` (Bil. 2/2026 emas, satu baris sendiri, tiada pertindihan dengan cincin).
+
+## 2026-11-04 — AI Tools (OPTIK): sumber baharu DELIMa, guru penuh + murid, admin dibuang
+
+- Format CSV berubah: eksport DELIMa kini senarai "belum" seluruh negara (tiada jumlah). Digabung dengan xlsx "Paling Aktif" Perak (guna AI Tools + hari aktif) dan senarai belum-login guru → senarai guru PPD Manjung **lengkap** (tiada anggaran penyebut): Selesai 3,512 / jumlah 3,819 = **91.96%** (belum 307, termasuk 87 belum log masuk DELIMa). Murid 5,190 / 41,501 (jumlah murid rujukan = DELIMa d3 terkini; naik jika guna+belum fail melebihinya) = 12.51%. Takrif "selesai" = pernah guna AI Tools (sama metrik dengan titik Sep 83.49%).
+- Skrip baharu `npm run db:import-optik -- --guru-belum … --murid-belum … --login-belum … --xlsx … --tarikh YYYY-MM-DD [--dry-run]` (ganti `import-optik-snapshots.ts`). Hanya baris `PPD MANJUNG`; e-mel hanya untuk padanan dalam memori. Ringkasan sekolah tanpa nama ditulis ke `scripts/data/analisis-optik-<tarikh>.csv`. Fail murid ~316 MB dibaca strim.
+- Migrasi 0059: lajur `guru_belum_login`/`murid_ai`/`murid_jumlah`/`murid_pct` (snapshot), `guru_belum_login`/`murid_ai`/`murid_jumlah` (sekolah), `hari_aktif` (guru) + **padam semua e-mel guru lama** (`analisis_optik_teachers.email` kini sentiasa kosong). Nama murid tidak pernah disimpan.
+- `lib/analisis/optik-parse.ts` dirombak: pembina tulen `binaSnapshotOptik` + `kedalamanGuru`; penghurai muat naik CSV/Excel dibuang. Ujian `tests/analisis/optik-parse.test.ts` ditulis semula (7 lulus).
+- Paparan awam: kad KPI "Guru Belum Log Masuk" + "Murid Guna AI Tools" (`optik-groups.ts`, dikongsi halaman utama & `/analisis`); jadual sekolah ada % Murid; senarai guru ada status Belum guna / Belum log masuk / Selesai + hari aktif; lapisan baharu "Penggunaan & guru paling aktif" (kedalaman 1–2 / 3–9 / 10–29 / 30+ hari + 10 guru teratas, dimuat malas melalui `loadOptikPenggunaan`).
+- **Admin OPTIK dibuang**: panel KPI/TOV, muat naik CSV, arkib, route muat turun CSV dan `lib/actions/analisis-optik.ts`. Tab OPTIK disorok daripada `/admin/analisis`. Nilai KPI/TOV/sumber kekal dalam `analisis_metrics` (ubah melalui Claude/skrip). Tab DELIMa/DCS/Ains/Pensijilan dikekalkan.
+- Disahkan: migrasi + import sebenar, typecheck, `npm run build`, tests/analisis (40 lulus), smoke `/analisis/ai-tools`, modal OPTIK halaman utama, lapisan Penggunaan, senarai guru ABA1027.

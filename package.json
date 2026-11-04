@@ -17,7 +17,7 @@
     "db:backup-pgdump": "tsx scripts/pg-dump-backup.ts",
     "db:backup-pgdump:upload": "tsx scripts/pg-dump-backup.ts --upload",
     "db:import-tebus-buku": "tsx scripts/import-tebus-buku.ts",
-    "db:import-optik": "tsx scripts/import-optik-snapshots.ts",
+    "db:import-optik": "tsx scripts/import-optik.ts",
     "db:import-ains": "tsx scripts/import-ains.ts",
     "db:import-delima-d3": "tsx scripts/import-delima-d3.ts",
     "db:import-dcs": "tsx scripts/import-dcs.ts",

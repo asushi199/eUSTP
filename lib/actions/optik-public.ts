@@ -3,6 +3,7 @@
 import { getAnalisisData } from "@/lib/analisis/queries";
 import {
   applySchoolDirectoryNames,
+  getOptikPenggunaan,
   getOptikPublicView,
   getOptikSchoolDetail,
 } from "@/lib/analisis/optik-queries";
@@ -12,6 +13,8 @@ export type OptikSchoolListPayload = {
   schools: OptikSchoolPublicRow[];
   summary: string | null;
 };
+
+export type OptikPenggunaanPayload = NonNullable<Awaited<ReturnType<typeof getOptikPenggunaan>>>;
 
 export type OptikTeacherListPayload = {
   school: OptikSchoolPublicRow;
@@ -57,4 +60,8 @@ export async function loadOptikSchoolTeachers(
     teachers: detail.teachers,
     snapshotLabel: detail.snapshotLabel,
   };
+}
+
+export async function loadOptikPenggunaan(): Promise<OptikPenggunaanPayload | null> {
+  return getOptikPenggunaan(10);
 }

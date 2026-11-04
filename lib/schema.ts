@@ -675,6 +675,12 @@ export const analisisOptikSnapshots = pgTable(
     sekolahSelesai: integer("sekolah_selesai").notNull(),
     sekolahBelum: integer("sekolah_belum").notNull(),
     sekolahCount: integer("sekolah_count").notNull(),
+    /** Guru yang belum log masuk DELIMa (sebahagian daripada belumBil). */
+    guruBelumLogin: integer("guru_belum_login").notNull().default(0),
+    /** Murid yang pernah guna AI Tools / jumlah murid (anggaran rujukan DELIMa d3). 0 jika sumber tiada. */
+    muridAi: integer("murid_ai").notNull().default(0),
+    muridJumlah: integer("murid_jumlah").notNull().default(0),
+    muridPct: doublePrecision("murid_pct").notNull().default(0),
     isCurrent: boolean("is_current").notNull().default(false),
     includeChart: boolean("include_chart").notNull().default(true),
     uploadedByUserId: integer("uploaded_by_user_id").references(() => users.id, {
@@ -701,6 +707,9 @@ export const analisisOptikSchools = pgTable(
     totalBil: integer("total_bil").notNull(),
     pctAi: doublePrecision("pct_ai").notNull(),
     plcStatus: text("plc_status").notNull(),
+    guruBelumLogin: integer("guru_belum_login").notNull().default(0),
+    muridAi: integer("murid_ai").notNull().default(0),
+    muridJumlah: integer("murid_jumlah").notNull().default(0),
     sort: integer("sort").notNull().default(0),
   },
   (t) => ({
@@ -723,7 +732,10 @@ export const analisisOptikTeachers = pgTable(
     schoolCode: text("school_code").notNull(),
     name: text("name").notNull(),
     email: text("email").notNull().default(""),
+    /** "Selesai" | "Belum" | "Belum log masuk". */
     plcStatus: text("plc_status").notNull(),
+    /** Jumlah hari aktif guna AI Tools (1 Jan → tarikh snapshot); null jika tidak diketahui. */
+    hariAktif: integer("hari_aktif"),
     sort: integer("sort").notNull().default(0),
   },
   (t) => ({

@@ -414,6 +414,13 @@
       "when": 1793774733318,
       "tag": "0058_direktori_ppd",
       "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1793784670646,
+      "tag": "0059_optik_guru_murid",
+      "breakpoints": true
     }
   ]
 }

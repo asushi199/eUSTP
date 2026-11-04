@@ -91,6 +91,10 @@ export async function insertOptikSnapshot(input: {
         sekolahSelesai: input.parsed.sekolahSelesai,
         sekolahBelum: input.parsed.sekolahBelum,
         sekolahCount: input.parsed.schools.length,
+        guruBelumLogin: input.parsed.guruBelumLogin,
+        muridAi: input.parsed.muridAi,
+        muridJumlah: input.parsed.muridJumlah,
+        muridPct: input.parsed.muridPct,
         isCurrent: input.makeCurrent,
         includeChart: true,
         uploadedByUserId: input.userId,
@@ -106,6 +110,9 @@ export async function insertOptikSnapshot(input: {
         totalBil: row.totalBil,
         pctAi: row.pctAi,
         plcStatus: row.plcStatus,
+        guruBelumLogin: row.guruBelumLogin,
+        muridAi: row.muridAi,
+        muridJumlah: row.muridJumlah,
         sort: index,
       })),
     );
@@ -115,8 +122,10 @@ export async function insertOptikSnapshot(input: {
           snapshotId: snap.id,
           schoolCode: row.schoolCode,
           name: row.name,
-          email: row.email,
+          // E-mel sengaja TIDAK disimpan.
+          email: "",
           plcStatus: row.plcStatus,
+          hariAktif: row.hariAktif,
           sort: index,
         })),
       );

@@ -5,7 +5,7 @@ import type { OptikTeacherPublicRow } from "@/lib/analisis/optik-types";
 
 export default function OptikTeacherTable({ teachers }: { teachers: OptikTeacherPublicRow[] }) {
   const [query, setQuery] = useState("");
-  const [status, setStatus] = useState<"all" | "Selesai" | "Belum">("all");
+  const [status, setStatus] = useState<"all" | "Selesai" | "Belum" | "Belum log masuk">("all");
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -17,7 +17,8 @@ export default function OptikTeacherTable({ teachers }: { teachers: OptikTeacher
   }, [query, status, teachers]);
 
   const selesai = teachers.filter((row) => row.plcStatus === "Selesai").length;
-  const belum = teachers.length - selesai;
+  const belumLogin = teachers.filter((row) => row.plcStatus === "Belum log masuk").length;
+  const belum = teachers.length - selesai - belumLogin;
 
   if (teachers.length === 0) {
     return (
@@ -53,7 +54,10 @@ export default function OptikTeacherTable({ teachers }: { teachers: OptikTeacher
             onChange={(e) => setStatus(e.target.value as typeof status)}
           >
             <option value="all">Semua ({teachers.length})</option>
-            <option value="Belum">Belum ({belum})</option>
+            <option value="Belum">Belum guna ({belum})</option>
+            {belumLogin > 0 ? (
+              <option value="Belum log masuk">Belum log masuk ({belumLogin})</option>
+            ) : null}
             <option value="Selesai">Selesai ({selesai})</option>
           </select>
         </div>
@@ -62,7 +66,12 @@ export default function OptikTeacherTable({ teachers }: { teachers: OptikTeacher
       <div className="card mt-3 divide-y divide-fog">
         {filtered.map((row, index) => (
           <div key={`${row.name}-${index}`} className="flex items-center justify-between gap-3 px-4 py-3">
-            <p className="min-w-0 font-medium leading-snug">{row.name}</p>
+            <p className="min-w-0 font-medium leading-snug">
+              {row.name}
+              {row.hariAktif != null ? (
+                <span className="ml-2 text-xs font-normal text-graphite">{row.hariAktif} hari aktif</span>
+              ) : null}
+            </p>
             <span className="status-badge shrink-0">
               <span
                 className={`status-dot ${row.plcStatus === "Selesai" ? "bg-primary" : "bg-graphite"}`}

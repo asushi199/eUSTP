@@ -3,16 +3,19 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import OptikSchoolTable from "@/components/analisis/OptikSchoolTable";
+import OptikPenggunaan from "@/components/analisis/OptikPenggunaan";
 import OptikTeacherTable from "@/components/analisis/OptikTeacherTable";
 import {
+  loadOptikPenggunaan,
   loadOptikSchools,
   loadOptikSchoolTeachers,
+  type OptikPenggunaanPayload,
   type OptikSchoolListPayload,
   type OptikTeacherListPayload,
 } from "@/lib/actions/optik-public";
 import type { OptikSchoolPublicRow } from "@/lib/analisis/optik-types";
 
-export type OptikExploreLayer = "overview" | "schools" | "teachers";
+export type OptikExploreLayer = "overview" | "schools" | "teachers" | "penggunaan";
 
 export default function OptikExplore({
   children,
@@ -42,6 +45,7 @@ export default function OptikExplore({
       : null,
   );
   const [detail, setDetail] = useState<OptikTeacherListPayload | null>(null);
+  const [penggunaan, setPenggunaan] = useState<OptikPenggunaanPayload | null | undefined>(undefined);
   const [loadingList, setLoadingList] = useState(false);
   const [loadingTeachers, setLoadingTeachers] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -70,6 +74,18 @@ export default function OptikExplore({
   async function openSchools() {
     go("schools");
     await ensureSchools();
+  }
+
+  async function openPenggunaan() {
+    go("penggunaan");
+    if (penggunaan !== undefined) return;
+    setError(null);
+    try {
+      setPenggunaan(await loadOptikPenggunaan());
+    } catch {
+      setError("Data penggunaan tidak dapat dimuatkan.");
+      setPenggunaan(null);
+    }
   }
 
   async function openTeachers(code: string) {
@@ -124,6 +140,10 @@ export default function OptikExplore({
 
   if (layer === "teachers") {
     const belum = detail?.teachers.filter((row) => row.plcStatus !== "Selesai").length ?? 0;
+    const murid =
+      detail && detail.school.muridJumlah > 0
+        ? ` · Murid ${detail.school.muridAi.toLocaleString("ms-MY")} / ${detail.school.muridJumlah.toLocaleString("ms-MY")} guna AI Tools`
+        : "";
     return (
       <div className="mt-4">
         <button
@@ -145,7 +165,8 @@ export default function OptikExplore({
               {detail.school.totalBil.toLocaleString("ms-MY")} guru selesai (
               {detail.school.pctAi.toLocaleString("ms-MY", { maximumFractionDigits: 2 })}%) · PLC{" "}
               {detail.school.plcStatus}
-              {detail.teachers.length > 0 ? ` · ${belum} belum selesai` : ""}.
+              {detail.teachers.length > 0 ? ` · ${belum} belum selesai` : ""}
+              {murid}.
             </p>
             <OptikTeacherTable teachers={detail.teachers} />
           </>
@@ -153,6 +174,25 @@ export default function OptikExplore({
           <p className="mt-4 text-sm text-graphite">Memuatkan senarai guru…</p>
         ) : (
           <p className="mt-4 text-sm text-graphite">{error ?? "Tiada data guru."}</p>
+        )}
+      </div>
+    );
+  }
+
+  if (layer === "penggunaan") {
+    return (
+      <div className="mt-4">
+        <button type="button" className="text-sm text-graphite hover:text-ink" onClick={() => go("overview")}>
+          ← Carta
+        </button>
+        <h3 className="mt-3 text-lg font-semibold tracking-tight">Penggunaan AI Tools</h3>
+        {error ? <p className="mt-3 text-sm text-graphite">{error}</p> : null}
+        {penggunaan === undefined ? (
+          <p className="mt-4 text-sm text-graphite">Memuatkan…</p>
+        ) : penggunaan === null ? (
+          <p className="mt-4 text-sm text-graphite">Data hari aktif belum tersedia.</p>
+        ) : (
+          <OptikPenggunaan data={penggunaan} />
         )}
       </div>
     );
@@ -187,9 +227,12 @@ export default function OptikExplore({
   return (
     <>
       {children}
-      <p className="mt-4">
+      <p className="mt-4 flex flex-wrap gap-2">
         <button type="button" className="btn-outline btn-sm" onClick={() => void openSchools()}>
           Lihat senarai sekolah
+        </button>
+        <button type="button" className="btn-outline btn-sm" onClick={() => void openPenggunaan()}>
+          Penggunaan &amp; guru paling aktif
         </button>
       </p>
     </>

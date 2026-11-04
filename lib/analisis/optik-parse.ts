@@ -1,9 +1,20 @@
-/** Parser fail AI Tools (CSV paparan daerah atau Excel senarai guru). */
+/**
+ * AI Tools (OPTIK) — pembinaan snapshot daripada sumber DELIMa (tulen, tanpa I/O).
+ *
+ * Sumber (Perak, ditapis ke PPD Manjung oleh skrip `import-optik`):
+ *  - xlsx "Paling Aktif Guru dan Murid" → semua guru aktif DELIMa (1 Jan → 31 Okt)
+ *  - xlsx "Paling Aktif AI Tools"       → guru & murid yang pernah guna AI Tools + hari aktif
+ *  - CSV belum-ai-tools (guru / murid)  → sudah log masuk tetapi belum guna AI Tools
+ *  - CSV belum-login-guru               → guru yang tidak pernah log masuk DELIMa
+ *
+ * Takrif: guru "Selesai" = pernah guna AI Tools. "Belum" = log masuk tetapi tidak guna.
+ * "Belum log masuk" = tidak pernah log masuk (kira sebagai belum selesai).
+ */
 
 export const OPTIK_PLC_SELESAI_MIN_PCT = 80;
 
 export type OptikPlcStatus = "Selesai" | "Belum";
-export type OptikSourceFormat = "school_table" | "teacher_list";
+export type OptikGuruStatus = "Selesai" | "Belum" | "Belum log masuk";
 
 export type OptikSchoolRow = {
   schoolCode: string;
@@ -12,17 +23,20 @@ export type OptikSchoolRow = {
   totalBil: number;
   pctAi: number;
   plcStatus: OptikPlcStatus;
+  guruBelumLogin: number;
+  muridAi: number;
+  muridJumlah: number;
 };
 
 export type OptikTeacherRow = {
   schoolCode: string;
   name: string;
-  email: string;
-  plcStatus: OptikPlcStatus;
+  plcStatus: OptikGuruStatus;
+  hariAktif: number | null;
 };
 
 export type OptikParseResult = {
-  format: OptikSourceFormat;
+  format: string;
   schools: OptikSchoolRow[];
   teachers: OptikTeacherRow[];
   selesaiBil: number;
@@ -30,25 +44,16 @@ export type OptikParseResult = {
   selesaiPct: number;
   belumBil: number;
   belumPct: number;
+  guruBelumLogin: number;
   sekolahSelesai: number;
   sekolahBelum: number;
+  muridAi: number;
+  muridJumlah: number;
+  muridPct: number;
   csv: string;
 };
 
-const MS_MONTHS = [
-  "Jan",
-  "Feb",
-  "Mac",
-  "Apr",
-  "Mei",
-  "Jun",
-  "Jul",
-  "Ogo",
-  "Sep",
-  "Okt",
-  "Nov",
-  "Dis",
-];
+const MS_MONTHS = ["Jan", "Feb", "Mac", "Apr", "Mei", "Jun", "Jul", "Ogo", "Sep", "Okt", "Nov", "Dis"];
 
 export function roundPct(n: number): number {
   return Math.round(n * 100) / 100;
@@ -62,128 +67,167 @@ export function chartLabelFromDate(ymd: string): string {
   return `${MS_MONTHS[month - 1]} ${year}`;
 }
 
-export function isOptikSpreadsheetName(filename: string, mime = ""): boolean {
-  return /\.xlsx?$/i.test(filename) || /spreadsheet|excel/i.test(mime);
-}
-
-function parseNumber(raw: string): number | null {
-  const t = raw.replace(/%/g, "").replace(",", ".").trim();
-  if (!t) return null;
-  const n = Number(t);
-  return Number.isFinite(n) ? n : null;
-}
-
-function parseCount(raw: string): number | null {
-  const n = parseNumber(raw);
-  if (n == null) return null;
-  const rounded = Math.round(n);
-  return rounded >= 0 ? rounded : null;
-}
-
-export function normalizePlcStatus(raw: string): OptikPlcStatus | null {
-  const t = raw.trim().toLowerCase().replace(/\s+/g, " ");
-  if (!t) return null;
-  if (t === "selesai" || t === "siap") return "Selesai";
-  if (t === "belum" || t === "belum selesai" || t === "tidak selesai") return "Belum";
-  return null;
-}
-
 export function plcStatusFromPct(pct: number): OptikPlcStatus {
   return pct >= OPTIK_PLC_SELESAI_MIN_PCT ? "Selesai" : "Belum";
 }
 
-const SCHOOL_CODE_RE = /^([A-Za-z]{3}\d{4})\s*[-–—]\s*(.+)$/;
-
-export function parseSchoolField(raw: string): { code: string; name: string } | null {
-  const text = raw.replace(/^\ufeff/, "").trim();
-  if (!text) return null;
-  const m = text.match(SCHOOL_CODE_RE);
-  if (m) {
-    return { code: m[1].toUpperCase(), name: m[2].trim() };
-  }
-  const codeOnly = text.match(/^([A-Za-z]{3}\d{4})$/);
-  if (codeOnly) return { code: codeOnly[1].toUpperCase(), name: codeOnly[1].toUpperCase() };
-  return null;
+/** Nama untuk paparan: ruang tunggal, tanpa ruang hujung/awal. */
+export function bersihNama(raw: string): string {
+  return raw.replace(/\s+/g, " ").trim();
 }
 
-function headerKey(raw: string): string {
-  const h = raw.replace(/^\ufeff/, "").trim().toLowerCase().replace(/\s+/g, " ");
-  if (h === "✓" || h === "✔" || h === "selesai" || h === "bil. selesai" || h === "bil selesai") {
-    return "done";
-  }
-  if (h === "∑" || h === "jumlah" || h === "total" || h === "bilangan") return "total";
-  if (h.includes("%") && h.includes("ai")) return "pct";
-  if (h.includes("plc")) return "plc";
-  if (h === "sekolah" || h === "nama sekolah") return "school";
-  if (h.includes("status")) return "status";
-  if (h === "nama") return "nama";
-  if (h.includes("email")) return "email";
-  return h;
-}
+export type OptikGuruSumber = { email: string; kod: string; nama: string };
 
-export function parseCsvMatrix(csvText: string): string[][] {
-  const text = String(csvText ?? "").replace(/^\ufeff/, "");
-  const rows: string[][] = [];
-  let row: string[] = [];
-  let cur = "";
-  let i = 0;
-  let inQuotes = false;
+export type OptikBinaInput = {
+  /** Semua guru aktif DELIMa (jumlah penyebut). */
+  aktif: OptikGuruSumber[];
+  /** Guru yang pernah guna AI Tools + hari aktif (kunci = e-mel huruf kecil). */
+  ai: (OptikGuruSumber & { hari: number })[];
+  /** Guru log masuk tetapi belum guna AI Tools. */
+  belumAi: OptikGuruSumber[];
+  /** Guru tidak pernah log masuk DELIMa. */
+  belumLogin: OptikGuruSumber[];
+  /** Bilangan murid pernah guna AI Tools / belum, ikut kod sekolah. */
+  muridAi: Map<string, number>;
+  muridBelum: Map<string, number>;
+  /** Jumlah murid rujukan (DELIMa d3) ikut kod sekolah — penyebut peratus murid. */
+  muridRujukan: Map<string, number>;
+  /** Nama sekolah rujukan ikut kod (pilihan; jika tiada guna nama daripada sumber). */
+  namaSekolah?: Map<string, string>;
+};
 
-  const pushCell = () => {
-    row.push(cur);
-    cur = "";
+const STATUS_URUTAN: Record<OptikGuruStatus, number> = {
+  Belum: 0,
+  "Belum log masuk": 1,
+  Selesai: 2,
+};
+
+export function binaSnapshotOptik(input: OptikBinaInput): OptikParseResult {
+  type Guru = { kod: string; nama: string; status: OptikGuruStatus; hari: number | null };
+  const guru = new Map<string, Guru>();
+  const tambah = (g: OptikGuruSumber) => {
+    const key = g.email.trim().toLowerCase();
+    const kod = g.kod.trim().toUpperCase();
+    const nama = bersihNama(g.nama);
+    if (!key || !kod || !nama) return null;
+    let cur = guru.get(key);
+    if (!cur) {
+      cur = { kod, nama, status: "Belum", hari: null };
+      guru.set(key, cur);
+    }
+    return cur;
   };
-  const pushRow = () => {
-    if (row.some((c) => String(c).trim() !== "") || row.length > 1) rows.push(row);
-    row = [];
-  };
-
-  while (i < text.length) {
-    const c = text[i];
-    if (inQuotes) {
-      if (c === '"') {
-        if (text[i + 1] === '"') {
-          cur += '"';
-          i += 2;
-          continue;
-        }
-        inQuotes = false;
-        i += 1;
-        continue;
-      }
-      cur += c;
-      i += 1;
-      continue;
-    }
-    if (c === '"') {
-      inQuotes = true;
-      i += 1;
-      continue;
-    }
-    if (c === ",") {
-      pushCell();
-      i += 1;
-      continue;
-    }
-    if (c === "\n") {
-      pushCell();
-      pushRow();
-      i += 1;
-      continue;
-    }
-    if (c === "\r") {
-      i += 1;
-      if (text[i] === "\n") i += 1;
-      pushCell();
-      pushRow();
-      continue;
-    }
-    cur += c;
-    i += 1;
+  for (const g of input.aktif) tambah(g);
+  for (const g of input.belumAi) tambah(g);
+  for (const g of input.belumLogin) {
+    const cur = tambah(g);
+    if (cur) cur.status = "Belum log masuk";
   }
-  pushCell();
-  if (row.some((c) => String(c).trim() !== "")) pushRow();
-  return rows;
+  for (const g of input.ai) {
+    const cur = tambah(g);
+    if (cur) {
+      cur.status = "Selesai";
+      cur.hari = Math.max(0, Math.round(g.hari));
+    }
+  }
+
+  const nama = new Map<string, string>(input.namaSekolah ?? []);
+  for (const g of [...input.aktif, ...input.belumAi, ...input.belumLogin, ...input.ai]) {
+    const kod = g.kod.trim().toUpperCase();
+    if (kod && !nama.has(kod)) nama.set(kod, kod);
+  }
+
+  const bySchool = new Map<string, { done: number; total: number; login: number }>();
+  for (const g of guru.values()) {
+    const s = bySchool.get(g.kod) ?? { done: 0, total: 0, login: 0 };
+    s.total += 1;
+    if (g.status === "Selesai") s.done += 1;
+    if (g.status === "Belum log masuk") s.login += 1;
+    bySchool.set(g.kod, s);
+  }
+  const kodMurid = new Set<string>([
+    ...input.muridAi.keys(),
+    ...input.muridBelum.keys(),
+  ]);
+
+  const schools: OptikSchoolRow[] = [...bySchool.entries()].map(([kod, s]) => {
+    const ai = input.muridAi.get(kod) ?? 0;
+    const belum = input.muridBelum.get(kod) ?? 0;
+    const pctAi = roundPct((100 * s.done) / s.total);
+    return {
+      schoolCode: kod,
+      schoolName: nama.get(kod) ?? kod,
+      selesaiBil: s.done,
+      totalBil: s.total,
+      pctAi,
+      plcStatus: plcStatusFromPct(pctAi),
+      guruBelumLogin: s.login,
+      muridAi: ai,
+      muridJumlah: Math.max(input.muridRujukan.get(kod) ?? 0, ai + belum),
+    };
+  });
+  // Sekolah yang ada murid tetapi tiada guru dalam sumber (jarang) tetap dikira dalam jumlah murid.
+  for (const kod of kodMurid) {
+    if (bySchool.has(kod)) continue;
+    const ai = input.muridAi.get(kod) ?? 0;
+    const belum = input.muridBelum.get(kod) ?? 0;
+    schools.push({
+      schoolCode: kod,
+      schoolName: nama.get(kod) ?? kod,
+      selesaiBil: 0,
+      totalBil: 0,
+      pctAi: 0,
+      plcStatus: "Belum",
+      guruBelumLogin: 0,
+      muridAi: ai,
+      muridJumlah: Math.max(input.muridRujukan.get(kod) ?? 0, ai + belum),
+    });
+  }
+  const guruSchools = schools.filter((s) => s.totalBil > 0);
+  if (guruSchools.length === 0) throw new Error("Tiada guru dalam sumber.");
+  const sorted = guruSchools.sort((a, b) => {
+    if (b.selesaiBil !== a.selesaiBil) return b.selesaiBil - a.selesaiBil;
+    return a.schoolCode.localeCompare(b.schoolCode);
+  });
+
+  const selesaiBil = sorted.reduce((n, s) => n + s.selesaiBil, 0);
+  const totalBil = sorted.reduce((n, s) => n + s.totalBil, 0);
+  const guruBelumLogin = sorted.reduce((n, s) => n + s.guruBelumLogin, 0);
+  const muridAi = schools.reduce((n, s) => n + s.muridAi, 0);
+  const muridJumlah = schools.reduce((n, s) => n + s.muridJumlah, 0);
+  const sekolahSelesai = sorted.filter((s) => s.plcStatus === "Selesai").length;
+
+  const teachers: OptikTeacherRow[] = [...guru.values()]
+    .map((g) => ({
+      schoolCode: g.kod,
+      name: g.nama,
+      plcStatus: g.status,
+      hariAktif: g.hari,
+    }))
+    .sort((a, b) => {
+      if (a.schoolCode !== b.schoolCode) return a.schoolCode.localeCompare(b.schoolCode);
+      if (a.plcStatus !== b.plcStatus) return STATUS_URUTAN[a.plcStatus] - STATUS_URUTAN[b.plcStatus];
+      if ((b.hariAktif ?? 0) !== (a.hariAktif ?? 0)) return (b.hariAktif ?? 0) - (a.hariAktif ?? 0);
+      return a.name.localeCompare(b.name, "ms");
+    });
+
+  return {
+    format: "gabungan_delima",
+    schools: sorted,
+    teachers,
+    selesaiBil,
+    totalBil,
+    selesaiPct: roundPct((100 * selesaiBil) / totalBil),
+    belumBil: totalBil - selesaiBil,
+    belumPct: roundPct((100 * (totalBil - selesaiBil)) / totalBil),
+    guruBelumLogin,
+    sekolahSelesai,
+    sekolahBelum: sorted.length - sekolahSelesai,
+    muridAi,
+    muridJumlah,
+    muridPct: muridJumlah > 0 ? roundPct((100 * muridAi) / muridJumlah) : 0,
+    csv: serializeOptikSchoolsCsv(sorted),
+  };
 }
 
 function csvCell(value: string | number): string {
@@ -192,216 +236,40 @@ function csvCell(value: string | number): string {
   return s;
 }
 
+/** CSV ringkasan sekolah (tiada nama individu) — selamat disimpan dalam git. */
 export function serializeOptikSchoolsCsv(schools: OptikSchoolRow[]): string {
-  const lines = ["Sekolah,✓,∑,% AI,☑ PLC"];
+  const lines = ["Sekolah,✓,∑,% AI,☑ PLC,Belum log masuk,Murid AI,Murid ∑"];
   for (const row of schools) {
-    const sekolah = `${row.schoolCode}-${row.schoolName}`;
     lines.push(
-      [csvCell(sekolah), row.selesaiBil, row.totalBil, row.pctAi, csvCell(row.plcStatus)].join(","),
+      [
+        csvCell(`${row.schoolCode}-${row.schoolName}`),
+        row.selesaiBil,
+        row.totalBil,
+        row.pctAi,
+        csvCell(row.plcStatus),
+        row.guruBelumLogin,
+        row.muridAi,
+        row.muridJumlah,
+      ].join(","),
     );
   }
   return `${lines.join("\n")}\n`;
 }
 
-export function serializeOptikTeachersCsv(
-  teachers: OptikTeacherRow[],
-  schoolNames: Map<string, string>,
-): string {
-  const lines = ["PPD,Sekolah,Nama,Email DELIMA,Status PLC AI"];
-  for (const row of teachers) {
-    const schoolName = schoolNames.get(row.schoolCode) ?? row.schoolCode;
-    const sekolah = `${row.schoolCode}-${schoolName}`;
-    const status = row.plcStatus === "Selesai" ? "Selesai" : "Belum Selesai";
-    lines.push(
-      ["MANJUNG", csvCell(sekolah), csvCell(row.name), csvCell(row.email), csvCell(status)].join(","),
-    );
-  }
-  return `${lines.join("\n")}\n`;
-}
+/** Selang hari aktif guru yang pernah guna AI Tools (kedalaman penggunaan). */
+export const OPTIK_KEDALAMAN = [
+  { label: "1–2 hari", min: 1, max: 2 },
+  { label: "3–9 hari", min: 3, max: 9 },
+  { label: "10–29 hari", min: 10, max: 29 },
+  { label: "30+ hari", min: 30, max: Infinity },
+] as const;
 
-function finalizeSchools(
-  schools: OptikSchoolRow[],
-  format: OptikSourceFormat,
-  teachers: OptikTeacherRow[] = [],
-): OptikParseResult {
-  if (schools.length === 0) {
-    throw new Error("Fail tidak mengandungi baris sekolah yang sah.");
-  }
-  const sorted = [...schools].sort((a, b) => {
-    if (b.selesaiBil !== a.selesaiBil) return b.selesaiBil - a.selesaiBil;
-    return a.schoolCode.localeCompare(b.schoolCode);
+export function kedalamanGuru(
+  hari: (number | null)[],
+): { label: string; bil: number; pct: number }[] {
+  const aktif = hari.filter((h): h is number => h != null && h >= 1);
+  return OPTIK_KEDALAMAN.map((b) => {
+    const bil = aktif.filter((h) => h >= b.min && h <= b.max).length;
+    return { label: b.label, bil, pct: aktif.length > 0 ? roundPct((100 * bil) / aktif.length) : 0 };
   });
-  const selesaiBil = sorted.reduce((sum, row) => sum + row.selesaiBil, 0);
-  const totalBil = sorted.reduce((sum, row) => sum + row.totalBil, 0);
-  if (totalBil <= 0) throw new Error("Jumlah guru dalam fail ialah 0.");
-  const belumBil = Math.max(0, totalBil - selesaiBil);
-  const selesaiPct = roundPct((100 * selesaiBil) / totalBil);
-  const belumPct = roundPct((100 * belumBil) / totalBil);
-  const sekolahSelesai = sorted.filter((row) => row.plcStatus === "Selesai").length;
-  const sekolahBelum = sorted.length - sekolahSelesai;
-  const names = new Map(sorted.map((row) => [row.schoolCode, row.schoolName]));
-  const teacherRows = [...teachers].sort((a, b) => {
-    if (a.schoolCode !== b.schoolCode) return a.schoolCode.localeCompare(b.schoolCode);
-    if (a.plcStatus !== b.plcStatus) return a.plcStatus === "Belum" ? -1 : 1;
-    return a.name.localeCompare(b.name, "ms");
-  });
-  return {
-    format,
-    schools: sorted,
-    teachers: teacherRows,
-    selesaiBil,
-    totalBil,
-    selesaiPct,
-    belumBil,
-    belumPct,
-    sekolahSelesai,
-    sekolahBelum,
-    csv:
-      teacherRows.length > 0
-        ? serializeOptikTeachersCsv(teacherRows, names)
-        : serializeOptikSchoolsCsv(sorted),
-  };
-}
-
-function parseSchoolTable(matrix: string[][]): OptikParseResult {
-  const headers = (matrix[0] ?? []).map(headerKey);
-  const schoolIdx = headers.indexOf("school");
-  const doneIdx = headers.indexOf("done");
-  const totalIdx = headers.indexOf("total");
-  const pctIdx = headers.indexOf("pct");
-  const plcIdx = headers.indexOf("plc");
-  if (schoolIdx < 0 || doneIdx < 0 || totalIdx < 0) {
-    throw new Error("CSV paparan daerah perlu lajur Sekolah, ✓ dan ∑.");
-  }
-  const byCode = new Map<string, OptikSchoolRow>();
-  for (const row of matrix.slice(1)) {
-    const parsed = parseSchoolField(String(row[schoolIdx] ?? ""));
-    if (!parsed) continue;
-    const selesaiBil = parseCount(String(row[doneIdx] ?? ""));
-    const totalBil = parseCount(String(row[totalIdx] ?? ""));
-    if (selesaiBil == null || totalBil == null || totalBil <= 0) continue;
-    const filePct = pctIdx >= 0 ? parseNumber(String(row[pctIdx] ?? "")) : null;
-    const pctAi = roundPct(filePct ?? (100 * selesaiBil) / totalBil);
-    const plc =
-      plcIdx >= 0 ? normalizePlcStatus(String(row[plcIdx] ?? "")) : null;
-    const next: OptikSchoolRow = {
-      schoolCode: parsed.code,
-      schoolName: parsed.name,
-      selesaiBil,
-      totalBil,
-      pctAi,
-      plcStatus: plc ?? plcStatusFromPct(pctAi),
-    };
-    const prev = byCode.get(parsed.code);
-    if (!prev) {
-      byCode.set(parsed.code, next);
-      continue;
-    }
-    const mergedTotal = prev.totalBil + next.totalBil;
-    const mergedDone = prev.selesaiBil + next.selesaiBil;
-    const mergedPct = roundPct((100 * mergedDone) / mergedTotal);
-    byCode.set(parsed.code, {
-      schoolCode: parsed.code,
-      schoolName: prev.schoolName || next.schoolName,
-      selesaiBil: mergedDone,
-      totalBil: mergedTotal,
-      pctAi: mergedPct,
-      plcStatus: plc ?? plcStatusFromPct(mergedPct),
-    });
-  }
-  return finalizeSchools([...byCode.values()], "school_table");
-}
-
-function parseTeacherList(matrix: string[][]): OptikParseResult {
-  const headers = (matrix[0] ?? []).map(headerKey);
-  const schoolIdx = headers.indexOf("school");
-  const statusIdx = headers.findIndex((h) => h === "status" || h === "plc");
-  const nameIdx = headers.indexOf("nama");
-  const emailIdx = headers.indexOf("email");
-  if (schoolIdx < 0 || statusIdx < 0) {
-    throw new Error("Excel senarai guru perlu lajur Sekolah dan Status PLC AI.");
-  }
-  const byCode = new Map<string, { name: string; done: number; total: number }>();
-  const teachers: OptikTeacherRow[] = [];
-  for (const row of matrix.slice(1)) {
-    const parsed = parseSchoolField(String(row[schoolIdx] ?? ""));
-    if (!parsed) continue;
-    const status = normalizePlcStatus(String(row[statusIdx] ?? ""));
-    if (!status) continue;
-    const guruName = nameIdx >= 0 ? String(row[nameIdx] ?? "").trim() : "";
-    const email = emailIdx >= 0 ? String(row[emailIdx] ?? "").trim() : "";
-    if (guruName || email) {
-      teachers.push({
-        schoolCode: parsed.code,
-        name: guruName || email,
-        email,
-        plcStatus: status,
-      });
-    }
-    const cur = byCode.get(parsed.code) ?? { name: parsed.name, done: 0, total: 0 };
-    cur.total += 1;
-    if (status === "Selesai") cur.done += 1;
-    if (!cur.name) cur.name = parsed.name;
-    byCode.set(parsed.code, cur);
-  }
-  const schools: OptikSchoolRow[] = [...byCode.entries()].map(([code, row]) => {
-    const pctAi = roundPct((100 * row.done) / row.total);
-    return {
-      schoolCode: code,
-      schoolName: row.name,
-      selesaiBil: row.done,
-      totalBil: row.total,
-      pctAi,
-      plcStatus: plcStatusFromPct(pctAi),
-    };
-  });
-  return finalizeSchools(schools, "teacher_list", teachers);
-}
-
-function detectAndParseMatrix(matrix: string[][]): OptikParseResult {
-  if (matrix.length < 2) {
-    throw new Error("Fail kosong atau tiada baris data.");
-  }
-  const headers = (matrix[0] ?? []).map(headerKey);
-  const hasSchoolTable = headers.includes("school") && headers.includes("done") && headers.includes("total");
-  const hasTeacherList =
-    headers.includes("school") && (headers.includes("status") || headers.includes("plc"));
-  if (hasSchoolTable) return parseSchoolTable(matrix);
-  if (hasTeacherList) return parseTeacherList(matrix);
-  throw new Error(
-    "Format fail tidak dikenali. Guna CSV paparan daerah (Sekolah, ✓, ∑, % AI, PLC) atau Excel senarai guru.",
-  );
-}
-
-export function parseOptikCsvText(csvText: string): OptikParseResult {
-  return detectAndParseMatrix(parseCsvMatrix(csvText));
-}
-
-export function parseOptikSpreadsheetBuffer(buffer: Buffer): OptikParseResult {
-  // xlsx is CJS; default import works via esModuleInterop.
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const XLSX = require("xlsx") as typeof import("xlsx");
-  const wb = XLSX.read(buffer, { type: "buffer", sheetRows: 20000, cellDates: false });
-  const preferred =
-    wb.SheetNames.find((name) => /analisis|daerah|manjung/i.test(name)) ?? wb.SheetNames[0];
-  if (!preferred) throw new Error("Fail Excel tiada helaian.");
-  const sheet = wb.Sheets[preferred];
-  const matrix = (XLSX.utils.sheet_to_json(sheet, {
-    header: 1,
-    defval: "",
-    blankrows: false,
-    raw: false,
-  }) as unknown[][])
-    .map((row) => row.map((cell) => String(cell ?? "")))
-    .filter((row, index) => index === 0 || row.some((cell) => cell.trim() !== ""));
-  return detectAndParseMatrix(matrix);
-}
-
-export async function parseOptikUpload(file: File): Promise<OptikParseResult> {
-  const filename = file.name || "upload.csv";
-  const buffer = Buffer.from(await file.arrayBuffer());
-  if (isOptikSpreadsheetName(filename, file.type)) {
-    return parseOptikSpreadsheetBuffer(buffer);
-  }
-  return parseOptikCsvText(buffer.toString("utf8"));
 }

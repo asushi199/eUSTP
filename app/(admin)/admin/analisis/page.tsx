@@ -15,7 +15,6 @@ import {
 } from "@/lib/actions/analisis";
 import ActionForm from "@/components/admin/ActionForm";
 import DeleteButton from "@/components/admin/DeleteButton";
-import OptikAdminPanel from "@/components/admin/OptikAdminPanel";
 import { DELIMA_DAERAH } from "@/lib/analisis/delima-live";
 import { formatInTimeZone } from "date-fns-tz";
 
@@ -26,7 +25,6 @@ const MODUL_LABEL: Record<string, string> = {
   dcs: "DCS",
   ains: "Program Ains",
   pensijilan: "Pensijilan Digital",
-  optik: "AI Tools (OPTIK)",
 };
 
 export default async function AdminAnalisisPage({
@@ -36,7 +34,8 @@ export default async function AdminAnalisisPage({
 }) {
   await requireKandunganAccess();
   const sp = await searchParams;
-  const moduls = analisisModul.enumValues;
+  // AI Tools (OPTIK) tiada penyuntingan admin — data diimport melalui `npm run db:import-optik`.
+  const moduls = analisisModul.enumValues.filter((m) => m !== "optik");
   const modul = moduls.includes(sp.modul as (typeof moduls)[number])
     ? (sp.modul as (typeof moduls)[number])
     : "delima";
@@ -55,7 +54,7 @@ export default async function AdminAnalisisPage({
   ]);
 
   const today = formatInTimeZone(new Date(), "Asia/Kuala_Lumpur", "yyyy-MM-dd");
-  const optikMetrics = new Map(metrics.map((m) => [m.key.toLowerCase(), m.value]));
+  const metrikMap = new Map(metrics.map((m) => [m.key.toLowerCase(), m.value]));
   const live = modul === "delima" ? (await getDelimaTerkini())?.live ?? null : null;
   const hal = Math.max(1, Number.parseInt(sp.hal ?? "1", 10) || 1);
   const sejarah = modul === "delima" ? await listDelimaSnapshots(hal) : null;
@@ -87,10 +86,7 @@ export default async function AdminAnalisisPage({
         ))}
       </nav>
 
-      {modul === "optik" ? (
-        <OptikAdminPanel metrics={optikMetrics} today={today} />
-      ) : (
-        <>
+      <>
       {modul === "delima" ? (
         <section className="mt-6">
           <h2 className="text-lg font-semibold">Sumber Data</h2>
@@ -239,7 +235,7 @@ export default async function AdminAnalisisPage({
                 <span className="w-56 shrink-0 text-sm">{label}</span>
                 <input
                   name="value"
-                  defaultValue={optikMetrics.get(key) ?? ""}
+                  defaultValue={metrikMap.get(key) ?? ""}
                   className="input w-32"
                   inputMode="decimal"
                 />
@@ -317,8 +313,7 @@ export default async function AdminAnalisisPage({
         </div>
       </section>
       ) : null}
-        </>
-      )}
+      </>
     </>
   );
 }

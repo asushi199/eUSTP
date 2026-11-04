@@ -8,6 +8,11 @@ function formatPct(n: number): string {
   return `${n.toLocaleString("ms-MY", { maximumFractionDigits: 2 })}%`;
 }
 
+function muridPct(row: OptikSchoolPublicRow): string {
+  if (row.muridJumlah <= 0) return "—";
+  return formatPct((100 * row.muridAi) / row.muridJumlah);
+}
+
 function SchoolName({
   row,
   onSelectSchool,
@@ -104,7 +109,8 @@ export default function OptikSchoolTable({
               <p className="mt-0.5 text-xs text-graphite">{row.schoolCode}</p>
               <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-fog pt-3 text-sm">
                 <p className="tabular-nums text-graphite">
-                  {row.selesaiBil}/{row.totalBil} · {formatPct(row.pctAi)}
+                  Guru {row.selesaiBil}/{row.totalBil} · {formatPct(row.pctAi)}
+                  {row.muridJumlah > 0 ? ` · Murid ${muridPct(row)}` : ""}
                 </p>
                 <PlcBadge status={row.plcStatus} />
               </div>
@@ -114,13 +120,14 @@ export default function OptikSchoolTable({
       </ul>
 
       <div className="card mt-3 hidden overflow-x-auto sm:block">
-        <table className="w-full min-w-[36rem] text-left text-sm">
+        <table className="w-full min-w-[42rem] text-left text-sm">
           <thead>
             <tr className="border-b border-fog text-[11px] font-semibold uppercase tracking-[0.6px] text-steel">
               <th className="px-4 py-3">Sekolah</th>
               <th className="px-4 py-3 text-right">Selesai</th>
               <th className="px-4 py-3 text-right">Jumlah</th>
-              <th className="px-4 py-3 text-right">% AI</th>
+              <th className="px-4 py-3 text-right">% Guru</th>
+              <th className="px-4 py-3 text-right">% Murid</th>
               <th className="px-4 py-3">PLC</th>
             </tr>
           </thead>
@@ -134,6 +141,7 @@ export default function OptikSchoolTable({
                 <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">{row.selesaiBil}</td>
                 <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">{row.totalBil}</td>
                 <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">{formatPct(row.pctAi)}</td>
+                <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">{muridPct(row)}</td>
                 <td className="px-4 py-3">
                   <PlcBadge status={row.plcStatus} />
                 </td>
@@ -141,7 +149,7 @@ export default function OptikSchoolTable({
             ))}
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-sm text-graphite">
+                <td colSpan={6} className="px-4 py-8 text-center text-sm text-graphite">
                   Tiada sekolah sepadan.
                 </td>
               </tr>

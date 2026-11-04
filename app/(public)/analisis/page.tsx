@@ -7,6 +7,7 @@ import {
 } from "@/lib/analisis/queries";
 import { getPerkhidmatanAnalisis, emptyPerkhidmatanAnalisis } from "@/lib/analisis/perkhidmatan";
 import { getOptikPublicView, optikKpiGroupStats, optikKpiReferenceLines, applySchoolDirectoryNames } from "@/lib/analisis/optik-queries";
+import { optikTambahanGroups } from "@/lib/analisis/optik-groups";
 import OptikExplore from "@/components/analisis/OptikExplore";
 import { delimaTaburan } from "@/lib/analisis/delima-live";
 import DelimaExplore from "@/components/analisis/DelimaExplore";
@@ -247,6 +248,7 @@ export default async function AnalisisPage({
         { label: "Bil. Belum Selesai", value: bil(optikBelumBil) },
       ],
     },
+    ...optikTambahanGroups(optikView.current),
   ];
 
   const accent = getModuleAccent("/analisis");

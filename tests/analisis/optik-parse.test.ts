@@ -1,85 +1,139 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  binaSnapshotOptik,
   chartLabelFromDate,
-  normalizePlcStatus,
-  parseOptikCsvText,
-  parseSchoolField,
+  kedalamanGuru,
   plcStatusFromPct,
   serializeOptikSchoolsCsv,
 } from "../../lib/analisis/optik-parse";
 
-const SCHOOL_CSV = `Sekolah,✓,∑,% AI,☑ PLC
-AEE1026-SEKOLAH MENENGAH KEBANGSAAN METHODIST (ACS),112,118,94.91525423728814,Selesai
-AEB1031-SEKOLAH MENENGAH KEBANGSAAN NAN HWA,73,128,57.03125,Belum
-AEE1036-SEKOLAH MENENGAH KEBANGSAAN AMBROSE,76,95,80,Selesai
-`;
+const g = (email: string, kod: string, nama: string) => ({ email, kod, nama });
 
-const TEACHER_CSV = `PPD,Sekolah,Nama,Email DELIMA,Status PLC AI
-PPD MANJUNG,ABA1001-SEKOLAH KEBANGSAAN DENDANG,ALI,a@moe-dl.edu.my,Selesai
-PPD MANJUNG,ABA1001-SEKOLAH KEBANGSAAN DENDANG,SITI,b@moe-dl.edu.my,Belum Selesai
-PPD MANJUNG,ABA1002-SEKOLAH KEBANGSAAN BERUAS,AHMAD,c@moe-dl.edu.my,Selesai
-PPD MANJUNG,ABA1002-SEKOLAH KEBANGSAAN BERUAS,MINAH,d@moe-dl.edu.my,Selesai
-PPD MANJUNG,ABA1002-SEKOLAH KEBANGSAAN BERUAS,KAMAL,e@moe-dl.edu.my,Selesai
-PPD MANJUNG,ABA1002-SEKOLAH KEBANGSAAN BERUAS,NORA,f@moe-dl.edu.my,Selesai
-PPD MANJUNG,ABA1002-SEKOLAH KEBANGSAAN BERUAS,FAIZ,g@moe-dl.edu.my,Selesai
-`;
-
-test("parses paparan daerah CSV and keeps PLC from the file", () => {
-  const result = parseOptikCsvText(SCHOOL_CSV);
-  assert.equal(result.format, "school_table");
-  assert.equal(result.schools.length, 3);
-  assert.equal(result.selesaiBil, 261);
-  assert.equal(result.totalBil, 341);
-  assert.equal(result.sekolahSelesai, 2);
-  assert.equal(result.sekolahBelum, 1);
-  const nanHwa = result.schools.find((row) => row.schoolCode === "AEB1031");
-  assert.equal(nanHwa?.plcStatus, "Belum");
-  const ambrose = result.schools.find((row) => row.schoolCode === "AEE1036");
-  assert.equal(ambrose?.plcStatus, "Selesai");
-  assert.equal(ambrose?.pctAi, 80);
-});
-
-test("aggregates teacher lists and derives school PLC at 80%", () => {
-  const result = parseOptikCsvText(TEACHER_CSV);
-  assert.equal(result.format, "teacher_list");
-  assert.equal(result.schools.length, 2);
-  const dendang = result.schools.find((row) => row.schoolCode === "ABA1001");
-  assert.equal(dendang?.selesaiBil, 1);
-  assert.equal(dendang?.totalBil, 2);
-  assert.equal(dendang?.plcStatus, "Belum");
-  const beruas = result.schools.find((row) => row.schoolCode === "ABA1002");
-  assert.equal(beruas?.selesaiBil, 5);
-  assert.equal(beruas?.totalBil, 5);
-  assert.equal(beruas?.plcStatus, "Selesai");
-  assert.equal(result.selesaiBil, 6);
-  assert.equal(result.totalBil, 7);
-});
-
-test("keeps teacher names and status from a guru CSV", () => {
-  const result = parseOptikCsvText(TEACHER_CSV);
-  assert.equal(result.teachers.length, 7);
-  const dendang = result.teachers.filter((row) => row.schoolCode === "ABA1001");
-  assert.equal(dendang.length, 2);
-  assert.equal(dendang.some((row) => row.name === "SITI" && row.plcStatus === "Belum"), true);
-});
-
-test("round-trips school rows to Looker-style CSV", () => {
-  const parsed = parseOptikCsvText(SCHOOL_CSV);
-  const again = parseOptikCsvText(serializeOptikSchoolsCsv(parsed.schools));
-  assert.equal(again.schools.length, parsed.schools.length);
-  assert.equal(again.selesaiBil, parsed.selesaiBil);
-  assert.equal(again.teachers.length, 0);
-});
-
-test("parses school codes and Malay chart labels", () => {
-  assert.deepEqual(parseSchoolField("ABA1031-SEKOLAH KEBANGSAAN PANGKALAN TLDM II"), {
-    code: "ABA1031",
-    name: "SEKOLAH KEBANGSAAN PANGKALAN TLDM II",
+function contoh() {
+  return binaSnapshotOptik({
+    aktif: [
+      g("a@x", "ABA1001", "ALI"),
+      g("b@x", "ABA1001", "SITI"),
+      g("c@x", "ABA1002", "AHMAD"),
+      g("d@x", "ABA1002", "MINAH"),
+      g("e@x", "ABA1002", "KAMAL"),
+    ],
+    ai: [
+      { ...g("a@x", "ABA1001", "ALI"), hari: 12 },
+      { ...g("c@x", "ABA1002", "AHMAD"), hari: 3 },
+      { ...g("d@x", "ABA1002", "MINAH"), hari: 40 },
+      { ...g("e@x", "ABA1002", "KAMAL"), hari: 1 },
+    ],
+    belumAi: [g("b@x", "ABA1001", "SITI")],
+    belumLogin: [g("f@x", "ABA1001", "RAMLI")],
+    muridAi: new Map([["ABA1001", 30]]),
+    muridBelum: new Map([["ABA1001", 20]]),
+    muridRujukan: new Map([
+      ["ABA1001", 100],
+      ["ABA1002", 50],
+    ]),
+    namaSekolah: new Map([["ABA1001", "SK DENDANG"]]),
   });
-  assert.equal(chartLabelFromDate("2026-04-20"), "Apr 2026");
-  assert.equal(chartLabelFromDate("2026-09-21"), "Sep 2026");
-  assert.equal(normalizePlcStatus("Belum Selesai"), "Belum");
+}
+
+test("guru: belum log masuk dikira dalam jumlah dan sebagai belum selesai", () => {
+  const r = contoh();
+  assert.equal(r.totalBil, 6);
+  assert.equal(r.selesaiBil, 4);
+  assert.equal(r.belumBil, 2);
+  assert.equal(r.guruBelumLogin, 1);
+  assert.equal(r.selesaiPct, 66.67);
+  const dendang = r.schools.find((s) => s.schoolCode === "ABA1001");
+  assert.equal(dendang?.totalBil, 3);
+  assert.equal(dendang?.selesaiBil, 1);
+  assert.equal(dendang?.guruBelumLogin, 1);
+  assert.equal(dendang?.plcStatus, "Belum");
+  assert.equal(dendang?.schoolName, "SK DENDANG");
+  const beruas = r.schools.find((s) => s.schoolCode === "ABA1002");
+  assert.equal(beruas?.plcStatus, "Selesai");
+  assert.equal(beruas?.schoolName, "ABA1002");
+  assert.equal(r.sekolahSelesai, 1);
+  assert.equal(r.sekolahBelum, 1);
+});
+
+test("status guru: ai menang, kemudian belum log masuk, kemudian belum", () => {
+  const r = contoh();
+  const status = new Map(r.teachers.map((t) => [t.name, t.plcStatus]));
+  assert.equal(status.get("ALI"), "Selesai");
+  assert.equal(status.get("SITI"), "Belum");
+  assert.equal(status.get("RAMLI"), "Belum log masuk");
+  // guru aktif DELIMa yang tiada dalam mana-mana senarai AI = Belum
+  const lain = binaSnapshotOptik({
+    aktif: [g("z@x", "ABA1001", "ZAKI")],
+    ai: [],
+    belumAi: [],
+    belumLogin: [],
+    muridAi: new Map(),
+    muridBelum: new Map(),
+    muridRujukan: new Map(),
+  });
+  assert.equal(lain.teachers[0]?.plcStatus, "Belum");
+});
+
+test("guru disusun: Belum, Belum log masuk, kemudian Selesai ikut hari aktif", () => {
+  const r = contoh();
+  const dendang = r.teachers.filter((t) => t.schoolCode === "ABA1001").map((t) => t.name);
+  assert.deepEqual(dendang, ["SITI", "RAMLI", "ALI"]);
+  const beruas = r.teachers.filter((t) => t.schoolCode === "ABA1002").map((t) => t.name);
+  assert.deepEqual(beruas, ["MINAH", "AHMAD", "KAMAL"]);
+});
+
+test("murid: penyebut ialah rujukan, naik jika guna+belum melebihinya", () => {
+  const r = contoh();
+  assert.equal(r.muridAi, 30);
+  assert.equal(r.muridJumlah, 150);
+  assert.equal(r.muridPct, 20);
+  const lebih = binaSnapshotOptik({
+    aktif: [g("a@x", "ABA1001", "ALI")],
+    ai: [],
+    belumAi: [],
+    belumLogin: [],
+    muridAi: new Map([["ABA1001", 10]]),
+    muridBelum: new Map([["ABA1001", 20]]),
+    muridRujukan: new Map([["ABA1001", 25]]),
+  });
+  assert.equal(lain(lebih), 30);
+});
+
+function lain(r: ReturnType<typeof binaSnapshotOptik>) {
+  return r.schools[0]?.muridJumlah;
+}
+
+test("e-mel tidak bocor ke CSV ringkasan", () => {
+  const csv = contoh().csv;
+  assert.ok(!csv.includes("@"));
+  assert.ok(csv.startsWith("Sekolah,✓,∑,% AI,☑ PLC,Belum log masuk,Murid AI,Murid ∑"));
+});
+
+test("kedalaman guru ikut selang hari aktif", () => {
+  const rows = kedalamanGuru([1, 2, 3, 9, 10, 29, 30, 200, null]);
+  assert.deepEqual(
+    rows.map((r) => r.bil),
+    [2, 2, 2, 2],
+  );
+  assert.equal(rows[0]?.pct, 25);
+});
+
+test("label carta, PLC ambang 80%, tiada guru -> ralat", () => {
+  assert.equal(chartLabelFromDate("2026-10-31"), "Okt 2026");
   assert.equal(plcStatusFromPct(80), "Selesai");
   assert.equal(plcStatusFromPct(79.99), "Belum");
+  assert.ok(serializeOptikSchoolsCsv([]).startsWith("Sekolah"));
+  assert.throws(() =>
+    binaSnapshotOptik({
+      aktif: [],
+      ai: [],
+      belumAi: [],
+      belumLogin: [],
+      muridAi: new Map(),
+      muridBelum: new Map(),
+      muridRujukan: new Map(),
+    }),
+  );
 });
