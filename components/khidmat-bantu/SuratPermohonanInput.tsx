@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { uploadSuratPermohonanAction } from "@/lib/actions/khidmat-bantu";
 import { compressImageForLaporan } from "@/lib/client/compress-image";
+import { uploadSuratChunked } from "@/lib/client/upload-surat-chunked";
+import { SURAT_DIRECT_MAX, SURAT_MAX_BYTES, SURAT_MAX_LABEL } from "@/lib/khidmat-bantu/surat-limits";
 import { isAllowedSuratMime } from "@/lib/khidmat-bantu/surat-mime";
 import {
   isSuratUploadMetaReady,
@@ -13,7 +15,6 @@ import { cn } from "@/lib/cn";
 import type { KhidmatSuratPermohonan } from "@/lib/schema";
 
 const ACCEPT = "application/pdf,image/jpeg,image/png,image/webp";
-const MAX_BYTES = 8 * 1024 * 1024;
 
 function formatBytes(n: number): string {
   if (n < 1024) return `${n} B`;
@@ -46,6 +47,7 @@ export default function SuratPermohonanInput({
   const [notice, setNotice] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [uploading, startUpload] = useTransition();
+  const [progress, setProgress] = useState(0);
   const uploadedMetaRef = useRef<string | null>(null);
   const attemptedKeyRef = useRef<string | null>(null);
   const generationRef = useRef(0);
@@ -94,13 +96,22 @@ export default function SuratPermohonanInput({
             compressNotice = compressed.notice;
           }
 
-          const fd = new FormData();
-          fd.set("file", uploadFile);
-          fd.set("orgName", orgName.trim());
-          fd.set("activityDate", activityDate);
-          fd.set("serviceType", serviceType);
-
-          const res = await uploadSuratPermohonanAction(fd);
+          // Vercel hadkan badan permintaan ke 4.5 MB: fail besar dihantar berketul terus ke Drive.
+          setProgress(0);
+          const meta = { orgName: orgName.trim(), activityDate, serviceType };
+          let res;
+          if (uploadFile.size > SURAT_DIRECT_MAX) {
+            res = await uploadSuratChunked(uploadFile, meta, (f) => {
+              if (gen === generationRef.current) setProgress(f);
+            });
+          } else {
+            const fd = new FormData();
+            fd.set("file", uploadFile);
+            fd.set("orgName", meta.orgName);
+            fd.set("activityDate", activityDate);
+            fd.set("serviceType", serviceType);
+            res = await uploadSuratPermohonanAction(fd);
+          }
           if (gen !== generationRef.current) return;
           if (!res.ok) {
             setError(res.error);
@@ -140,7 +151,7 @@ export default function SuratPermohonanInput({
 
   function validateFile(file: File | null): string | null {
     if (!file) return "Fail tidak sah.";
-    if (file.size > MAX_BYTES) return "Fail melebihi 8 MB. Sila pilih fail lebih kecil.";
+    if (file.size > SURAT_MAX_BYTES) return `Fail melebihi ${SURAT_MAX_LABEL}. Sila pilih fail lebih kecil.`;
     if (!isAllowedSuratMime(file.name, file.type)) {
       return "Format tidak disokong. Sila muat naik PDF atau imej (JPG/PNG/WebP).";
     }
@@ -279,7 +290,9 @@ export default function SuratPermohonanInput({
             <p className="truncate text-sm font-medium text-ink">{selected.name}</p>
             <p className="text-xs text-graphite">
               {uploading
-                ? "Memuat naik ke Google Drive…"
+                ? selected.size > SURAT_DIRECT_MAX && progress > 0
+                  ? `Memuat naik ke Google Drive… ${Math.round(progress * 100)}%`
+                  : "Memuat naik ke Google Drive…"
                 : uploaded
                   ? `✓ Dimuat naik · ${formatBytes(selected.size)}`
                   : waitHint ?? (error ? formatBytes(selected.size) : "Akan dimuat naik…")}
@@ -307,7 +320,7 @@ export default function SuratPermohonanInput({
       )}
 
       <p className="mt-2 text-xs text-graphite">
-        PDF atau imej (JPG/PNG/WebP), maksimum 8 MB.
+        PDF atau imej (JPG/PNG/WebP), maksimum {SURAT_MAX_LABEL}.
       </p>
       {notice && !error && <p className="mt-1 text-xs text-primary">{notice}</p>}
       {error && <p className="mt-1 text-xs text-bloom-deep">{error}</p>}

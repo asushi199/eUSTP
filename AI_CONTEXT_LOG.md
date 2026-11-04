@@ -1,5 +1,13 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-11-04 — Khidmat Bantu: surat permohonan > 4.5 MB dimuat naik berketul terus ke Drive
+
+- Aduan sekolah: PDF 6.7 MB → "An unexpected response was received from the server." Punca: surat dihantar sebagai `FormData` melalui Server Action, dan Vercel menghadkan badan permintaan fungsi kepada 4.5 MB (413 bukan format Server Action). Had 8 MB sedia ada tidak menghalang. Imej tidak terjejas (dimampat klien ≤1.2 MB); PDF tidak dimampat.
+- Pembaikan: fail > `SURAT_DIRECT_MAX` (3.5 MB) kini guna muat naik berketul — `startSuratResumableAction` (GAS `initResumable` cipta sesi resumable Drive) → klien hantar ketul 3 MiB ke `app/api/khidmat-bantu/surat-chunk/route.ts` → PUT ke sesi Drive → ketul terakhir panggil GAS `finalize` (setSharing). Fail ≤ 3.5 MB kekal laluan lama (Server Action → GAS), jadi selamat walaupun GAS belum dikemas kini.
+- Had baharu `SURAT_MAX_BYTES` = 15 MB (`lib/khidmat-bantu/surat-limits.ts`). URI sesi divalidasi (hos `www.googleapis.com` sahaja); `fileId` untuk finalize datang daripada respons Drive, bukan input klien.
+- **Perlu tindakan manual:** tampal `gas/Code.gs` baharu ke projek Apps Script, benarkan skop `script.external_request` (jalankan fungsi apa-apa sekali untuk kebenaran) dan Deploy → Manage deployments → Edit → New version (URL /exec kekal). Jika `initResumable` pulang HTTP 403, dayakan perkhidmatan "Drive API" (v3) dalam Services.
+- Disahkan: typecheck, eslint. TIDAK diuji hujung-ke-hujung dengan Drive sebenar (GAS belum di-deploy semula).
+
 ## 2026-10-30 — Admin tempahan: butang Kiosk/Urus Bilik/Tetapan mesra telefon
 
 - Pada telefon, tiga butang di kepala `/admin/tempahan/[pkg]` berbalut 2 baris (lebar tidak cukup). Kini: telefon = grid jubin sama lebar (`grid-flow-col auto-cols-fr`), ikon di atas + label satu baris (`whitespace-nowrap`, tinggi ≥ 64px); label kiosk dipendekkan kepada "Kiosk ↗" (aria-label penuh). `sm+` = butang kecil sebaris seperti dahulu, dengan ikon kecil.

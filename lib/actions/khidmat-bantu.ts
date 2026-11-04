@@ -39,6 +39,7 @@ import { normalizePhoneNumber } from "@/lib/tempahan/booking-rules";
 import { notifyKhidmatAdministrators } from "@/lib/telegram/notifications";
 import { approveKhidmatCore, rejectKhidmatCore } from "@/lib/khidmat-bantu/service";
 import { uploadSuratPermohonan } from "@/lib/khidmat-bantu/surat-permohonan";
+import { startSuratResumable } from "@/lib/khidmat-bantu/surat-resumable";
 import { isGasStorageConfigured } from "@/lib/gas-upload";
 
 function requiredText(formData: FormData, key: string, max = 500): string {
@@ -132,6 +133,55 @@ export async function uploadSuratPermohonanAction(
     return {
       ok: false,
       error: error instanceof Error ? error.message : "Gagal memuat naik surat permohonan.",
+    };
+  }
+}
+
+export type StartSuratResumableResult =
+  | { ok: false; error: string }
+  | { ok: true; sessionUri: string; fileName: string };
+
+/** Mulakan muat naik berketul untuk surat > ~3.5 MB (had badan Vercel 4.5 MB). */
+export async function startSuratResumableAction(input: {
+  orgName: string;
+  activityDate: string;
+  serviceType: string;
+  fileName: string;
+  fileType: string;
+  size: number;
+}): Promise<StartSuratResumableResult> {
+  if (!isGasStorageConfigured()) {
+    return {
+      ok: false,
+      error: "GAS belum dikonfigurasi: set GAS_WEB_APP_URL dan GAS_UPLOAD_SECRET.",
+    };
+  }
+  const orgName = String(input.orgName ?? "").trim().slice(0, 300);
+  const activityDate = String(input.activityDate ?? "").trim().slice(0, 20);
+  const serviceType = String(input.serviceType ?? "").trim().slice(0, 50);
+
+  if (!orgName) return { ok: false, error: "Sila isi nama sekolah/unit dahulu." };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(activityDate)) {
+    return { ok: false, error: "Sila pilih tarikh cadangan dahulu." };
+  }
+  if (!SERVICE_TYPES.some((s) => s.id === serviceType)) {
+    return { ok: false, error: "Jenis perkhidmatan tidak sah." };
+  }
+
+  try {
+    const { sessionUri, fileName } = await startSuratResumable(
+      { orgName, activityDate, serviceType },
+      {
+        name: String(input.fileName ?? "").slice(0, 300),
+        type: String(input.fileType ?? ""),
+        size: Number(input.size),
+      },
+    );
+    return { ok: true, sessionUri, fileName };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Gagal memulakan muat naik surat permohonan.",
     };
   }
 }

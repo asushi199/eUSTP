@@ -123,6 +123,86 @@ function handleDelete_(payload) {
   }
 }
 
+/** Perkongsian pautan best-effort (lihat komen dalam doPost). */
+function shareBestEffort_(file) {
+  try {
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  } catch (shareErr) {
+    try {
+      file.setSharing(DriveApp.Access.DOMAIN_WITH_LINK, DriveApp.Permission.VIEW);
+    } catch (shareErr2) {
+      // Dasar domain sekat perkongsian — fail kekal peribadi.
+    }
+  }
+}
+
+/**
+ * Muat naik BERKETUL (fail > 4.5 MB, had badan Vercel).
+ * Langkah 1 — action:"initResumable": GAS cipta sesi resumable Drive (guna token
+ * pemilik skrip) dan pulangkan sessionUri. Pelayan eUSTP kemudian PUT ketul terus
+ * ke sessionUri (URI itu sendiri sudah mengesahkan — tiada token diperlukan).
+ * Panggil: { secret, action:"initResumable", fileName, subPath, mimeType, size }
+ */
+function handleInitResumable_(config, payload) {
+  if (!payload.fileName || !payload.size) {
+    return jsonResponse_({ ok: false, error: "fileName dan size diperlukan" });
+  }
+  var mimeType = payload.mimeType || "application/octet-stream";
+  var folder = resolveFolderPath_(config.folderId, payload.subPath);
+
+  var res = UrlFetchApp.fetch(
+    "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true",
+    {
+      method: "post",
+      contentType: "application/json; charset=UTF-8",
+      headers: {
+        Authorization: "Bearer " + ScriptApp.getOAuthToken(),
+        "X-Upload-Content-Type": mimeType,
+        "X-Upload-Content-Length": String(payload.size),
+      },
+      payload: JSON.stringify({
+        name: payload.fileName,
+        parents: [folder.getId()],
+        mimeType: mimeType,
+      }),
+      muteHttpExceptions: true,
+    },
+  );
+
+  var code = res.getResponseCode();
+  if (code !== 200) {
+    return jsonResponse_({
+      ok: false,
+      error: "Drive menolak sesi muat naik (HTTP " + code + "): " + res.getContentText().slice(0, 300),
+    });
+  }
+  var headers = res.getAllHeaders();
+  var sessionUri = headers["Location"] || headers["location"];
+  if (!sessionUri) {
+    return jsonResponse_({ ok: false, error: "Drive tidak memulangkan sessionUri" });
+  }
+  return jsonResponse_({ ok: true, sessionUri: String(sessionUri) });
+}
+
+/**
+ * Langkah 3 — action:"finalize": selepas ketul terakhir diterima, tetapkan perkongsian
+ * dan pulangkan path/publicUrl. Panggil: { secret, action:"finalize", fileId }
+ */
+function handleFinalize_(payload) {
+  if (!payload.fileId) {
+    return jsonResponse_({ ok: false, error: "fileId diperlukan" });
+  }
+  var file = DriveApp.getFileById(payload.fileId);
+  shareBestEffort_(file);
+  var fileId = file.getId();
+  return jsonResponse_({
+    ok: true,
+    fileId: fileId,
+    path: "drive/" + fileId,
+    publicUrl: "https://drive.google.com/thumbnail?id=" + encodeURIComponent(fileId) + "&sz=w1200",
+  });
+}
+
 function doPost(e) {
   try {
     if (!e || !e.postData || !e.postData.contents) {
@@ -142,6 +222,14 @@ function doPost(e) {
 
     if (payload.action === "info") {
       return handleInfo_(config, payload);
+    }
+
+    if (payload.action === "initResumable") {
+      return handleInitResumable_(config, payload);
+    }
+
+    if (payload.action === "finalize") {
+      return handleFinalize_(payload);
     }
 
     if (!payload.dataBase64 || !payload.fileName) {
@@ -164,16 +252,7 @@ function doPost(e) {
     // walaupun fail SUDAH berjaya disimpan. Jadikan ia best-effort: cuba pautan
     // awam, jika gagal cuba perkongsian dalam domain, dan jangan sekali-kali
     // gagalkan muat naik hanya kerana perkongsian ditolak.
-    try {
-      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    } catch (shareErr) {
-      try {
-        file.setSharing(DriveApp.Access.DOMAIN_WITH_LINK, DriveApp.Permission.VIEW);
-      } catch (shareErr2) {
-        // Dasar domain sekat semua perkongsian pautan — fail kekal peribadi.
-        // Pentadbir masih boleh buka melalui pautan Drive dalam domain.
-      }
-    }
+    shareBestEffort_(file);
 
     var fileId = file.getId();
     // thumbnail URL — boleh dipapar dalam <img> (bukan uc?export=view)
