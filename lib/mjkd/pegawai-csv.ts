@@ -5,7 +5,7 @@ export type PegawaiPpdCsvBaris = { nama: string; jawatan: string; sektor: string
 const HEADER = ["nama", "jawatan", "sektor"];
 
 /** Pecah teks CSV (medan berpetik, "" = petikan, CRLF/LF) kepada baris-baris medan. */
-function pecahCsv(teks: string): string[][] {
+export function pecahCsv(teks: string): string[][] {
   const rows: string[][] = [];
   let row: string[] = [];
   let medan = "";

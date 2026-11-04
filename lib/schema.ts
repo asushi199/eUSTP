@@ -1674,6 +1674,25 @@ export const pegawaiPpd = pgTable("pegawai_ppd", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+/** Direktori pegawai PPD Manjung (dalaman, log masuk staf sahaja). Mengandungi no. telefon — jangan papar awam. */
+export const direktoriPpd = pgTable(
+  "direktori_ppd",
+  {
+    id: serial("id").primaryKey(),
+    namaKunci: text("nama_kunci").notNull(),
+    nama: text("nama").notNull(),
+    gred: text("gred").notNull().default(""),
+    jawatan: text("jawatan").notNull().default(""),
+    telefon: text("telefon").notNull().default(""),
+    sort: integer("sort").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    namaKunciIdx: uniqueIndex("direktori_ppd_nama_kunci_idx").on(t.namaKunci),
+  }),
+);
+
 /** Kehadiran mesyuarat. `jenis`: PGB | WAKIL | PEGAWAI | LAIN. `namaKunci` = nama dinormalkan untuk elak duplikasi. */
 export const mjkdKehadiran = pgTable(
   "mjkd_kehadiran",

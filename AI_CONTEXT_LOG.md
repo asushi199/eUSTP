@@ -1,5 +1,13 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-11-04 — Direktori PPD (staf sahaja) di bawah CoE Directory
+
+- Permintaan pengurusan: senarai pegawai PPD (nama, gred SSPA, jawatan, no. telefon; ~80 orang, sumber Google Sheet) boleh dilihat oleh pegawai yang log masuk sahaja — corak sama seperti Laporan USTP / Minit Curai.
+- Jadual baharu `direktori_ppd` (`lib/schema.ts`; migrasi `0058_direktori_ppd.sql` + RLS ENABLE tanpa polisi). Kunci unik `nama_kunci` (nama dinormalkan) untuk upsert.
+- Halaman `/admin/direktori-ppd` (`requireUser()` — semua staf log masuk; MOE-DL dihalakan ke /direktori) dengan carian nama/jawatan/gred/no. telefon; pautan `tel:`. Kad "Direktori PPD" di hub `/direktori` HANYA dipapar jika `authKind === "staff"` (macam kad Minit Curai di `/laporan`). Laluan ditambah ke `ADMIN_PAPAN_NESTED_PATHS`.
+- Import: `npm run db:import-direktori-ppd -- <fail.csv> [--dry-run]` (eksport CSV helaian; baris tanpa nama / "KOSONG" dilangkau; pegawai yang tiada dalam CSV dipadam). Parser: `lib/direktori-ppd/csv.ts`; `pecahCsv` dieksport dari `lib/mjkd/pegawai-csv.ts`. CSV mengandungi no. telefon — JANGAN komit.
+- Disahkan: typecheck, `npm run build`. Migrasi + import data dijalankan oleh pengguna (manual). Semakan pelayar dengan akaun staf belum dibuat. Tiada penyuntingan dalam apl (kemas kini = import semula CSV).
+
 ## 2026-11-04 — Khidmat Bantu: surat permohonan > 4.5 MB dimuat naik berketul terus ke Drive
 
 - Aduan sekolah: PDF 6.7 MB → "An unexpected response was received from the server." Punca: surat dihantar sebagai `FormData` melalui Server Action, dan Vercel menghadkan badan permintaan fungsi kepada 4.5 MB (413 bukan format Server Action). Had 8 MB sedia ada tidak menghalang. Imej tidak terjejas (dimampat klien ≤1.2 MB); PDF tidak dimampat.

@@ -24,6 +24,7 @@
     "db:import-esn": "tsx scripts/import-esn.ts",
     "db:seed-mjkd": "tsx scripts/seed-mjkd-2026-bil1.ts",
     "db:import-pegawai-ppd": "tsx scripts/import-pegawai-ppd.ts",
+    "db:import-direktori-ppd": "tsx scripts/import-direktori-ppd.ts",
     "telegram:set-webhook": "tsx scripts/setup-telegram-webhook.ts"
   },
   "dependencies": {
