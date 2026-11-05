@@ -2,6 +2,7 @@ import "server-only";
 
 import { and, asc, eq } from "drizzle-orm";
 import { unstable_cache } from "next/cache";
+import { CACHE_TAGS, LONG_REVALIDATE_S } from "@/lib/cache-tags";
 import { db } from "@/lib/db";
 import { resourcesCards } from "@/lib/schema";
 import { RESOURCES_KATEGORI } from "./kategori";
@@ -13,7 +14,7 @@ export type ResourcesCard = typeof resourcesCards.$inferSelect;
  * `revalidateTag(RESOURCES_CACHE_TAG)` — lihat helper revalidate dalam actions/publish.
  * Cache = kawal egress Supabase: lonjakan pelawat tidak menambah query DB.
  */
-export const RESOURCES_CACHE_TAG = "resources-cards";
+export const RESOURCES_CACHE_TAG = CACHE_TAGS.resources;
 
 const listActiveRowsCached = unstable_cache(
   async () =>
@@ -23,7 +24,7 @@ const listActiveRowsCached = unstable_cache(
       .where(eq(resourcesCards.aktif, true))
       .orderBy(asc(resourcesCards.sort), asc(resourcesCards.id)),
   ["resources:active-cards"],
-  { revalidate: 60 * 60, tags: [RESOURCES_CACHE_TAG] },
+  { revalidate: LONG_REVALIDATE_S, tags: [RESOURCES_CACHE_TAG] },
 );
 
 /** unstable_cache menyiri JSON — pulihkan Date. */

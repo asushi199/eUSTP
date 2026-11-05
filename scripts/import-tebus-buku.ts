@@ -3,6 +3,7 @@ import { basename, resolve } from "node:path";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import "./load-env";
+import { revalidateSite } from "./revalidate-site";
 import * as schema from "../lib/schema";
 import {
   formatKualaLumpurDate,
@@ -40,6 +41,7 @@ async function main() {
   console.log(
     `Import tebus buku: ${summary.pelajar} pelajar, ${summary.sekolah} sekolah, tebus ${summary.sudahTebus}, guna ${summary.sudahGuna}, tarikh ${sourcedAt}.`,
   );
+  await revalidateSite(["home"]);
 }
 
 main().catch((error) => {

@@ -1,6 +1,7 @@
 import { formatInTimeZone } from "date-fns-tz";
 import BackupPanel from "@/components/admin/BackupPanel";
 import BackupPgDumpSection from "@/components/admin/BackupPgDumpSection";
+import ClearCacheSection from "@/components/admin/ClearCacheSection";
 import { readLastBackup } from "@/lib/backup/store";
 import { readLastPgDumpBackup } from "@/lib/backup/pgdump-last";
 import { isGasStorageConfigured } from "@/lib/gas-upload";
@@ -63,6 +64,8 @@ export default async function AdminBackupPage() {
       />
 
       <BackupPgDumpSection atText={pgdumpAtText} />
+
+      <ClearCacheSection />
     </>
   );
 }

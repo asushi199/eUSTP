@@ -1,6 +1,7 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { CACHE_TAGS } from "@/lib/cache-tags";
 import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db";
@@ -16,6 +17,7 @@ const modulSchema = z.enum(analisisModul.enumValues);
 function revalidateAnalisis() {
   revalidatePath("/admin/analisis");
   revalidatePath("/analisis");
+  revalidateTag(CACHE_TAGS.home);
 }
 
 function numOrNull(v: FormDataEntryValue | null): number | null {

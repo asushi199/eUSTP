@@ -1,4 +1,5 @@
 import "./load-env";
+import { revalidateSite } from "./revalidate-site";
 import { readFileSync } from "node:fs";
 import { semakDcs, type DcsSnapshot } from "../lib/analisis/dcs-types";
 
@@ -41,6 +42,7 @@ async function main() {
       set: { tahun: data.tahun, data },
     });
   console.log("Disimpan.");
+  await revalidateSite(["home"]);
   process.exit(0);
 }
 

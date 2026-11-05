@@ -1,4 +1,5 @@
 import "./load-env";
+import { revalidateSite } from "./revalidate-site";
 import { readFileSync } from "node:fs";
 import { jumlahMuridEsn, semakEsn, type EsnSnapshot } from "../lib/analisis/esn-types";
 
@@ -38,6 +39,7 @@ async function main() {
       set: { tahun: data.tahun, data },
     });
   console.log("Disimpan.");
+  await revalidateSite(["home"]);
   process.exit(0);
 }
 

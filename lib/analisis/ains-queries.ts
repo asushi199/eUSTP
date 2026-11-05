@@ -2,6 +2,7 @@ import "server-only";
 
 import { and, asc, desc, eq } from "drizzle-orm";
 import { unstable_cache } from "next/cache";
+import { CACHE_TAGS, LONG_REVALIDATE_S } from "@/lib/cache-tags";
 import { db } from "@/lib/db";
 import {
   analisisAinsMurid,
@@ -57,19 +58,19 @@ async function getAinsTahunDb(tahun: number): Promise<AinsTahunData | null> {
 
 /**
  * Ringkasan Ains berubah hanya selepas import bulanan (`npm run db:import-ains`,
- * di luar Next), jadi cache 1 jam. Sebelum ini setiap lawatan `/analisis`,
+ * di luar Next; skrip memanggil /api/revalidate), jadi cache 24 jam. Sebelum ini setiap lawatan `/analisis`,
  * `/analisis/ains` dan halaman utama menarik ~714 baris (egress Supabase).
  */
-const AINS_REVALIDATE_S = 60 * 60;
+const AINS_REVALIDATE_S = LONG_REVALIDATE_S;
 
 export const listAinsTahun = unstable_cache(listAinsTahunDb, ["ains:tahun"], {
   revalidate: AINS_REVALIDATE_S,
-  tags: ["ains"],
+  tags: [CACHE_TAGS.ains],
 });
 
 export const getAinsTahun = unstable_cache(getAinsTahunDb, ["ains:tahun-data"], {
   revalidate: AINS_REVALIDATE_S,
-  tags: ["ains"],
+  tags: [CACHE_TAGS.ains],
 });
 
 /** Murid satu sekolah dengan bacaan setiap bulan (e-mel tidak dipulangkan). */

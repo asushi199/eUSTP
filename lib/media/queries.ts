@@ -2,6 +2,7 @@ import "server-only";
 
 import { and, asc, eq } from "drizzle-orm";
 import { unstable_cache } from "next/cache";
+import { CACHE_TAGS, LONG_REVALIDATE_S } from "@/lib/cache-tags";
 import { db } from "@/lib/db";
 import { mediaCards } from "@/lib/schema";
 import { MEDIA_KATEGORI } from "./kategori";
@@ -13,7 +14,7 @@ export type MediaCard = typeof mediaCards.$inferSelect;
  * `revalidateTag(MEDIA_CACHE_TAG)` — lihat helper revalidate dalam actions/publish.
  * Cache = kawal egress Supabase: lonjakan pelawat tidak menambah query DB.
  */
-export const MEDIA_CACHE_TAG = "media-cards";
+export const MEDIA_CACHE_TAG = CACHE_TAGS.media;
 
 const listActiveRowsCached = unstable_cache(
   async () =>
@@ -23,7 +24,7 @@ const listActiveRowsCached = unstable_cache(
       .where(eq(mediaCards.aktif, true))
       .orderBy(asc(mediaCards.sort), asc(mediaCards.id)),
   ["media:active-cards"],
-  { revalidate: 60 * 60, tags: [MEDIA_CACHE_TAG] },
+  { revalidate: LONG_REVALIDATE_S, tags: [MEDIA_CACHE_TAG] },
 );
 
 /** unstable_cache menyiri JSON — pulihkan Date. */

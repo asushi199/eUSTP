@@ -1,5 +1,23 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-11-05 (e) — Cache 24 jam + pembatalan (API, skrip import, butang admin)
+
+- `lib/cache-tags.ts`: tag pusat + `LONG_REVALIDATE_S` 24 jam. Ringkasan CoE Analytics &
+  tebus buku halaman utama, Ains, direktori/senarai sekolah, Resources/Media → 24 jam.
+  Perkhidmatan halaman utama (tag `home-perkhidmatan`) kekal 15 minit (borang awam harian,
+  data kecil — tidak perlu tag pada setiap aksi tempahan/Khidmat Bantu/pinjaman).
+- Pembatalan: server action (direktori, resources, media, analisis admin, tebus buku upload),
+  `lib/*/publish.ts` (NexaBot Telegram), `POST /api/revalidate` (Bearer `CRON_SECRET`,
+  `?tag=` pilihan) dipanggil di hujung `db:import-{optik,ains,delima-d3,dcs,esn,tebus-buku}`
+  melalui `scripts/revalidate-site.ts` (`NEXA_SITE_URL`, lalai nexa-ustpmanjung.vercel.app;
+  gagal = amaran sahaja). `npm run cache:clear [-- tag…]`. Butang "Kosongkan cache" di
+  `/admin/backup` (`lib/actions/cache.ts`, Admin sahaja).
+- `CLAUDE.md` § Cache data: setiap laluan tulis mesti revalidate; ubahan terus Supabase tidak
+  mengosongkan cache; Claude mesti mengingatkan pengguna.
+- Disahkan: typecheck, eslint, build; dev: tanpa token 401, tag salah 400, `home ains` 200,
+  semua tag 200; `/`, `/analisis/ains`, `/resources`, `/laporan-pss` 200. `/admin/backup`
+  tidak di-smoke (perlu log masuk Admin).
+
 ## 2026-11-05 (d) — Peraturan egress + cache halaman awam + robots.txt
 
 - Ukuran selepas pembaikan (a)–(c): Usage 5 Nov (separuh hari UTC) Pooler 31.4 MB + Storage

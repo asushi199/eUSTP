@@ -1,6 +1,7 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { CACHE_TAGS } from "@/lib/cache-tags";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireKandunganAccess } from "@/lib/rbac";
@@ -32,6 +33,7 @@ function revalidateTebusBuku() {
   revalidatePath("/laporan/tebus-buku");
   revalidatePath("/laporan/tebus-buku/[kod]", "page");
   revalidatePath("/laporan");
+  revalidateTag(CACHE_TAGS.home);
 }
 
 export async function importTebusBukuCsv(formData: FormData): Promise<TebusBukuUploadResult> {

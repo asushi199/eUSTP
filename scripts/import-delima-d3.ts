@@ -1,4 +1,5 @@
 import "./load-env";
+import { revalidateSite } from "./revalidate-site";
 import { readFileSync } from "node:fs";
 import { basename } from "node:path";
 import {
@@ -141,6 +142,7 @@ async function main() {
     return { id, created: !ada };
   });
   console.log(`Snapshot ${hasil.created ? "dicipta" : "dikemas kini"} (id ${hasil.id}).`);
+  await revalidateSite(["home"]);
   process.exit(0);
 }
 

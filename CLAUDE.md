@@ -155,6 +155,22 @@ Vercel), bukan Storage. Okt–Nov 2026 pernah capai ~550 MB–1 GB/hari (diagnos
 - **Selepas ciri baharu yang membaca DB:** semak Supabase → Usage → Egress (hover = pecahan
   jenis) beberapa hari kemudian; `extensions.pg_stat_statements` untuk query paling banyak baris.
 
+### Cache data (24 jam + dibatalkan bila berubah)
+
+- Tag dalam `lib/cache-tags.ts` (`home`, `home-perkhidmatan`, `ains`, `direktori`,
+  `resources-cards`, `media-cards`). Data import/admin: `LONG_REVALIDATE_S` (24 jam);
+  Perkhidmatan halaman utama (tempahan/Khidmat Bantu/pinjaman) kekal 15 minit.
+- **Setiap laluan tulis** ke data yang dicache MESTI `revalidateTag(...)`: server action,
+  `lib/*/publish.ts` (NexaBot), dan skrip import (`await revalidateSite([...])` dari
+  `scripts/revalidate-site.ts` → POST `/api/revalidate`, `CRON_SECRET`). Ciri/skrip baharu
+  yang menulis jadual bercache tanpa ini = data lama sehingga 24 jam.
+- **Ubahan terus dalam Supabase (SQL editor/Table editor) atau skrip tanpa cangkuk TIDAK
+  mengosongkan cache.** Selepas itu: butang **"Kosongkan cache"** di `/admin/backup`, atau
+  `npm run cache:clear` (semua) / `npm run cache:clear -- home ains`.
+- **Peringatan untuk Claude:** apabila pengguna menyebut data tidak dikemas kini, atau baru
+  mengubah data terus dalam Supabase / menjalankan skrip, INGATKAN mereka tentang cache dan
+  cara mengosongkannya sebelum menyiasat punca lain.
+
 ## Selepas setiap fasa
 
 `npm run build` + `npm run typecheck` + smoke semua route baharu + catat dalam

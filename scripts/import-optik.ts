@@ -1,4 +1,5 @@
 import "./load-env";
+import { revalidateSite } from "./revalidate-site";
 import { createReadStream, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { createInterface } from "node:readline";
@@ -220,6 +221,7 @@ async function main() {
   });
   await syncOptikCurrentMetrics(tarikh, hasil);
   console.log(`Snapshot disimpan. Ringkasan sekolah: ${csvFail}`);
+  await revalidateSite(["home"]);
   process.exit(0);
 }
 

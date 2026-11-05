@@ -2,6 +2,7 @@ import "server-only";
 
 import { desc, eq, inArray } from "drizzle-orm";
 import { unstable_cache } from "next/cache";
+import { CACHE_TAGS, LONG_REVALIDATE_S } from "@/lib/cache-tags";
 import { db } from "@/lib/db";
 import { contactRoles, contactVersions, schools } from "@/lib/schema";
 import { ROLE_ORDER, type DirectoryRole } from "./config";
@@ -62,8 +63,8 @@ function redactContacts(rows: PublicDirectoryRow[]): PublicDirectoryRow[] {
  * `contact_versions` atau `contact_roles` MESTI `revalidateTag(DIREKTORI_CACHE_TAG)`.
  * Cache = kawal egress Supabase: lonjakan pelawat tidak menambah query DB.
  */
-export const DIREKTORI_CACHE_TAG = "direktori";
-const DIREKTORI_REVALIDATE_S = 60 * 60;
+export const DIREKTORI_CACHE_TAG = CACHE_TAGS.direktori;
+const DIREKTORI_REVALIDATE_S = LONG_REVALIDATE_S;
 
 /** Semua baris versi semasa (termasuk telefon) — dicache; tapis/redaksi selepas cache. */
 const listCurrentDirectoryRowsCached = unstable_cache(

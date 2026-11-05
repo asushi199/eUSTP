@@ -1,4 +1,5 @@
 import "./load-env";
+import { revalidateSite } from "./revalidate-site";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import {
@@ -135,6 +136,7 @@ async function main() {
     );
   }
   console.log("Import Ains selesai.");
+  await revalidateSite(["ains", "home"]);
   process.exit(0);
 }
 
