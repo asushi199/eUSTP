@@ -132,6 +132,29 @@ GPICT/DELIMa/GPM, Tempahan PKG, Portal Sumber/Analisis/Maklumat Asas). Sumber as
   Drive dengan token HMAC (`lib/mjkd/foto-token.ts`). Halaman admin MJKD: query
   BERURUTAN dalam `withDbTimeout` + `loading.tsx` (elak tab "tergantung").
 
+## Egress Supabase (free tier 5 GB/bulan) — wajib
+
+Sasaran purata **≤ 150 MB/hari**. 99% egress ialah **Shared Pooler** (query DB dari
+Vercel), bukan Storage. Okt–Nov 2026 pernah capai ~550 MB–1 GB/hari (diagnosis penuh:
+`AI_CONTEXT_LOG.md` 2026-11-05).
+
+- **Halaman awam & halaman utama:** data DB baca-sahaja mesti melalui `unstable_cache`
+  (contoh `lib/home-cache.ts`, `lib/analisis/ains-queries.ts`) supaya kos DB TIDAK naik
+  ikut bilangan pelawat/bot. Data import bulanan → cache 15 min–1 jam; data yang diubah
+  melalui borang/admin → `tags` + `revalidateTag` dalam server action.
+- **Jangan `db.select()` penuh** pada jadual berlajur besar (CSV/teks mentah, jsonb `data`,
+  base64). Pilih lajur yang dipapar sahaja. Punca utama 2026: `analisis_optik_snapshots.raw_csv`
+  (~420 KB/baris) ditarik setiap lawatan halaman utama walaupun tidak digunakan.
+- **Snapshot berbilang:** ambil terkini sahaja (`selectDistinctOn` / `limit`) — jangan tarik
+  semua baris lalu tapis dalam JS.
+- **Senarai besar** (nama murid/pelajar, ratusan baris): jangan papar penuh secara lalai;
+  tapis/had dalam SQL; jangan panggil query yang sama dua kali (cth. `generateMetadata` + page).
+- **Gambar Storage:** mampat semasa muat naik + `cache-control` panjang
+  (`lib/tempahan/image-compress.ts`).
+- **Cron/sandaran:** sandaran JSON mingguan; jangan tambah cron yang `select *` kerap.
+- **Selepas ciri baharu yang membaca DB:** semak Supabase → Usage → Egress (hover = pecahan
+  jenis) beberapa hari kemudian; `extensions.pg_stat_statements` untuk query paling banyak baris.
+
 ## Selepas setiap fasa
 
 `npm run build` + `npm run typecheck` + smoke semua route baharu + catat dalam

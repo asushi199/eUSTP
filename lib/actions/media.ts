@@ -1,6 +1,7 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { MEDIA_CACHE_TAG } from "@/lib/media/queries";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db";
@@ -24,6 +25,7 @@ const cardSchema = z.object({
 function revalidateMedia(kategori: string) {
   revalidatePath("/admin/media");
   revalidatePath("/media");
+  revalidateTag(MEDIA_CACHE_TAG);
   revalidatePath(mediaHref(kategori));
   revalidatePath(mediaAdminHref(kategori));
 }

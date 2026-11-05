@@ -1,16 +1,48 @@
 import "server-only";
 
 import { and, asc, eq } from "drizzle-orm";
+import { unstable_cache } from "next/cache";
 import { db } from "@/lib/db";
 import { mediaCards } from "@/lib/schema";
 import { MEDIA_KATEGORI } from "./kategori";
 
 export type MediaCard = typeof mediaCards.$inferSelect;
 
+/**
+ * Tag cache kad awam (aktif). Setiap tulis ke `mediaCards` MESTI
+ * `revalidateTag(MEDIA_CACHE_TAG)` — lihat helper revalidate dalam actions/publish.
+ * Cache = kawal egress Supabase: lonjakan pelawat tidak menambah query DB.
+ */
+export const MEDIA_CACHE_TAG = "media-cards";
+
+const listActiveRowsCached = unstable_cache(
+  async () =>
+    db
+      .select()
+      .from(mediaCards)
+      .where(eq(mediaCards.aktif, true))
+      .orderBy(asc(mediaCards.sort), asc(mediaCards.id)),
+  ["media:active-cards"],
+  { revalidate: 60 * 60, tags: [MEDIA_CACHE_TAG] },
+);
+
+/** unstable_cache menyiri JSON — pulihkan Date. */
+async function listActiveRows(): Promise<MediaCard[]> {
+  const rows = await listActiveRowsCached();
+  return rows.map((r) => ({
+    ...r,
+    createdAt: new Date(r.createdAt),
+    updatedAt: new Date(r.updatedAt),
+  }));
+}
+
 export async function listMediaCards(
   kategori: string,
   opts: { includeHidden?: boolean } = {},
 ): Promise<MediaCard[]> {
+  if (!opts.includeHidden) {
+    return (await listActiveRows()).filter((r) => r.kategori === kategori);
+  }
   const filters = [eq(mediaCards.kategori, kategori)];
   if (!opts.includeHidden) filters.push(eq(mediaCards.aktif, true));
   return db
@@ -42,11 +74,7 @@ export async function listMediaCardsGrouped(
         .select()
         .from(mediaCards)
         .orderBy(asc(mediaCards.sort), asc(mediaCards.id))
-    : await db
-        .select()
-        .from(mediaCards)
-        .where(eq(mediaCards.aktif, true))
-        .orderBy(asc(mediaCards.sort), asc(mediaCards.id));
+    : await listActiveRows();
 
   const byKat = new Map<string, MediaCard[]>(
     MEDIA_KATEGORI.map((k) => [k.slug, [] as MediaCard[]]),

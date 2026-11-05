@@ -1,6 +1,7 @@
 import "server-only";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { RESOURCES_CACHE_TAG } from "@/lib/resources/queries";
 import { eq } from "drizzle-orm";
 import { driveViewUrl, uploadFileViaGas } from "@/lib/gas-upload";
 import { resolveSuratMime } from "@/lib/khidmat-bantu/surat-mime";
@@ -68,6 +69,7 @@ export async function publishResourcesFile(opts: {
 function revalidateResources(kategori: string) {
   revalidatePath("/admin/resources");
   revalidatePath("/resources");
+  revalidateTag(RESOURCES_CACHE_TAG);
   revalidatePath(resourcesHref(kategori));
 }
 

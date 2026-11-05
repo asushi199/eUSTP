@@ -1,5 +1,24 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-11-05 (d) — Peraturan egress + cache halaman awam + robots.txt
+
+- Ukuran selepas pembaikan (a)–(c): Usage 5 Nov (separuh hari UTC) Pooler 31.4 MB + Storage
+  20.7 MB; anggaran pss 6.5 jam = ~35 MB/hari data query (sebelum ~550 MB/hari).
+- Garis masa lonjakan (Usage kitaran 26 Sep–26 Okt): 20–150 MB/hari → naik 13 Okt (Ains),
+  14–15 Okt (MJKD), puncak ~518 MB 16 Okt (DCS/ESN di halaman utama + CSV OPTIK ke-3),
+  360–490 MB 22–25 Okt tanpa komit (trafik). Punca: ciri berturut-turut di CoE Analytics
+  halaman utama tanpa cache.
+- Peraturan ditulis: `CLAUDE.md` § "Egress Supabase" + ringkasan `AGENTS.md`.
+- Cache baharu (unstable_cache 1 jam + tag, dibatalkan oleh server action/publish):
+  `listPublicDirectory`/`listSchoolOptions` (`DIREKTORI_CACHE_TAG`, `lib/actions/direktori.ts`),
+  kad aktif Resources/Media (`RESOURCES_CACHE_TAG`/`MEDIA_CACHE_TAG`; Date dipulihkan selepas
+  cache; `lib/actions/*` + `lib/*/publish.ts` termasuk muat naik Telegram). Halaman awam MJKD
+  TIDAK dicache (status "sudah hantar" mesti langsung) — senarai sekolahnya kini dicache.
+- `app/robots.ts`: benarkan `/`, `/resources`, `/media`, halaman statik; sekat `/analisis`,
+  `/direktori`, `/laporan*`, `/tempahan`, `/khidmat-bantu`, `/api`, `/admin`, dll.
+- Disahkan: typecheck, eslint, build; smoke dev `/robots.txt`, `/resources`, `/resources/surat-ustp`,
+  `/media`, `/laporan-pss`, `/khidmat-bantu`, `/laporan-akhbar`, `/direktori/gpict` (200).
+
 ## 2026-11-05 (c) — Egress: tebus buku, Ains cache, sandaran mingguan
 
 - Tebus buku 100% → senarai nama pelajar dibuang dari `/laporan/tebus-buku/[kod]`

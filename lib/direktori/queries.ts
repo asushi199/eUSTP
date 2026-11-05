@@ -1,6 +1,7 @@
 import "server-only";
 
 import { desc, eq, inArray } from "drizzle-orm";
+import { unstable_cache } from "next/cache";
 import { db } from "@/lib/db";
 import { contactRoles, contactVersions, schools } from "@/lib/schema";
 import { ROLE_ORDER, type DirectoryRole } from "./config";
@@ -56,38 +57,58 @@ function redactContacts(rows: PublicDirectoryRow[]): PublicDirectoryRow[] {
   return rows.map((row) => ({ ...row, phone: "", phoneNormalized: "" }));
 }
 
+/**
+ * Tag cache direktori/senarai sekolah. Server action yang mengubah `schools`,
+ * `contact_versions` atau `contact_roles` MESTI `revalidateTag(DIREKTORI_CACHE_TAG)`.
+ * Cache = kawal egress Supabase: lonjakan pelawat tidak menambah query DB.
+ */
+export const DIREKTORI_CACHE_TAG = "direktori";
+const DIREKTORI_REVALIDATE_S = 60 * 60;
+
+/** Semua baris versi semasa (termasuk telefon) — dicache; tapis/redaksi selepas cache. */
+const listCurrentDirectoryRowsCached = unstable_cache(
+  async (): Promise<PublicDirectoryRow[]> => {
+    const rows = await db
+      .select({
+        schoolCode: schools.code,
+        schoolName: schools.name,
+        zone: schools.zone,
+        website: schools.website,
+        role: contactRoles.role,
+        teacherName: contactRoles.teacherName,
+        phone: contactRoles.phone,
+        phoneNormalized: contactRoles.phoneNormalized,
+      })
+      .from(schools)
+      .innerJoin(contactVersions, eq(schools.currentVersionId, contactVersions.id))
+      .innerJoin(contactRoles, eq(contactRoles.versionId, contactVersions.id))
+      .orderBy(schools.code);
+    return rows as PublicDirectoryRow[];
+  },
+  ["direktori:current-rows"],
+  { revalidate: DIREKTORI_REVALIDATE_S, tags: [DIREKTORI_CACHE_TAG] },
+);
+
 /** Direktori awam: peranan daripada versi semasa setiap sekolah. */
 export async function listPublicDirectory(
   role?: DirectoryRole,
   options?: { includeContacts?: boolean },
 ): Promise<PublicDirectoryRow[]> {
-  const rows = await db
-    .select({
-      schoolCode: schools.code,
-      schoolName: schools.name,
-      zone: schools.zone,
-      website: schools.website,
-      role: contactRoles.role,
-      teacherName: contactRoles.teacherName,
-      phone: contactRoles.phone,
-      phoneNormalized: contactRoles.phoneNormalized,
-    })
-    .from(schools)
-    .innerJoin(contactVersions, eq(schools.currentVersionId, contactVersions.id))
-    .innerJoin(contactRoles, eq(contactRoles.versionId, contactVersions.id))
-    .orderBy(schools.code);
-
-  const filtered = (role ? rows.filter((r) => r.role === role) : rows) as PublicDirectoryRow[];
+  const rows = await listCurrentDirectoryRowsCached();
+  const filtered = role ? rows.filter((r) => r.role === role) : rows;
   return options?.includeContacts === true ? filtered : redactContacts(filtered);
 }
 
-export async function listSchoolOptions(): Promise<SchoolOption[]> {
-  const rows = await db
-    .select({ code: schools.code, name: schools.name, zone: schools.zone })
-    .from(schools)
-    .orderBy(schools.code);
-  return rows;
-}
+/** Senarai sekolah untuk borang awam (dipanggil oleh banyak halaman) — dicache. */
+export const listSchoolOptions = unstable_cache(
+  async (): Promise<SchoolOption[]> =>
+    db
+      .select({ code: schools.code, name: schools.name, zone: schools.zone })
+      .from(schools)
+      .orderBy(schools.code),
+  ["direktori:school-options"],
+  { revalidate: DIREKTORI_REVALIDATE_S, tags: [DIREKTORI_CACHE_TAG] },
+);
 
 async function rolesByVersionIds(ids: string[]): Promise<Map<string, RoleContact[]>> {
   const map = new Map<string, RoleContact[]>();

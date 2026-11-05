@@ -1,11 +1,12 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { adminActions, contactRoles, contactVersions, schools } from "@/lib/schema";
 import { getDirectoryContactAccess } from "@/lib/direktori/access";
+import { DIREKTORI_CACHE_TAG } from "@/lib/direktori/queries";
 import { requireKandunganAccess } from "@/lib/rbac";
 import {
   TEACHER_ROLES,
@@ -100,6 +101,7 @@ export async function createDirektoriSubmission(
   });
 
   revalidatePath("/direktori");
+  revalidateTag(DIREKTORI_CACHE_TAG);
   return { ok: true };
 }
 
@@ -136,6 +138,7 @@ export async function restoreVersion(
   revalidatePath("/admin/direktori");
   revalidatePath(`/admin/direktori/sekolah/${version.schoolCode}`);
   revalidatePath("/direktori");
+  revalidateTag(DIREKTORI_CACHE_TAG);
   return { ok: true };
 }
 
@@ -168,6 +171,7 @@ export async function updateSchoolName(
   revalidatePath("/admin/direktori");
   revalidatePath(`/admin/direktori/sekolah/${code}`);
   revalidatePath("/direktori");
+  revalidateTag(DIREKTORI_CACHE_TAG);
   return { ok: true };
 }
 
@@ -199,6 +203,7 @@ export async function updateSchoolWebsite(
   revalidatePath("/admin/direktori");
   revalidatePath(`/admin/direktori/sekolah/${code}`);
   revalidatePath("/direktori");
+  revalidateTag(DIREKTORI_CACHE_TAG);
   return { ok: true };
 }
 
@@ -219,5 +224,6 @@ export async function createSchool(input: {
 
   await db.insert(schools).values({ code, name, zone });
   revalidatePath("/admin/direktori");
+  revalidateTag(DIREKTORI_CACHE_TAG);
   return { ok: true };
 }

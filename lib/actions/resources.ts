@@ -1,6 +1,7 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { RESOURCES_CACHE_TAG } from "@/lib/resources/queries";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db";
@@ -33,6 +34,7 @@ const cardSchema = z.object({
 function revalidateResources(kategori: string) {
   revalidatePath("/admin/resources");
   revalidatePath("/resources");
+  revalidateTag(RESOURCES_CACHE_TAG);
   revalidatePath(resourcesHref(kategori));
   revalidatePath(resourcesAdminHref(kategori));
 }

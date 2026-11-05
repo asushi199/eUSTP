@@ -1,6 +1,7 @@
 import "server-only";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { MEDIA_CACHE_TAG } from "@/lib/media/queries";
 import { eq } from "drizzle-orm";
 import { driveViewUrl, uploadFileViaGas } from "@/lib/gas-upload";
 import { resolveSuratMime } from "@/lib/khidmat-bantu/surat-mime";
@@ -46,6 +47,7 @@ export async function uploadMediaFileToDrive(opts: {
 function revalidateMedia(kategori: string) {
   revalidatePath("/admin/media");
   revalidatePath("/media");
+  revalidateTag(MEDIA_CACHE_TAG);
   revalidatePath(mediaHref(kategori));
   revalidatePath(mediaAdminHref(kategori));
 }

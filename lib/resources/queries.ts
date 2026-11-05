@@ -1,16 +1,48 @@
 import "server-only";
 
 import { and, asc, eq } from "drizzle-orm";
+import { unstable_cache } from "next/cache";
 import { db } from "@/lib/db";
 import { resourcesCards } from "@/lib/schema";
 import { RESOURCES_KATEGORI } from "./kategori";
 
 export type ResourcesCard = typeof resourcesCards.$inferSelect;
 
+/**
+ * Tag cache kad awam (aktif). Setiap tulis ke `resourcesCards` MESTI
+ * `revalidateTag(RESOURCES_CACHE_TAG)` — lihat helper revalidate dalam actions/publish.
+ * Cache = kawal egress Supabase: lonjakan pelawat tidak menambah query DB.
+ */
+export const RESOURCES_CACHE_TAG = "resources-cards";
+
+const listActiveRowsCached = unstable_cache(
+  async () =>
+    db
+      .select()
+      .from(resourcesCards)
+      .where(eq(resourcesCards.aktif, true))
+      .orderBy(asc(resourcesCards.sort), asc(resourcesCards.id)),
+  ["resources:active-cards"],
+  { revalidate: 60 * 60, tags: [RESOURCES_CACHE_TAG] },
+);
+
+/** unstable_cache menyiri JSON — pulihkan Date. */
+async function listActiveRows(): Promise<ResourcesCard[]> {
+  const rows = await listActiveRowsCached();
+  return rows.map((r) => ({
+    ...r,
+    createdAt: new Date(r.createdAt),
+    updatedAt: new Date(r.updatedAt),
+  }));
+}
+
 export async function listResourcesCards(
   kategori: string,
   opts: { includeHidden?: boolean } = {},
 ): Promise<ResourcesCard[]> {
+  if (!opts.includeHidden) {
+    return (await listActiveRows()).filter((r) => r.kategori === kategori);
+  }
   const filters = [eq(resourcesCards.kategori, kategori)];
   if (!opts.includeHidden) filters.push(eq(resourcesCards.aktif, true));
   return db
@@ -42,11 +74,7 @@ export async function listResourcesCardsGrouped(
         .select()
         .from(resourcesCards)
         .orderBy(asc(resourcesCards.sort), asc(resourcesCards.id))
-    : await db
-        .select()
-        .from(resourcesCards)
-        .where(eq(resourcesCards.aktif, true))
-        .orderBy(asc(resourcesCards.sort), asc(resourcesCards.id));
+    : await listActiveRows();
 
   const byKat = new Map<string, ResourcesCard[]>(
     RESOURCES_KATEGORI.map((k) => [k.slug, [] as ResourcesCard[]]),
