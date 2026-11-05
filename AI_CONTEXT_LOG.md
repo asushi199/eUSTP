@@ -1,5 +1,24 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-11-05 (b) — Egress sebenar: Shared Pooler (DB), bukan Storage
+
+- Papan Usage Supabase (hover carta Egress per day): 27 Okt = Shared Pooler 1002.7 MB
+  (99.3%) + Storage 7.3 MB; 4 Nov = Pooler 581.8 MB (100%). Hujung minggu ≈ hari
+  biasa → kebanyakan trafik automatik (bot/pemantau). Diagnosis entri (a) di bawah
+  (gambar) betul tetapi bukan punca utama.
+- Anggaran `pg_stat_statements` (baris × saiz baris, sejak 4 Jul): punca #1
+  `listOptikSnapshots`/`getCurrentOptikSnapshot` — `select()` penuh termasuk
+  `raw_csv` (~420 KB setiap baris tidak dimampat, ≈1.3 MB setiap panggilan) walaupun
+  `toSummary` membuangnya; dipanggil oleh halaman utama (`summary.ts`), `/analisis`,
+  `/analisis/ai-tools` (force-dynamic). ≈10 GB terkumpul.
+- Dibaiki: `SUMMARY_COLUMNS` dalam `lib/analisis/optik-queries.ts` (tanpa `raw_csv`).
+  Disahkan: typecheck, build, smoke `/` + `/analisis/ai-tools`, pss menunjukkan query
+  baharu tanpa `raw_csv`.
+- Calon seterusnya (belum dibuat): postgres.js `fetch_types` (pg_type ~415 baris setiap
+  sambungan baharu, ≈1.1 GB), senarai nama tebus buku (941 baris/panggilan), ringkasan
+  Ains sekolah (714 baris/panggilan), `/api/health` dipanggil ~37×/minit (semak
+  pemantau luar). Snapshot pss untuk perbandingan: `backups/egress/` (gitignore).
+
 ## 2026-11-05 — Kurangkan egress Supabase (free tier 5.5 GB; amaran Fair Use 5 Dis 2026)
 
 - Punca utama: gambar dalam bucket `room-photos` terlalu besar (logo PKG ~1.8 MB

@@ -44,8 +44,35 @@ function asYmd(value: string | Date): string {
   return String(value).slice(0, 10);
 }
 
+/**
+ * Lajur ringkasan sahaja — JANGAN `select()` penuh: `raw_csv` ~420 KB setiap
+ * baris dan pernah menjadi punca utama egress Supabase (2026-11-05).
+ */
+const SUMMARY_COLUMNS = {
+  id: analisisOptikSnapshots.id,
+  capturedOn: analisisOptikSnapshots.capturedOn,
+  chartLabel: analisisOptikSnapshots.chartLabel,
+  sourceFilename: analisisOptikSnapshots.sourceFilename,
+  sourceFormat: analisisOptikSnapshots.sourceFormat,
+  selesaiPct: analisisOptikSnapshots.selesaiPct,
+  selesaiBil: analisisOptikSnapshots.selesaiBil,
+  totalBil: analisisOptikSnapshots.totalBil,
+  belumPct: analisisOptikSnapshots.belumPct,
+  belumBil: analisisOptikSnapshots.belumBil,
+  sekolahSelesai: analisisOptikSnapshots.sekolahSelesai,
+  sekolahBelum: analisisOptikSnapshots.sekolahBelum,
+  sekolahCount: analisisOptikSnapshots.sekolahCount,
+  guruBelumLogin: analisisOptikSnapshots.guruBelumLogin,
+  muridAi: analisisOptikSnapshots.muridAi,
+  muridJumlah: analisisOptikSnapshots.muridJumlah,
+  muridPct: analisisOptikSnapshots.muridPct,
+  isCurrent: analisisOptikSnapshots.isCurrent,
+  includeChart: analisisOptikSnapshots.includeChart,
+  createdAt: analisisOptikSnapshots.createdAt,
+};
+
 function toSummary(
-  row: typeof analisisOptikSnapshots.$inferSelect,
+  row: Omit<typeof analisisOptikSnapshots.$inferSelect, "rawCsv" | "uploadedByUserId">,
 ): OptikSnapshotSummary {
   return {
     id: row.id,
@@ -73,7 +100,7 @@ function toSummary(
 
 export async function listOptikSnapshots(): Promise<OptikSnapshotSummary[]> {
   const rows = await db
-    .select()
+    .select(SUMMARY_COLUMNS)
     .from(analisisOptikSnapshots)
     .orderBy(desc(analisisOptikSnapshots.capturedOn), desc(analisisOptikSnapshots.id));
   return rows.map(toSummary);
@@ -90,7 +117,7 @@ export async function getOptikSnapshotById(id: number) {
 
 export async function getCurrentOptikSnapshot(): Promise<OptikSnapshotSummary | null> {
   const [row] = await db
-    .select()
+    .select(SUMMARY_COLUMNS)
     .from(analisisOptikSnapshots)
     .where(eq(analisisOptikSnapshots.isCurrent, true))
     .limit(1);
