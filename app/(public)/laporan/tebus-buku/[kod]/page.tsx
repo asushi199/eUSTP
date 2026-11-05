@@ -3,7 +3,6 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import PageHeader from "@/components/PageHeader";
 import PublicPageShell from "@/components/PublicPageShell";
-import StudentLookup from "@/components/tebus-buku/StudentLookup";
 import TebusProgress from "@/components/tebus-buku/TebusProgress";
 import { withDbTimeout } from "@/lib/db";
 import { getDirectoryContactAccess } from "@/lib/direktori/access";
@@ -42,7 +41,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function TebusBukuSchoolPage({ params }: Props) {
   const { kod } = await params;
 
-  // Senarai nama pelajar hanya untuk akaun MOE-DL (@moe-dl.edu.my) atau staf USTP.
+  // Hanya akaun MOE-DL (@moe-dl.edu.my) atau staf USTP. Senarai nama pelajar
+  // dibuang 2026-11-05 (tebus buku 100%; kurangkan egress) — ringkasan sahaja.
   const access = await getDirectoryContactAccess();
   if (!access.ok) {
     redirect(direktoriLoginHref(`/laporan/tebus-buku/${encodeURIComponent(kod)}`));
@@ -87,12 +87,6 @@ export default async function TebusBukuSchoolPage({ params }: Props) {
         total={page.school.total}
         tebusCount={page.school.tebusCount}
         gunaCount={page.school.gunaCount}
-      />
-      <StudentLookup
-        schoolCode={page.school.code}
-        schoolName={page.school.name}
-        students={page.students}
-        tingkatan={page.tingkatan}
       />
     </PublicPageShell>
   );

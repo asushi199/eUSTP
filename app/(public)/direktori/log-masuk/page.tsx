@@ -58,7 +58,7 @@ export default async function DirektoriLogMasukPage({
         accent={accent}
         description={
           forTebusBuku
-            ? "Akaun Google KPM (@moe-dl.edu.my) diperlukan untuk melihat senarai pelajar dan status tebus baucar buku."
+            ? "Akaun Google KPM (@moe-dl.edu.my) diperlukan untuk melihat status tebus baucar buku sekolah."
             : forAins
               ? "Akaun Google KPM (@moe-dl.edu.my) diperlukan untuk melihat senarai murid Program Ains."
               : "Akaun Google KPM (@moe-dl.edu.my) diperlukan untuk melihat nombor telefon rakan guru."
@@ -71,7 +71,7 @@ export default async function DirektoriLogMasukPage({
           errorMessage={googleErrorMessage(sp.error)}
           purposeText={
             forTebusBuku
-              ? "Senarai nama pelajar dan status baucar buku hanya dipaparkan"
+              ? "Status tebus baucar buku sekolah hanya dipaparkan"
               : forAins
                 ? "Senarai nama murid dan bacaan Program Ains hanya dipaparkan"
                 : undefined

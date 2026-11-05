@@ -1,6 +1,7 @@
 import "server-only";
 
 import { and, asc, desc, eq } from "drizzle-orm";
+import { unstable_cache } from "next/cache";
 import { db } from "@/lib/db";
 import {
   analisisAinsMurid,
@@ -11,7 +12,7 @@ import {
 import type { AinsMuridRow, AinsSekolahRow, AinsTahunData } from "./ains-types";
 
 /** Tahun yang ada data Ains dalam pangkalan data, terkini dahulu. */
-export async function listAinsTahun(): Promise<number[]> {
+async function listAinsTahunDb(): Promise<number[]> {
   const rows = await db
     .selectDistinct({ tahun: analisisAinsSekolah.tahun })
     .from(analisisAinsSekolah)
@@ -20,7 +21,7 @@ export async function listAinsTahun(): Promise<number[]> {
 }
 
 /** Ringkasan semua sekolah, semua bulan, satu tahun. Nama diseragamkan dengan direktori. */
-export async function getAinsTahun(tahun: number): Promise<AinsTahunData | null> {
+async function getAinsTahunDb(tahun: number): Promise<AinsTahunData | null> {
   const [rows, direktori] = await Promise.all([
     db
       .select()
@@ -53,6 +54,23 @@ export async function getAinsTahun(tahun: number): Promise<AinsTahunData | null>
   }));
   return { tahun, bulan: [...new Set(sekolah.map((r) => r.bulan))].sort((a, b) => a - b), sekolah };
 }
+
+/**
+ * Ringkasan Ains berubah hanya selepas import bulanan (`npm run db:import-ains`,
+ * di luar Next), jadi cache 1 jam. Sebelum ini setiap lawatan `/analisis`,
+ * `/analisis/ains` dan halaman utama menarik ~714 baris (egress Supabase).
+ */
+const AINS_REVALIDATE_S = 60 * 60;
+
+export const listAinsTahun = unstable_cache(listAinsTahunDb, ["ains:tahun"], {
+  revalidate: AINS_REVALIDATE_S,
+  tags: ["ains"],
+});
+
+export const getAinsTahun = unstable_cache(getAinsTahunDb, ["ains:tahun-data"], {
+  revalidate: AINS_REVALIDATE_S,
+  tags: ["ains"],
+});
 
 /** Murid satu sekolah dengan bacaan setiap bulan (e-mel tidak dipulangkan). */
 export async function getAinsMuridSekolah(tahun: number, kod: string): Promise<AinsMuridRow[]> {

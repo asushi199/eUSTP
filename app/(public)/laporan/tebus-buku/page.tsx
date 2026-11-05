@@ -45,8 +45,8 @@ export default async function TebusBukuIndexPage() {
         accent={accent}
         description={
           tarikh
-            ? `Pilih sekolah, kemudian cari pelajar. Data sekolah menengah Manjung setakat ${tarikh}.`
-            : "Pilih sekolah, kemudian cari pelajar untuk semak status tebus dan guna baucar buku."
+            ? `Pilih sekolah untuk semak status tebus dan guna baucar buku. Data sekolah menengah Manjung setakat ${tarikh}.`
+            : "Pilih sekolah untuk semak status tebus dan guna baucar buku."
         }
         className="mt-2"
       />

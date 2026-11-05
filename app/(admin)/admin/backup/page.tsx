@@ -51,14 +51,14 @@ export default async function AdminBackupPage() {
     <>
       <h1 className="text-2xl font-semibold tracking-tight">Sandaran Data</h1>
       <p className="mt-1 text-sm text-graphite">
-        Sandaran logik harian dan sandaran SQL penuh bulanan. Kandungan sensitif; simpan dengan
+        Sandaran logik mingguan dan sandaran SQL penuh bulanan. Kandungan sensitif; simpan dengan
         selamat.
       </p>
 
       <BackupPanel
         driveReady={driveReady}
         cronReady={cronReady}
-        scheduleText="Dijadualkan setiap hari pada kira-kira 2:00 pagi (waktu Malaysia) dan dimuat naik ke Google Drive."
+        scheduleText="Dijadualkan setiap minggu, Isnin kira-kira 2:00 pagi (waktu Malaysia) dan dimuat naik ke Google Drive."
         last={last}
       />
 

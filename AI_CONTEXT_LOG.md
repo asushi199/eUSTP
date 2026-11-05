@@ -1,5 +1,21 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-11-05 (c) — Egress: tebus buku, Ains cache, sandaran mingguan
+
+- Tebus buku 100% → senarai nama pelajar dibuang dari `/laporan/tebus-buku/[kod]`
+  (`StudentLookup` dipadam; `getTebusBukuSchoolPage` ringkasan sahaja — dahulu ~941
+  baris × 2 setiap lawatan kerana `generateMetadata` turut memanggilnya). Gerbang
+  MOE-DL kekal. Data `tebus_buku_pelajar` TIDAK dipadam (kiraan ringkasan bergantung padanya).
+- Ains: `listAinsTahun`/`getAinsTahun` dibungkus `unstable_cache` 1 jam (tag `ains`) —
+  data berubah hanya selepas import bulanan. `getAinsMuridSekolah` tidak dicache.
+- Sambungan DB: query pg_type postgres.js (`fetch_types`) ≈ 9 MB/hari sahaja; TIDAK
+  dimatikan kerana MJKD guna lajur `text[]` (`sekolah_khusus`, `foto_bukti`, `hari`) yang
+  perlukan penghurai array. `idle_timeout`/`max_lifetime` kekal (pembaikan hang Jul).
+- `/api/health`: hanya 236 panggilan sejak 4 Jul — tiada pemantau kerap. "37×/minit"
+  dalam entri (b) ialah satu ledakan 185 panggilan pagi 5 Nov, bukan kadar tetap.
+- Sandaran JSON: kini ~6 MB/run. Cron ditukar ke mingguan (`0 18 * * 0` UTC = Isnin
+  ~2:00 MYT) atas arahan pengguna; teks `/admin/backup` dikemas kini. pg_dump bulanan kekal.
+
 ## 2026-11-05 (b) — Egress sebenar: Shared Pooler (DB), bukan Storage
 
 - Papan Usage Supabase (hover carta Egress per day): 27 Okt = Shared Pooler 1002.7 MB

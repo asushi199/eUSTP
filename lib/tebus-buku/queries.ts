@@ -4,11 +4,9 @@ import { asc, count, eq, sql } from "drizzle-orm";
 import { buildTebusBukuHomeModule } from "./home-module";
 import { db } from "@/lib/db";
 import { tebusBukuPelajar } from "@/lib/schema";
-import { compareTingkatan } from "./format";
 import type {
   TebusBukuSchool,
   TebusBukuSchoolPage,
-  TebusBukuStudent,
 } from "./types";
 
 function toSchool(row: {
@@ -98,27 +96,8 @@ export async function getTebusBukuSchoolPage(
 
   if (!summary) return null;
 
-  const rows = await db
-    .select({
-      nama: tebusBukuPelajar.nama,
-      tingkatan: tebusBukuPelajar.tingkatan,
-      sudahTebus: tebusBukuPelajar.sudahTebus,
-      sudahGuna: tebusBukuPelajar.sudahGuna,
-    })
-    .from(tebusBukuPelajar)
-    .where(eq(tebusBukuPelajar.schoolCode, code))
-    .orderBy(asc(tebusBukuPelajar.nama));
-
-  const tingkatan = [...new Set(rows.map((row) => row.tingkatan))].sort(
-    compareTingkatan,
-  );
-
-  const students: TebusBukuStudent[] = rows;
-
   return {
     school: toSchool(summary),
-    students,
     sourcedAt: summary.sourcedAt ?? null,
-    tingkatan,
   };
 }
