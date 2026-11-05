@@ -14,6 +14,20 @@ import { db } from "@/lib/db";
 
 const TZ = "Asia/Kuala_Lumpur";
 
+/**
+ * Jadual yang TIDAK dimasukkan dalam sandaran JSON harian.
+ *
+ * Butiran murid Ains (~43 MB, data peribadi) — sandaran harian `select *`
+ * menjana ~1–1.5 GB egress Supabase sebulan (free tier: 5.5 GB). Jadual ini
+ * hanya berubah sekali sebulan (import Ains) dan sudah dilindungi oleh
+ * sandaran pg_dump bulanan (`npm run db:backup-pgdump:upload`). Ringkasan
+ * `analisis_ains_sekolah` kekal dalam sandaran harian.
+ */
+export const BACKUP_EXCLUDED_TABLES: readonly string[] = [
+  "analisis_ains_murid",
+  "analisis_ains_murid_bulanan",
+];
+
 export type BackupResult = {
   buffer: Buffer;
   fileName: string;
@@ -48,7 +62,7 @@ export async function createBackupZip(): Promise<BackupResult> {
   `);
   const tableNames = normalizeRows(tablesRes)
     .map((r) => String(r.table_name))
-    .filter(Boolean);
+    .filter((name) => name && !BACKUP_EXCLUDED_TABLES.includes(name));
 
   const zip = new JSZip();
   const tablesFolder = zip.folder("tables");
@@ -74,6 +88,8 @@ export async function createBackupZip(): Promise<BackupResult> {
     tableCount: tableNames.length,
     rowCount,
     tables: summary,
+    excludedTables: BACKUP_EXCLUDED_TABLES,
+    excludedNote: "Jadual dikecualikan dilindungi oleh sandaran pg_dump bulanan.",
   };
   zip.file("manifest.json", JSON.stringify(manifest, null, 2));
   zip.file(
@@ -83,6 +99,7 @@ export async function createBackupZip(): Promise<BackupResult> {
       "Format: satu fail JSON setiap jadual dalam folder tables/.",
       'bytea dikodkan sebagai { "__type": "bytea", "base64": "..." }.',
       "Timestamp dalam ISO 8601 (UTC).",
+      `Dikecualikan (lihat sandaran pg_dump bulanan): ${BACKUP_EXCLUDED_TABLES.join(", ")}.`,
       "AMARAN: fail ini mengandungi data sensitif (hash kata laluan, token).",
       "Simpan dengan selamat. Untuk pemulihan, import semula setiap jadual",
       "mengikut susunan kebergantungan kunci asing (FK).",

@@ -1,5 +1,30 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-11-05 — Kurangkan egress Supabase (free tier 5.5 GB; amaran Fair Use 5 Dis 2026)
+
+- Punca utama: gambar dalam bucket `room-photos` terlalu besar (logo PKG ~1.8 MB
+  dipapar 40–80px; gambar bilik Sitiawan 3–3.6 MB) dan disimpan dengan
+  `cache-control: no-cache` → setiap lawatan `/tempahan/bilik` (5 logo ≈ 9 MB) dimuat
+  turun semula. Sumbangan lain: halaman utama `force-dynamic` tanpa cache, query DCS
+  menarik SEMUA snapshot JSON, sandaran JSON harian `select *` termasuk murid Ains (~43 MB).
+- `lib/tempahan/image-compress.ts` (sharp, kini dependency terus): logo ≤320px PNG
+  berpalet, gambar ≤1600px JPEG mozjpeg q80; gagal → fail asal. Dipanggil dalam
+  `uploadRoomPhoto`/`uploadPkgLogo`. `uploadPublicStorageObject` hantar
+  `cache-control: max-age=31536000` (selamat — laluan ada cap masa).
+- Storan sedia ada dimampat di tempat (laluan/URL tidak berubah):
+  `npx tsx scripts/compress-storage-images.ts [--dry-run] [--delete-unreferenced]`.
+  19 gambar dirujuk: 22.0 MB → 1.8 MB. Metadata objek kini `max-age=31536000`.
+  8 fail lama tidak dirujuk (5 logo `logo-17832…`, 3 gambar bilik Sitiawan lama) BELUM
+  dipadam — perlu kelulusan pengguna (`--delete-unreferenced`). Salinan asal semua fail
+  diberi kepada pengguna sebagai ZIP (`backups/`, gitignore) — tidak dalam git.
+- `lib/home-cache.ts`: `unstable_cache` 15 minit (tag `home`) untuk
+  `getAnalisisHomeSummary`, `getPerkhidmatanHomeModules`, `getTebusBukuHomeModule`.
+- `getDcsTerkiniIkutTahun`: `selectDistinctOn(tahun)` — satu baris setiap tahun.
+- `lib/backup/dump.ts`: `BACKUP_EXCLUDED_TABLES` = `analisis_ains_murid`,
+  `analisis_ains_murid_bulanan` (dilindungi pg_dump bulanan); disenaraikan dalam manifest/README ZIP.
+- Disahkan: typecheck, eslint, `npm run build`. Smoke halaman utama tidak dapat dibuat
+  dari persekitaran awan (port Postgres 5432 tidak boleh dicapai) — semak selepas deploy.
+
 ## 2026-11-04 — Direktori PPD (staf sahaja) di bawah CoE Directory
 
 - Permintaan pengurusan: senarai pegawai PPD (nama, gred SSPA, jawatan, no. telefon; ~80 orang, sumber Google Sheet) boleh dilihat oleh pegawai yang log masuk sahaja — corak sama seperti Laporan USTP / Minit Curai.

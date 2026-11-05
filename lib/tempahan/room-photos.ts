@@ -1,7 +1,16 @@
 /**
  * Gambar bilik & logo PKG — Supabase Storage (bucket awam "room-photos").
  * Berbeza dengan gambar laporan (Google Drive) kerana bilangan kecil dan statik.
+ *
+ * Egress: gambar dimampat sebelum dimuat naik (`compressImage`) dan disimpan
+ * dengan cache-control panjang. Selamat kerana setiap laluan mengandungi cap
+ * masa (`-<Date.now()>`) — kandungan baharu sentiasa mendapat URL baharu.
  */
+
+import { compressImage } from "./image-compress";
+
+/** 1 tahun. Laluan unik (cap masa), jadi pelayar/CDN boleh simpan lama. */
+const CACHE_CONTROL_LAMA = "max-age=31536000";
 
 export function isRoomPhotoStorageConfigured(): boolean {
   return !!(
@@ -27,7 +36,7 @@ export async function uploadPublicStorageObject(
   path: string,
   file: { name: string; type: string; buffer: Buffer },
   errorLabel: string,
-  options: { upsert?: boolean } = {},
+  options: { upsert?: boolean; cacheControl?: string } = {},
 ): Promise<string> {
   const base = cleanEnv(process.env.NEXT_PUBLIC_SUPABASE_URL).replace(/\/$/, "");
   const key = cleanEnv(process.env.SUPABASE_SERVICE_ROLE_KEY);
@@ -49,6 +58,8 @@ export async function uploadPublicStorageObject(
       Authorization: `Bearer ${key}`,
       "Content-Type": file.type || "application/octet-stream",
       "x-upsert": options.upsert ? "true" : "false",
+      // Tanpa ini Supabase menyimpan `no-cache` → setiap lawatan muat turun semula.
+      "cache-control": options.cacheControl ?? CACHE_CONTROL_LAMA,
     },
     body: new Uint8Array(file.buffer),
   });
@@ -76,14 +87,16 @@ export async function uploadRoomPhoto(
   roomSlug: string,
   file: { name: string; type: string; buffer: Buffer },
 ): Promise<string> {
-  const path = `${pkgId}/${roomSlug}-${Date.now()}.${extOf(file.name)}`;
-  return uploadPublicStorageObject(path, file, "Muat naik gambar bilik");
+  const kecil = await compressImage(file, "photo");
+  const path = `${pkgId}/${roomSlug}-${Date.now()}.${extOf(kecil.name)}`;
+  return uploadPublicStorageObject(path, kecil, "Muat naik gambar bilik");
 }
 
 export async function uploadPkgLogo(
   pkgId: string,
   file: { name: string; type: string; buffer: Buffer },
 ): Promise<string> {
-  const path = `${pkgId}/logo-${Date.now()}.${extOf(file.name)}`;
-  return uploadPublicStorageObject(path, file, "Muat naik logo PKG");
+  const kecil = await compressImage(file, "logo");
+  const path = `${pkgId}/logo-${Date.now()}.${extOf(kecil.name)}`;
+  return uploadPublicStorageObject(path, kecil, "Muat naik logo PKG");
 }

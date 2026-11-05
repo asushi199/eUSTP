@@ -1,10 +1,12 @@
 import { withDbTimeout } from "@/lib/db";
 import { HOME_MODULES } from "@/lib/home-modules";
-import { getPerkhidmatanHomeModules } from "@/lib/analisis/perkhidmatan";
-import { getTebusBukuHomeModule } from "@/lib/tebus-buku/queries";
+import {
+  getAnalisisHomeSummaryCached,
+  getPerkhidmatanHomeModulesCached,
+  getTebusBukuHomeModuleCached,
+} from "@/lib/home-cache";
 import { bengkelHomeModule } from "@/lib/analisis/bengkel";
 import { penyertaanHomeModule } from "@/lib/analisis/penyertaan";
-import { getAnalisisHomeSummary } from "@/lib/analisis/summary";
 import { getDpdSummary } from "@/lib/stats/dpd";
 import { getPssSummary } from "@/lib/stats/pss";
 import { currentStatsYear } from "@/lib/stats/year";
@@ -49,21 +51,21 @@ export default async function HomePage() {
    * dan log ralat sebenar ke log Vercel untuk diagnosis.
    */
   const statsYear = currentStatsYear();
-  const analisis = await getAnalisisHomeSummary().catch((e) => {
+  const analisis = await getAnalisisHomeSummaryCached().catch((e) => {
     console.error(
       "[home] getAnalisisHomeSummary gagal:",
       e instanceof Error ? e.message : e,
     );
     return null;
   });
-  const perkhidmatan = await getPerkhidmatanHomeModules(statsYear).catch((e) => {
+  const perkhidmatan = await getPerkhidmatanHomeModulesCached(statsYear).catch((e) => {
     console.error(
       "[home] getPerkhidmatanHomeModules gagal:",
       e instanceof Error ? e.message : e,
     );
     return null;
   });
-  const tebusBuku = await getTebusBukuHomeModule().catch((e) => {
+  const tebusBuku = await getTebusBukuHomeModuleCached().catch((e) => {
     console.error(
       "[home] getTebusBukuHomeModule gagal:",
       e instanceof Error ? e.message : e,
