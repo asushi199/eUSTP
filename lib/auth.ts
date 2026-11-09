@@ -8,6 +8,7 @@ import { authConfig } from "./auth.config";
 import { db } from "./db";
 import { isGoogleAuthConfigured } from "./moe-dl";
 import { users } from "./schema";
+import { findTelegramLoginUser, telegramAppUser } from "./telegram/web-app-login";
 
 const credentialsSchema = z.object({
   username: z.string().min(1),
@@ -116,6 +117,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           pkgId: row.pkgId,
           mustChangePassword: row.mustChangePassword,
         };
+      },
+    }),
+    /* Butang Mini App NexaBot (/tg): initData Telegram yang ditandatangani dengan token bot,
+       daripada Telegram yang disambungkan untuk log masuk (lib/telegram/web-app-login.ts). */
+    Credentials({
+      id: "telegram",
+      name: "Telegram",
+      credentials: { initData: {} },
+      authorize: async (raw) => {
+        const tg = telegramAppUser(raw?.initData);
+        if (!tg.ok) return null;
+        return findTelegramLoginUser(tg.tgId);
       },
     }),
   ],

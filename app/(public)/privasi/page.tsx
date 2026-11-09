@@ -19,7 +19,7 @@ export default function PrivasiPage() {
           {" · "}
           Terma: <Link href="/terma" className="link-blue">Terma Penggunaan</Link>
         </p>
-        <p>Kemas kini terakhir: 4 September 2026.</p>
+        <p>Kemas kini terakhir: 9 November 2026.</p>
 
         <section>
           <h2 className="text-base font-semibold text-ink">1. Pengendali data</h2>
@@ -55,6 +55,12 @@ export default function PrivasiPage() {
             <li>
               <span className="font-medium text-ink">Staf USTP:</span> ID pengguna dan
               kata laluan hash untuk backend pentadbir, berasingan daripada Google.
+              Jika staf menyambungkan Telegram, kami menyimpan id dan nama pengguna
+              Telegram itu. Apabila butang dalam mesej NexaBot dibuka, Telegram
+              memberitahu kami akaun Telegram mana yang membukanya (dengan tandatangan
+              Telegram), dan kami log masukkan staf yang menyambungkan Telegram itu
+              sendiri; mesej yang dihantar semula kepada orang lain tidak membuka akaun
+              staf tersebut.
             </li>
             <li>
               Log teknikal terhad (contoh ralat pelayan) untuk menjaga operasi portal.

@@ -11,9 +11,18 @@ import {
 import { sendTelegramMessage } from "@/lib/telegram/client";
 import { handleTelegramResourceUpdate } from "@/lib/telegram/resource-upload";
 import { attachTelegramIdentityToDestinationUser } from "@/lib/telegram/staff";
+import { telegramOpenButton } from "@/lib/telegram/web-app";
+import { linkTelegramLogin } from "@/lib/telegram/web-app-login";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
+
+/** URL asas portal untuk butang: APP_BASE_URL, jika kosong origin permintaan webhook. */
+function portalBaseUrl(request: Request): string {
+  const env = process.env.APP_BASE_URL?.trim();
+  if (env) return env.replace(/\/$/, "");
+  return new URL(request.url).origin;
+}
 
 type TelegramUpdate = {
   message?: {
@@ -79,12 +88,13 @@ export async function POST(request: Request) {
   const message = update.message;
   const chatId = message?.chat?.id;
   const token = parseTelegramStartBindToken(message?.text);
+  const baseUrl = portalBaseUrl(request);
   if (message?.chat?.type === "private" && chatId && token) {
-    await handleBindToken(String(chatId), token, message.from?.username);
+    await handleBindToken(String(chatId), token, message.from?.username, baseUrl);
     return NextResponse.json({ ok: true });
   }
 
-  await handleTelegramResourceUpdate(update);
+  await handleTelegramResourceUpdate(update, { baseUrl });
   return NextResponse.json({ ok: true });
 }
 
@@ -92,6 +102,7 @@ async function handleBindToken(
   chatId: string,
   token: string,
   username: string | undefined,
+  baseUrl: string,
 ): Promise<void> {
   const tokenHash = hashTelegramBindToken(token);
   const user = await db.query.users.findFirst({
@@ -116,9 +127,13 @@ async function handleBindToken(
           updatedAt: new Date(),
         })
         .where(and(eq(users.id, user.id), eq(users.telegramBindTokenHash, tokenHash)));
+      /* pautan ini dijana oleh staf itu sendiri semasa log masuk: Telegram ini miliknya,
+         jadi butang NexaBot (Mini App) boleh terus log masuk sebagai dia */
+      await linkTelegramLogin(user.id, chatId);
       await sendTelegramMessage(
         chatId,
-        "Telegram telah disambungkan dengan portal NEXa Manjung. Taip /mula untuk bantuan. Cari surat dengan /cari. Hantar /surat untuk muat naik surat, /foto untuk album Google Photos, /kemaskini untuk ubah, /padam untuk padam.",
+        "Telegram telah disambungkan dengan portal NEXa Manjung. Taip /mula untuk bantuan. Cari surat dengan /cari. Hantar /surat untuk muat naik surat, /foto untuk album Google Photos, /kemaskini untuk ubah, /padam untuk padam. Butang dalam mesej NexaBot membuka portal di dalam Telegram dan terus log masuk.",
+        telegramOpenButton(chatId, "Buka portal", `${baseUrl}/admin`),
       );
     } catch {
       await sendTelegramMessage(

@@ -421,6 +421,13 @@
       "when": 1793784670646,
       "tag": "0059_optik_guru_murid",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1794232818441,
+      "tag": "0060_telegram_logins",
+      "breakpoints": true
     }
   ]
 }

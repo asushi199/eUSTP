@@ -1,4 +1,5 @@
 import BrandWordmark from "@/components/BrandWordmark";
+import { safePath } from "@/lib/auth-paths";
 import LoginForm from "./LoginForm";
 
 export const dynamic = "force-dynamic";
@@ -21,7 +22,11 @@ export default async function LoginPage({
         Log masuk untuk pentadbir dan pegawai USTP sahaja. Direktori sekolah
         menggunakan akaun MOE-DL, bukan ID ini.
       </p>
-      <LoginForm callbackUrl={sp.from ?? "/admin/tempahan"} initialError={sp.error} />
+      {/* ?from=: halaman untuk kembali (middleware, atau /tg di dalam Telegram) — laluan portal ini sahaja */}
+      <LoginForm
+        callbackUrl={safePath(sp.from, "/admin/tempahan")}
+        initialError={sp.error}
+      />
       <p className="mt-6 text-xs text-graphite">
         Lupa kata laluan? Hubungi Pentadbir Sistem USTP.
       </p>

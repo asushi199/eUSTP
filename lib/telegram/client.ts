@@ -1,12 +1,10 @@
 import "server-only";
 
-type TelegramButton = {
-  text: string;
-  url: string;
-};
+import type { TelegramButton } from "./web-app";
 
+/** web_app: halaman dibuka di dalam Telegram sebagai Mini App (sembang peribadi sahaja). */
 export type TelegramInlineKeyboard = Array<
-  Array<{ text: string; url?: string; callback_data?: string }>
+  Array<{ text: string; url?: string; callback_data?: string; web_app?: { url: string } }>
 >;
 
 type TelegramApiResult = {
@@ -48,11 +46,24 @@ async function telegramApi(
   }
 }
 
+/**
+ * Satu mesej dengan satu butang. Butang Mini App (`webAppUrl`, telegramOpenButton) dicuba dahulu;
+ * jika Telegram menolaknya, mesej yang sama dihantar dengan pautan biasa (`url`) — tidak dihantar
+ * semula jika Telegram tidak menjawab (mungkin sudah sampai).
+ */
 export async function sendTelegramMessage(
   chatId: string,
   text: string,
   button?: TelegramButton,
 ): Promise<boolean> {
+  if (button?.webAppUrl) {
+    const asApp = await sendTelegramChatMessage(chatId, text, {
+      replyMarkup: {
+        inline_keyboard: [[{ text: button.text, web_app: { url: button.webAppUrl } }]],
+      },
+    });
+    if (asApp.ok || !asApp.answered) return asApp.ok;
+  }
   const result = await sendTelegramChatMessage(chatId, text, {
     replyMarkup: button
       ? { inline_keyboard: [[{ text: button.text, url: button.url }]] }
@@ -69,7 +80,7 @@ export async function sendTelegramChatMessage(
     replyToMessageId?: number;
     messageThreadId?: number;
   },
-): Promise<{ ok: boolean; messageId?: number }> {
+): Promise<{ ok: boolean; messageId?: number; answered?: boolean }> {
   if (!chatId || !text) return { ok: false };
   const result = await telegramApi("sendMessage", {
     chat_id: chatId,
@@ -84,7 +95,8 @@ export async function sendTelegramChatMessage(
       : {}),
     ...(opts?.messageThreadId ? { message_thread_id: opts.messageThreadId } : {}),
   });
-  if (!result?.ok) return { ok: false };
+  /* answered: Telegram menjawab dan menolak (cth. butang tidak sah), bukan rangkaian gagal */
+  if (!result?.ok) return { ok: false, answered: result != null };
   return { ok: true, messageId: result.result?.message_id };
 }
 

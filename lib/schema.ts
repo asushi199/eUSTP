@@ -836,6 +836,28 @@ export const telegramDestinations = pgTable(
   }),
 );
 
+/**
+ * Telegram yang boleh log masuk ke portal sebagai staf ini (butang Mini App NexaBot, /tg).
+ * Hanya diisi apabila staf itu sendiri membuktikan Telegram tersebut miliknya: pautan ikatan
+ * peribadi (/admin/telegram), atau log masuk dengan ID + kata laluan di dalam Mini App dari
+ * Telegram yang sudah tersimpan pada akaunnya. BUKAN daripada ikatan destinasi PKG/Khidmat
+ * (`attachTelegramIdentityToDestinationUser` meneka pemilik — tidak cukup untuk log masuk).
+ * Log masuk juga memerlukan `users.telegram_chat_id` yang sama (putus sambungan = tamat).
+ */
+export const telegramLogins = pgTable(
+  "telegram_logins",
+  {
+    userId: integer("user_id")
+      .primaryKey()
+      .references(() => users.id, { onDelete: "cascade" }),
+    telegramUserId: text("telegram_user_id").notNull(),
+    linkedAt: timestamp("linked_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    telegramUserIdx: uniqueIndex("telegram_logins_telegram_user_id_idx").on(t.telegramUserId),
+  }),
+);
+
 /** Draf muat naik CoE Resources / album CoE Media melalui NexaBot. */
 export const telegramResourceDrafts = pgTable(
   "telegram_resource_drafts",

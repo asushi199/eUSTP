@@ -10,6 +10,7 @@ import {
   pkgTelegramDestinationId,
 } from "./destinations";
 import { resolveTelegramRecipientChatIds } from "./recipients";
+import { telegramOpenButton } from "./web-app";
 
 type Notification = {
   text: string;
@@ -20,10 +21,12 @@ async function sendToChats(chatIds: string[], notification: Notification): Promi
   if (!isTelegramConfigured() || chatIds.length === 0) return 0;
   const results = await Promise.all(
     [...new Set(chatIds)].map((chatId) =>
-      sendTelegramMessage(chatId, notification.text, {
-        text: "Semak permohonan",
-        url: notification.actionUrl,
-      }),
+      sendTelegramMessage(
+        chatId,
+        notification.text,
+        /* sembang peribadi: Mini App yang log masuk melalui Telegram; kumpulan: pautan biasa */
+        telegramOpenButton(chatId, "Semak permohonan", notification.actionUrl),
+      ),
     ),
   );
   return results.filter(Boolean).length;

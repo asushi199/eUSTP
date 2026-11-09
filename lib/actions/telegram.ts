@@ -16,6 +16,7 @@ import {
   TELEGRAM_BIND_TOKEN_TTL_MS,
 } from "@/lib/telegram/binding";
 import { parseTelegramResponsibleUserId } from "@/lib/telegram/recipients";
+import { unlinkTelegramLogin } from "@/lib/telegram/web-app-login";
 
 export type TelegramBindingActionResult = {
   ok: boolean;
@@ -111,6 +112,7 @@ export async function disconnectTelegram(): Promise<void> {
       updatedAt: new Date(),
     })
     .where(eq(users.id, Number(sessionUser.id)));
+  await unlinkTelegramLogin(Number(sessionUser.id));
   revalidatePath("/admin/telegram");
 }
 

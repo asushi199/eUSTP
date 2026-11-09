@@ -63,7 +63,9 @@ import {
   getTelegramBotUsername,
   getTelegramFilePath,
   sendTelegramChatMessage,
+  sendTelegramMessage,
 } from "./client";
+import { telegramOpenButton } from "./web-app";
 import {
   askFilePrompt,
   askFotoUrlPrompt,
@@ -1235,7 +1237,10 @@ async function handleSearchPageCallback(query: TelegramResourceCallback): Promis
   return true;
 }
 
-async function handleMessage(message: TelegramResourceMessage): Promise<boolean> {
+async function handleMessage(
+  message: TelegramResourceMessage,
+  baseUrl: string,
+): Promise<boolean> {
   const chatId = message.chat?.id;
   const fromId = message.from?.id;
   const chatType = message.chat?.type;
@@ -1248,6 +1253,15 @@ async function handleMessage(message: TelegramResourceMessage): Promise<boolean>
     return true;
   }
   if (command && RESOURCE_HELP_COMMANDS.has(command)) {
+    /* sembang peribadi: butang membuka portal di dalam Telegram (Mini App, terus log masuk) */
+    if (chatType === "private" && baseUrl) {
+      await sendTelegramMessage(
+        String(chatId),
+        nexaBotHelpText(),
+        telegramOpenButton(String(chatId), "Buka portal", `${baseUrl}/admin`),
+      );
+      return true;
+    }
     await reply(String(chatId), nexaBotHelpText(), undefined, {
       replyToMessageId: message.message_id,
       messageThreadId: threadIdOf(message),
@@ -1582,9 +1596,10 @@ async function handleCallback(query: TelegramResourceCallback): Promise<boolean>
 
 export async function handleTelegramResourceUpdate(
   update: TelegramResourceUpdate,
+  opts?: { baseUrl?: string },
 ): Promise<boolean> {
   await clearExpiredDrafts();
   if (update.callback_query) return handleCallback(update.callback_query);
-  if (update.message) return handleMessage(update.message);
+  if (update.message) return handleMessage(update.message, opts?.baseUrl || portalBaseUrl());
   return false;
 }
