@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { pkgs, telegramDestinations, users } from "@/lib/schema";
 import {
   hashTelegramBindToken,
+  isPlainStartCommand,
   isValidTelegramWebhookSecret,
   parseTelegramStartBindToken,
   telegramDestinationLabel,
@@ -93,9 +94,28 @@ export async function POST(request: Request) {
     await handleBindToken(String(chatId), token, message.from?.username, baseUrl);
     return NextResponse.json({ ok: true });
   }
+  if (message?.chat?.type === "private" && chatId && isPlainStartCommand(message.text)) {
+    await handleStart(String(chatId), baseUrl);
+    return NextResponse.json({ ok: true });
+  }
 
   await handleTelegramResourceUpdate(update, { baseUrl });
   return NextResponse.json({ ok: true });
+}
+
+/** "/start" sahaja: siapa Telegram ini disambungkan, dan butang membuka portal di dalam Telegram. */
+async function handleStart(chatId: string, baseUrl: string): Promise<void> {
+  const user = await db.query.users.findFirst({
+    columns: { nama: true },
+    where: and(eq(users.aktif, true), eq(users.telegramChatId, chatId)),
+  });
+  await sendTelegramMessage(
+    chatId,
+    user
+      ? `Telegram ini disambungkan dengan portal NEXa Manjung sebagai ${user.nama}. Tekan "Buka portal" untuk membuka portal di dalam Telegram. Taip /mula untuk bantuan NexaBot.`
+      : "Selamat datang ke NexaBot (NEXa Manjung). Untuk menerima notifikasi, log masuk ke portal, tekan nama anda › Telegram, dan jana pautan Telegram. Taip /mula untuk bantuan.",
+    telegramOpenButton(chatId, "Buka portal", `${baseUrl}/admin`),
+  );
 }
 
 async function handleBindToken(

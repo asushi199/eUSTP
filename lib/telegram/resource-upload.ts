@@ -422,6 +422,7 @@ async function publishDraft(opts: {
         cardId: published.id,
         driveUrl: published.url,
         portalUrl: portalUrlFor(opts.draft.kategori),
+        chatId: opts.chatId,
       }),
     };
 
@@ -541,6 +542,7 @@ async function showCardSaved(opts: {
       cardId: opts.card.id,
       driveUrl: opts.card.url,
       portalUrl: portalUrlFor(opts.card.kategori),
+      chatId: opts.chatId,
     }),
   };
   if (opts.messageId) {
@@ -566,6 +568,7 @@ async function showMediaCardSaved(opts: {
       cardId: opts.card.id,
       albumUrl: opts.card.url,
       portalUrl: mediaPortalUrl(),
+      chatId: opts.chatId,
     }),
   };
   if (opts.messageId) {

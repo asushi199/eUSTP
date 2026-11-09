@@ -4,7 +4,10 @@ import assert from "node:assert/strict";
 import { createHmac } from "node:crypto";
 import test from "node:test";
 import { needsStaffAuth, safePath } from "../../lib/auth-paths";
+import { isPlainStartCommand, parseTelegramStartBindToken } from "../../lib/telegram/binding";
+import { mediaSavedKeyboard, resourceSavedKeyboard } from "../../lib/telegram/resource-keyboard";
 import {
+  inlineOpenButton,
   isPrivateChatId,
   miniAppUrl,
   telegramOpenButton,
@@ -105,6 +108,47 @@ test("butang mesej: Mini App dalam sembang peribadi (https), pautan biasa dalam 
   const ke = new URL(miniAppUrl(approve)!).searchParams.get("ke");
   assert.equal(ke, "/tempahan/sitiawan/approve/7?token=a%2Bb");
   assert.equal(safePath(ke), ke);
+});
+
+test("butang portal pada surat / album tersimpan: Mini App dalam sembang peribadi sahaja", () => {
+  const portal = "https://nexa-ustpmanjung.vercel.app/resources/surat-ustp";
+  const drive = "https://drive.google.com/file/d/abc/view";
+  const peribadi = resourceSavedKeyboard({ cardId: 5, driveUrl: drive, portalUrl: portal, chatId: "2006" });
+  assert.deepEqual(peribadi[0], [{ text: "Buka di Drive", url: drive }]);
+  assert.deepEqual(peribadi[1], [
+    { text: "Lihat di portal", web_app: { url: miniAppUrl(portal)! } },
+  ]);
+  /* kumpulan, atau pemanggil lama tanpa chatId: pautan biasa */
+  for (const chatId of ["-1001234567890", undefined]) {
+    const k = resourceSavedKeyboard({ cardId: 5, driveUrl: drive, portalUrl: portal, chatId });
+    assert.deepEqual(k[1], [{ text: "Lihat di portal", url: portal }]);
+  }
+  assert.equal(
+    resourceSavedKeyboard({ cardId: 5, driveUrl: drive, portalUrl: null, chatId: "2006" })[1].some(
+      (b) => b.web_app || b.text === "Lihat di portal",
+    ),
+    false,
+  );
+  const media = mediaSavedKeyboard({
+    cardId: 9,
+    albumUrl: "https://photos.app.goo.gl/x",
+    portalUrl: "https://nexa-ustpmanjung.vercel.app/media/koleksi",
+    chatId: "2006",
+  });
+  assert.deepEqual(media[0], [{ text: "Buka album", url: "https://photos.app.goo.gl/x" }]);
+  assert.equal(media[1][0].web_app?.url, miniAppUrl("https://nexa-ustpmanjung.vercel.app/media/koleksi"));
+  assert.deepEqual(inlineOpenButton("2006", "Buka", "http://localhost:3000/admin"), {
+    text: "Buka",
+    url: "http://localhost:3000/admin",
+  });
+});
+
+test("/start sahaja dijawab dengan butang portal; /start bind_… kekal ikatan", () => {
+  for (const t of ["/start", "/start ", "/start@NexaManjungBot"]) assert.equal(isPlainStartCommand(t), true, t);
+  for (const t of [undefined, "", "/mula", "/start bind_" + "a".repeat(32), "/startx", "/start hello"]) {
+    assert.equal(isPlainStartCommand(t), false, String(t));
+  }
+  assert.equal(parseTelegramStartBindToken("/start bind_" + "a".repeat(32)), "a".repeat(32));
 });
 
 test("ke mana selepas log masuk: laluan portal ini sahaja", () => {

@@ -103,3 +103,15 @@ export function telegramOpenButton(chatId: string, text: string, url: string): T
   const webAppUrl = isPrivateChatId(chatId) ? miniAppUrl(url) : null;
   return webAppUrl ? { text, url, webAppUrl } : { text, url };
 }
+
+/** Butang papan kekunci sebaris (inline_keyboard) bagi `telegramOpenButton`: web_app atau url. */
+export function inlineOpenButton(
+  chatId: string | undefined,
+  text: string,
+  url: string,
+): { text: string; url?: string; web_app?: { url: string } } {
+  const button = chatId ? telegramOpenButton(chatId, text, url) : { text, url };
+  return "webAppUrl" in button && button.webAppUrl
+    ? { text, web_app: { url: button.webAppUrl } }
+    : { text, url };
+}

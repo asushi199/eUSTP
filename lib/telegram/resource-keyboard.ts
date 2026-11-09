@@ -25,11 +25,14 @@ import {
   resourceMonthCallbackData,
   resourceYearCallbackData,
 } from "./commands";
+import { inlineOpenButton } from "./web-app";
 
 export type TelegramInlineButton = {
   text: string;
   callback_data?: string;
   url?: string;
+  /** Mini App (sembang peribadi sahaja) — lib/telegram/web-app.ts */
+  web_app?: { url: string };
 };
 
 export type TelegramInlineKeyboard = TelegramInlineButton[][];
@@ -96,14 +99,18 @@ export function resourceDeleteConfirmKeyboard(cardId: number): TelegramInlineKey
   ];
 }
 
+/** `chatId`: dalam sembang peribadi, butang portal dibuka sebagai Mini App (terus log masuk). */
 export function resourceSavedKeyboard(opts: {
   cardId: number;
   driveUrl: string;
   portalUrl?: string | null;
+  chatId?: string;
 }): TelegramInlineKeyboard {
   return [
     [{ text: "Buka di Drive", url: opts.driveUrl }],
-    ...(opts.portalUrl ? [[{ text: "Lihat di portal", url: opts.portalUrl }]] : []),
+    ...(opts.portalUrl
+      ? [[inlineOpenButton(opts.chatId, "Lihat di portal", opts.portalUrl)]]
+      : []),
     ...resourceManageKeyboard(opts.cardId),
   ];
 }
@@ -184,10 +191,13 @@ export function mediaSavedKeyboard(opts: {
   cardId: number;
   albumUrl: string;
   portalUrl?: string | null;
+  chatId?: string;
 }): TelegramInlineKeyboard {
   return [
     [{ text: "Buka album", url: opts.albumUrl }],
-    ...(opts.portalUrl ? [[{ text: "Lihat di CoE Media", url: opts.portalUrl }]] : []),
+    ...(opts.portalUrl
+      ? [[inlineOpenButton(opts.chatId, "Lihat di CoE Media", opts.portalUrl)]]
+      : []),
     ...mediaManageKeyboard(opts.cardId),
   ];
 }

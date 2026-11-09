@@ -58,7 +58,10 @@ export default function TgOpen({ ke }: { ke: string }) {
       .then((result) => {
         if (result) setError(result.error);
       })
-      .catch(() => setError("bad"));
+      /* redirect selepas log masuk kadang-kadang ditolak di sisi klien (cth. Telegram Web, dalam
+         iframe) walaupun kuki sesi sudah ditetapkan: teruskan ke halaman — jika belum log masuk,
+         middleware membawa ke halaman log masuk */
+      .catch(() => window.location.replace(ke));
   }, [ke]);
 
   const loginHref = `/login?from=${encodeURIComponent(`/tg?ke=${encodeURIComponent(ke)}`)}`;

@@ -20,6 +20,11 @@ export function parseTelegramStartBindToken(text: string | undefined): string | 
   return match?.[1] ?? null;
 }
 
+/** "/start" tanpa pautan ikatan (butang Start Telegram, atau ditaip): balas dengan butang buka portal. */
+export function isPlainStartCommand(text: string | undefined): boolean {
+  return /^\/start(?:@[A-Za-z0-9_]{5,32})?\s*$/.test(text ?? "");
+}
+
 export function hashTelegramBindToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
