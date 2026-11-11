@@ -21,6 +21,8 @@ backups/
 /tebus buku/
 # Data baucar buku mentah (mengandungi nama & emel pelajar — jangan komit)
 /docs/Data Baucar Buku*.csv
+/docs/Dashboard Operasi Bahagian*.csv
+/docs/*Tebus*Guna*.csv
 
 # PWA (generated at build)
 public/sw.js
