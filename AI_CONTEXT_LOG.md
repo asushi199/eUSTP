@@ -1,5 +1,30 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-11-14 — Kemas kini data: DELIMa d3 (1 Jan – 14 Nov 2026) + DCS + ESN
+
+- Snapshot d3 `scripts/data/delima-d3-2026-11-14.csv` diimport (snapshot id 19, period 2026-11):
+  guru 3,743/3,833 (97.65%), murid 24,334/41,232 (59.02%), 102 sekolah, capai KPI murid 49.
+  Jumlah 102 sekolah = jumlah PPD (disemak); semua nama sepadan kod.
+- Kaedah baca: tetapkan Tarikh Mula 01/01/2026 → Hantar; gelung pilihan sekolah (react-select
+  `ou-select`, indeks 0–101) + Hantar, baca teks kad. API d3 perlukan Bearer (fetch dengan
+  cookie = 403), jadi baca melalui UI. Perangkap: (1) penimbal `performance` resource penuh
+  selepas ~250 entri → baca basi; guna `clearResourceTimings()` setiap lelaran dan semak
+  orgUnitId unik; (2) **KV Seri Manjung** label "Pelajar Aktif", bukan "Murid Aktif".
+- DCS: `scripts/data/dcs-2026-11-14.json` diimport (5 PKG, 101 sekolah, murid 2,143/2,275 =
+  94.2%; Okt 1,296/1,657 — jumlah murid berdaftar naik). Ranking Perak: Beruas 6, Ayer Tawar 9,
+  Pantai Remis 15, Seri Manjung 18, Sitiawan 38. Disemak setiap PKG: Σ murid sekolah = Dashboard,
+  Σ siap = T6+T3+T5, sekolah siap = Ranking. Kaedah: 5 akaun log masuk oleh pegawai; Progress /
+  Top Schools / Ranking dibaca dengan `fetch` sama asal (sesi kuki) + DOMParser; Dashboard dibaca
+  daripada teks halaman (angka dijana JS). Nama Manager pada Top Schools TIDAK disimpan.
+- ESN: `scripts/data/esn-2026-11-14.json` diimport (102 sekolah: 81 rendah + 21 menengah;
+  murid selesai 5,194/10,191 = 51.0%; Okt 335/3,837). Sekolah: rendah 27 selesai / 28 proses /
+  26 belum; menengah 1 / 13 / 7. Rekod ujian `SMK BERTESTING` (ABC1234) dibuang (ESN papar 22
+  menengah, 8 belum mula). Status Pelaksanaan dibaca dengan `fetch` `/admin/ppd-progress/50/{1,2}
+  ?start=N&length=10` (JSON, kuki sesi) + cuba semula; nama dinyahkod (`&#039;` → `'`).
+  Disemak: Σ murid sekolah & bilangan status = Dashboard.
+- Keputusan pengguna: **Tebus Buku dan Program Ains selesai untuk 2026** — tiada kemas kini
+  lagi tahun ini (langkau semasa kemas kini CoE Analytics).
+
 ## 2026-11-05 (e) — Cache 24 jam + pembatalan (API, skrip import, butang admin)
 
 - `lib/cache-tags.ts`: tag pusat + `LONG_REVALIDATE_S` 24 jam. Ringkasan CoE Analytics &
