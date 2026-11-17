@@ -1167,6 +1167,30 @@
   right: 0;
   background: linear-gradient(270deg, rgba(11, 37, 48, 0.06), transparent);
 }
+/* Butang kembali ke Atur Cara di atas bahan terbenam — sentiasa kelihatan (iframe menelan
+   mousemove, jadi tidak boleh bergantung pada "muncul bila tetikus bergerak"). */
+.pentas .pt-balik {
+  position: absolute;
+  top: 12px;
+  left: 56px;
+  z-index: 5;
+  border: 0;
+  border-radius: 999px;
+  padding: 9px 18px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  background: rgba(6, 24, 32, 0.72);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  opacity: 0.8;
+  cursor: pointer;
+  transition: opacity 0.2s, background 0.2s;
+}
+.pentas .pt-balik:hover,
+.pentas .pt-balik:focus-visible {
+  opacity: 1;
+  background: rgba(6, 24, 32, 0.92);
+}
 .pentas .pt-zon-nav:hover,
 .pentas .pt-zon-nav:focus-visible {
   opacity: 1;

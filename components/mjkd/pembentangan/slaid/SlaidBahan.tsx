@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { SlaidBahan as T } from "@/lib/mjkd/pembentangan";
+import { KUNCI_ATUR_CARA, type SlaidBahan as T } from "@/lib/mjkd/pembentangan";
 import LapisanPenuh from "../LapisanPenuh";
 import QrPautan from "../QrPautan";
 import { usePentas } from "../konteks";
@@ -11,7 +11,7 @@ import { usePentas } from "../konteks";
  * yang pudar selepas 3 s. Tidak boleh dibenam = kad besar "Buka di tab baharu" + QR.
  */
 export default function SlaidBahan({ slaid }: { slaid: T }) {
-  const { gerak } = usePentas();
+  const { gerak, keKunci } = usePentas();
   const kotak = useRef<HTMLDivElement>(null);
   const [kapsyen, setKapsyen] = useState(true);
   // Jalur nama pudar selepas 3 s; muncul semula bila tetikus bergerak (di luar iframe).
@@ -29,6 +29,27 @@ export default function SlaidBahan({ slaid }: { slaid: T }) {
       window.removeEventListener("mousemove", tunjuk);
     };
   }, [slaid.kunci]);
+
+  // Selepas penyampai klik dalam iframe (cth. selak halaman Slides), iframe memegang fokus papan
+  // kekunci — ← → / Esc / G / P tidak sampai ke pentas. Sebaik tetikus kembali ke dokumen pentas
+  // (krom, zon tepi, butang kembali), pulangkan fokus supaya kawalan kekunci berfungsi semula.
+  useEffect(() => {
+    const pulang = () => {
+      const a = document.activeElement;
+      if (a instanceof HTMLIFrameElement) {
+        a.blur();
+        window.focus();
+      }
+    };
+    window.addEventListener("mousemove", pulang);
+    return () => window.removeEventListener("mousemove", pulang);
+  }, []);
+
+  const balik = (
+    <button type="button" className="pt-balik" onClick={() => keKunci(KUNCI_ATUR_CARA)}>
+      ← Atur Cara
+    </button>
+  );
 
   if (!slaid.embedUrl) {
     return (
@@ -51,6 +72,9 @@ export default function SlaidBahan({ slaid }: { slaid: T }) {
               {slaid.bukaUrl}
             </p>
             <div style={{ display: "flex", gap: 12 }}>
+              <button type="button" className="pt-hantu" onClick={() => keKunci(KUNCI_ATUR_CARA)} style={{ fontSize: 18 }}>
+                ← Atur Cara
+              </button>
               <a className="pt-butang-emas" href={slaid.bukaUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: 22 }}>
                 Buka di tab baharu ↗
               </a>
@@ -71,6 +95,7 @@ export default function SlaidBahan({ slaid }: { slaid: T }) {
     <div ref={kotak} style={{ position: "absolute", left: 0, right: 0, top: 76, bottom: 5, background: "#f7f5f0" }}>
       <LapisanPenuh sasaran={kotak}>
         <iframe title={slaid.tajuk} src={slaid.embedUrl} allow="fullscreen" allowFullScreen />
+        {balik}
         {/* iframe merampas fokus papan kekunci: zon tepi ini mengembalikan kawalan (klik = slaid
             sebelum/seterusnya; selepas itu ← → / Esc berfungsi semula). */}
         <button type="button" className="pt-zon-nav kiri" onClick={() => gerak(-1)} aria-label="Slaid sebelum">

@@ -19,6 +19,22 @@
   peratus kerana penyebut menurun (cth. SMK Seri Manjung 535 → 172, SMK Methodist (ACS)
   596 → 456, SMK Dindings 305 → 178), bukan hanya murid baharu selesai.
 
+## 2026-11-17 — MJKD pembentangan: kembali dari bahan terbenam + Portal selepas Atur Cara
+
+- Aduan pengguna: klik sesi dalam Atur Cara → slaid bahan (iframe Drive/Slides/Canva) dan "tidak
+  boleh kembali". Punca: selepas klik dalam iframe, fokus papan kekunci kekal dalam iframe (← → Esc
+  G P mati) dan mousemove di atas iframe tidak sampai ke pentas (krom tidak muncul); hanya zon tepi
+  ‹ › yang pudar, satu slaid setiap klik.
+- Baiki (`SlaidBahan.tsx`): (1) butang "← Atur Cara" sentiasa kelihatan di penjuru kiri atas
+  (`.pt-balik`, di atas iframe) — juga dalam kad "tidak boleh dibenam"; (2) bila tetikus kembali
+  ke dokumen pentas (zon tepi/krom/butang) dan iframe memegang fokus → `iframe.blur()` +
+  `window.focus()`, kekunci berfungsi semula. Penyampai masih boleh klik dalam iframe untuk
+  selak halaman. `KUNCI_ATUR_CARA` dieksport dari `lib/mjkd/pembentangan.ts`.
+- Slaid Portal NEXa dipindah: kini terus SELEPAS Atur Cara (bab Pembentangan), sebelum bahan.
+- Disahkan: typecheck, eslint, ujian pembentangan (20 lulus), `/dev/pentas` 1600×900: klik dalam
+  iframe (fokus IFRAME) → hover tepi → fokus BODY, ← berfungsi; butang kembali pada bahan
+  terbenam dan tidak terbenam → `#atur-cara`; ← dari bahan pertama → `#portal` → `#atur-cara`.
+
 ## 2026-11-17 — MJKD pembentangan: slaid "Portal NEXa" (QR laman web)
 
 - Arahan pimpinan untuk MJKD 18 Nov: PGB imbas QR → terus ke https://nexa-ustpmanjung.vercel.app/.

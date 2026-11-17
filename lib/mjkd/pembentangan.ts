@@ -641,6 +641,7 @@ export type InputDek = {
 export const kunciPerkara = (perkaraId: string) => `perkara-${perkaraId}`;
 export const KUNCI_SEMUA_SOALAN = "semua-soalan";
 export const KUNCI_PAPAN_PEMUKA = "papan-pemuka";
+export const KUNCI_ATUR_CARA = "atur-cara";
 
 /** Slaid utama Canva halaman `dari`..`hingga` (kunci `utama-{n}`). */
 function slaidUtama(dari: number, hingga: number): SlaidUtama[] {
@@ -764,7 +765,7 @@ export function binaDek({ data, baru }: InputDek): Slaid[] {
   dek.push(...slaidUtama(22, 22));
   dek.push({
     jenis: "atur-cara",
-    kunci: "atur-cara",
+    kunci: KUNCI_ATUR_CARA,
     bab: "pembentangan",
     tajuk: "Atur Cara",
     hari: kumpulan.map((k) => ({
@@ -782,6 +783,8 @@ export function binaDek({ data, baru }: InputDek): Slaid[] {
       ),
     })),
   });
+  // Portal NEXa terus selepas Atur Cara (arahan pengguna 2026-11-17); G = lompat bila-bila masa.
+  dek.push({ jenis: "portal", kunci: "portal", bab: "pembentangan", tajuk: "Portal NEXa" });
   urutan.forEach((b, i) => {
     dek.push({
       jenis: "bahan",
@@ -804,8 +807,6 @@ export function binaDek({ data, baru }: InputDek): Slaid[] {
   const hadirAcara = [...kodSekolahHadir(data.kehadiran.rekod)].filter((k) => kodSah.has(k)).length;
   const { bilangan } = papan.kpi;
   dek.push(...slaidUtama(23, 25));
-  // Portal NEXa sebelum Terima kasih (arahan pimpinan 2026-11-17); G = lompat ke sini bila-bila masa.
-  dek.push({ jenis: "portal", kunci: "portal", bab: "penutup", tajuk: "Portal NEXa" });
   dek.push({
     jenis: "penutup",
     kunci: "penutup",
