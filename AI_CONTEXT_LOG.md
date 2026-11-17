@@ -1,5 +1,12 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-11-17 — CoE Analytics: peringatan "Tindakan Sekolah" ESN 2026
+
+- `ESN_TINDAKAN_SEKOLAH[tahun]` dalam `EsnExplore.tsx` (guna `PeringatanBanner`), di bawah jalur
+  tarikh akhir. Isi: selesai ≤ 4 Dis 2026 (tarikh kawalan PPD; jalur tarikh akhir rasmi kekal 6 Dis)
+  + sasaran murid baharu (T3, T6, T2, T4: 20 orang; SKM ikut bilangan semasa T3 & T6). Salah
+  taip teks asal ("TARKH", "TEKAH") dibetulkan. Disahkan: typecheck, eslint, modal `/?analisis=esn`.
+
 ## 2026-11-17 — CoE Analytics: peringatan "Tindakan Sekolah" DELIMa 3.0 + DCS 2026
 
 - Arahan pimpinan: jalur peringatan (gaya `TarikhAkhirBanner` ESN, dakwat gelap) di atas modal.

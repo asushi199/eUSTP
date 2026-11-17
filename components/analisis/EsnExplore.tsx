@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import PeringatanBanner, { type PerkaraPeringatan } from "@/components/analisis/PeringatanBanner";
 import TahunSelect from "@/components/analisis/TahunSelect";
 import TarikhAkhirBanner from "@/components/analisis/TarikhAkhirBanner";
 import {
@@ -17,6 +18,17 @@ import {
 } from "@/lib/analisis/esn-types";
 
 type Tapis = "semua" | EsnStatus;
+
+/** Peringatan tindakan sekolah ESN, ikut tahun (arahan pimpinan 2026-11-17). */
+const ESN_TINDAKAN_SEKOLAH: Record<number, readonly PerkaraPeringatan[]> = {
+  2026: [
+    "Pastikan semua sekolah selesai sebelum atau pada 4 Disember 2026 (tarikh kawalan).",
+    {
+      teks: "Mohon ikut sasaran bilangan murid yang baharu (telah dimaklumkan kepada Penyelaras ESN sekolah):",
+      sub: ["Tahun 3, Tahun 6, Tingkatan 2 dan 4: 20 orang", "SKM: ikut bilangan semasa Tahun 3 & Tahun 6"],
+    },
+  ],
+};
 
 const num = (n: number) => n.toLocaleString("ms-MY");
 const pct = (n: number) => `${n.toLocaleString("ms-MY", { maximumFractionDigits: 1 })}%`;
@@ -81,6 +93,9 @@ export default function EsnExplore({ snapshots }: { snapshots: EsnSnapshot[] }) 
       </div>
       {ESN_TARIKH_AKHIR[snap.tahun] ? (
         <TarikhAkhirBanner iso={ESN_TARIKH_AKHIR[snap.tahun]} teks="Semua sekolah mesti selesai melaksanakan ESN" />
+      ) : null}
+      {ESN_TINDAKAN_SEKOLAH[snap.tahun] ? (
+        <PeringatanBanner tajuk={`ESN ${snap.tahun} — Tindakan Sekolah`} senarai={ESN_TINDAKAN_SEKOLAH[snap.tahun]} />
       ) : null}
       <EsnTahun key={snap.tahun} snap={snap} />
     </div>
