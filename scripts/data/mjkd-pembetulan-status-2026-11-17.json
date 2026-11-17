@@ -1,0 +1,524 @@
+[
+ {
+  "id": "8c553e1e-adb4-4026-8915-5c3143f3194d",
+  "kod": "ABA1002",
+  "para": "1.3",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "2c463b1c-96bf-4d82-998f-46e2772699e2",
+  "kod": "ABD1087",
+  "para": "1.3",
+  "statusLama": "BELUM"
+ },
+ {
+  "id": "2cc9e91a-aa2a-45a3-927f-efaf5079a686",
+  "kod": "ABD1093",
+  "para": "1.3",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "f99b0328-e4af-4528-a909-5c82894177a1",
+  "kod": "AEA1111",
+  "para": "1.3",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "505dfd1b-50fe-4ad5-b92b-f1e106303d52",
+  "kod": "AEE1026",
+  "para": "1.4",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "7d512509-130c-4550-9234-394001463d53",
+  "kod": "ABA1003",
+  "para": "1.6",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "1fe5dfe3-4b3a-490a-9291-ef8bd9af652c",
+  "kod": "ABA1004",
+  "para": "1.6",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "a5c43496-6014-45b6-a092-7fe036df8550",
+  "kod": "ABA1006",
+  "para": "1.6",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "1838b23b-5ff6-4db0-8ad7-d1b62ed489f2",
+  "kod": "ABA1009",
+  "para": "1.6",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "3976948c-07cd-4153-9b46-cd9ae3bb477f",
+  "kod": "ABA1010",
+  "para": "1.6",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "79f314c2-7d71-4f0b-9a93-b868e0b85468",
+  "kod": "ABA1012",
+  "para": "1.6",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "0949adcd-5d02-4b5b-a231-d362aff97066",
+  "kod": "ABA1013",
+  "para": "1.6",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "e38b628e-16e7-4bba-9351-330e11fcfc27",
+  "kod": "ABA1016",
+  "para": "1.6",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "f63449aa-833e-432f-8dc9-3d3e64c24f5b",
+  "kod": "ABA1017",
+  "para": "1.6",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "c672fcdf-aec1-4cb6-a460-0e1066a773c9",
+  "kod": "ABA1021",
+  "para": "1.6",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "4ed731f8-ae35-47bd-afe4-9ccfacb32634",
+  "kod": "ABA1024",
+  "para": "1.6",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "6b509855-77ea-4028-8ee2-08b5f6dc19b0",
+  "kod": "ABA1026",
+  "para": "1.6",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "f70bc6dd-90d2-4e36-83dc-2a52367de514",
+  "kod": "ABA1027",
+  "para": "1.6",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "fef70757-a680-4bb9-878b-3e53d0bc854d",
+  "kod": "ABA1031",
+  "para": "1.6",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "33b88017-9047-40da-8326-980b31ce7b4f",
+  "kod": "ABA1035",
+  "para": "1.6",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "fb5a4692-b97c-4d30-8b97-ef8f2ab81ff9",
+  "kod": "ABB1041",
+  "para": "1.6",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "5162bfc0-b857-483e-b31b-bad24f04c7a0",
+  "kod": "ABB1042",
+  "para": "1.6",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "02bb0815-2201-476d-a5e6-360734940c79",
+  "kod": "ABC1051",
+  "para": "1.6",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "ca79b6f8-be0d-4bdf-8ab3-8fd1719eb305",
+  "kod": "ABC1054",
+  "para": "1.6",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "57fc86e9-c21e-499e-ab47-14a7033cfe61",
+  "kod": "ABC1056",
+  "para": "1.6",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "adb4607e-c774-4142-ba42-0087b1073425",
+  "kod": "ABC1057",
+  "para": "1.6",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "cfc7fcaf-6774-4721-bf22-fa5d8639aca0",
+  "kod": "ABC1058",
+  "para": "1.6",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "8866a49e-544e-417e-b466-a1ec9ca95bf6",
+  "kod": "ABC1062",
+  "para": "1.6",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "604cceb4-bee1-485e-99bb-34fa2a5ea937",
+  "kod": "ABC1064",
+  "para": "1.6",
+  "statusLama": "BELUM"
+ },
+ {
+  "id": "30f7603c-b876-4c01-9ced-be7c77592d9a",
+  "kod": "ABD1075",
+  "para": "1.6",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "67e86a84-7f37-4d2d-af81-94c0fefef395",
+  "kod": "ABD1077",
+  "para": "1.6",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "a2366036-84fd-4386-83ae-524b6bd0dd71",
+  "kod": "ABD1078",
+  "para": "1.6",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "510f9257-358f-47d0-b9bc-5c1e02f02044",
+  "kod": "ABD1079",
+  "para": "1.6",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "934775d8-7e5f-4afc-95fd-5fbe390790f8",
+  "kod": "ABD1083",
+  "para": "1.6",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "359733aa-ec6a-4d15-813e-1d6de9b639e9",
+  "kod": "ABD1089",
+  "para": "1.6",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "a6b03a22-8b93-4973-b5b2-0a5b3b0c02a3",
+  "kod": "AEA1109",
+  "para": "1.6",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "3dec8491-4127-4f38-bdd4-e54c9350b528",
+  "kod": "AEA1112",
+  "para": "1.6",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "d7020afb-f901-499d-9582-86d39bb1aa8d",
+  "kod": "AEA1115",
+  "para": "1.6",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "b2aa8cfb-706b-4a36-b599-1d92d276d7eb",
+  "kod": "AEB1034",
+  "para": "1.6",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "a605dc60-a9f0-477e-bbc8-18c5764b7dcf",
+  "kod": "AEE1037",
+  "para": "1.6",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "a934ba81-a08c-4897-87ab-79a7226126fc",
+  "kod": "AEA1109",
+  "para": "3.3",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "f3aec10e-74ac-4bed-b89a-28dbd6a37768",
+  "kod": "AEA1113",
+  "para": "3.3",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "8b4d5e14-6199-454f-8df9-8a760cfe28eb",
+  "kod": "AEE1037",
+  "para": "3.3",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "f0b1f484-eb8f-430f-95ff-f734b3354d1e",
+  "kod": "AHA1002",
+  "para": "3.3",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "312d5a50-b140-4884-b73b-c31fcdc1d6e1",
+  "kod": "ABD1084",
+  "para": "4.1.3 (iii)",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "95eace80-bcb1-4b72-9776-243c1df195e9",
+  "kod": "ABA1017",
+  "para": "4.1.3 (vii)",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "710c8b0a-c269-48a7-b835-1da72d45bdb0",
+  "kod": "ABA1019",
+  "para": "4.1.3 (vii)",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "eb7f1245-fa97-4682-95f0-5ceaf5e4e3de",
+  "kod": "ABA1021",
+  "para": "4.1.3 (vii)",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "1c7244ea-f0ed-47b0-a3d0-1fc99229c4ec",
+  "kod": "ABA1035",
+  "para": "4.1.3 (vii)",
+  "statusLama": "BELUM"
+ },
+ {
+  "id": "1f55f6cb-307d-4834-972e-2fcd4b6588cd",
+  "kod": "ABB1042",
+  "para": "4.1.3 (vii)",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "c5f62056-d8a8-427c-b1e0-e7bf8618c674",
+  "kod": "ABC1054",
+  "para": "4.1.3 (vii)",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "53c96dd5-a479-49c6-b2de-a3d77d377910",
+  "kod": "ABD1078",
+  "para": "4.1.3 (vii)",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "77949a38-3a4f-43c9-ac2f-143868a767f9",
+  "kod": "ABD1079",
+  "para": "4.1.3 (vii)",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "0ea6a710-7539-4aaf-a369-248b4de664a2",
+  "kod": "AEE1037",
+  "para": "4.1.3 (vii)",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "43df0ef0-0553-48cd-9140-4e01b933b807",
+  "kod": "ABC1048",
+  "para": "7.3.5",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "4ef1132a-16c2-4760-8e46-f70a2c430dca",
+  "kod": "ABC1051",
+  "para": "7.3.5",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "125dea07-3daf-45b7-9544-82bf1ff22f49",
+  "kod": "ABC1052",
+  "para": "7.3.5",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "6afa5312-8f65-4ce7-9efa-b92168143b5e",
+  "kod": "ABC1054",
+  "para": "7.3.5",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "fe56687a-d58a-4cb4-a30c-90beceb10f3d",
+  "kod": "ABC1057",
+  "para": "7.3.5",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "8b30425f-4fb8-4927-a0c9-18ac8bb329f0",
+  "kod": "ABC1059",
+  "para": "7.3.5",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "91df38ad-3d2d-46f0-b1a5-57123602999f",
+  "kod": "ABD1075",
+  "para": "7.3.5",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "01a3a7d0-b25f-46cb-870d-ed67e2016e5e",
+  "kod": "ABD1078",
+  "para": "7.3.5",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "1a376607-8714-41b9-85b6-b30184d4be66",
+  "kod": "ABD1079",
+  "para": "7.3.5",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "588e52d5-882f-4cb1-8298-7b1472f58aaa",
+  "kod": "ABD1084",
+  "para": "7.3.5",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "14b810e3-7676-4fd5-b827-c3fd524d78ed",
+  "kod": "ABD1089",
+  "para": "7.3.5",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "af0af727-ba57-44da-8988-8729d03e4fa1",
+  "kod": "ABA1004",
+  "para": "7.4",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "b29d2d7a-ae59-43b8-bd12-d969d016d07b",
+  "kod": "ABA1006",
+  "para": "7.4",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "4590ab2b-d65f-400c-ade3-77190fc372b2",
+  "kod": "ABA1009",
+  "para": "7.4",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "4d843d9c-5576-4887-bccd-5b92458b80d0",
+  "kod": "ABA1017",
+  "para": "7.4",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "26d9099c-e622-49bb-bc37-b4bd315954db",
+  "kod": "ABA1019",
+  "para": "7.4",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "df22a8f5-0a38-489e-9fbc-94387c118eb1",
+  "kod": "ABA1026",
+  "para": "7.4",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "1b1b9337-1971-48ee-a5b1-fa0ee5c3ac72",
+  "kod": "ABA1027",
+  "para": "7.4",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "bbe74fb9-92a0-4973-912e-66d74a2501b3",
+  "kod": "ABB1041",
+  "para": "7.4",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "1ce01e66-493b-4505-9abb-4e2a53ca7f3b",
+  "kod": "ABC1048",
+  "para": "7.4",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "18dcb99a-b23e-457d-a9af-bf04adb0542d",
+  "kod": "ABC1049",
+  "para": "7.4",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "6a07f2a2-672a-4430-bc12-37a24f11239b",
+  "kod": "ABC1051",
+  "para": "7.4",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "52be8ca9-afb9-4a2a-b2b5-276c4d90cd3d",
+  "kod": "ABC1054",
+  "para": "7.4",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "88a465be-c54f-4b13-b111-b4b9361f5159",
+  "kod": "ABC1056",
+  "para": "7.4",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "b3e15408-00e8-4338-a8f5-41377af695be",
+  "kod": "ABC1057",
+  "para": "7.4",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "2c94bb6f-18e7-4c1d-aeef-6c6260c857c0",
+  "kod": "ABC1058",
+  "para": "7.4",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "e168a689-d4b2-430f-9c9c-329bd89f530d",
+  "kod": "ABD1075",
+  "para": "7.4",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "bdc6309b-435e-430d-80d1-6ef887c9baee",
+  "kod": "ABD1077",
+  "para": "7.4",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "b8533499-f2fe-41f9-ae1a-89e784f2627d",
+  "kod": "ABD1079",
+  "para": "7.4",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "a47a4109-a985-482b-b23e-1fd534844cd8",
+  "kod": "ABD1084",
+  "para": "7.4",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "76e4436c-f1cf-4d28-92b9-c69a3d785fff",
+  "kod": "AEA1112",
+  "para": "7.4",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "fa54c408-efe1-4b7a-a95d-3dc53698b6c7",
+  "kod": "AEA1115",
+  "para": "7.4",
+  "statusLama": "DALAM_PELAKSANAAN"
+ },
+ {
+  "id": "ec955bb9-d4b4-43f3-9967-7f9086cc7ae1",
+  "kod": "ABC1056",
+  "para": "17.1–17.3, 17.6",
+  "statusLama": "DALAM_PELAKSANAAN"
+ }
+]

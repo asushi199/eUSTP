@@ -1,5 +1,5 @@
 /**
- * MJKD 2026 ialah SATU acara (mesyuarat 21–22 Okt): kehadiran, minit + maklum balas perkara
+ * MJKD 2026 ialah SATU acara (mesyuarat 18 Nov 2026 — asalnya 21 Okt, ditunda): kehadiran, minit + maklum balas perkara
  * tindakan, dan bahan pembentangan semuanya pada satu rekod `mjkd_mesyuarat`. Minit dan perkara
  * tindakan itu berasal daripada Bil.1/2026 — label rujukannya di sini (modul 2026 sahaja).
  */

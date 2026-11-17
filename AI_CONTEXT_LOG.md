@@ -1,5 +1,20 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-11-17 — MJKD 2026 ditunda ke 18 Nov; pembetulan status maklum balas
+
+- Mesyuarat ditunda: `mjkd_mesyuarat.tarikh` 2026-10-21 → **2026-11-18** (`tarikh_tamat` null), dan
+  `mjkd_bahan.hari` ['2026-10-21'] → ['2026-11-18'] (1 bahan). Semua paparan tarikh (awam, admin,
+  pembentangan, hadir) membaca DB — tiada tarikh dikod keras. Slaid utama Canva akan dikemas kini
+  kemudian oleh pengguna.
+- Arahan ketua jabatan: label "Dalam Pelaksanaan"/"Akan Dilaksanakan" yang catatannya menunjukkan
+  tindakan PGB sudah dibuat → **SELESAI** (87 item daripada 164: PLC dengan sasaran ditetapkan dan
+  sudah berjalan, Task Force STEM sudah ditubuhkan, taklimat/hebahan sudah dibuat, pencerapan > 2
+  kali setahun, dsb.). Dikekalkan: tindakan masa depan (taklimat ibu bapa Dis/2027), belum
+  ditubuhkan, pencerapan hanya 2 kali, laporan PCG tidak dinyatakan dihantar, dan SEGAK/BMI yang
+  Ujian 2 masih dalam tempoh (kunci masuk hingga 22/30 Nov). Senarai id + status asal (untuk
+  kembalikan): `scripts/data/mjkd-pembetulan-status-2026-11-17.json`. Kini: SELESAI 701, DALAM 63,
+  BELUM 14, TIDAK_BERKAITAN 115.
+
 ## 2026-11-14 — Kemas kini data: DELIMa d3 (1 Jan – 14 Nov 2026) + DCS + ESN
 
 - Snapshot d3 `scripts/data/delima-d3-2026-11-14.csv` diimport (snapshot id 19, period 2026-11):
