@@ -1,5 +1,16 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-11-18 — MJKD: kehadiran tidak dikemas kini secara langsung (pepijat versiPentas)
+
+- Gejala (hari acara): imbas QR berjaya tetapi slaid Kehadiran hanya berubah selepas muat semula.
+- Punca: `versiPentas` (`lib/mjkd/pentas-data.ts`) — subquery merujuk `${mjkdMesyuarat.id}`;
+  Drizzle memaparkan lajur dalam medan `sql` TANPA nama jadual, jadi `where "mesyuarat_id" = "id"`
+  terikat pada `id` jadual dalam subquery (sentiasa palsu). Kiraan sentiasa 0 → versi tidak pernah
+  berubah → polling tidak pernah memuat kehadiran/maklum balas baharu. Ujian tidak menangkapnya
+  (polling hanya diuji dengan sumber simulasi `/dev/pentas`).
+- Pembetulan: subquery guna parameter `${id}::uuid`. SQL dijana disahkan; typecheck; ujian mjkd 92.
+- Pengajaran: dalam `sql\`...\`` Drizzle, jangan rujuk lajur jadual luar dari subquery berkorelasi.
+
 ## 2026-11-17 — MJKD: buang slaid pendua SK Lumut (hal. 95)
 
 - `lib/mjkd/slaid-utama.ts`: hal. 95 ("Khatam · SK Lumut (pendua)", imej sama `094.jpg`,

@@ -117,13 +117,18 @@ export async function muatDataPentas(mesyuaratId: string): Promise<DataPentas | 
  * dipadam (muat semula kehadiran sahaja).
  */
 export async function versiPentas(mesyuaratId: string): Promise<VersiPentas | null> {
+  if (!/^[0-9a-f-]{36}$/i.test(mesyuaratId)) return null;
+  const id = mesyuaratId;
+  // Subquery TIDAK boleh merujuk `${mjkdMesyuarat.id}`: Drizzle memaparkan lajur dalam medan
+  // `sql` tanpa nama jadual, jadi `"id"` terikat pada jadual dalam subquery (sentiasa palsu →
+  // versi tidak pernah berubah → polling tidak pernah memuat semula). Guna parameter.
   const [r] = await db
     .select({
       mesyuarat: sql<string>`${mjkdMesyuarat.updatedAt}::text`,
-      mb: sql<string>`(select count(*) || '/' || coalesce(max(${mjkdMaklumBalas.updatedAt})::text, '') || '/' || coalesce(max(${mjkdMaklumBalas.tarikhHantar})::text, '') from ${mjkdMaklumBalas} where ${mjkdMaklumBalas.mesyuaratId} = ${mjkdMesyuarat.id})`,
-      perkara: sql<string>`(select count(*) filter (where ${mjkdPerkara.aktif}) || '/' || count(*) from ${mjkdPerkara} where ${mjkdPerkara.mesyuaratId} = ${mjkdMesyuarat.id})`,
-      bahan: sql<string>`(select count(*) || '/' || coalesce(max(${mjkdBahan.updatedAt})::text, '') from ${mjkdBahan} where ${mjkdBahan.mesyuaratId} = ${mjkdMesyuarat.id})`,
-      hadir: sql<string>`(select count(*) || '/' || coalesce(max(${mjkdKehadiran.createdAt})::text, '') from ${mjkdKehadiran} where ${mjkdKehadiran.mesyuaratId} = ${mjkdMesyuarat.id})`,
+      mb: sql<string>`(select count(*) || '/' || coalesce(max(${mjkdMaklumBalas.updatedAt})::text, '') || '/' || coalesce(max(${mjkdMaklumBalas.tarikhHantar})::text, '') from ${mjkdMaklumBalas} where ${mjkdMaklumBalas.mesyuaratId} = ${id}::uuid)`,
+      perkara: sql<string>`(select count(*) filter (where ${mjkdPerkara.aktif}) || '/' || count(*) from ${mjkdPerkara} where ${mjkdPerkara.mesyuaratId} = ${id}::uuid)`,
+      bahan: sql<string>`(select count(*) || '/' || coalesce(max(${mjkdBahan.updatedAt})::text, '') from ${mjkdBahan} where ${mjkdBahan.mesyuaratId} = ${id}::uuid)`,
+      hadir: sql<string>`(select count(*) || '/' || coalesce(max(${mjkdKehadiran.createdAt})::text, '') from ${mjkdKehadiran} where ${mjkdKehadiran.mesyuaratId} = ${id}::uuid)`,
     })
     .from(mjkdMesyuarat)
     .where(eq(mjkdMesyuarat.id, mesyuaratId))
