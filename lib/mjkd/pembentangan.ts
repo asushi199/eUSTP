@@ -118,6 +118,7 @@ export type Bab =
   | "minit"
   | "maklum-balas"
   | "pembentangan"
+  | "hal-lain"
   | "penutup";
 
 /** `pendek` = label tab bar atas (krom); `label` penuh untuk Navigator. */
@@ -129,6 +130,7 @@ export const SENARAI_BAB: readonly { id: Bab; label: string; pendek?: string }[]
   { id: "minit", label: "Minit" },
   { id: "maklum-balas", label: "Maklum Balas" },
   { id: "pembentangan", label: "Pembentangan Sektor", pendek: "Sektor" },
+  { id: "hal-lain", label: "Hal-hal Lain (Anugerah)", pendek: "Hal Lain" },
   { id: "penutup", label: "Penutup" },
 ];
 
@@ -691,7 +693,7 @@ export function binaDek({ data, baru }: InputDek): Slaid[] {
       sekolahHadir: kiraanHariIni.sekolahHadir,
       pegawaiHadir: kiraanHariIni.pegawai,
     },
-    ...slaidUtama(1, 20),
+    ...slaidUtama(1, 26),
   ];
 
   const aktif = isihPerkara(data.perkara.filter((p) => p.aktif));
@@ -708,7 +710,7 @@ export function binaDek({ data, baru }: InputDek): Slaid[] {
     para: aktif.map((p) => p.para),
   });
 
-  dek.push(...slaidUtama(21, 21));
+  dek.push(...slaidUtama(27, 28));
   dek.push({
     jenis: "papan-pemuka",
     kunci: KUNCI_PAPAN_PEMUKA,
@@ -762,7 +764,7 @@ export function binaDek({ data, baru }: InputDek): Slaid[] {
     }
   }
   const nomborIkutId = new Map(urutan.map((b, i) => [b.id, i + 1]));
-  dek.push(...slaidUtama(22, 22));
+  dek.push(...slaidUtama(29, 30));
   dek.push({
     jenis: "atur-cara",
     kunci: KUNCI_ATUR_CARA,
@@ -806,7 +808,8 @@ export function binaDek({ data, baru }: InputDek): Slaid[] {
 
   const hadirAcara = [...kodSekolahHadir(data.kehadiran.rekod)].filter((k) => kodSah.has(k)).length;
   const { bilangan } = papan.kpi;
-  dek.push(...slaidUtama(23, 25));
+  // Hal-hal Lain (anugerah, Khatam Al-Quran) + Rumusan + Tahun Ini Tahun Kita.
+  dek.push(...slaidUtama(31, 118));
   dek.push({
     jenis: "penutup",
     kunci: "penutup",

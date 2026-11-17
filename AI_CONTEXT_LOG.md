@@ -35,6 +35,24 @@
   peratus kerana penyebut menurun (cth. SMK Seri Manjung 535 → 172, SMK Methodist (ACS)
   596 → 456, SMK Dindings 305 → 178), bukan hanya murid baharu selesai.
 
+## 2026-11-18 — MJKD: slaid utama Canva baharu (118 halaman, imej penuh)
+
+- Canva dikemas kini untuk acara 18 Nov (Dewan SJKC Uk Ing): 25 → **118 halaman** (tambah Rehat,
+  45 halaman anugerah "Tahniah!", 32 halaman Khatam Al-Quran, petugas doa/ikrar baharu, Agenda 4 =
+  Sektor Pembelajaran). Hampir semua halaman ada teks, jadi kaedah lama (latar + teks HTML)
+  ditinggalkan: setiap halaman kini **imej penuh** dieksport PowerPoint.
+- Fon Canva terbenam sebagai EOT `.fntdata` (tidak dibaca PowerPoint → fon gantian). Diekstrak
+  kepada TTF dan dimuat SEMENTARA (AddFontResource, tiada pemasangan); kotak nombor halaman Canva
+  dibuang sebelum eksport. Skrip: `scripts/mjkd-slaid-utama-pptx.ps1` (+ `-fon.py`, `-jpg.py`).
+  111 JPG unik (~36 MB; muka depan berulang berkongsi fail), JPG lama dibuang. Video lagu sama
+  (169 s) — `lagu.mp4` dikekalkan.
+- `HALAMAN_UTAMA` dijana semula (tajuk Navigator: nama sekolah anugerah/Khatam). Bab baharu
+  **Hal-hal Lain** (`hal-lain`, tab "Hal Lain"): halaman 31–115. Dek: utama 1–26 → Minit → 27–28
+  → Papan Pemuka … → 29–30 → Atur Cara → Portal → bahan → 31–118 → Terima kasih.
+- Nota kandungan Canva: halaman 94 dan 95 sama (SK Lumut 75.00%) — dimaklumkan kepada pengguna.
+- Disahkan: typecheck, eslint, ujian pembentangan (20 lulus), `/dev/pentas` 1600×900: imej
+  anugerah tajam, 9 tab muat, tab Hal Lain → utama-31, Penutup → utama-116, tiada ralat konsol.
+
 ## 2026-11-17 — MJKD: semakan semula "Akan Dilaksanakan"
 
 - 14 item BELUM disemak: tiada yang sebenarnya Selesai (12 benar-benar belum/akan datang).
