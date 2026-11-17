@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useSyncExternalStore } from "react";
 import TahunSelect from "@/components/analisis/TahunSelect";
+import PeringatanBanner, { type PerkaraPeringatan } from "@/components/analisis/PeringatanBanner";
 import TarikhAkhirBanner from "@/components/analisis/TarikhAkhirBanner";
 import BreakdownBarChart from "@/components/stats/BreakdownBarChart";
 import { DCS_TAHAP, DCS_TARIKH_AKHIR, type DcsBackup, type DcsSekolah, type DcsSnapshot } from "@/lib/analisis/dcs-types";
@@ -9,6 +10,17 @@ import { DCS_TAHAP, DCS_TARIKH_AKHIR, type DcsBackup, type DcsSekolah, type DcsS
 export type { DcsBackup };
 
 type Status = "semua" | "selesai" | "belum";
+
+/** Peringatan tindakan sekolah DCS, ikut tahun (arahan pimpinan 2026-11-17). */
+const DCS_TINDAKAN_SEKOLAH: Record<number, readonly PerkaraPeringatan[]> = {
+  2026: [
+    "Pastikan semua sekolah selesai sebelum atau pada 1 Disember 2026.",
+    {
+      teks: "Mohon ikut sasaran bilangan murid yang telah ditetapkan:",
+      sub: ["Tahun 6, Tingkatan 3 dan 5: 20 orang", "SKM: ikut bilangan semasa Tahun 6"],
+    },
+  ],
+};
 
 const num = (n: number) => n.toLocaleString("ms-MY");
 const pct = (n: number) => `${n.toLocaleString("ms-MY", { maximumFractionDigits: 1 })}%`;
@@ -108,6 +120,9 @@ export default function DcsExplore({
         ) : null}
       </div>
       {snap && DCS_TARIKH_AKHIR[snap.tahun] ? <TarikhAkhirBanner iso={DCS_TARIKH_AKHIR[snap.tahun]} teks="Semua murid mesti selesai menjawab" /> : null}
+      {snap && DCS_TINDAKAN_SEKOLAH[snap.tahun] ? (
+        <PeringatanBanner tajuk={`DCS ${snap.tahun} — Tindakan Sekolah`} senarai={DCS_TINDAKAN_SEKOLAH[snap.tahun]} />
+      ) : null}
       {snap ? <DcsTahun key={snap.tahun} snap={snap} /> : <DcsSandaran backup={backup} />}
     </div>
   );

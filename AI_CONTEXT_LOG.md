@@ -1,5 +1,22 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-11-17 — CoE Analytics: peringatan "Tindakan Sekolah" DELIMa 3.0 + DCS 2026
+
+- Arahan pimpinan: jalur peringatan (gaya `TarikhAkhirBanner` ESN, dakwat gelap) di atas modal.
+  Komponen baharu `components/analisis/PeringatanBanner.tsx` (tajuk + senarai bernombor, item boleh
+  ada sub-senarai).
+- DELIMa: `DELIMA_TINDAKAN_SEKOLAH` dalam `DelimaExplore.tsx`, dipapar pada lapisan ringkasan
+  (juga `/analisis` staf). DCS: `DCS_TINDAKAN_SEKOLAH[tahun]` dalam `DcsExplore.tsx`, di bawah jalur
+  tarikh akhir 1 Dis; hanya 2026 (tahun lain tiada jalur). Teks asal huruf besar ditukar ke huruf
+  ayat. Ubah/buang teks peringatan terus dalam pemalar tersebut.
+- Disahkan: typecheck, eslint, modal `/?analisis=delima` dan `/?analisis=dcs` tempatan.
+
+## 2026-11-17 — ESN: tarikh akhir 2026 dipinda ke 6 Disember
+
+- `ESN_TARIKH_AKHIR[2026]` (`lib/analisis/esn-types.ts`) 2026-12-15 → **2026-12-06**; ujian
+  `tests/analisis/esn.test.ts` dan CLAUDE.md dikemas kini. Disahkan: typecheck, ujian ESN (4 lulus),
+  modal `/?analisis=esn` tempatan papar "Tarikh akhir: 6 Disember 2026 · lagi 19 hari".
+
 ## 2026-11-17 — CoE Analytics: kad Bengkel disorok
 
 - Arahan pimpinan: kad "Bengkel" (5 Bengkel & penataran) disorok sementara. Suis

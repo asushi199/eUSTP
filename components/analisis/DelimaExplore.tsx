@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import DelimaArkibTable from "@/components/analisis/DelimaArkibTable";
 import KpiGroups from "@/components/analisis/KpiGroups";
+import PeringatanBanner from "@/components/analisis/PeringatanBanner";
 import TahunSelect from "@/components/analisis/TahunSelect";
 import {
   loadDelimaArkib,
@@ -23,6 +24,12 @@ import type {
   DelimaSchoolRow,
 } from "@/lib/analisis/delima-live";
 
+
+/** Peringatan tindakan sekolah DELIMa 3.0 (arahan pimpinan 2026-11-17). */
+const DELIMA_TINDAKAN_SEKOLAH = [
+  "Pastikan sekolah mempunyai jadual penggunaan DELIMa murid dan memastikan semua murid akses kepada DELIMa sekurang-kurangnya sebulan sekali.",
+  "Mohon guru dan murid log masuk DELIMa secara berkala pada setiap bulan. Pengiraan DELIMa 3.0 adalah secara purata bagi setiap bulan.",
+] as const;
 
 const BULAN = ["Januari", "Februari", "Mac", "April", "Mei", "Jun", "Julai", "Ogos", "September", "Oktober", "November", "Disember"];
 function bulanLabel(period: string): string {
@@ -762,6 +769,7 @@ export default function DelimaExplore({
 
   return (
     <>
+      <PeringatanBanner tajuk="DELIMa 3.0 — Tindakan Sekolah" senarai={DELIMA_TINDAKAN_SEKOLAH} />
       {children}
       <p className="mt-4 flex flex-wrap gap-2">
         <button type="button" className="btn-outline btn-sm" onClick={() => void openSchools()}>
