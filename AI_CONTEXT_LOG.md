@@ -1,5 +1,15 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-11-17 — ESN dikemas kini sebelum MJKD (18 Nov)
+
+- `scripts/data/esn-2026-11-17.json` diimport: murid selesai 6,004/9,864 = **60.9%** (14 Nov
+  5,194/10,191 = 51.0%). Sekolah rendah 32/27/22 (selesai/proses/belum), menengah 3/12/6.
+  Rekod ujian ABC1234 dibuang. Disemak = Dashboard; halaman utama langsung papar 60.9%.
+- 12 sekolah bertukar status (7 → Selesai, termasuk SMK Seri Manjung & SMK Pangkalan TLDM;
+  5 Belum → Proses). Jumlah murid berdaftar berubah di 25 sekolah — sebahagian kenaikan
+  peratus kerana penyebut menurun (cth. SMK Seri Manjung 535 → 172, SMK Methodist (ACS)
+  596 → 456, SMK Dindings 305 → 178), bukan hanya murid baharu selesai.
+
 ## 2026-11-17 — CoE Analytics: peringatan "Tindakan Sekolah" ESN 2026
 
 - `ESN_TINDAKAN_SEKOLAH[tahun]` dalam `EsnExplore.tsx` (guna `PeringatanBanner`), di bawah jalur
