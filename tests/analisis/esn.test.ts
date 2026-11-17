@@ -21,6 +21,6 @@ test("semakEsn mengesan sekolah tidak sepadan", () => {
   assert.ok(semakEsn(rosak).length > 0);
 });
 
-test("tarikh akhir ESN 2026 = 15 Disember", () => {
-  assert.equal(ESN_TARIKH_AKHIR[2026], "2026-12-15");
+test("tarikh akhir ESN 2026 = 6 Disember", () => {
+  assert.equal(ESN_TARIKH_AKHIR[2026], "2026-12-06");
 });

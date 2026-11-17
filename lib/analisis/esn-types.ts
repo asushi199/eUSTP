@@ -6,7 +6,7 @@
 
 /** Tarikh akhir pendaftaran & pelaksanaan ESN, ikut tahun (YYYY-MM-DD). */
 export const ESN_TARIKH_AKHIR: Record<number, string> = {
-  2026: "2026-12-15",
+  2026: "2026-12-06",
 };
 
 /** Taburan status: selesai / dalam proses / belum mula. */
