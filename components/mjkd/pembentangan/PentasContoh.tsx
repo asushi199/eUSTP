@@ -24,7 +24,17 @@ const salin = (d: DataPentas): DataPentas => JSON.parse(JSON.stringify(d)) as Da
  * `?auto=1` = simulasi automatik (hantar setiap 12 s, hadir setiap 4 s).
  * `__mjkdSim.gagal = true` = rangkaian terputus; `?luar=1` = halaman tanpa data pelayan (cache).
  */
-export default function PentasContoh({ qr, url, luar }: { qr: string; url: string; luar: boolean }) {
+export default function PentasContoh({
+  qr,
+  url,
+  portal,
+  luar,
+}: {
+  qr: string;
+  url: string;
+  portal: { url: string; qr: string };
+  luar: boolean;
+}) {
   // `luar`: rangkaian juga "terputus" sejak awal (uji paparan daripada cache).
   const [sim] = useState(() => Object.assign(binaContoh(hariIniKl()), { gagal: luar }));
   const awal = useMemo(() => (luar ? null : salin(sim.data)), [sim, luar]);
@@ -63,6 +73,7 @@ export default function PentasContoh({ qr, url, luar }: { qr: string; url: strin
       awal={awal}
       acara={{ tarikh: "21–22 Oktober 2026", tempat: "Hotel Rosa Passadena, Cameron Highland" }}
       kehadiran={{ url, qr }}
+      portal={portal}
       sumber={sumber}
       keluarHref="/"
       urlFoto={fotoContoh}

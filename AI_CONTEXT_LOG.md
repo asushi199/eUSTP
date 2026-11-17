@@ -10,6 +10,17 @@
   peratus kerana penyebut menurun (cth. SMK Seri Manjung 535 → 172, SMK Methodist (ACS)
   596 → 456, SMK Dindings 305 → 178), bukan hanya murid baharu selesai.
 
+## 2026-11-17 — MJKD pembentangan: slaid "Portal NEXa" (QR laman web)
+
+- Arahan pimpinan untuk MJKD 18 Nov: PGB imbas QR → terus ke https://nexa-ustpmanjung.vercel.app/.
+  Slaid baharu `jenis: "portal"` (kunci `portal`, bab Penutup) antara slaid utama 25 dan "Terima
+  kasih"; boleh dilompat bila-bila masa melalui G (Navigator) atau URL `#portal`.
+- `URL_PORTAL_NEXA` dalam `lib/mjkd/acara.ts`; QR dijana di pelayan (`qrDataUrl`) dalam halaman
+  pembentangan + `/dev/pentas`, dihantar melalui konteks `portal`. Komponen
+  `components/mjkd/pembentangan/slaid/SlaidPortal.tsx` (reka letak sama slaid Kehadiran).
+- Disahkan: typecheck, eslint, `tests/mjkd/pembentangan.test.ts` (20 lulus; susunan dek dikemas
+  kini), `/dev/pentas#portal` 1600×900, → ke penutup, Navigator.
+
 ## 2026-11-17 — CoE Analytics: peringatan "Tindakan Sekolah" ESN 2026
 
 - `ESN_TINDAKAN_SEKOLAH[tahun]` dalam `EsnExplore.tsx` (guna `PeringatanBanner`), di bawah jalur

@@ -12,6 +12,9 @@ export const MINIT_RUJUKAN = {
   tempat: "Park Avenue Hotel, Sungai Petani Kedah",
 } as const;
 
+/** Portal NEXa awam — QR pada slaid "Portal NEXa" mod pembentangan. */
+export const URL_PORTAL_NEXA = "https://nexa-ustpmanjung.vercel.app/";
+
 const BULAN = [
   "Januari",
   "Februari",

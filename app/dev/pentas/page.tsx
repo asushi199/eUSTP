@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import PentasContoh from "@/components/mjkd/pembentangan/PentasContoh";
+import { URL_PORTAL_NEXA } from "@/lib/mjkd/acara";
 import { qrDataUrl } from "@/lib/mjkd/qr";
 
 export const dynamic = "force-dynamic";
@@ -16,5 +17,12 @@ export default async function DevPentasPage({
   if (process.env.NODE_ENV === "production") notFound();
   const url = "https://nexa-ustpmanjung.vercel.app/laporan-mjkd/hadir";
   const sp = await searchParams;
-  return <PentasContoh qr={await qrDataUrl(url)} url={url} luar={sp.luar !== undefined} />;
+  return (
+    <PentasContoh
+      qr={await qrDataUrl(url)}
+      url={url}
+      portal={{ url: URL_PORTAL_NEXA, qr: await qrDataUrl(URL_PORTAL_NEXA) }}
+      luar={sp.luar !== undefined}
+    />
+  );
 }

@@ -268,6 +268,9 @@ export type SlaidUtama = Asas & {
   video: string | null;
 };
 
+/** QR besar ke portal NEXa (halaman utama awam) — PGB imbas untuk melihat laman web. */
+export type SlaidPortal = Asas & { jenis: "portal" };
+
 export type SlaidPenutup = Asas & {
   jenis: "penutup";
   sekolahHadir: number;
@@ -286,6 +289,7 @@ export type Slaid =
   | SlaidAturCara
   | SlaidBahan
   | SlaidUtama
+  | SlaidPortal
   | SlaidPenutup;
 
 /* --------------------------------- bantuan --------------------------------- */
@@ -800,6 +804,8 @@ export function binaDek({ data, baru }: InputDek): Slaid[] {
   const hadirAcara = [...kodSekolahHadir(data.kehadiran.rekod)].filter((k) => kodSah.has(k)).length;
   const { bilangan } = papan.kpi;
   dek.push(...slaidUtama(23, 25));
+  // Portal NEXa sebelum Terima kasih (arahan pimpinan 2026-11-17); G = lompat ke sini bila-bila masa.
+  dek.push({ jenis: "portal", kunci: "portal", bab: "penutup", tajuk: "Portal NEXa" });
   dek.push({
     jenis: "penutup",
     kunci: "penutup",

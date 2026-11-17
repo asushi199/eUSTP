@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Pentas from "@/components/mjkd/pembentangan/Pentas";
 import { requireKandunganAccess } from "@/lib/rbac";
-import { julatTarikh } from "@/lib/mjkd/acara";
+import { URL_PORTAL_NEXA, julatTarikh } from "@/lib/mjkd/acara";
 import { urlKehadiranAwam } from "@/lib/mjkd/base-url";
 import { muatDataPentas } from "@/lib/mjkd/pentas-data";
 import { getMesyuarat } from "@/lib/mjkd/queries";
@@ -42,6 +42,7 @@ export default async function AdminMjkdPembentanganPage({ params }: Props) {
 
   const url = await urlKehadiranAwam();
   const qr = await qrDataUrl(url);
+  const qrPortal = await qrDataUrl(URL_PORTAL_NEXA);
 
   return (
     <Pentas
@@ -49,6 +50,7 @@ export default async function AdminMjkdPembentanganPage({ params }: Props) {
       awal={awal}
       acara={{ tarikh: julatTarikh(mesyuarat.tarikh, mesyuarat.tarikhTamat), tempat: mesyuarat.tempat }}
       kehadiran={{ url, qr }}
+      portal={{ url: URL_PORTAL_NEXA, qr: qrPortal }}
     />
   );
 }

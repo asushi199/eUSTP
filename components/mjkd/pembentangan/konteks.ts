@@ -7,6 +7,8 @@ import type { StatusMjkd } from "@/lib/mjkd/enums";
 export type KonteksSlaid = {
   acara: { tarikh: string; tempat: string };
   kehadiran: { url: string; qr: string };
+  /** QR portal NEXa (slaid Portal). */
+  portal: { url: string; qr: string };
   keKunci: (kunci: string) => void;
   /** Slaid sebelum / seterusnya (zon navigasi di atas iframe). */
   gerak: (d: number) => void;

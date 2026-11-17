@@ -37,6 +37,7 @@ import SlaidKehadiran from "./slaid/SlaidKehadiran";
 import SlaidMinit from "./slaid/SlaidMinit";
 import SlaidPapanPemuka from "./slaid/SlaidPapanPemuka";
 import SlaidPembukaan from "./slaid/SlaidPembukaan";
+import SlaidPortal from "./slaid/SlaidPortal";
 import SlaidPenutup from "./slaid/SlaidPenutup";
 import SlaidPerkara from "./slaid/SlaidPerkara";
 import SlaidSemuaSoalan from "./slaid/SlaidSemuaSoalan";
@@ -76,6 +77,8 @@ function Isi({ slaid }: { slaid: Slaid }) {
       return <SlaidBahan slaid={slaid} />;
     case "utama":
       return <SlaidUtama slaid={slaid} />;
+    case "portal":
+      return <SlaidPortal />;
     case "penutup":
       return <SlaidPenutup slaid={slaid} />;
   }
@@ -93,6 +96,7 @@ export default function Pentas({
   awal,
   acara,
   kehadiran,
+  portal,
   sumber: sumberLuar,
   keluarHref,
   urlFoto = urlFotoBukti,
@@ -102,6 +106,7 @@ export default function Pentas({
   awal: DataPentas | null;
   acara: { tarikh: string; tempat: string };
   kehadiran: { url: string; qr: string };
+  portal: { url: string; qr: string };
   /** Pratonton dev sahaja — lalai server action. */
   sumber?: SumberPentas;
   keluarHref?: string;
@@ -489,8 +494,8 @@ export default function Pentas({
   /* --------------------------------- paparan --------------------------------- */
 
   const konteks = useMemo<KonteksSlaid>(
-    () => ({ acara, kehadiran, keKunci, gerak, bukaSpot, bukaSekolah, bukaStatus, urlFoto }),
-    [acara, kehadiran, keKunci, gerak, bukaSpot, bukaSekolah, bukaStatus, urlFoto],
+    () => ({ acara, kehadiran, portal, keKunci, gerak, bukaSpot, bukaSekolah, bukaStatus, urlFoto }),
+    [acara, kehadiran, portal, keKunci, gerak, bukaSpot, bukaSekolah, bukaStatus, urlFoto],
   );
 
   // Masuk animasi hanya bila slaid bertukar (bukan bila data disegarkan).

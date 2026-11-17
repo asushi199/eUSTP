@@ -304,6 +304,7 @@ test("binaDek: susunan bab berterusan; satu slaid setiap perkara aktif; tiada sl
       "utama",
       "utama",
       "utama",
+      "portal",
       "penutup",
     ],
   );
@@ -448,7 +449,8 @@ test("binaDek: slaid utama Canva — 25 halaman ikut susunan, pembahagi agenda s
   assert.equal(kunci("utama-20") + 1, kunci("minit"));
   assert.equal(kunci("utama-21") + 1, kunci("papan-pemuka"));
   assert.equal(kunci("utama-22") + 1, kunci("atur-cara"));
-  assert.equal(kunci("utama-25") + 1, kunci("penutup"));
+  assert.equal(kunci("utama-25") + 1, kunci("portal"));
+  assert.equal(kunci("portal") + 1, kunci("penutup"));
   assert.deepEqual(
     utama.filter((s) => s.jenis === "utama" && s.video).map((s) => s.kunci),
     ["utama-2"],
