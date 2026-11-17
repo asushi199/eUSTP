@@ -8,6 +8,10 @@
   siap), Seri Manjung 539/564 (SK Pangkalan TLDM 2 30/32 baharu). Pantai Remis, Beruas, Ayer
   Tawar tiada perubahan murid. Ranking Perak turun (PKG lain maju): Beruas 9, Ayer Tawar 13,
   Pantai Remis 22, Seri Manjung 25, Sitiawan 46.
+- DELIMa d3 juga dibaca semula (1 Jan – 17 Nov): `scripts/data/delima-d3-2026-11-17.csv`
+  menggantikan snapshot 2026-11 (id 19) — guru 3,749/3,833 (97.81%), murid 24,401/41,232
+  (59.18%), capai KPI murid 49 (tidak berubah). 22 sekolah bertambah sedikit; Σ sekolah = PPD.
+  Regex baca kini terima "Pelajar Aktif" (KV) terus.
 - Fail tempatan tidak berkaitan (`.agents/`, `skills-lock.json`, dua xlsx Kekerapan dalam
   `outputs/`) dimasukkan ke `.git/info/exclude` (tempatan sahaja, tidak dikomit).
 
