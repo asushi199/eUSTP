@@ -304,7 +304,7 @@ test("binaDek: susunan bab berterusan; satu slaid setiap perkara aktif; tiada sl
       "portal",
       "bahan",
       "bahan",
-      ...Array<string>(88).fill("utama"),
+      ...Array<string>(87).fill("utama"),
       "penutup",
     ],
   );
@@ -438,12 +438,12 @@ test("jawapanSekolah: cari maklum balas + item bagi perkara", () => {
   assert.equal(jawapanSekolah(d, "p2", "ABA1002").item, null);
 });
 
-test("binaDek: slaid utama Canva — 118 halaman ikut susunan, pembahagi agenda sebelum bab data", () => {
+test("binaDek: slaid utama Canva — 117 halaman ikut susunan (hal. 95 pendua dibuang), pembahagi agenda sebelum bab data", () => {
   const dek = binaDek({ data: data() });
   const utama = dek.filter((s) => s.jenis === "utama");
   assert.deepEqual(
     utama.map((s) => s.jenis === "utama" && s.halaman),
-    Array.from({ length: 118 }, (_, i) => i + 1),
+    Array.from({ length: 118 }, (_, i) => i + 1).filter((h) => h !== 95),
   );
   const kunci = (k: string) => dek.findIndex((s) => s.kunci === k);
   assert.equal(kunci("utama-26") + 1, kunci("minit"));

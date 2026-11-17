@@ -1,5 +1,14 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-11-17 — MJKD: buang slaid pendua SK Lumut (hal. 95)
+
+- `lib/mjkd/slaid-utama.ts`: hal. 95 ("Khatam · SK Lumut (pendua)", imej sama `094.jpg`,
+  75.00%) dibuang atas permintaan pengguna — dek kini 117 slaid utama; nombor `halaman` lain
+  dikekalkan ikut Canva (kunci `utama-N` tidak berubah).
+- `tests/mjkd/pembentangan.test.ts` dikemas kini (87 slaid selepas hal. 30; senarai tanpa 95).
+- Disahkan: ujian pembentangan 20/20, typecheck.
+- Jika PPTX dieksport semula dari Canva, padam juga halaman pendua itu dalam Canva.
+
 ## 2026-11-17 — Sorok kad Pensijilan Digital; CoE Analytics satu grid berterusan
 
 - `app/(public)/page.tsx`: suis `SHOW_PENSIJILAN = false` (sama corak `SHOW_BENGKEL`) — kad

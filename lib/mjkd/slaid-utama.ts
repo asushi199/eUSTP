@@ -3,7 +3,7 @@
  * 18 Nov 2026, 118 halaman) — disisipkan ke dalam dek mod pembentangan. Setiap halaman ialah imej
  * PENUH 1920×1080 (termasuk teks) dieksport melalui PowerPoint dengan fon terbenam Canva
  * (`scripts/mjkd-slaid-utama-pptx.ps1`), di `public/mjkd/slaid-utama/` (dikecualikan daripada
- * precache PWA). Halaman yang sama (muka depan berulang) berkongsi satu fail.
+ * precache PWA). Halaman yang sama (muka depan berulang) berkongsi satu fail. Hal. 95 (pendua SK Lumut) dibuang.
  * Jika Canva dikemas kini: eksport PPTX semula dan jalankan skrip itu (lihat AI_CONTEXT_LOG.md).
  */
 import type { Bab } from "./pembentangan";
@@ -127,7 +127,6 @@ export const HALAMAN_UTAMA: readonly HalamanUtama[] = [
   { halaman: 92, bab: "hal-lain", tajuk: "Khatam · SK Sungai Tiram", gambar: "092.jpg" },
   { halaman: 93, bab: "hal-lain", tajuk: "Khatam · SK Dato' Ishak", gambar: "093.jpg" },
   { halaman: 94, bab: "hal-lain", tajuk: "Khatam · SK Lumut", gambar: "094.jpg" },
-  { halaman: 95, bab: "hal-lain", tajuk: "Khatam · SK Lumut (pendua)", gambar: "094.jpg" },
   { halaman: 96, bab: "hal-lain", tajuk: "Khatam · SK Telaga Nanas", gambar: "096.jpg" },
   { halaman: 97, bab: "hal-lain", tajuk: "Khatam · SK Kayan", gambar: "097.jpg" },
   { halaman: 98, bab: "hal-lain", tajuk: "Khatam · SK Seri Manjung", gambar: "098.jpg" },
