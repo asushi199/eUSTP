@@ -29,6 +29,13 @@ const SHOW_LAPORAN_TILES: boolean = false;
  */
 const SHOW_BENGKEL: boolean = false;
 
+/**
+ * Kad "Pensijilan Digital" dalam CoE Analytics disorok buat sementara (arahan
+ * pengguna 2026-11-17). Data & halaman /analisis tidak terjejas. Tukar kepada
+ * true untuk memaparkannya semula.
+ */
+const SHOW_PENSIJILAN: boolean = false;
+
 function AssuranceIcon() {
   return (
     <span
@@ -119,7 +126,7 @@ export default async function HomePage() {
           {analisis || perkhidmatan ? (
             <HomeAnalisisBand
               indikator={[
-                ...(analisis ?? []),
+                ...(analisis ?? []).filter((m) => SHOW_PENSIJILAN || m.id !== "pensijilan"),
                 ...(SHOW_BENGKEL ? [bengkelHomeModule] : []),
                 ...(tebusBuku ? [tebusBuku] : []),
                 penyertaanHomeModule,

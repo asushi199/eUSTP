@@ -1,5 +1,17 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-11-17 — Sorok kad Pensijilan Digital; CoE Analytics satu grid berterusan
+
+- `app/(public)/page.tsx`: suis `SHOW_PENSIJILAN = false` (sama corak `SHOW_BENGKEL`) — kad
+  Pensijilan Digital tidak dipapar dalam CoE Analytics halaman utama. Data, admin dan
+  `/analisis` tidak terjejas; tukar kepada `true` untuk papar semula.
+- `components/home/HomeAnalisisBand.tsx`: dua grid (indikator / mesyuarat+perkhidmatan) digabung
+  jadi satu grid berterusan (permintaan pengguna: tiada lubang). Kad terakhir merentang baki
+  lajur (`spanKadAkhir`: telefon 2 lajur, desktop 3 lajur). Kini 10 kad: desktop 3+3+3+1
+  (Tempahan PKG penuh lebar), telefon 2×5.
+- Disahkan: typecheck, eslint (amaran `delimaLayer` sedia ada), build; dev 375px & 1280px —
+  susunan + modal ESN dibuka.
+
 ## 2026-11-17 — ESN dikemas kini sebelum MJKD (18 Nov)
 
 - DCS juga dibaca semula: `scripts/data/dcs-2026-11-17.json` diimport — murid 2,238/2,424 =
@@ -22,6 +34,13 @@
   5 Belum → Proses). Jumlah murid berdaftar berubah di 25 sekolah — sebahagian kenaikan
   peratus kerana penyebut menurun (cth. SMK Seri Manjung 535 → 172, SMK Methodist (ACS)
   596 → 456, SMK Dindings 305 → 178), bukan hanya murid baharu selesai.
+
+## 2026-11-17 — MJKD: semakan semula "Akan Dilaksanakan"
+
+- 14 item BELUM disemak: tiada yang sebenarnya Selesai (12 benar-benar belum/akan datang).
+  2 item sudah bermula → DALAM_PELAKSANAAN (arahan pengguna): ABC1064 para 7.4 (id fafb7277…,
+  Fasa 1 pencerapan selesai) dan ABD1079 para 17.x (id abe4f418…, taklimat SEGAK 8 Apr).
+  Kini: SELESAI 708, DALAM 65, BELUM 12, TIDAK_BERKAITAN 116 (jumlah naik — sekolah masih menghantar).
 
 ## 2026-11-17 — MJKD pembentangan: kembali dari bahan terbenam + Portal selepas Atur Cara
 
