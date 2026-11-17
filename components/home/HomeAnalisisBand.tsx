@@ -241,7 +241,7 @@ export default function HomeAnalisisBand({
   const penyertaan = indikator.find((m) => m.id === "penyertaan") ?? null;
   const bengkel = indikator.find((m) => m.id === "bengkel") ?? null;
   // Baris atas: indikator USTP (6). Baris bawah: bengkel, tebus buku, penyertaan + 3 perkhidmatan (6),
-  // supaya grid 3 lajur penuh tanpa kad yatim.
+  // supaya grid 3 lajur penuh tanpa kad yatim. (Bengkel kini disorok — `SHOW_BENGKEL` di app/(public)/page.tsx.)
   const lead = indikator.filter((m) => m.id !== "bengkel" && m.id !== "tebus-buku" && m.id !== "penyertaan");
   const mesyuarat = [bengkel, tebus, penyertaan].filter((m): m is AnalisisHomeModule => m != null);
   const active =

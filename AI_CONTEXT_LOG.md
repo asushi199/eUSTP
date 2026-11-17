@@ -1,5 +1,12 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-11-17 — CoE Analytics: kad Bengkel disorok
+
+- Arahan pimpinan: kad "Bengkel" (5 Bengkel & penataran) disorok sementara. Suis
+  `SHOW_BENGKEL = false` dalam `app/(public)/page.tsx` — tukar ke `true` untuk papar semula
+  (data kekal dalam `lib/analisis/bengkel.ts`). Baris bawah kini 5 kad (3 + 2 pada desktop).
+- Disahkan: typecheck; halaman utama tempatan tiada "Bengkel & penataran" dalam `#coe-analytics`.
+
 ## 2026-11-17 — MJKD 2026 ditunda ke 18 Nov; pembetulan status maklum balas
 
 - Mesyuarat ditunda: `mjkd_mesyuarat.tarikh` 2026-10-21 → **2026-11-18** (`tarikh_tamat` null), dan

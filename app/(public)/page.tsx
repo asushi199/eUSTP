@@ -23,6 +23,12 @@ export const dynamic = "force-dynamic";
  */
 const SHOW_LAPORAN_TILES: boolean = false;
 
+/**
+ * Kad "Bengkel" dalam CoE Analytics disorok buat sementara (arahan pimpinan
+ * 2026-11-17). Tukar kepada true untuk memaparkannya semula.
+ */
+const SHOW_BENGKEL: boolean = false;
+
 function AssuranceIcon() {
   return (
     <span
@@ -114,7 +120,7 @@ export default async function HomePage() {
             <HomeAnalisisBand
               indikator={[
                 ...(analisis ?? []),
-                bengkelHomeModule,
+                ...(SHOW_BENGKEL ? [bengkelHomeModule] : []),
                 ...(tebusBuku ? [tebusBuku] : []),
                 penyertaanHomeModule,
               ]}
