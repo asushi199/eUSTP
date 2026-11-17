@@ -2,6 +2,15 @@
 
 ## 2026-11-17 — ESN dikemas kini sebelum MJKD (18 Nov)
 
+- DCS juga dibaca semula: `scripts/data/dcs-2026-11-17.json` diimport — murid 2,238/2,424 =
+  **92.3%** (14 Nov 2,143/2,275 = 94.2%; peratus turun kerana murid baharu didaftar).
+  Sitiawan 547/681 (SK Lekir 19/73 & SK St. Francis 36/44 baharu daftar; SJKC Chinese National
+  siap), Seri Manjung 539/564 (SK Pangkalan TLDM 2 30/32 baharu). Pantai Remis, Beruas, Ayer
+  Tawar tiada perubahan murid. Ranking Perak turun (PKG lain maju): Beruas 9, Ayer Tawar 13,
+  Pantai Remis 22, Seri Manjung 25, Sitiawan 46.
+- Fail tempatan tidak berkaitan (`.agents/`, `skills-lock.json`, dua xlsx Kekerapan dalam
+  `outputs/`) dimasukkan ke `.git/info/exclude` (tempatan sahaja, tidak dikomit).
+
 - `scripts/data/esn-2026-11-17.json` diimport: murid selesai 6,004/9,864 = **60.9%** (14 Nov
   5,194/10,191 = 51.0%). Sekolah rendah 32/27/22 (selesai/proses/belum), menengah 3/12/6.
   Rekod ujian ABC1234 dibuang. Disemak = Dashboard; halaman utama langsung papar 60.9%.
