@@ -6,9 +6,9 @@
   Pensijilan Digital tidak dipapar dalam CoE Analytics halaman utama. Data, admin dan
   `/analisis` tidak terjejas; tukar kepada `true` untuk papar semula.
 - `components/home/HomeAnalisisBand.tsx`: dua grid (indikator / mesyuarat+perkhidmatan) digabung
-  jadi satu grid berterusan (permintaan pengguna: tiada lubang). Kad terakhir merentang baki
-  lajur (`spanKadAkhir`: telefon 2 lajur, desktop 3 lajur). Kini 10 kad: desktop 3+3+3+1
-  (Tempahan PKG penuh lebar), telefon 2×5.
+  jadi satu grid berterusan (permintaan pengguna: tiada lubang di tengah). Semua kad saiz sama —
+  kad terakhir TIDAK direntang (pengguna menolak versi kad akhir penuh lebar). Kini 10 kad:
+  desktop 3+3+3+1, telefon 2×5.
 - Disahkan: typecheck, eslint (amaran `delimaLayer` sedia ada), build; dev 375px & 1280px —
   susunan + modal ESN dibuka.
 

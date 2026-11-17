@@ -14,15 +14,6 @@ import OptikExplore, { type OptikExploreLayer } from "@/components/analisis/Opti
 
 const PERKHIDMATAN_IDS = new Set(["khidmat-bantu", "pinjaman-aset", "tempahan-pkg"]);
 
-/**
- * Semua kad dalam satu grid berterusan (2 lajur telefon, 3 lajur desktop). Kad terakhir
- * merentang baki lajur supaya baris akhir penuh — tiada lubang walau berapa kad disorok.
- */
-function spanKadAkhir(bil: number): string {
-  const telefon = bil % 2 === 1 ? "col-span-2" : "";
-  const desktop = bil % 3 === 1 ? "sm:col-span-3" : bil % 3 === 2 ? "sm:col-span-2" : "sm:col-span-1";
-  return `${telefon} ${desktop}`.trim();
-}
 
 /* Carta recharts dimuat malas — hanya diambil apabila modal dibuka. */
 const chartLoading = () => (
@@ -185,17 +176,15 @@ function statRows(
 function ModuleCard({
   mod,
   onOpen,
-  className = "",
 }: {
   mod: AnalisisHomeModule;
   onOpen: (id: AnalisisHomeModule["id"]) => void;
-  className?: string;
 }) {
   return (
     <button
       type="button"
       onClick={() => onOpen(mod.id)}
-      className={`card group p-4 text-left transition hover:-translate-y-0.5 hover:shadow-modal focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${className}`}
+      className="card group p-4 text-left transition hover:-translate-y-0.5 hover:shadow-modal focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
       aria-haspopup="dialog"
     >
       <span className="flex items-center justify-between gap-2">
@@ -253,7 +242,7 @@ export default function HomeAnalisisBand({
   const penyertaan = indikator.find((m) => m.id === "penyertaan") ?? null;
   const bengkel = indikator.find((m) => m.id === "bengkel") ?? null;
   // Susunan: indikator USTP → bengkel, tebus buku, penyertaan → 3 perkhidmatan, dalam SATU grid
-  // berterusan (tiada lubang). Bengkel & Pensijilan kini disorok — `SHOW_BENGKEL` / `SHOW_PENSIJILAN`
+  // berterusan, semua kad saiz sama (baris akhir boleh tidak penuh). Bengkel & Pensijilan kini disorok — `SHOW_BENGKEL` / `SHOW_PENSIJILAN`
   // di app/(public)/page.tsx.
   const lead = indikator.filter((m) => m.id !== "bengkel" && m.id !== "tebus-buku" && m.id !== "penyertaan");
   const mesyuarat = [bengkel, tebus, penyertaan].filter((m): m is AnalisisHomeModule => m != null);
@@ -344,13 +333,8 @@ export default function HomeAnalisisBand({
     <>
       {semuaKad.length > 0 ? (
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {semuaKad.map(({ mod, onOpen }, i) => (
-            <ModuleCard
-              key={mod.id}
-              mod={mod}
-              onOpen={onOpen}
-              className={i === semuaKad.length - 1 ? spanKadAkhir(semuaKad.length) : ""}
-            />
+          {semuaKad.map(({ mod, onOpen }) => (
+            <ModuleCard key={mod.id} mod={mod} onOpen={onOpen} />
           ))}
         </div>
       ) : null}
