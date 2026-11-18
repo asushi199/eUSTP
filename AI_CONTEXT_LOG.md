@@ -1,5 +1,15 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-11-18 — DCS: SK Simpang Empat → SK Seri Serdang (ABB1043)
+
+- dcs.moe.edu.my masih memaparkan nama lama "SK SIMPANG EMPAT" bagi ABB1043 (jadual `schools`:
+  SK SERI SERDANG), jadi CoE Analytics/DCS menunjukkan nama lama dan tiada "Seri Serdang".
+- Data: nama dibetulkan dalam 3 snapshot `analisis_dcs_snapshots` (16 Okt, 14 Nov, 17 Nov — medan
+  `nama` sahaja, angka tidak berubah) + `scripts/data/dcs-2026-*.json`; cache `home` dikosongkan.
+- Kod: `NAMA_SEKOLAH_DCS_BETUL` + `betulkanNamaDcs()` dalam `lib/analisis/dcs-types.ts`, dipanggil
+  oleh `scripts/import-dcs.ts` — import bulanan seterusnya kekal betul. Tambah kod lain di peta itu
+  jika DCS memaparkan nama lama sekolah lain. Ujian `tests/analisis/dcs-nama.test.ts`.
+
 ## 2026-11-18 — Kad Bengkel CoE Analytics dipulihkan untuk pegawai log masuk sahaja
 
 - `app/(public)/page.tsx`: suis `SHOW_BENGKEL` diganti `bolehLihatBengkel()` — kad Bengkel hanya

@@ -68,6 +68,24 @@ export type DcsBackup = {
   sourceLabel: string;
 };
 
+/**
+ * Nama sekolah yang masih LAMA di dcs.moe.edu.my → nama rasmi semasa (jadual `schools`), ikut kod.
+ * Ditambah 2026-11-18: ABB1043 dipapar DCS sebagai "SK SIMPANG EMPAT" (nama lama SK Seri Serdang).
+ */
+export const NAMA_SEKOLAH_DCS_BETUL: Readonly<Record<string, string>> = {
+  ABB1043: "SK SERI SERDANG",
+};
+
+/** Betulkan nama sekolah lama dalam snapshot DCS (dipanggil semasa import). */
+export function betulkanNamaDcs(s: DcsSnapshot): DcsSnapshot {
+  return {
+    ...s,
+    sekolah: s.sekolah.map((x) =>
+      NAMA_SEKOLAH_DCS_BETUL[x.kod] ? { ...x, nama: NAMA_SEKOLAH_DCS_BETUL[x.kod]! } : x,
+    ),
+  };
+}
+
 /** Semakan konsisten: jumlah murid sekolah = angka PKG (halaman Ranking). */
 export function semakDcs(s: DcsSnapshot): string[] {
   const ralat: string[] = [];

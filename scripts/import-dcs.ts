@@ -1,7 +1,7 @@
 import "./load-env";
 import { revalidateSite } from "./revalidate-site";
 import { readFileSync } from "node:fs";
-import { semakDcs, type DcsSnapshot } from "../lib/analisis/dcs-types";
+import { betulkanNamaDcs, semakDcs, type DcsSnapshot } from "../lib/analisis/dcs-types";
 
 /**
  * Import snapshot DCS (dcs.moe.edu.my) — JSON yang dihimpun daripada 5 akaun PKG Manjung
@@ -15,7 +15,8 @@ async function main() {
   const fail = args.find((a) => !a.startsWith("--"));
   if (!fail) throw new Error("Guna: db:import-dcs -- <fail.json> [--dry-run]");
 
-  const data = JSON.parse(readFileSync(fail, "utf8")) as DcsSnapshot;
+  // Nama sekolah lama di DCS → nama rasmi (cth. SK Simpang Empat → SK Seri Serdang).
+  const data = betulkanNamaDcs(JSON.parse(readFileSync(fail, "utf8")) as DcsSnapshot);
   if (!data.tahun || !/^\d{4}-\d{2}-\d{2}$/.test(data.capturedOn ?? "")) {
     throw new Error("JSON mesti ada `tahun` dan `capturedOn` (YYYY-MM-DD).");
   }
