@@ -459,7 +459,7 @@ test("binaDek: slaid utama Canva — 117 halaman ikut susunan (hal. 95 pendua di
   assert.equal(s9?.bab, "perutusan");
   // Imej penuh (teks sudah dalam imej); muka depan berulang berkongsi satu fail.
   assert.ok(s9?.jenis === "utama" && s9.teks.length === 0 && s9.gambar === "/mjkd/slaid-utama/009.jpg");
-  assert.equal(utama.find((s) => s.kunci === "utama-25")?.gambar, "/mjkd/slaid-utama/004.jpg");
+  assert.equal(utama.find((s) => s.kunci === "utama-25")?.gambar, "/mjkd/slaid-utama/muka-depan-v2.jpg");
   assert.equal(utama.find((s) => s.kunci === "utama-34")?.bab, "hal-lain");
   assert.equal(dek[cariIndeks(dek, "tiada", "hal-lain")]!.kunci, "utama-31");
   // Bab Maklum Balas: lompat bab (keBab) mendarat pada pembahagi agenda; cariIndeks melangkaunya.

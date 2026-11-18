@@ -1,5 +1,13 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-11-18 — MJKD: muka depan baharu (arahan pimpinan)
+
+- Semua 10 slaid "Muka Depan" (hal. 1, 4, 8, 23, 25, 27, 29, 31, 81, 116) kini guna
+  `public/mjkd/slaid-utama/muka-depan-v2.jpg` (imej baharu daripada pengguna, 1920×1080, JPEG q90).
+  Nama fail baharu supaya cache pelayar/CDN tidak memaparkan versi lama. Fail lama 001/004/023/081
+  dipadam. Jika skrip PPTX dijalankan semula, kekalkan pemetaan ini.
+- Disahkan: typecheck, ujian mjkd.
+
 ## 2026-11-18 — MJKD: kehadiran tidak dikemas kini secara langsung (pepijat versiPentas)
 
 - Gejala (hari acara): imbas QR berjaya tetapi slaid Kehadiran hanya berubah selepas muat semula.

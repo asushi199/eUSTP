@@ -3,7 +3,7 @@
  * 18 Nov 2026, 118 halaman) — disisipkan ke dalam dek mod pembentangan. Setiap halaman ialah imej
  * PENUH 1920×1080 (termasuk teks) dieksport melalui PowerPoint dengan fon terbenam Canva
  * (`scripts/mjkd-slaid-utama-pptx.ps1`), di `public/mjkd/slaid-utama/` (dikecualikan daripada
- * precache PWA). Halaman yang sama (muka depan berulang) berkongsi satu fail. Hal. 95 (pendua SK Lumut) dibuang.
+ * precache PWA). Halaman yang sama berkongsi satu fail: SEMUA "Muka Depan" guna `muka-depan-v2.jpg` (imej baharu arahan pimpinan 18 Nov 2026 — jika skrip PPTX dijalankan semula, kekalkan fail ini). Hal. 95 (pendua SK Lumut) dibuang.
  * Jika Canva dikemas kini: eksport PPTX semula dan jalankan skrip itu (lihat AI_CONTEXT_LOG.md).
  */
 import type { Bab } from "./pembentangan";
@@ -33,14 +33,14 @@ export type HalamanUtama = {
 };
 
 export const HALAMAN_UTAMA: readonly HalamanUtama[] = [
-  { halaman: 1, bab: "majlis", tajuk: "Muka Depan", gambar: "001.jpg" },
+  { halaman: 1, bab: "majlis", tajuk: "Muka Depan", gambar: "muka-depan-v2.jpg" },
   { halaman: 2, bab: "majlis", tajuk: "Lagu (video)", gambar: "002.jpg", video: true },
   { halaman: 3, bab: "majlis", tajuk: "Bacaan Doa", gambar: "003.jpg" },
-  { halaman: 4, bab: "majlis", tajuk: "Muka Depan", gambar: "004.jpg" },
+  { halaman: 4, bab: "majlis", tajuk: "Muka Depan", gambar: "muka-depan-v2.jpg" },
   { halaman: 5, bab: "majlis", tajuk: "Lafaz Ikrar", gambar: "005.jpg" },
   { halaman: 6, bab: "majlis", tajuk: "Ikrar Rukun Negara", gambar: "006.jpg" },
   { halaman: 7, bab: "majlis", tajuk: "Ikrar Perkhidmatan Awam", gambar: "007.jpg" },
-  { halaman: 8, bab: "majlis", tajuk: "Muka Depan", gambar: "004.jpg" },
+  { halaman: 8, bab: "majlis", tajuk: "Muka Depan", gambar: "muka-depan-v2.jpg" },
   { halaman: 9, bab: "perutusan", tajuk: "Agenda 1: Perutusan Pengerusi", gambar: "009.jpg" },
   { halaman: 10, bab: "perutusan", tajuk: "Sekalung Tahniah Dato'", gambar: "010.jpg" },
   { halaman: 11, bab: "perutusan", tajuk: "Fokus Utama", gambar: "011.jpg" },
@@ -55,15 +55,15 @@ export const HALAMAN_UTAMA: readonly HalamanUtama[] = [
   { halaman: 20, bab: "perutusan", tajuk: "7 · KPI Pengarah", gambar: "020.jpg" },
   { halaman: 21, bab: "perutusan", tajuk: "KPI Pengarah (butiran)", gambar: "021.jpg" },
   { halaman: 22, bab: "perutusan", tajuk: "3 Aspek Utama", gambar: "022.jpg" },
-  { halaman: 23, bab: "perutusan", tajuk: "Muka Depan", gambar: "023.jpg" },
+  { halaman: 23, bab: "perutusan", tajuk: "Muka Depan", gambar: "muka-depan-v2.jpg" },
   { halaman: 24, bab: "perutusan", tajuk: "Rehat", gambar: "024.jpg" },
-  { halaman: 25, bab: "minit", tajuk: "Muka Depan", gambar: "004.jpg" },
+  { halaman: 25, bab: "minit", tajuk: "Muka Depan", gambar: "muka-depan-v2.jpg" },
   { halaman: 26, bab: "minit", tajuk: "Agenda 2: Pembentangan Minit", gambar: "026.jpg" },
-  { halaman: 27, bab: "maklum-balas", tajuk: "Muka Depan", gambar: "004.jpg" },
+  { halaman: 27, bab: "maklum-balas", tajuk: "Muka Depan", gambar: "muka-depan-v2.jpg" },
   { halaman: 28, bab: "maklum-balas", tajuk: "Agenda 3: Maklum Balas", gambar: "028.jpg" },
-  { halaman: 29, bab: "pembentangan", tajuk: "Muka Depan", gambar: "004.jpg" },
+  { halaman: 29, bab: "pembentangan", tajuk: "Muka Depan", gambar: "muka-depan-v2.jpg" },
   { halaman: 30, bab: "pembentangan", tajuk: "Agenda 4: Sesi Pembentangan", gambar: "030.jpg" },
-  { halaman: 31, bab: "hal-lain", tajuk: "Muka Depan", gambar: "004.jpg" },
+  { halaman: 31, bab: "hal-lain", tajuk: "Muka Depan", gambar: "muka-depan-v2.jpg" },
   { halaman: 32, bab: "hal-lain", tajuk: "Agenda 5: Hal-hal Lain", gambar: "032.jpg" },
   { halaman: 33, bab: "hal-lain", tajuk: "Apresiasi Pendigitalan & Pemerkasaan Bacaan", gambar: "033.jpg" },
   { halaman: 34, bab: "hal-lain", tajuk: "Tahniah · SJK(C) Pei Min", gambar: "034.jpg" },
@@ -113,7 +113,7 @@ export const HALAMAN_UTAMA: readonly HalamanUtama[] = [
   { halaman: 78, bab: "hal-lain", tajuk: "Tahniah · SK Seri Samudera (D.U.T.A)", gambar: "078.jpg" },
   { halaman: 79, bab: "hal-lain", tajuk: "Anugerah Emas PPD Manjung", gambar: "079.jpg" },
   { halaman: 80, bab: "hal-lain", tajuk: "Tahniah Semua Penerima Anugerah", gambar: "080.jpg" },
-  { halaman: 81, bab: "hal-lain", tajuk: "Muka Depan", gambar: "081.jpg" },
+  { halaman: 81, bab: "hal-lain", tajuk: "Muka Depan", gambar: "muka-depan-v2.jpg" },
   { halaman: 82, bab: "hal-lain", tajuk: "Anugerah Khatam Al-Quran 2026", gambar: "082.jpg" },
   { halaman: 83, bab: "hal-lain", tajuk: "Khatam · SK Dendang", gambar: "083.jpg" },
   { halaman: 84, bab: "hal-lain", tajuk: "Khatam · SK Kampong Kota", gambar: "084.jpg" },
@@ -147,7 +147,7 @@ export const HALAMAN_UTAMA: readonly HalamanUtama[] = [
   { halaman: 113, bab: "hal-lain", tajuk: "Khatam · SJKC Tit Bin", gambar: "113.jpg" },
   { halaman: 114, bab: "hal-lain", tajuk: "Khatam · SJKC Pei Ching", gambar: "114.jpg" },
   { halaman: 115, bab: "hal-lain", tajuk: "Tahniah Semua Penerima (Khatam)", gambar: "115.jpg" },
-  { halaman: 116, bab: "penutup", tajuk: "Muka Depan", gambar: "081.jpg" },
+  { halaman: 116, bab: "penutup", tajuk: "Muka Depan", gambar: "muka-depan-v2.jpg" },
   { halaman: 117, bab: "penutup", tajuk: "Agenda 6: Rumusan", gambar: "117.jpg" },
   { halaman: 118, bab: "penutup", tajuk: "Tahun Ini Tahun Kita", gambar: "118.jpg" },
 ];
