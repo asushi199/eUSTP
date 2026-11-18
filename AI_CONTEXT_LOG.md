@@ -1,5 +1,13 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-11-18 — Kad Bengkel CoE Analytics dipulihkan untuk pegawai log masuk sahaja
+
+- `app/(public)/page.tsx`: suis `SHOW_BENGKEL` diganti `bolehLihatBengkel()` — kad Bengkel hanya
+  dipapar jika sesi ialah akaun **staf** (`authKind === "staff"` + peranan sah). Pelawat awam dan
+  akaun MOE-DL sekolah tidak nampak. Halaman sudah `force-dynamic`; ralat baca sesi = anggap awam.
+- Disahkan: typecheck, eslint, build; smoke tanpa log masuk (HTTP 200, tiada kad Bengkel).
+  Paparan log masuk tidak dismoke (DB tidak boleh dicapai dari persekitaran ini).
+
 ## 2026-11-18 — MJKD: muka depan baharu (arahan pimpinan)
 
 - Semua 10 slaid "Muka Depan" (hal. 1, 4, 8, 23, 25, 27, 29, 31, 81, 116) kini guna

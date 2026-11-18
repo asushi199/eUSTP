@@ -10,6 +10,8 @@ import { penyertaanHomeModule } from "@/lib/analisis/penyertaan";
 import { getDpdSummary } from "@/lib/stats/dpd";
 import { getPssSummary } from "@/lib/stats/pss";
 import { currentStatsYear } from "@/lib/stats/year";
+import { getSessionUser } from "@/lib/rbac";
+import { isKnownPeranan } from "@/lib/roles";
 import HomeAnalisisBand from "@/components/home/HomeAnalisisBand";
 import { HomeWelcomeBanner } from "@/components/home/HomeWelcomeBanner";
 import { HomeModuleIcon } from "@/components/home/HomeModuleIcon";
@@ -24,10 +26,19 @@ export const dynamic = "force-dynamic";
 const SHOW_LAPORAN_TILES: boolean = false;
 
 /**
- * Kad "Bengkel" dalam CoE Analytics disorok buat sementara (arahan pimpinan
- * 2026-11-17). Tukar kepada true untuk memaparkannya semula.
+ * Kad "Bengkel" dalam CoE Analytics: HANYA untuk pegawai yang log masuk (akaun
+ * staf; bukan pelawat awam dan bukan akaun MOE-DL sekolah) — arahan pimpinan
+ * 2026-11-18 (dibentang dalam MJKD). Sebelum ini disorok untuk semua (2026-11-17).
  */
-const SHOW_BENGKEL: boolean = false;
+async function bolehLihatBengkel(): Promise<boolean> {
+  try {
+    const user = await getSessionUser();
+    return !!user && user.authKind === "staff" && isKnownPeranan(user.peranan ?? "");
+  } catch {
+    // Sesi tidak dapat dibaca — anggap pelawat awam (halaman utama mesti terus render).
+    return false;
+  }
+}
 
 /**
  * Kad "Pensijilan Digital" dalam CoE Analytics disorok buat sementara (arahan
@@ -64,6 +75,7 @@ export default async function HomePage() {
    * dan log ralat sebenar ke log Vercel untuk diagnosis.
    */
   const statsYear = currentStatsYear();
+  const showBengkel = await bolehLihatBengkel();
   const analisis = await getAnalisisHomeSummaryCached().catch((e) => {
     console.error(
       "[home] getAnalisisHomeSummary gagal:",
@@ -127,7 +139,7 @@ export default async function HomePage() {
             <HomeAnalisisBand
               indikator={[
                 ...(analisis ?? []).filter((m) => SHOW_PENSIJILAN || m.id !== "pensijilan"),
-                ...(SHOW_BENGKEL ? [bengkelHomeModule] : []),
+                ...(showBengkel ? [bengkelHomeModule] : []),
                 ...(tebusBuku ? [tebusBuku] : []),
                 penyertaanHomeModule,
               ]}
