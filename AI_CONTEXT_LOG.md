@@ -25,6 +25,12 @@
   (tiada `betulkanNamaDcs`), jadi snapshot 23 Nov tersimpan dengan nama lama "SK SIMPANG EMPAT"
   (ABB1043). Selepas rebase: nama dalam JSON dibetulkan kepada SK SERI SERDANG dan snapshot
   diimport semula (idempoten ikut `capturedOn`). **`git pull` dahulu sebelum import data.**
+- Kemas kini ~15 minit kemudian (Beruas dibaca semula atas permintaan pegawai): SK Beruas
+  20/34 → **20/20** (murid berdaftar dikurangkan), jadi Beruas 293/293 = **100%**, sekolah siap
+  17/17, rank Perak 30 → **15**. Ranking lain berganjak: Pantai Remis 19, Seri Manjung 29 (angka
+  murid tidak berubah); Ayer Tawar 2, Sitiawan 44 kekal. Jumlah daerah kini 2,324/2,438 =
+  **95.3%**, sekolah siap 91/101, 10 belum penuh (angka di atas ialah bacaan pertama). Snapshot
+  `capturedOn` 2026-11-23 ditimpa; halaman utama langsung disahkan.
 
 ## 2026-11-18 — DCS: SK Simpang Empat → SK Seri Serdang (ABB1043)
 

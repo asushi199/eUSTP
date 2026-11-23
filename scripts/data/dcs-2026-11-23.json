@@ -45,7 +45,7 @@
   },
   {
    "pkg": "Seri Manjung",
-   "rankPerak": 28,
+   "rankPerak": 29,
    "sekolahSiap": 19,
    "sekolahJumlah": 22,
    "muridSiap": 551,
@@ -84,7 +84,7 @@
   },
   {
    "pkg": "Pantai Remis",
-   "rankPerak": 18,
+   "rankPerak": 19,
    "sekolahSiap": 14,
    "sekolahJumlah": 17,
    "muridSiap": 344,
@@ -123,17 +123,17 @@
   },
   {
    "pkg": "Beruas",
-   "rankPerak": 30,
-   "sekolahSiap": 16,
+   "rankPerak": 15,
+   "sekolahSiap": 17,
    "sekolahJumlah": 17,
    "muridSiap": 293,
-   "muridJumlah": 307,
-   "pct": 95.4,
+   "muridJumlah": 293,
+   "pct": 100,
    "bilSr": 15,
    "bilSm": 2,
    "tahap": {
     "t6": {
-     "pct": 94,
+     "pct": 100,
      "bil": 213
     },
     "t3": {
@@ -952,7 +952,7 @@
    "kelasSiap": 0,
    "kelasJumlah": 1,
    "muridSiap": 20,
-   "muridJumlah": 34,
+   "muridJumlah": 20,
    "skorT6": 3.4,
    "skorT3": null,
    "skorT5": null
