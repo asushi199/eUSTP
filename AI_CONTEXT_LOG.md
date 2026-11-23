@@ -1,5 +1,31 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-11-23 — Kemas kini data: ESN + DCS
+
+- ESN: `scripts/data/esn-2026-11-23.json` diimport — murid selesai 6,680/9,231 = **72.4%**
+  (17 Nov 6,004/9,864 = 60.9%). Sekolah rendah 46/20/15 (selesai/proses/belum), menengah 9/8/4.
+  25 sekolah bertukar status (20 → Selesai, 5 Belum → Proses). Jumlah murid berdaftar turun
+  633 lagi (penyebut mengecil — sebahagian kenaikan peratus bukan murid baharu selesai).
+  Rekod ujian ABC1234 dibuang. Disemak: Σ murid sekolah & bilangan status = Dashboard.
+- DCS: `scripts/data/dcs-2026-11-23.json` diimport — murid 2,324/2,452 = **94.8%** (17 Nov
+  2,238/2,424 = 92.3%), sekolah siap 90/101. Ayer Tawar 574/574 (100%, rank 2), Pantai Remis
+  344/349 (rank 18), Seri Manjung 551/572 (rank 28), Beruas 293/307 (rank 30 — turun daripada 9
+  kerana murid berdaftar 259 → 307; SK Beruas 20/34), Sitiawan 562/650 (rank 44). 11 sekolah
+  belum penuh: SK Gugusan Lekir 0/20, SABK Maahad Islahiah 0/20, SMK Tok Perdana 36/81,
+  SK St. Francis 41/44, SMK Kpg Dato Seri Kamaruddin 55/70, SMK Dindings 57/63, SK Pengkalan
+  Baharu 16/20, SK Nakhoda Muhammad Taib 40/41, SK Beruas 20/34; KV Seri Manjung & SK Panchor
+  0/0. Disemak setiap PKG: Σ murid sekolah = Dashboard = Ranking, Σ siap = T6+T3+T5.
+- Nota kaedah: (1) dcs.moe.edu.my ialah **http** → `crypto.subtle` tiada; data 5 akaun dihimpun
+  dalam `localStorage` asal DCS antara pertukaran akaun (dibuang selepas siap). (2) Top Form 5
+  Sitiawan kini menyenaraikan SABK Maahad dengan skor **0** (tiada murid selesai) — disimpan
+  sebagai `null`, bukan skor sebenar. (3) Nama sekolah diambil daripada snapshot lalu (padan kod,
+  disemak cap jari nama dari pelayar). Kedua-dua import mengosongkan cache `home`; halaman utama
+  langsung disahkan papar 72.4% (ESN) dan 94.8% (DCS).
+- Perangkap: import DCS pertama dijalankan pada salinan tempatan yang **ketinggalan 5 komit**
+  (tiada `betulkanNamaDcs`), jadi snapshot 23 Nov tersimpan dengan nama lama "SK SIMPANG EMPAT"
+  (ABB1043). Selepas rebase: nama dalam JSON dibetulkan kepada SK SERI SERDANG dan snapshot
+  diimport semula (idempoten ikut `capturedOn`). **`git pull` dahulu sebelum import data.**
+
 ## 2026-11-18 — DCS: SK Simpang Empat → SK Seri Serdang (ABB1043)
 
 - dcs.moe.edu.my masih memaparkan nama lama "SK SIMPANG EMPAT" bagi ABB1043 (jadual `schools`:
