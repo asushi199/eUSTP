@@ -123,7 +123,7 @@
   },
   {
    "pkg": "Beruas",
-   "rankPerak": 15,
+   "rankPerak": 16,
    "sekolahSiap": 17,
    "sekolahJumlah": 17,
    "muridSiap": 293,
@@ -162,12 +162,12 @@
   },
   {
    "pkg": "Ayer Tawar",
-   "rankPerak": 18,
-   "sekolahSiap": 22,
+   "rankPerak": 15,
+   "sekolahSiap": 23,
    "sekolahJumlah": 23,
    "muridSiap": 574,
-   "muridJumlah": 575,
-   "pct": 99.8,
+   "muridJumlah": 574,
+   "pct": 100,
    "bilSr": 18,
    "bilSm": 5,
    "tahap": {
@@ -180,7 +180,7 @@
      "bil": 112
     },
     "t5": {
-     "pct": 99,
+     "pct": 100,
      "bil": 135
     }
    },
@@ -1396,7 +1396,7 @@
    "kelasSiap": 1,
    "kelasJumlah": 2,
    "muridSiap": 40,
-   "muridJumlah": 41,
+   "muridJumlah": 40,
    "skorT6": null,
    "skorT3": 3.71,
    "skorT5": 3.99
