@@ -20,6 +20,7 @@ import type { DcsBackup, DcsSnapshot } from "./dcs-types";
 import { getEsnTerkiniIkutTahun } from "./esn-queries";
 import { jumlahMuridEsn, jumlahSekolahEsn, type EsnSnapshot } from "./esn-types";
 import { optikTambahanGroups } from "./optik-groups";
+import { pensijilanView } from "./pensijilan";
 import { getOptikHomeView, optikKpiGroupStats, optikKpiReferenceLines } from "./optik-queries";
 
 /** Bentuk data boleh-serialize untuk kad + modal analisis di halaman utama. */
@@ -367,22 +368,18 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
   }
 
   /* ---------- Pensijilan ---------- */
-  const pensijilanLokasi = pensijilan.breakdown
-    .filter((b) => b.kind === "lokasi")
-    .map((b) => ({ label: b.label, jumlah: b.value }));
-  const pensijilanSekolah = pensijilan.breakdown
-    .filter((b) => b.kind === "sekolah")
-    .map((b) => ({ label: b.label, jumlah: b.value }));
-  const totalSijil = pensijilanLokasi.reduce((sum, b) => sum + b.jumlah, 0);
+  const pv = pensijilanView(pensijilan.breakdown);
+  const totalSijil = pv.jumlahPlatform || pv.lokasi.reduce((sum, b) => sum + b.jumlah, 0);
   const pensijilanModule: AnalisisHomeModule = {
     id: "pensijilan",
     label: "Pensijilan Digital",
     headlineValue: totalSijil > 0 ? bil(totalSijil) : "",
-    headlineLabel: "Jumlah Sijil",
-    tiles: [],
+    headlineLabel: "Jumlah Pensijilan",
+    tiles: [{ label: "Jumlah Pensijilan", value: totalSijil > 0 ? bil(totalSijil) : "" }],
+    tileGroups: pv.groups.length > 0 ? pv.groups : undefined,
     bars: [
-      { title: "Ikut Lokasi", seriesName: "Sijil", data: pensijilanLokasi },
-      { title: "Ikut Jenis Sekolah", seriesName: "Sijil", data: pensijilanSekolah },
+      { title: "Ikut Jenis Sekolah", seriesName: "Sijil", data: pv.sekolah },
+      { title: "Ikut Lokasi", seriesName: "Sijil", data: pv.lokasi },
     ],
     note: metricText(pensijilan.metrics, "intro"),
   };

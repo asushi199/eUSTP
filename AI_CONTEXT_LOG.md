@@ -2736,3 +2736,12 @@ Corak berselang = instance sihat vs beracun.
 - `analisis_delima_belum_login` diganti (`replaceDelimaBelumLogin`, listed_on 2026-11-24; senarai lama 2026-09-30, 58 guru, dibuang). Fail nama TIDAK dikomit (hanya scratchpad sementara). Bacaan tidak bercache — tiada cache perlu dikosongkan.
 - `DelimaExplore` butiran sekolah: tajuk "Guru belum pernah log masuk portal d3 (n)" + nota sumber/tarikh dan beza takrif. Paparan awam (modal halaman utama + `/analisis/delima`) — pengguna mengesahkan nama boleh dipapar umum.
 - Disahkan: typecheck, eslint; kiraan DB 338/68. Belum dilihat dalam pelayar selepas deploy.
+
+## 2026-11-24 — Pensijilan Digital: data infografik + pecahan platform
+
+- Data daripada infografik pengguna: jenis sekolah (SK 746, SMK 436, SJK(C) 116, SJK(T) 195, SRK 127, SABK 21, Kolej Vokasional 0), lokasi (Bandar 1,109, Luar Bandar 674), dan platform baharu: Google for Education (GCE1 996, GCE2 77, GCT 9, Gemini 730), Apple 11, Microsoft (MIE 1, MIEE 1).
+- Pecahan platform disimpan dalam `analisis_breakdown` modul `pensijilan`, kind `google`/`apple`/`microsoft` (tiada migrasi). Sumber `scripts/data/analisis-pensijilan.csv` → skrip baharu `npm run db:import-pensijilan [-- --dry-run]` (ganti modul `pensijilan` sahaja + kosongkan cache `home`).
+- `lib/analisis/pensijilan.ts` (`pensijilanView`) dikongsi modal halaman utama (`summary.ts`) dan `/analisis`: KpiGroups Ringkasan + satu kumpulan per platform, kemudian carta jenis sekolah & lokasi. Kad utama kini "Jumlah Pensijilan" = jumlah platform (1,825; dahulu jumlah lokasi 1,783).
+- Nota: jumlah dalam infografik tidak sepadan antara satu sama lain (platform 1,825, lokasi 1,783, jenis sekolah 1,641) — dipapar seperti sumber.
+- Intro DB lama ("Status pensijilan mengikut lokasi & jenis sekolah") diganti "…platform, jenis sekolah & lokasi"; metrik lain sama seperti CSV.
+- Disahkan: typecheck; modal `/?analisis=pensijilan` desktop + telefon dalam pelayar dev. `/analisis` (perlu log masuk) tidak dilihat; `npm run build` tidak dijalankan.

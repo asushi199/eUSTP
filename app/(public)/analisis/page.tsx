@@ -8,6 +8,7 @@ import {
 import { getPerkhidmatanAnalisis, emptyPerkhidmatanAnalisis } from "@/lib/analisis/perkhidmatan";
 import { getOptikPublicView, optikKpiGroupStats, optikKpiReferenceLines, applySchoolDirectoryNames } from "@/lib/analisis/optik-queries";
 import { optikTambahanGroups } from "@/lib/analisis/optik-groups";
+import { pensijilanView } from "@/lib/analisis/pensijilan";
 import OptikExplore from "@/components/analisis/OptikExplore";
 import { delimaTaburan } from "@/lib/analisis/delima-live";
 import DelimaExplore from "@/components/analisis/DelimaExplore";
@@ -209,12 +210,7 @@ export default async function AnalisisPage({
   };
 
   /* ---------- Pensijilan ---------- */
-  const pensijilanLokasi = pensijilan.breakdown
-    .filter((b) => b.kind === "lokasi")
-    .map((b) => ({ label: b.label, jumlah: b.value }));
-  const pensijilanSekolah = pensijilan.breakdown
-    .filter((b) => b.kind === "sekolah")
-    .map((b) => ({ label: b.label, jumlah: b.value }));
+  const pensijilanV = pensijilanView(pensijilan.breakdown);
 
   /* ---------- OPTIK ---------- */
   const optikSeries = optikView.trend;
@@ -344,13 +340,18 @@ export default async function AnalisisPage({
             {metricText(pensijilan.metrics, "intro")}
           </p>
         ) : null}
+        {pensijilanV.groups.length > 0 ? (
+          <div className="mt-4">
+            <KpiGroups groups={pensijilanV.groups} />
+          </div>
+        ) : null}
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
-          <BreakdownBarChart title="Ikut Lokasi" data={pensijilanLokasi} seriesName="Sijil" />
           <BreakdownBarChart
             title="Ikut Jenis Sekolah"
-            data={pensijilanSekolah}
+            data={pensijilanV.sekolah}
             seriesName="Sijil"
           />
+          <BreakdownBarChart title="Ikut Lokasi" data={pensijilanV.lokasi} seriesName="Sijil" />
         </div>
         <div className="flex gap-4">
           <SourceLink

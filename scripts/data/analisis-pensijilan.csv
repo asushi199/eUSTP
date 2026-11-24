@@ -1,14 +1,22 @@
 key,value,kategori,bil
-intro,Ringkasan contoh — data lokasi & jenis sekolah boleh dikemas kini dalam Sheet.,,
+intro,"Status pensijilan mengikut platform, jenis sekolah & lokasi",,
 source_url,,,
 source_label,Buka sumber pensijilan,,
 image_url,https://drive.google.com/file/d/1pL9Ikhn0bZ3iMyoOCa4H_385A-L4rf91/view?usp=drive_link,,
 image_label,Lihat infografik penuh,,
 category,location,Bandar,1109
-category,location,Luar bandar,674
+category,location,Luar Bandar,674
 category,school,SK,746
 category,school,SMK,436
 category,school,SJK(C),116
 category,school,SJK(T),195
 category,school,SRK,127
 category,school,SM Agama (SABK),21
+category,school,Kolej Vokasional,0
+category,google,GCE1,996
+category,google,GCE2,77
+category,google,GCT,9
+category,google,Gemini,730
+category,apple,Apple,11
+category,microsoft,MIE,1
+category,microsoft,MIEE,1

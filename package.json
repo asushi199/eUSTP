@@ -23,6 +23,7 @@
     "db:import-delima-d3": "tsx scripts/import-delima-d3.ts",
     "db:import-dcs": "tsx scripts/import-dcs.ts",
     "db:import-esn": "tsx scripts/import-esn.ts",
+    "db:import-pensijilan": "tsx scripts/import-pensijilan.ts",
     "db:seed-mjkd": "tsx scripts/seed-mjkd-2026-bil1.ts",
     "db:import-pegawai-ppd": "tsx scripts/import-pegawai-ppd.ts",
     "db:import-direktori-ppd": "tsx scripts/import-direktori-ppd.ts",
