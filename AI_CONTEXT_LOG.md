@@ -2728,3 +2728,11 @@ Corak berselang = instance sihat vs beracun.
 - **DCS** `scripts/data/dcs-2026-11-24.json`: 5 PKG, 101 sekolah, murid 2,370/2,499. Kedudukan Perak: Beruas 15 (100%), Ayer Tawar 18 (99.8%), Pantai Remis 26 (98.4%), Seri Manjung 36 (93.6%), Sitiawan 44 (87.4%). Nota: angka Dashboard ada dalam skrip Morris.Donut — item pertama (hijau) = selesai; donut yang dirender memaparkan segmen terbesar (boleh jadi "belum"), jangan salin teks yang dipapar. Top Schools hanya 10 teratas → skor null bagi yang lain.
 - Tidak disemak dalam pelayar selepas import (hanya output skrip import).
 - Pembetulan (hari sama): pengguna memadam seorang murid berlebihan di SMK METHODIST (AEB1036) PKG Ayer Tawar. Dibaca semula: Ayer Tawar 23/23 sekolah, murid 574/574 (100%), T5 100%, kedudukan Perak 15 (Beruas kini 16). Snapshot `dcs-2026-11-24.json` dikemas kini dan diimport semula (upsert `captured_on`): daerah murid 2,370/2,498.
+
+## 2026-11-24 — DELIMa: senarai guru belum log masuk diganti dengan data d3 SPP
+
+- Atas permintaan pengguna (Pelan 2, dibuat oleh Claude dalam sesi d3 pengguna): d3 SPP API `d3-spp-api.delima.edu.my/users/org-unit-descendant/<OU sekolah>/8?page=1&limit=1000` (8 = Guru; OU PPD `-1` beri 0 baris, jadi gelung 102 OU sekolah dari `options/organization-units/<PPD>`). API ini TIADA No. KP. Ditapis dalam pelayar: akaun bukan sementara (e-mel tanpa `tmp`) dan `lastLogin` null; hanya kod sekolah + nama dikeluarkan.
+- Jumlah guru bukan sementara = 3,834 (sama dengan jumlah d3 Utama). **338 guru belum pernah log masuk portal d3 (68 sekolah)** — takrif berbeza daripada "guru aktif" Utama (3,741 aktif, 93 tidak aktif): `lastLogin` SPP hanya log masuk portal d3, bukan penggunaan aplikasi DELIMa lain. Akhiran "KPM-Guru" dibuang daripada 43 nama.
+- `analisis_delima_belum_login` diganti (`replaceDelimaBelumLogin`, listed_on 2026-11-24; senarai lama 2026-09-30, 58 guru, dibuang). Fail nama TIDAK dikomit (hanya scratchpad sementara). Bacaan tidak bercache — tiada cache perlu dikosongkan.
+- `DelimaExplore` butiran sekolah: tajuk "Guru belum pernah log masuk portal d3 (n)" + nota sumber/tarikh dan beza takrif. Paparan awam (modal halaman utama + `/analisis/delima`) — pengguna mengesahkan nama boleh dipapar umum.
+- Disahkan: typecheck, eslint; kiraan DB 338/68. Belum dilihat dalam pelayar selepas deploy.

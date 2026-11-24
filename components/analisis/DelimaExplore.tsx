@@ -289,11 +289,16 @@ function SchoolDetail({ detail }: { detail: DelimaSchoolDetail }) {
       {belumLogin ? (
         <section className="mt-6">
           <h4 className="text-base font-semibold tracking-tight">
-            Guru belum log masuk DELIMa ({belumLogin.nama.length})
+            Guru belum pernah log masuk portal d3 ({belumLogin.nama.length})
           </h4>
+          <p className="mt-1 text-xs text-graphite">
+            Sumber: Sistem Pengurusan Pengguna d3.delima.edu.my, {belumLogin.tarikh}. Hanya log masuk ke
+            portal d3 — guru dalam senarai ini mungkin masih aktif menggunakan aplikasi DELIMa lain
+            (cth. Google Classroom) dan dikira dalam bilangan guru aktif di atas.
+          </p>
           {belumLogin.nama.length === 0 ? (
             <p className="mt-3 text-sm text-graphite">
-              Tiada guru sekolah ini dalam senarai belum log masuk.
+              Semua guru sekolah ini pernah log masuk portal d3.
             </p>
           ) : (
             <ol className="card mt-3 divide-y divide-fog">
