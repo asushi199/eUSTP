@@ -1,5 +1,11 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-11-24 — Kad Pensijilan Digital dipapar semula
+
+- `SHOW_PENSIJILAN = true` dalam `app/(public)/page.tsx` (arahan pengguna) — kad
+  Pensijilan Digital kembali dalam CoE Analytics halaman utama (awam). Data
+  `analisis_breakdown` sedia ada (jumlah 1,783 sijil); tiada perubahan DB.
+
 ## 2026-11-23 — Kemas kini data: ESN + DCS
 
 - ESN: `scripts/data/esn-2026-11-23.json` diimport — murid selesai 6,680/9,231 = **72.4%**

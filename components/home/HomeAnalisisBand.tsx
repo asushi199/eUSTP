@@ -242,7 +242,7 @@ export default function HomeAnalisisBand({
   const penyertaan = indikator.find((m) => m.id === "penyertaan") ?? null;
   const bengkel = indikator.find((m) => m.id === "bengkel") ?? null;
   // Susunan: indikator USTP → bengkel, tebus buku, penyertaan → 3 perkhidmatan, dalam SATU grid
-  // berterusan, semua kad saiz sama (baris akhir boleh tidak penuh). Bengkel & Pensijilan kini disorok — `SHOW_BENGKEL` / `SHOW_PENSIJILAN`
+  // berterusan, semua kad saiz sama (baris akhir boleh tidak penuh). Suis paparan Bengkel & Pensijilan — `SHOW_BENGKEL` / `SHOW_PENSIJILAN`
   // di app/(public)/page.tsx.
   const lead = indikator.filter((m) => m.id !== "bengkel" && m.id !== "tebus-buku" && m.id !== "penyertaan");
   const mesyuarat = [bengkel, tebus, penyertaan].filter((m): m is AnalisisHomeModule => m != null);

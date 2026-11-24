@@ -41,11 +41,10 @@ async function bolehLihatBengkel(): Promise<boolean> {
 }
 
 /**
- * Kad "Pensijilan Digital" dalam CoE Analytics disorok buat sementara (arahan
- * pengguna 2026-11-17). Data & halaman /analisis tidak terjejas. Tukar kepada
- * true untuk memaparkannya semula.
+ * Kad "Pensijilan Digital" dalam CoE Analytics. Disorok 2026-11-17, dipapar
+ * semula 2026-11-24 (arahan pengguna). Tukar kepada false untuk menyoroknya.
  */
-const SHOW_PENSIJILAN: boolean = false;
+const SHOW_PENSIJILAN: boolean = true;
 
 function AssuranceIcon() {
   return (
