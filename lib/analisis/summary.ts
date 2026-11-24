@@ -369,13 +369,13 @@ export async function getAnalisisHomeSummary(): Promise<AnalisisHomeModule[]> {
 
   /* ---------- Pensijilan ---------- */
   const pv = pensijilanView(pensijilan.breakdown);
-  const totalSijil = pv.jumlahPlatform || pv.lokasi.reduce((sum, b) => sum + b.jumlah, 0);
+  const totalSijil = pv.jumlah;
   const pensijilanModule: AnalisisHomeModule = {
     id: "pensijilan",
     label: "Pensijilan Digital",
     headlineValue: totalSijil > 0 ? bil(totalSijil) : "",
-    headlineLabel: "Jumlah Pensijilan",
-    tiles: [{ label: "Jumlah Pensijilan", value: totalSijil > 0 ? bil(totalSijil) : "" }],
+    headlineLabel: "Jumlah Sijil",
+    tiles: [{ label: "Jumlah Sijil", value: totalSijil > 0 ? bil(totalSijil) : "" }],
     tileGroups: pv.groups.length > 0 ? pv.groups : undefined,
     bars: [
       { title: "Ikut Jenis Sekolah", seriesName: "Sijil", data: pv.sekolah },

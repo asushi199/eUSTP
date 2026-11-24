@@ -35,8 +35,8 @@ function bil(n: number): string {
 export type PensijilanView = {
   lokasi: Point[];
   sekolah: Point[];
-  /** Jumlah pensijilan semua platform (0 jika tiada data platform). */
-  jumlahPlatform: number;
+  /** Jumlah sijil (lokasi → jenis sekolah → platform; 0 jika tiada data). */
+  jumlah: number;
   /** Ringkasan + satu kumpulan per platform (untuk KpiGroups). */
   groups: KpiGroup[];
 };
@@ -49,7 +49,12 @@ export function pensijilanView(breakdown: Row[]): PensijilanView {
     const rows = pick(p.kind);
     return { ...p, rows, jumlah: rows.reduce((a, r) => a + r.jumlah, 0) };
   }).filter((p) => p.rows.length > 0);
-  const jumlahPlatform = platform.reduce((a, p) => a + p.jumlah, 0);
+  const lokasi = pick("lokasi");
+  const sekolah = pick("sekolah");
+  const sum = (pts: Point[]) => pts.reduce((a, p) => a + p.jumlah, 0);
+  // Jumlah sijil rasmi = pecahan lokasi/jenis sekolah (infografik: 1,783). Platform boleh
+  // melebihi jumlah ini (guru dengan lebih daripada satu pensijilan), jadi hanya sandaran.
+  const jumlah = sum(lokasi) || sum(sekolah) || platform.reduce((a, p) => a + p.jumlah, 0);
 
   const groups: KpiGroup[] = [];
   if (platform.length > 0) {
@@ -58,7 +63,7 @@ export function pensijilanView(breakdown: Row[]): PensijilanView {
       wide: true,
       align: "center",
       stats: [
-        { label: "Jumlah Pensijilan", value: bil(jumlahPlatform) },
+        { label: "Jumlah Sijil", value: bil(jumlah) },
         ...platform.map((p) => ({ label: p.title, value: bil(p.jumlah) })),
       ],
     });
@@ -76,5 +81,5 @@ export function pensijilanView(breakdown: Row[]): PensijilanView {
     }
   }
 
-  return { lokasi: pick("lokasi"), sekolah: pick("sekolah"), jumlahPlatform, groups };
+  return { lokasi, sekolah, jumlah, groups };
 }

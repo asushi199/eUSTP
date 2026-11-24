@@ -2745,3 +2745,5 @@ Corak berselang = instance sihat vs beracun.
 - Nota: jumlah dalam infografik tidak sepadan antara satu sama lain (platform 1,825, lokasi 1,783, jenis sekolah 1,641) — dipapar seperti sumber.
 - Intro DB lama ("Status pensijilan mengikut lokasi & jenis sekolah") diganti "…platform, jenis sekolah & lokasi"; metrik lain sama seperti CSV.
 - Disahkan: typecheck; modal `/?analisis=pensijilan` desktop + telefon dalam pelayar dev. `/analisis` (perlu log masuk) tidak dilihat; `npm run build` tidak dijalankan.
+- Pembetulan: GCE1 996 → 954 (42 sijil tersilap kira; Google kini 1,770).
+- Kemas kini (hari sama, infografik baharu): jenis sekolah SK 846, SMK 456, SJK(T) 200, SRK 127, SJK(C) 133, SABK 21 (= 1,783, kini sepadan dengan lokasi); Kolej Vokasional dibuang. Jumlah utama kembali "Jumlah Sijil" 1,783 (lokasi → jenis sekolah → platform); jumlah platform (1,825) kekal sebagai subjumlah sahaja. Diimport + cache `home` dikosongkan; disemak dalam modal dev.
