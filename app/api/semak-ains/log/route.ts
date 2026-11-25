@@ -1,4 +1,4 @@
-import { and, eq, gte, sql } from "drizzle-orm";
+import { and, eq, gte, isNull, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
@@ -27,7 +27,10 @@ const Skema = z.object({
   versiEnjin: z.string().max(20),
   versiPenanda: z.string().max(20),
 });
+// Had harian bagi sekolah padan (mengikut kod). Log tanpa kod sekolah berkongsi SATU baldi global,
+// supaya nama rekaan yang bertukar-tukar tidak boleh mengelak had.
 const HAD_SEHARI = 200;
+const HAD_TANPA_KOD_SEHARI = 300;
 
 export async function POST(request: Request) {
   const mentah = await request.text();
@@ -42,38 +45,43 @@ export async function POST(request: Request) {
   if (!p.success) return NextResponse.json({ ok: false }, { status: 400 });
   const d = p.data;
 
-  const sekolah = await listSchoolOptions();
-  const namaN = normalTeks(d.namaSekolah);
-  const padan =
-    (d.kodSekolah ? sekolah.find((s) => s.code === d.kodSekolah) : undefined) ??
-    sekolah.find((s) => normalTeks(s.name) === namaN);
-  const kod = padan?.code ?? null;
+  try {
+    const sekolah = await listSchoolOptions();
+    const namaN = normalTeks(d.namaSekolah);
+    const padan =
+      (d.kodSekolah ? sekolah.find((s) => s.code === d.kodSekolah) : undefined) ??
+      sekolah.find((s) => normalTeks(s.name) === namaN);
+    const kod = padan?.code ?? null;
 
-  const [kiraan] = await db
-    .select({ n: sql<number>`count(*)::int` })
-    .from(semakAinsLog)
-    .where(
-      and(
-        kod ? eq(semakAinsLog.kodSekolah, kod) : eq(semakAinsLog.namaSekolah, d.namaSekolah),
-        gte(semakAinsLog.diciptaPada, sql`now() - interval '1 day'`),
-      ),
-    );
-  if ((kiraan?.n ?? 0) >= HAD_SEHARI) return NextResponse.json({ ok: false }, { status: 429 });
+    const had = kod ? HAD_SEHARI : HAD_TANPA_KOD_SEHARI;
+    const [kiraan] = await db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(semakAinsLog)
+      .where(
+        and(
+          kod ? eq(semakAinsLog.kodSekolah, kod) : isNull(semakAinsLog.kodSekolah),
+          gte(semakAinsLog.diciptaPada, sql`now() - interval '1 day'`),
+        ),
+      );
+    if ((kiraan?.n ?? 0) >= had) return NextResponse.json({ ok: false }, { status: 429 });
 
-  await db.insert(semakAinsLog).values({
-    kodSekolah: kod,
-    namaSekolah: d.namaSekolah,
-    jenis: d.jenis,
-    bilRekod: d.bilRekod,
-    bilHijau: d.bilHijau,
-    bilKuning: d.bilKuning,
-    bilMerah: d.bilMerah,
-    bilBerjaya: d.bilBerjaya,
-    bilGagal: d.bilGagal,
-    tetapanDiubah: d.tetapan !== null && Object.keys(d.tetapan).length > 0,
-    tetapan: d.tetapan,
-    versiEnjin: d.versiEnjin,
-    versiPenanda: d.versiPenanda,
-  });
+    await db.insert(semakAinsLog).values({
+      kodSekolah: kod,
+      namaSekolah: d.namaSekolah,
+      jenis: d.jenis,
+      bilRekod: d.bilRekod,
+      bilHijau: d.bilHijau,
+      bilKuning: d.bilKuning,
+      bilMerah: d.bilMerah,
+      bilBerjaya: d.bilBerjaya,
+      bilGagal: d.bilGagal,
+      tetapanDiubah: d.tetapan !== null && Object.keys(d.tetapan).length > 0,
+      tetapan: d.tetapan,
+      versiEnjin: d.versiEnjin,
+      versiPenanda: d.versiPenanda,
+    });
+  } catch {
+    return NextResponse.json({ ok: false }, { status: 503 });
+  }
   return NextResponse.json({ ok: true });
 }
