@@ -158,12 +158,7 @@ export const ASPEK: AspekInstrumen[] = [
       { id: "6.2", no: "6.2", item: "Web / portal / dashboard DELIMa" },
       { id: "6.3", no: "6.3", item: "Inovasi" },
       { id: "6.4", no: "6.4", item: "Pencapaian dan anugerah" },
-      {
-        id: "6.5",
-        no: "6.5",
-        item: "Sumbangan bahan PdP di Ruang Ilmu DELIMa",
-        pautan: { label: "Dashboard Ruang Ilmu", href: "https://bit.ly/dashboardruangilmuKPM" },
-      },
+      { id: "6.5", no: "6.5", item: "Sumbangan bahan PdP di Ruang Ilmu DELIMa" },
     ],
   },
 ];
