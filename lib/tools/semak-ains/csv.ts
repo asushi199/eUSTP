@@ -10,8 +10,8 @@ export type BarisCsv = {
 };
 
 function sel(v: string): string {
-  let s = v.replace(/\r?\n/g, " ");
-  if (/^[=+\-@]/.test(s)) s = `'${s}`;
+  let s = v.replace(/[\r\n]+/g, " ");
+  if (/^[=+\-@\t]/.test(s)) s = `'${s}`;
   return /[",;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
@@ -34,5 +34,5 @@ export function janaCsv(baris: BarisCsv[], versi: string): string {
       .map(sel)
       .join(","),
   );
-  return `﻿${[kepala.join(","), ...isi].join("\r\n")}`;
+  return `\uFEFF${[kepala.join(","), ...isi].join("\r\n")}`;
 }

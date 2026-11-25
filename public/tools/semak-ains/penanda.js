@@ -40,9 +40,8 @@
     return;
   }
   var namaSekolah = baris[iPortal + 1] || "";
-  var idPengguna = baris.find(function (s) { return /^[\w.-]+@[\w.-]+$/.test(s); }) || "";
-  var calonKod = (idPengguna.split("@")[1] || "").toUpperCase();
-  var kodSekolah = /^[A-Z]{3}\d{4}$/.test(calonKod) ? calonKod : null;
+  var idGpm = baris.find(function (s) { return /^gpm@[A-Za-z]{3}\d{4}$/i.test(s); }) || "";
+  var kodSekolah = idGpm ? idGpm.split("@")[1].toUpperCase() : null;
 
   var keadaan = { tetingkap: null, idDibaca: new Set(), henti: false, sibuk: false, tapisan: {} };
   window.__semakAins = keadaan;
@@ -107,26 +106,36 @@
     if (keadaan.tapisan.kelas) q.set("search_class_name", keadaan.tapisan.kelas);
     return "/web/teacher-record-list?" + q.toString();
   }
-  async function bacaSemua(lapor) {
-    var pertama = await ambilDokumen(urlSenarai(1));
-    var rekod1 = huraiSenarai(pertama);
-    if (!rekod1) throw new Error("Sesi AINS tamat atau halaman berubah. Sila log masuk semula.");
-    var jumlah = rekod1.length ? jumlahHalaman(pertama) : 0;
-    var semua = rekod1.slice();
-    var gagal = [];
-    if (lapor) lapor(rekod1, 1, jumlah);
-    for (var h = 2; h <= jumlah && !keadaan.henti; h++) {
-      await tidur(100);
-      var rekod = null;
-      for (var cuba = 0; cuba < 3 && !rekod; cuba++) {
-        try { rekod = huraiSenarai(await ambilDokumen(urlSenarai(h))); } catch (e) { rekod = null; }
-        if (!rekod && cuba < 2) await tidur(1000);
-      }
-      if (!rekod) { gagal.push(h); continue; }
-      semua = semua.concat(rekod);
-      if (lapor) lapor(rekod, h, jumlah);
+  var RALAT_SESI = "Sesi AINS tamat atau halaman berubah. Sila log masuk semula dan cuba lagi.";
+  async function ambilHalaman(h) {
+    var ralatAkhir = null;
+    for (var cuba = 0; cuba < 3; cuba++) {
+      if (cuba > 0) await tidur(1000);
+      var doc;
+      try { doc = await ambilDokumen(urlSenarai(h)); } catch (e) { ralatAkhir = e; continue; }
+      var rekod = huraiSenarai(doc);
+      if (!rekod) throw new Error(RALAT_SESI);
+      return { doc: doc, rekod: rekod };
     }
-    return { rekod: semua, gagal: gagal };
+    throw ralatAkhir || new Error("Gagal membaca halaman " + h + ".");
+  }
+  async function bacaSemua(lapor) {
+    var p1 = await ambilHalaman(1);
+    var jumlah = p1.rekod.length ? jumlahHalaman(p1.doc) : 0;
+    var semua = p1.rekod.slice();
+    var gagal = [];
+    var dihentikan = false;
+    if (lapor) lapor(p1.rekod, 1, jumlah);
+    for (var h = 2; h <= jumlah; h++) {
+      if (keadaan.henti) { dihentikan = true; break; }
+      await tidur(100);
+      var hasil;
+      try { hasil = await ambilHalaman(h); }
+      catch (e) { if (e && e.message === RALAT_SESI) throw e; gagal.push(h); continue; }
+      semua = semua.concat(hasil.rekod);
+      if (lapor) lapor(hasil.rekod, h, jumlah);
+    }
+    return { rekod: semua, gagal: gagal, dihentikan: dihentikan };
   }
   function tolakLaksana(ralat) {
     hantar({ jenis: J.selesaiLaksana, berjaya: 0, gagal: 0, masihMenunggu: [], dihentikan: true, ralat: ralat });
@@ -148,7 +157,12 @@
         rekod.forEach(function (r) { keadaan.idDibaca.add(r.id); });
         hantar({ jenis: J.rekod, rekod: rekod, halaman: h, jumlahHalaman: jumlah });
       });
-      hantar({ jenis: J.selesaiBaca, bilangan: hasil.rekod.length, ralat: null, halamanGagal: hasil.gagal });
+      hantar({
+        jenis: J.selesaiBaca,
+        bilangan: hasil.rekod.length,
+        ralat: hasil.dihentikan ? "Bacaan dihentikan sebelum selesai — hanya sebahagian rekod disemak." : null,
+        halamanGagal: hasil.gagal
+      });
     } catch (e) {
       hantar({ jenis: J.selesaiBaca, bilangan: keadaan.idDibaca.size, ralat: String((e && e.message) || e), halamanGagal: [] });
     } finally {
@@ -159,8 +173,11 @@
     if (keadaan.sibuk) { tolakLaksana("Penanda sedang sibuk."); return; }
     var tindakan = arahan.tindakan;
     if (tindakan !== "approved" && tindakan !== "rejected") { tolakLaksana("Tindakan tidak sah."); return; }
+    var dilihat = new Set();
     var item = (Array.isArray(arahan.item) ? arahan.item : []).filter(function (x) {
-      return x && typeof x.id === "string" && keadaan.idDibaca.has(x.id);
+      if (!x || typeof x.id !== "string" || !keadaan.idDibaca.has(x.id) || dilihat.has(x.id)) return false;
+      dilihat.add(x.id);
+      return true;
     });
     if (!item.length) { tolakLaksana("Tiada rekod sah untuk tindakan. Baca semula senarai."); return; }
     var label = tindakan === "approved" ? "MELULUSKAN" : "MENOLAK";
@@ -172,40 +189,51 @@
     keadaan.henti = false;
     var jeda = Math.min(2000, Math.max(300, Number(arahan.jedaMs) || 500));
     var berjaya = 0, gagal = 0, gagalBerturut = 0, ralat = null, selesai = [];
-    for (var i = 0; i < item.length; i++) {
-      if (keadaan.henti || !keadaan.tetingkap || keadaan.tetingkap.closed) break;
-      var x = item[i];
-      var ok = false, jawapan = null;
-      try {
-        var q = new URLSearchParams({ id: x.id, comment: String(x.komen || "").slice(0, 500), status: tindakan });
-        var res = await fetch("/reading-record/updatestatus?" + q.toString(), {
-          credentials: "same-origin",
-          headers: { "X-Requested-With": "XMLHttpRequest" }
-        });
-        jawapan = (await res.text()).trim().slice(0, 80);
-        ok = res.ok && jawapan === "success";
-      } catch (e) {
-        jawapan = String((e && e.message) || e).slice(0, 80);
-      }
-      if (ok) { berjaya++; gagalBerturut = 0; selesai.push(x.id); keadaan.idDibaca.delete(x.id); }
-      else { gagal++; gagalBerturut++; }
-      hantar({ jenis: J.kemajuan, id: x.id, berjaya: ok, jawapan: ok ? null : jawapan });
-      if (gagalBerturut >= 3) { ralat = "3 kegagalan berturut-turut — dihentikan. Sesi AINS mungkin tamat."; break; }
-      await tidur(jeda);
-    }
-    var dihentikan = keadaan.henti || ralat !== null || berjaya + gagal < item.length;
+    var dihentikan = false;
     var masihMenunggu = [];
     try {
-      if (selesai.length) {
-        var semakan = await bacaSemua(null);
-        var ada = new Set(semakan.rekod.map(function (r) { return r.id; }));
-        masihMenunggu = selesai.filter(function (id) { return ada.has(id); });
+      for (var i = 0; i < item.length; i++) {
+        if (keadaan.henti || !keadaan.tetingkap || keadaan.tetingkap.closed) break;
+        var x = item[i];
+        var ok = false, jawapan = null;
+        try {
+          var q = new URLSearchParams({ id: x.id, comment: String(x.komen || "").slice(0, 500), status: tindakan });
+          var res = await fetch("/reading-record/updatestatus?" + q.toString(), {
+            credentials: "same-origin",
+            headers: { "X-Requested-With": "XMLHttpRequest" }
+          });
+          jawapan = (await res.text()).trim().slice(0, 80);
+          ok = res.ok && jawapan === "success";
+        } catch (e) {
+          jawapan = String((e && e.message) || e).slice(0, 80);
+        }
+        if (ok) { berjaya++; gagalBerturut = 0; selesai.push(x.id); keadaan.idDibaca.delete(x.id); }
+        else { gagal++; gagalBerturut++; }
+        hantar({ jenis: J.kemajuan, id: x.id, berjaya: ok, jawapan: ok ? null : jawapan });
+        if (gagalBerturut >= 3) { ralat = "3 kegagalan berturut-turut — dihentikan. Sesi AINS mungkin tamat."; break; }
+        await tidur(jeda);
+      }
+      dihentikan = keadaan.henti || ralat !== null || berjaya + gagal < item.length;
+      if (selesai.length && keadaan.tetingkap && !keadaan.tetingkap.closed) {
+        keadaan.henti = false;
+        try {
+          var semakan = await bacaSemua(null);
+          var ada = new Set(semakan.rekod.map(function (r) { return r.id; }));
+          masihMenunggu = selesai.filter(function (id) { return ada.has(id); });
+          if (semakan.gagal.length || semakan.dihentikan) {
+            ralat = (ralat ? ralat + " " : "") + "Pengesahan selepas tindakan tidak lengkap; semak AINS secara manual.";
+          }
+        } catch (e) {
+          ralat = (ralat ? ralat + " " : "") + "Pengesahan selepas tindakan tidak dapat dibuat; semak AINS secara manual.";
+        }
       }
     } catch (e) {
-      /* pengesahan selepas tindakan tidak wajib */
+      dihentikan = true;
+      ralat = "Ralat tidak dijangka: " + String((e && e.message) || e).slice(0, 120);
+    } finally {
+      keadaan.sibuk = false;
+      hantar({ jenis: J.selesaiLaksana, berjaya: berjaya, gagal: gagal, masihMenunggu: masihMenunggu, dihentikan: dihentikan, ralat: ralat });
     }
-    keadaan.sibuk = false;
-    hantar({ jenis: J.selesaiLaksana, berjaya: berjaya, gagal: gagal, masihMenunggu: masihMenunggu, dihentikan: dihentikan, ralat: ralat });
   }
 
   window.addEventListener("message", function (e) {
