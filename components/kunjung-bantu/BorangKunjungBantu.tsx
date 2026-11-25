@@ -27,6 +27,7 @@ import {
   type Semakan,
 } from "@/lib/kunjung-bantu/instrumen";
 import BarBahagian, { NavBahagian, tatalKeBahagian } from "@/components/kunjung-bantu/BarBahagian";
+import { URL_CETAK_DRAF, simpanCetakDraf } from "@/lib/kunjung-bantu/cetak-draf";
 
 type SchoolOption = { code: string; name: string; zone: string };
 
@@ -242,6 +243,26 @@ export default function BorangKunjungBantu({ schools, sudahHantar, existing }: P
     await padamDrafKunjungBantu(schoolCode);
     setStatusSimpan(null);
     await pilihSekolah(schoolCode);
+  }
+
+  /** Cetak jawapan semasa (belum dihantar) dalam tab baharu. */
+  function cetakDraf() {
+    if (!schoolCode) return;
+    const ok = simpanCetakDraf({
+      sekolah: { code: schoolCode, name: dipilih?.name ?? "" },
+      maklumat,
+      jawapan,
+      semakan,
+      delima,
+      dicetak: new Date().toISOString(),
+      kembali: `${window.location.pathname}${window.location.search}`,
+    });
+    if (!ok) {
+      setRalat("Pelayar ini tidak membenarkan simpanan setempat — draf tidak dapat dicetak.");
+      return;
+    }
+    const w = window.open(URL_CETAK_DRAF, "_blank");
+    if (!w) window.location.href = URL_CETAK_DRAF;
   }
 
   function hantar() {
@@ -466,11 +487,36 @@ export default function BorangKunjungBantu({ schools, sudahHantar, existing }: P
           <div className="card sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] z-10 flex items-center justify-between gap-3 px-4 py-3 shadow-modal lg:bottom-4">
             <div className="min-w-0 flex-1 text-sm">
               <p className="font-semibold text-ink">
-                {dijawab}/{jumlah} item dijawab · {ya} Ya
+                {dijawab}/{jumlah}
+                <span className="hidden sm:inline"> item</span> dijawab · {ya} Ya
               </p>
               <p className="text-xs text-graphite">{statusSimpan ?? "Jawapan disimpan secara automatik."}</p>
               {ralat ? <p className="mt-1 text-sm font-semibold text-bloom-deep">{ralat}</p> : null}
             </div>
+            <button
+              type="button"
+              className="btn-outline-ink h-12 w-12 shrink-0 px-0 sm:w-auto sm:px-5"
+              onClick={cetakDraf}
+              aria-label="Cetak draf"
+              title="Cetak draf (belum dihantar)"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width="18"
+                height="18"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden
+              >
+                <path d="M6 9V2h12v7" />
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                <rect x="6" y="14" width="12" height="8" />
+              </svg>
+              <span className="hidden sm:inline">Cetak draf</span>
+            </button>
             <button
               type="button"
               className="btn-primary h-12 shrink-0 px-5 sm:px-10"

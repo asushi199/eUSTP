@@ -64,6 +64,7 @@ export default async function KunjungBantuBerjayaPage({ searchParams }: Props) {
           ticket={resit}
           tajuk={NAMA_INSTRUMEN}
           awalanFail="tiket-kunjung-bantu"
+          labelCetak="Cetak tiket"
         />
         <p className="text-sm text-graphite">
           Langkah seterusnya: pegawai USTP PPD Manjung akan melawat sekolah untuk menyemak bukti.

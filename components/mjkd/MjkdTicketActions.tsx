@@ -10,6 +10,8 @@ type Props = {
   tajuk?: string;
   /** Awalan nama fail .txt (lalai: tiket-maklum-balas-mjkd). */
   awalanFail?: string;
+  /** Label butang cetak halaman tiket (lalai: Cetak / simpan PDF). */
+  labelCetak?: string;
 };
 
 function buildMemoText({ schoolCode, schoolName, ticket, tajuk }: Props): string {
@@ -33,6 +35,7 @@ export default function MjkdTicketActions({
   ticket,
   tajuk,
   awalanFail,
+  labelCetak,
 }: Props) {
   const [copyMsg, setCopyMsg] = useState<string | null>(null);
   const ready = Boolean(schoolCode && ticket);
@@ -73,7 +76,7 @@ export default function MjkdTicketActions({
           Muat turun .txt
         </button>
         <button type="button" className="btn-outline-ink" onClick={() => window.print()}>
-          Cetak / simpan PDF
+          {labelCetak ?? "Cetak / simpan PDF"}
         </button>
       </div>
       {copyMsg && <p className="text-xs text-graphite">{copyMsg}</p>}

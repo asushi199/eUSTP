@@ -7,8 +7,29 @@ import {
   formatPeratus,
   nilaiAuto,
   type DelimaSekolah,
+  type StatusRekod,
 } from "@/lib/kunjung-bantu/instrumen";
 import type { RekodKunjungBantu } from "@/lib/kunjung-bantu/queries";
+
+/** Medan yang dicetak. Draf (belum dihantar) tiada id, status atau tarikh hantar. */
+export type RekodCetak = Pick<
+  RekodKunjungBantu,
+  | "namaPgb"
+  | "namaPkPentadbiran"
+  | "namaAdminDelima"
+  | "jawapan"
+  | "semakan"
+  | "isu"
+  | "ulasanPegawai"
+  | "namaPegawai"
+  | "jawatanPegawai"
+  | "tarikhPenilaian"
+  | "disahkanPada"
+> &
+  (
+    | { draf?: false; id: string; status: StatusRekod; tarikhHantar: Date }
+    | { draf: true; dicetak: Date }
+  );
 
 function tarikhPanjang(d: Date | string | null): string {
   if (!d) return "";
@@ -34,10 +55,10 @@ export default function CetakInstrumen({
   delima,
 }: {
   sekolah: { code: string; name: string };
-  rekod: RekodKunjungBantu;
+  rekod: RekodCetak;
   delima: DelimaSekolah | null;
 }) {
-  const sah = rekod.status === "DISAHKAN";
+  const sah = !rekod.draf && rekod.status === "DISAHKAN";
   const maklumat: [string, string][] = [
     ["Nama Pengetua / Guru Besar", rekod.namaPgb],
     ["Nama Penolong Kanan Pentadbiran", rekod.namaPkPentadbiran],
@@ -59,6 +80,13 @@ export default function CetakInstrumen({
           Pemerkasaan Pendigitalan DELIMa dalam PdP serta Pengurusan Organisasi Sekolah{" "}
           {SESI_KUNJUNG_BANTU.replace("-", "–")} · Rujukan JPN: {RUJUKAN_SURAT}
         </p>
+        {rekod.draf ? (
+          <p className="mt-2">
+            <span className="inline-block border-2 border-ink px-3 py-0.5 text-[11px] font-bold tracking-wide">
+              DRAF — BELUM DIHANTAR KEPADA PPD
+            </span>
+          </p>
+        ) : null}
       </header>
 
       <table className="mt-4 w-full border-collapse">
@@ -167,16 +195,24 @@ export default function CetakInstrumen({
             <CopSah tarikh={tarikhCop(rekod.disahkanPada)} pegawai={rekod.namaPegawai} />
           ) : (
             <p className="rounded border border-ink px-3 py-2 text-[11px] font-semibold">
-              Status: {STATUS_LABEL[rekod.status]} — belum disahkan
+              {rekod.draf
+                ? "Draf — belum dihantar kepada PPD"
+                : `Status: ${STATUS_LABEL[rekod.status]} — belum disahkan`}
             </p>
           )}
         </div>
       </section>
 
       <footer className="mt-6 border-t border-fog pt-1 text-[8.5px] text-graphite">
-        Dijana oleh NEXa Manjung · Rujukan KB-{rekod.id.slice(0, 8).toUpperCase()} · Dihantar sekolah{" "}
-        {tarikhPanjang(rekod.tarikhHantar)}
-        {sah ? ` · Disahkan ${tarikhPanjang(rekod.disahkanPada)}` : ""}
+        {rekod.draf ? (
+          <>Dijana oleh NEXa Manjung · Draf dicetak {tarikhPanjang(rekod.dicetak)} · belum dihantar</>
+        ) : (
+          <>
+            Dijana oleh NEXa Manjung · Rujukan KB-{rekod.id.slice(0, 8).toUpperCase()} · Dihantar sekolah{" "}
+            {tarikhPanjang(rekod.tarikhHantar)}
+            {sah ? ` · Disahkan ${tarikhPanjang(rekod.disahkanPada)}` : ""}
+          </>
+        )}
       </footer>
     </article>
   );
