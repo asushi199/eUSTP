@@ -113,6 +113,18 @@ export function useSambunganAins() {
     return () => window.removeEventListener("message", dengar);
   }, []);
 
+  // Pengawas: jika tab AINS ditutup/dimuat semula semasa membaca/melaksana, henti menunggu.
+  useEffect(() => {
+    if (fasa !== "membaca" && fasa !== "melaksana") return;
+    const id = window.setInterval(() => {
+      if (!window.opener || window.opener.closed) {
+        setRalat("Tab AINS telah ditutup atau dimuat semula. Buka semula AINS, klik penanda dan baca semula.");
+        setFasa("keputusan");
+      }
+    }, 2000);
+    return () => window.clearInterval(id);
+  }, [fasa]);
+
   const mula = useCallback(
     (tapisan: Tapisan) => {
       tapisanAkhir.current = tapisan;

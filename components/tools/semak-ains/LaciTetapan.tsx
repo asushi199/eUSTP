@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { Jalur, KodSebab, Ukuran } from "@/lib/tools/semak-ains/jenis";
 import { KOMEN_LALAI, LABEL_SEBAB } from "@/lib/tools/semak-ains/komen";
 import type { Ambang, ModPeraturan, Standard } from "@/lib/tools/semak-ains/standard";
@@ -45,6 +45,28 @@ type Props = {
 
 export default function LaciTetapan({ standard, diubah, onSimpan, onReset, onTutup }: Props) {
   const [s, setS] = useState<Standard>(() => structuredClone(standard));
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const batalRef = useRef<HTMLButtonElement>(null);
+  const tajukId = useId();
+  const tutupRef = useRef(onTutup);
+  tutupRef.current = onTutup;
+
+  // Dialog asli: showModal() memberi latar inert, kurungan fokus & Escape.
+  useEffect(() => {
+    const el = dialogRef.current;
+    if (!el) return;
+    const tutup = () => tutupRef.current();
+    el.addEventListener("close", tutup);
+    el.addEventListener("cancel", tutup);
+    if (!el.open) el.showModal();
+    batalRef.current?.focus();
+    return () => {
+      el.removeEventListener("close", tutup);
+      el.removeEventListener("cancel", tutup);
+      if (el.open) el.close();
+    };
+  }, []);
+
   const setAmbang = (u: Ukuran, j: Jalur, m: keyof Ambang, v: number) =>
     setS((x) => {
       const y = structuredClone(x);
@@ -62,9 +84,13 @@ export default function LaciTetapan({ standard, diubah, onSimpan, onReset, onTut
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true">
-      <div className="card max-h-[90vh] w-full max-w-3xl overflow-y-auto bg-white p-6">
-        <h2 className="text-lg font-semibold text-ink">Tetapan semakan</h2>
+    <dialog
+      ref={dialogRef}
+      aria-labelledby={tajukId}
+      className="m-auto w-[calc(100%-2rem)] max-w-3xl border-0 bg-transparent p-0 backdrop:bg-black/40"
+    >
+      <div className="card max-h-[90vh] w-full overflow-y-auto bg-white p-6">
+        <h2 id={tajukId} className="text-lg font-semibold text-ink">Tetapan semakan</h2>
         <p className="mt-1 text-sm text-graphite">
           Disimpan dalam pelayar ini sahaja. Perbezaan daripada standard daerah dilaporkan kepada USTP
           (nilai tetapan sahaja, tiada data murid).
@@ -177,7 +203,7 @@ export default function LaciTetapan({ standard, diubah, onSimpan, onReset, onTut
             Kembali ke standard daerah
           </button>
           <div className="flex gap-2">
-            <button type="button" className="btn-outline-ink" onClick={onTutup}>
+            <button ref={batalRef} type="button" className="btn-outline-ink" onClick={onTutup}>
               Batal
             </button>
             <button type="button" className="btn-ink" onClick={() => onSimpan(s)}>
@@ -186,6 +212,6 @@ export default function LaciTetapan({ standard, diubah, onSimpan, onReset, onTut
           </div>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }

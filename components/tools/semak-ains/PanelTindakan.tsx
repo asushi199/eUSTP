@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { Keputusan, KodSebab, RekodAins } from "@/lib/tools/semak-ains/jenis";
 import { KOMEN_LALAI, LABEL_SEBAB, janaKomen } from "@/lib/tools/semak-ains/komen";
 import type { Standard } from "@/lib/tools/semak-ains/standard";
@@ -47,6 +47,10 @@ function belumSiap(status: Map<string, StatusTindakan>, k: Keputusan): boolean {
 export default function PanelTindakan(p: Props) {
   const [dialog, setDialog] = useState<Dialog>(null);
   const [ganti, setGanti] = useState<Partial<Record<KodSebab, string>>>({});
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const batalRef = useRef<HTMLButtonElement>(null);
+  const tajukId = useId();
+  const terbuka = dialog !== null;
   const { keputusan, status, dipilih } = p;
 
   const hijau = useMemo(
@@ -66,6 +70,22 @@ export default function PanelTindakan(p: Props) {
     [keputusan, dipilih, status],
   );
 
+  // Dialog asli: showModal() memberi latar inert, kurungan fokus & Escape.
+  useEffect(() => {
+    const el = dialogRef.current;
+    if (!terbuka || !el) return;
+    const tutup = () => setDialog(null);
+    el.addEventListener("close", tutup);
+    el.addEventListener("cancel", tutup);
+    if (!el.open) el.showModal();
+    batalRef.current?.focus();
+    return () => {
+      el.removeEventListener("close", tutup);
+      el.removeEventListener("cancel", tutup);
+      if (el.open) el.close();
+    };
+  }, [terbuka]);
+
   const bukaLulus = (senarai: Keputusan[]) => setDialog({ jenis: "lulus", senarai, contoh: rawak(senarai, 5) });
   const bukaTolak = (senarai: Keputusan[]) => {
     setGanti({});
@@ -74,6 +94,10 @@ export default function PanelTindakan(p: Props) {
   const sebabTolak = (senarai: Keputusan[]) => [
     ...new Set(senarai.flatMap((k) => (k.merah.length ? k.merah : k.kuning))),
   ];
+
+  const komenSemasa = (kod: KodSebab) => ganti[kod] ?? p.standard.komen[kod] ?? KOMEN_LALAI[kod];
+  const adaKomenKosong =
+    dialog?.jenis === "tolak" && sebabTolak(dialog.senarai).some((kod) => komenSemasa(kod).trim() === "");
 
   const sahkan = () => {
     if (!dialog) return;
@@ -154,11 +178,15 @@ export default function PanelTindakan(p: Props) {
       </div>
 
       {dialog ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true">
-          <div className="card max-h-[85vh] w-full max-w-2xl overflow-y-auto bg-white p-6">
+        <dialog
+          ref={dialogRef}
+          aria-labelledby={tajukId}
+          className="m-auto w-[calc(100%-2rem)] max-w-2xl border-0 bg-transparent p-0 backdrop:bg-black/40"
+        >
+          <div className="card max-h-[85vh] w-full overflow-y-auto bg-white p-6">
             {dialog.jenis === "lulus" ? (
               <>
-                <h2 className="text-lg font-semibold text-ink">Luluskan {dialog.senarai.length} rekod?</h2>
+                <h2 id={tajukId} className="text-lg font-semibold text-ink">Luluskan {dialog.senarai.length} rekod?</h2>
                 <p className="mt-1 text-sm text-graphite">
                   Semak rawak 5 rekod di bawah sebelum meneruskan. Kelulusan dibuat atas nama akaun AINS anda.
                 </p>
@@ -182,7 +210,7 @@ export default function PanelTindakan(p: Props) {
               </>
             ) : (
               <>
-                <h2 className="text-lg font-semibold text-ink">Tolak {dialog.senarai.length} rekod?</h2>
+                <h2 id={tajukId} className="text-lg font-semibold text-ink">Tolak {dialog.senarai.length} rekod?</h2>
                 <p className="mt-1 text-sm text-graphite">
                   Komen berikut dihantar kepada murid mengikut sebab. Anda boleh menyuntingnya.
                 </p>
@@ -193,24 +221,27 @@ export default function PanelTindakan(p: Props) {
                       <textarea
                         className="textarea mt-1"
                         rows={2}
-                        value={ganti[kod] ?? p.standard.komen[kod] ?? KOMEN_LALAI[kod]}
+                        value={komenSemasa(kod)}
                         onChange={(e) => setGanti((g) => ({ ...g, [kod]: e.target.value }))}
                       />
+                      {komenSemasa(kod).trim() === "" ? (
+                        <span className="mt-1 block text-xs text-graphite">Komen tidak boleh kosong.</span>
+                      ) : null}
                     </label>
                   ))}
                 </div>
               </>
             )}
             <div className="mt-6 flex flex-wrap justify-end gap-2">
-              <button type="button" className="btn-outline-ink" onClick={() => setDialog(null)}>
+              <button ref={batalRef} type="button" className="btn-outline-ink" onClick={() => setDialog(null)}>
                 Batal
               </button>
-              <button type="button" className="btn-ink" onClick={sahkan}>
+              <button type="button" className="btn-ink" disabled={adaKomenKosong} onClick={sahkan}>
                 {dialog.jenis === "lulus" ? "Teruskan lulus" : "Teruskan tolak"}
               </button>
             </div>
           </div>
-        </div>
+        </dialog>
       ) : null}
     </section>
   );
