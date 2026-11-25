@@ -192,15 +192,17 @@ export const DIREKTORI_SECTIONS = MODULES.filter((m) =>
   ["/direktori/sekolah", "/direktori/ustp"].includes(m.internalHref),
 );
 
-/** Sub-modul di bawah hub /laporan — dipapar dalam halaman CoE Reports. */
+/**
+ * Sub-modul di bawah hub /laporan — dipapar dalam halaman CoE Reports dan kad
+ * Reports halaman utama.
+ *
+ * Disorok sejak 2026-11-25 (tamat untuk 2026, mungkin diguna semula tahun depan):
+ * "/laporan-akhbar", "/laporan-mjkd", "/laporan/tebus-buku". Laluan & admin kekal
+ * hidup; jalur Analisis halaman utama (Semak Tebus Buku) tidak terjejas.
+ * Untuk papar semula, tambah href kembali ke senarai di bawah.
+ */
 export const LAPORAN_SECTIONS = MODULES.filter((m) =>
-  [
-    "/laporan-dpd",
-    "/laporan-pss",
-    "/laporan-akhbar",
-    "/laporan-mjkd",
-    "/laporan/tebus-buku",
-  ].includes(m.internalHref),
+  ["/laporan-dpd", "/laporan-pss"].includes(m.internalHref),
 );
 
 /** Sub-modul di bawah hub /tempahan — dipapar dalam halaman CoE Services. */

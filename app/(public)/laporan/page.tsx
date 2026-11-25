@@ -11,7 +11,7 @@ import { isKnownPeranan } from "@/lib/roles";
 export const metadata: Metadata = {
   title: "CoE Reports — NEXa Manjung",
   description:
-    "Pilih Laporan DPD, Laporan PSS, Laporan Akhbar, Semak Tebus Buku atau Minit Curai.",
+    "Pilih Laporan DPD atau Laporan PSS.",
 };
 
 const SECTION_TAG: Record<string, string> = {
@@ -36,8 +36,8 @@ export default async function LaporanHubPage() {
         accent={accent}
         description={
           looker
-            ? "Pilih modul di bawah. DPD dan PSS dibuka di Looker Studio; Laporan Akhbar dan Semak Tebus Buku kekal dalam portal."
-            : "Pilih modul laporan atau semak status tebus baucar buku."
+            ? "Pilih modul di bawah. DPD dan PSS dibuka di Looker Studio."
+            : "Pilih modul laporan."
         }
       />
 

@@ -2755,3 +2755,10 @@ Corak berselang = instance sihat vs beracun.
 - `scripts/data/dcs-2026-11-25.json` diimport (5 PKG, 101 sekolah, murid 2,390/2,498); cache `home` dikosongkan oleh skrip.
 - ESN tidak dikemas kini (pelayan esn.moe.edu.my beri 504); snapshot terkini kekal 2026-11-24.
 - Pembetulan (hari sama): pengguna membuang murid berlebihan di SK Nakhoda Muhammad Taib (ABA1012, kini 40/40). Pantai Remis dibaca semula: 16/17 sekolah, murid 363/368 (98.6%), kedudukan 27; Beruas kini 19. Diimport semula (upsert): daerah murid 2,390/2,497.
+
+## 2026-11-25 — CoE Reports: sorok Laporan Akhbar, MJKD 2026 & Semak Tebus Buku
+
+- Permintaan pengguna: tiga modul ini tamat untuk 2026 — sorok terus (tanpa label "Arkib"); mungkin diguna semula tahun depan.
+- `LAPORAN_SECTIONS` (`lib/module-theme.ts`) kini hanya DPD + PSS → hilang dari halaman `/laporan` dan kad Reports halaman utama. Komen di situ menyenaraikan href yang disorok; tambah semula untuk papar.
+- Laluan awam, admin dan data TIDAK dipadam (pautan terus masih berfungsi). Jalur Analisis halaman utama (tab Tebus Buku + butang "Semak Tebus Buku") tidak diubah.
+- Semakan: `npm run typecheck` + `npm run build`.
