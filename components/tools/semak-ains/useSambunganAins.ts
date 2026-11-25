@@ -118,7 +118,7 @@ export function useSambunganAins() {
     if (fasa !== "membaca" && fasa !== "melaksana") return;
     const id = window.setInterval(() => {
       if (!window.opener || window.opener.closed) {
-        setRalat("Tab AINS telah ditutup atau dimuat semula. Buka semula AINS, klik penanda dan baca semula.");
+        setRalat("Tab AINS telah ditutup. Buka semula AINS, klik penanda dan baca semula.");
         setFasa("keputusan");
       }
     }, 2000);

@@ -74,14 +74,15 @@ export default function PanelTindakan(p: Props) {
   useEffect(() => {
     const el = dialogRef.current;
     if (!terbuka || !el) return;
-    const tutup = () => setDialog(null);
-    el.addEventListener("close", tutup);
-    el.addEventListener("cancel", tutup);
+    // Escape: pelayar hantar "cancel" lalu "close"; hanya tutup state bila dialog benar-benar tertutup.
+    const onClose = () => {
+      if (!el.open) setDialog(null);
+    };
+    el.addEventListener("close", onClose);
     if (!el.open) el.showModal();
     batalRef.current?.focus();
     return () => {
-      el.removeEventListener("close", tutup);
-      el.removeEventListener("cancel", tutup);
+      el.removeEventListener("close", onClose);
       if (el.open) el.close();
     };
   }, [terbuka]);

@@ -55,14 +55,15 @@ export default function LaciTetapan({ standard, diubah, onSimpan, onReset, onTut
   useEffect(() => {
     const el = dialogRef.current;
     if (!el) return;
-    const tutup = () => tutupRef.current();
-    el.addEventListener("close", tutup);
-    el.addEventListener("cancel", tutup);
+    // Escape: pelayar hantar "cancel" lalu "close"; hanya tutup bila dialog benar-benar tertutup.
+    const onClose = () => {
+      if (!el.open) tutupRef.current();
+    };
+    el.addEventListener("close", onClose);
     if (!el.open) el.showModal();
     batalRef.current?.focus();
     return () => {
-      el.removeEventListener("close", tutup);
-      el.removeEventListener("cancel", tutup);
+      el.removeEventListener("close", onClose);
       if (el.open) el.close();
     };
   }, []);
