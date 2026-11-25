@@ -10,7 +10,6 @@ import {
   simpanDrafKunjungBantu,
 } from "@/lib/actions/kunjung-bantu";
 import {
-  ACCENT_KUNJUNG_BANTU,
   ASPEK,
   ITEM_DIISI,
   SESI_KUNJUNG_BANTU,
@@ -27,6 +26,7 @@ import {
   type MaklumatSekolah,
   type Semakan,
 } from "@/lib/kunjung-bantu/instrumen";
+import BarBahagian, { NavBahagian, tatalKeBahagian } from "@/components/kunjung-bantu/BarBahagian";
 
 type SchoolOption = { code: string; name: string; zone: string };
 
@@ -299,30 +299,13 @@ export default function BorangKunjungBantu({ schools, sudahHantar, existing }: P
   /** Tukar tab dan bawa pengguna ke atas bahagian (tidak perlu tatal ke atas sendiri). */
   function bukaTab(id: string) {
     setTab(id);
-    setTimeout(() => {
-      // Dua scrollIntoView "smooth" berturutan saling membatalkan dalam Chrome — tatal menegak
-      // (tetingkap) dan mendatar (bar tab) secara berasingan.
-      const sauh = navTabRef.current;
-      if (sauh) {
-        const y = sauh.getBoundingClientRect().top + window.scrollY - 64; // TopNav h-16
-        window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
-      }
-      const cip = document.getElementById(`kb-tab-${id}`);
-      const bar = cip?.parentElement;
-      if (cip && bar) {
-        bar.scrollTo({
-          left: cip.offsetLeft - bar.clientWidth / 2 + cip.clientWidth / 2,
-          behavior: "smooth",
-        });
-      }
-    }, 30);
+    tatalKeBahagian(navTabRef.current, `kb-tab-${id}`);
   }
 
   const idxTab = Math.max(0, TABS.findIndex((t) => t.id === tab));
   const tabSemasa = TABS[idxTab]!;
   const tabSebelum = idxTab > 0 ? TABS[idxTab - 1] : null;
   const tabSeterus = idxTab < TABS.length - 1 ? TABS[idxTab + 1] : null;
-  const bilLengkap = TABS.filter((t) => tabLengkap(t.id)).length;
 
   const { ya, jumlah } = kiraYa(jawapan);
   const dijawab = ITEM_DIISI.filter((it) => jawapan[it.id]?.ya != null).length;
@@ -410,68 +393,19 @@ export default function BorangKunjungBantu({ schools, sudahHantar, existing }: P
           ) : null}
 
           {/* Bar bahagian (tab) */}
-          <div ref={navTabRef} className="scroll-mt-16" aria-hidden />
-          <nav
-            aria-label="Bahagian instrumen"
-            className="sticky top-16 z-30 -mx-4 border-b hairline bg-white/95 px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-xl sm:border"
-          >
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-xs font-semibold text-graphite">
-                {bilLengkap}/{TABS.length} bahagian lengkap
-              </p>
-              <div className="h-1.5 w-28 overflow-hidden rounded-full bg-fog" aria-hidden>
-                <div
-                  className="h-full rounded-full transition-all"
-                  style={{
-                    width: `${(bilLengkap / TABS.length) * 100}%`,
-                    backgroundColor: ACCENT_KUNJUNG_BANTU,
-                  }}
-                />
-              </div>
-            </div>
-            <div
-              className="mt-2 flex gap-2 overflow-x-auto pb-1 pt-1 [scrollbar-width:none] sm:flex-wrap sm:overflow-visible [&::-webkit-scrollbar]:hidden"
-              role="tablist"
-            >
-              {TABS.map((t) => {
-                const aktif = t.id === tab;
-                const lengkap = tabLengkap(t.id);
-                const baiki = tabAdaBaiki(t.id);
-                return (
-                  <button
-                    key={t.id}
-                    id={`kb-tab-${t.id}`}
-                    type="button"
-                    role="tab"
-                    aria-selected={aktif}
-                    onClick={() => bukaTab(t.id)}
-                    className={`relative inline-flex h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 text-sm font-semibold transition ${
-                      aktif
-                        ? "border-ink bg-ink text-white"
-                        : lengkap
-                          ? "text-white"
-                          : "border-steel bg-white text-charcoal hover:border-ink"
-                    }`}
-                    style={
-                      !aktif && lengkap
-                        ? { backgroundColor: ACCENT_KUNJUNG_BANTU, borderColor: ACCENT_KUNJUNG_BANTU }
-                        : undefined
-                    }
-                  >
-                    <span className="tabular-nums opacity-80">{t.no}</span>
-                    {t.label}
-                    {lengkap ? <span aria-label="lengkap">✓</span> : null}
-                    {baiki ? (
-                      <span
-                        className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-bloom-deep"
-                        aria-label="ada item perlu dibaiki"
-                      />
-                    ) : null}
-                  </button>
-                );
-              })}
-            </div>
-          </nav>
+          <BarBahagian
+            tabs={TABS.map((t) => ({
+              id: t.id,
+              no: t.no,
+              label: t.label,
+              lengkap: tabLengkap(t.id),
+              baiki: tabAdaBaiki(t.id),
+            }))}
+            aktif={tab}
+            onPilih={bukaTab}
+            sauhRef={navTabRef}
+            awalanId="kb-tab"
+          />
 
           {/* Kandungan bahagian semasa */}
           {tabSemasa.aspek === null ? (
@@ -517,24 +451,16 @@ export default function BorangKunjungBantu({ schools, sudahHantar, existing }: P
           )}
 
           {/* Navigasi bahagian */}
-          <div className="flex items-center justify-between gap-3">
-            {tabSebelum ? (
-              <button type="button" className="btn-outline-ink" onClick={() => bukaTab(tabSebelum.id)}>
-                ← {tabSebelum.label}
-              </button>
-            ) : (
-              <span />
-            )}
-            {tabSeterus ? (
-              <button type="button" className="btn-ink" onClick={() => bukaTab(tabSeterus.id)}>
-                {tabSeterus.label} →
-              </button>
-            ) : (
-              <p className="text-right text-sm text-graphite">
+          <NavBahagian
+            sebelum={tabSebelum}
+            seterus={tabSeterus}
+            onPilih={bukaTab}
+            akhir={
+              <>
                 Bahagian terakhir — tekan <b>{kemaskini ? "Kemaskini" : "Hantar"}</b> di bawah.
-              </p>
-            )}
-          </div>
+              </>
+            }
+          />
 
           {/* Bar hantar */}
           <div className="card sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] z-10 flex items-center justify-between gap-3 px-4 py-3 shadow-modal lg:bottom-4">
