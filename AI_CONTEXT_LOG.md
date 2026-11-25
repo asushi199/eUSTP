@@ -2762,3 +2762,4 @@ Corak berselang = instance sihat vs beracun.
 - `LAPORAN_SECTIONS` (`lib/module-theme.ts`) kini hanya DPD + PSS → hilang dari halaman `/laporan` dan kad Reports halaman utama. Komen di situ menyenaraikan href yang disorok; tambah semula untuk papar.
 - Laluan awam, admin dan data TIDAK dipadam (pautan terus masih berfungsi). Jalur Analisis halaman utama (tab Tebus Buku + butang "Semak Tebus Buku") tidak diubah.
 - Semakan: `npm run typecheck` + `npm run build`.
+- Kemas kini kedua (hari sama): **ESN** `esn-2026-11-25.json` diimport — murid 6,744/9,226; sekolah selesai 58, proses 30, belum 14 (BERTESTING dibuang; semakan = Dashboard). 7 sekolah berubah (cth. SK Beruas belum → proses 8/73, SMK Tok Perdana 123/149). **DCS** Sitiawan (21/22, 613/633, kedudukan 35) dan Seri Manjung (21/22, 568/591, kedudukan 36) dibaca semula; 3 PKG lain sama (Pantai Remis kedudukan 28). Daerah murid 2,411/2,459.

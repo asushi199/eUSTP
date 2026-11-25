@@ -6,12 +6,12 @@
  "pkg": [
   {
    "pkg": "Sitiawan",
-   "rankPerak": 44,
-   "sekolahSiap": 20,
+   "rankPerak": 35,
+   "sekolahSiap": 21,
    "sekolahJumlah": 22,
-   "muridSiap": 603,
-   "muridJumlah": 667,
-   "pct": 90.4,
+   "muridSiap": 613,
+   "muridJumlah": 633,
+   "pct": 96.8,
    "bilSr": 16,
    "bilSm": 6,
    "tahap": {
@@ -20,37 +20,37 @@
      "bil": 346
     },
     "t3": {
-     "pct": 85,
-     "bil": 149
+     "pct": 100,
+     "bil": 159
     },
     "t5": {
-     "pct": 74,
+     "pct": 84,
      "bil": 108
     }
    },
    "tahapSekolah": {
     "t6": {
-     "pct": 88,
-     "bil": 14
+     "pct": 100,
+     "bil": 16
     },
     "t3": {
-     "pct": 33,
-     "bil": 2
+     "pct": 83,
+     "bil": 5
     },
     "t5": {
-     "pct": 33,
-     "bil": 2
+     "pct": 83,
+     "bil": 5
     }
    }
   },
   {
    "pkg": "Seri Manjung",
-   "rankPerak": 37,
-   "sekolahSiap": 20,
+   "rankPerak": 36,
+   "sekolahSiap": 21,
    "sekolahJumlah": 22,
-   "muridSiap": 557,
-   "muridJumlah": 595,
-   "pct": 93.6,
+   "muridSiap": 568,
+   "muridJumlah": 591,
+   "pct": 96.1,
    "bilSr": 16,
    "bilSm": 6,
    "tahap": {
@@ -59,32 +59,32 @@
      "bil": 304
     },
     "t3": {
-     "pct": 94,
-     "bil": 142
+     "pct": 100,
+     "bil": 151
     },
     "t5": {
-     "pct": 79,
-     "bil": 111
+     "pct": 83,
+     "bil": 113
     }
    },
    "tahapSekolah": {
     "t6": {
-     "pct": 88,
-     "bil": 14
+     "pct": 100,
+     "bil": 16
     },
     "t3": {
-     "pct": 20,
-     "bil": 1
+     "pct": 100,
+     "bil": 5
     },
     "t5": {
-     "pct": 17,
-     "bil": 1
+     "pct": 83,
+     "bil": 5
     }
    }
   },
   {
    "pkg": "Pantai Remis",
-   "rankPerak": 27,
+   "rankPerak": 28,
    "sekolahSiap": 16,
    "sekolahJumlah": 17,
    "muridSiap": 363,
@@ -217,7 +217,7 @@
    "kod": "ABA1017",
    "nama": "SK LEKIR",
    "pkg": "Sitiawan",
-   "kelasSiap": 0,
+   "kelasSiap": 2,
    "kelasJumlah": 2,
    "muridSiap": 24,
    "muridJumlah": 24,
@@ -301,7 +301,7 @@
    "kod": "ABB1044",
    "nama": "SK ST. FRANCIS",
    "pkg": "Sitiawan",
-   "kelasSiap": 0,
+   "kelasSiap": 2,
    "kelasJumlah": 2,
    "muridSiap": 41,
    "muridJumlah": 41,
@@ -397,7 +397,7 @@
    "kod": "AEA1112",
    "nama": "SMK BATU SEPULUH",
    "pkg": "Sitiawan",
-   "kelasSiap": 1,
+   "kelasSiap": 3,
    "kelasJumlah": 3,
    "muridSiap": 63,
    "muridJumlah": 63,
@@ -421,7 +421,7 @@
    "kod": "AEB1031",
    "nama": "SMK NAN HWA",
    "pkg": "Sitiawan",
-   "kelasSiap": 1,
+   "kelasSiap": 2,
    "kelasJumlah": 2,
    "muridSiap": 49,
    "muridJumlah": 49,
@@ -445,10 +445,10 @@
    "kod": "AEE1030",
    "nama": "SMK TOK PERDANA",
    "pkg": "Sitiawan",
-   "kelasSiap": 1,
-   "kelasJumlah": 5,
+   "kelasSiap": 3,
+   "kelasJumlah": 3,
    "muridSiap": 47,
-   "muridJumlah": 81,
+   "muridJumlah": 47,
    "skorT6": null,
    "skorT3": 3.39,
    "skorT5": 3.44
@@ -457,12 +457,12 @@
    "kod": "AFT1001",
    "nama": "SABK MAAHAD ISLAHIAH ADDINIAH",
    "pkg": "Sitiawan",
-   "kelasSiap": 1,
+   "kelasSiap": 2,
    "kelasJumlah": 4,
-   "muridSiap": 10,
+   "muridSiap": 20,
    "muridJumlah": 40,
    "skorT6": null,
-   "skorT3": 3.47,
+   "skorT3": 3.44,
    "skorT5": 0
   },
   {
@@ -505,7 +505,7 @@
    "kod": "ABA1023",
    "nama": "SK SERI PANGKOR",
    "pkg": "Seri Manjung",
-   "kelasSiap": 0,
+   "kelasSiap": 1,
    "kelasJumlah": 1,
    "muridSiap": 22,
    "muridJumlah": 22,
@@ -553,7 +553,7 @@
    "kod": "ABA1031",
    "nama": "SK PANGKALAN TLDM 2",
    "pkg": "Seri Manjung",
-   "kelasSiap": 0,
+   "kelasSiap": 1,
    "kelasJumlah": 1,
    "muridSiap": 30,
    "muridJumlah": 30,
@@ -661,7 +661,7 @@
    "kod": "AEA1109",
    "nama": "SMK SERI MANJUNG",
    "pkg": "Seri Manjung",
-   "kelasSiap": 1,
+   "kelasSiap": 2,
    "kelasJumlah": 2,
    "muridSiap": 45,
    "muridJumlah": 45,
@@ -673,7 +673,7 @@
    "kod": "AEA1111",
    "nama": "SMK PANGKALAN TLDM",
    "pkg": "Seri Manjung",
-   "kelasSiap": 2,
+   "kelasSiap": 3,
    "kelasJumlah": 3,
    "muridSiap": 50,
    "muridJumlah": 50,
@@ -685,13 +685,13 @@
    "kod": "AEA1116",
    "nama": "SMK KPG DATO SERI KAMARUDDIN",
    "pkg": "Seri Manjung",
-   "kelasSiap": 0,
+   "kelasSiap": 3,
    "kelasJumlah": 3,
-   "muridSiap": 55,
-   "muridJumlah": 70,
+   "muridSiap": 66,
+   "muridJumlah": 66,
    "skorT6": null,
-   "skorT3": 3.33,
-   "skorT5": 3.41
+   "skorT3": 3.36,
+   "skorT5": 3.4
   },
   {
    "kod": "AEB1033",
@@ -709,7 +709,7 @@
    "kod": "AEE1037",
    "nama": "SMK PANGKOR",
    "pkg": "Seri Manjung",
-   "kelasSiap": 3,
+   "kelasSiap": 5,
    "kelasJumlah": 5,
    "muridSiap": 40,
    "muridJumlah": 40,
