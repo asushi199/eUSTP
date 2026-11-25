@@ -2754,3 +2754,4 @@ Corak berselang = instance sihat vs beracun.
 - 4 PKG lain: halaman Ranking (dibaca dari akaun Sitiawan) menunjukkan sekolah & murid sama tepat dengan 2026-11-24, jadi data sekolah/tahap/skor dibawa dari `dcs-2026-11-24.json`, kedudukan sahaja dikemas kini (Ayer Tawar 15, Beruas 16, Pantai Remis 28, Seri Manjung 37). Skor Top Schools tidak berubah tanpa murid baharu selesai.
 - `scripts/data/dcs-2026-11-25.json` diimport (5 PKG, 101 sekolah, murid 2,390/2,498); cache `home` dikosongkan oleh skrip.
 - ESN tidak dikemas kini (pelayan esn.moe.edu.my beri 504); snapshot terkini kekal 2026-11-24.
+- Pembetulan (hari sama): pengguna membuang murid berlebihan di SK Nakhoda Muhammad Taib (ABA1012, kini 40/40). Pantai Remis dibaca semula: 16/17 sekolah, murid 363/368 (98.6%), kedudukan 27; Beruas kini 19. Diimport semula (upsert): daerah murid 2,390/2,497.

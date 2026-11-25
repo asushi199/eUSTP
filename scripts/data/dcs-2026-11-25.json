@@ -84,12 +84,12 @@
   },
   {
    "pkg": "Pantai Remis",
-   "rankPerak": 28,
-   "sekolahSiap": 15,
+   "rankPerak": 27,
+   "sekolahSiap": 16,
    "sekolahJumlah": 17,
    "muridSiap": 363,
-   "muridJumlah": 369,
-   "pct": 98.4,
+   "muridJumlah": 368,
+   "pct": 98.6,
    "bilSr": 15,
    "bilSm": 2,
    "tahap": {
@@ -123,7 +123,7 @@
   },
   {
    "pkg": "Beruas",
-   "rankPerak": 16,
+   "rankPerak": 19,
    "sekolahSiap": 17,
    "sekolahJumlah": 17,
    "muridSiap": 293,
@@ -796,7 +796,7 @@
    "kelasSiap": 0,
    "kelasJumlah": 1,
    "muridSiap": 40,
-   "muridJumlah": 41,
+   "muridJumlah": 40,
    "skorT6": 3.28,
    "skorT3": null,
    "skorT5": null
