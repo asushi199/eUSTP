@@ -117,6 +117,11 @@ GPICT/DELIMa/GPM, Tempahan PKG, Portal Sumber/Analisis/Maklumat Asas). Sumber as
 - **Kiosk tempahan** `/kiosk/[pkg]` (awam, kanvas menegak 1080×1920) — hanya PKG dalam
   `KIOSK_CONFIG` (`lib/tempahan/kiosk.ts`; kini Sitiawan, 3 bilik disewa). Approved sahaja,
   papar aktiviti + nama pemohon sahaja. Warna titik per bilik = pengecualian reka bentuk.
+- **Kunjung Bantu DELIMa** `/laporan-kunjung-bantu` (instrumen JPN 2026–2027): sekolah isi Ya/Tidak
+  (auto-simpan + tiket), pegawai semak per item di `/admin/kunjung-bantu/[kod]`, sahkan → rekod dikunci +
+  cop SVG pada `/cetak/kunjung-bantu`. Item dalam `lib/kunjung-bantu/instrumen.ts`; Aspek 2 = peratus d3
+  automatik (dibekukan semasa disahkan). Laporan Akhbar/MJKD/Tebus Buku disorok dari CoE Reports
+  (2026-11-25) — tambah semula href dalam `LAPORAN_SECTIONS` jika perlu tahun depan.
 - Petak statistik DPD/PSS halaman utama disorok (`SHOW_LAPORAN_TILES=false`
   dalam `app/(public)/page.tsx`) — pelaporan 2026 masih guna Looker Studio.
 - **MJKD 2026 = satu acara, satu rekod `mjkd_mesyuarat`** (kehadiran, minit +

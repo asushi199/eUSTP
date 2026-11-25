@@ -1785,3 +1785,59 @@ export const mjkdBahan = pgTable(
     mesyuaratIdx: index("mjkd_bahan_mesyuarat_idx").on(t.mesyuaratId),
   }),
 );
+
+/**
+ * Kunjung Bantu DELIMa (Instrumen Kunjung Bantu PSTP, JPN Perak) — satu rekod setiap sekolah
+ * setiap sesi. Sekolah mengisi Ya/Tidak + catatan (`jawapan`); pegawai PPD menyemak semasa
+ * lawatan (`semakan` per item + ulasan) dan mengesahkan. Senarai item dalam kod
+ * (`lib/kunjung-bantu/instrumen.ts`). `status`: DIHANTAR | PERLU_PEMBETULAN | DISAHKAN.
+ * `delimaBeku` = peratus d3 sekolah dibekukan semasa disahkan (null sebelum itu → papar terkini).
+ */
+export const kunjungBantu = pgTable(
+  "kunjung_bantu",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    sesi: text("sesi").notNull(),
+    schoolCode: text("school_code")
+      .notNull()
+      .references(() => schools.code, { onDelete: "restrict" }),
+    namaPgb: text("nama_pgb").notNull().default(""),
+    namaPkPentadbiran: text("nama_pk_pentadbiran").notNull().default(""),
+    namaAdminDelima: text("nama_admin_delima").notNull().default(""),
+    /** { [itemId]: { ya: boolean|null, catatan: string } } */
+    jawapan: jsonb("jawapan").notNull(),
+    receiptToken: text("receipt_token").notNull(),
+    status: text("status").notNull().default("DIHANTAR"),
+    tarikhHantar: timestamp("tarikh_hantar", { withTimezone: true }).defaultNow().notNull(),
+    /** { [itemId]: { status: "SAH"|"BAIKI"|null, catatan: string } } */
+    semakan: jsonb("semakan").notNull().default({}),
+    isu: text("isu").notNull().default(""),
+    ulasanPegawai: text("ulasan_pegawai").notNull().default(""),
+    namaPegawai: text("nama_pegawai").notNull().default(""),
+    tarikhPenilaian: date("tarikh_penilaian"),
+    disemakPada: timestamp("disemak_pada", { withTimezone: true }),
+    disahkanPada: timestamp("disahkan_pada", { withTimezone: true }),
+    delimaBeku: jsonb("delima_beku"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    sesiSekolahUq: uniqueIndex("kunjung_bantu_sesi_sekolah_uq").on(t.sesi, t.schoolCode),
+  }),
+);
+
+/** Draf Kunjung Bantu (belum dihantar) — satu per sekolah setiap sesi, dikongsi merentas peranti. */
+export const kunjungBantuDraf = pgTable(
+  "kunjung_bantu_draf",
+  {
+    sesi: text("sesi").notNull(),
+    schoolCode: text("school_code")
+      .notNull()
+      .references(() => schools.code, { onDelete: "cascade" }),
+    data: jsonb("data").notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.sesi, t.schoolCode] }),
+  }),
+);

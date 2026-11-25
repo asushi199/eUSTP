@@ -25,6 +25,8 @@ export default function robots(): MetadataRoute.Robots {
         "/laporan-dpd",
         "/laporan-pss",
         "/laporan-mjkd",
+        "/laporan-kunjung-bantu",
+        "/cetak",
         "/laporan-akhbar",
         "/khidmat-bantu",
         "/tempahan",

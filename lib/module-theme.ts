@@ -114,6 +114,16 @@ export const MODULES = [
     iconKey: "laporan" as const,
   },
   {
+    href: "/laporan-kunjung-bantu",
+    internalHref: "/laporan-kunjung-bantu",
+    external: false,
+    title: "Kunjung Bantu DELIMa",
+    description:
+      "Instrumen Kunjung Bantu PSTP 2026–2027 — sekolah isi kendiri, PPD lawat dan sahkan, boleh dicetak.",
+    accent: "#0F766E",
+    iconKey: "laporan" as const,
+  },
+  {
     href: "/laporan/tebus-buku",
     internalHref: "/laporan/tebus-buku",
     external: false,
@@ -202,7 +212,7 @@ export const DIREKTORI_SECTIONS = MODULES.filter((m) =>
  * Untuk papar semula, tambah href kembali ke senarai di bawah.
  */
 export const LAPORAN_SECTIONS = MODULES.filter((m) =>
-  ["/laporan-dpd", "/laporan-pss"].includes(m.internalHref),
+  ["/laporan-dpd", "/laporan-pss", "/laporan-kunjung-bantu"].includes(m.internalHref),
 );
 
 /** Sub-modul di bawah hub /tempahan — dipapar dalam halaman CoE Services. */

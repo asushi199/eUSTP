@@ -11,7 +11,7 @@ import { isKnownPeranan } from "@/lib/roles";
 export const metadata: Metadata = {
   title: "CoE Reports — NEXa Manjung",
   description:
-    "Pilih Laporan DPD atau Laporan PSS.",
+    "Pilih Laporan DPD, Laporan PSS atau Kunjung Bantu DELIMa.",
 };
 
 const SECTION_TAG: Record<string, string> = {
@@ -19,6 +19,7 @@ const SECTION_TAG: Record<string, string> = {
   "/laporan-pss": "Pusat Sumber Sekolah",
   "/laporan-akhbar": "Langganan Akhbar 2026",
   "/laporan-mjkd": "Mesyuarat Kurikulum",
+  "/laporan-kunjung-bantu": "Instrumen JPN 2026–2027",
   "/laporan/tebus-buku": "Baucar Buku",
 };
 

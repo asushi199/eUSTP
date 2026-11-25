@@ -2763,3 +2763,12 @@ Corak berselang = instance sihat vs beracun.
 - Laluan awam, admin dan data TIDAK dipadam (pautan terus masih berfungsi). Jalur Analisis halaman utama (tab Tebus Buku + butang "Semak Tebus Buku") tidak diubah.
 - Semakan: `npm run typecheck` + `npm run build`.
 - Kemas kini kedua (hari sama): **ESN** `esn-2026-11-25.json` diimport — murid 6,744/9,226; sekolah selesai 58, proses 30, belum 14 (BERTESTING dibuang; semakan = Dashboard). 7 sekolah berubah (cth. SK Beruas belum → proses 8/73, SMK Tok Perdana 123/149). **DCS** Sitiawan (21/22, 613/633, kedudukan 35) dan Seri Manjung (21/22, 568/591, kedudukan 36) dibaca semula; 3 PKG lain sama (Pantai Remis kedudukan 28). Daerah murid 2,411/2,459.
+
+## 2026-11-25 — Kunjung Bantu DELIMa (Instrumen Kunjung Bantu PSTP JPN Perak 2026–2027)
+
+- Sumber: surat JPNPk.SSTP.100-1/5/1 Jld.3 (75) + lampiran "Instrumen Kunjung Bantu Pengurusan Sumber dan Teknologi Pendidikan" (PDF imbasan, 6 aspek). Item dikod dalam `lib/kunjung-bantu/instrumen.ts` (penomboran JPN dikekalkan; JPN guna "2.1" dua kali → id dalaman `1-2.1` untuk Telegram).
+- Keputusan pengguna: (1) pegawai semak **per item** (Disahkan / Perlu dibaiki + catatan) + keputusan keseluruhan; (2) **cop elektronik SVG** (`CopSah`) pada cetakan bila disahkan; (3) Aspek 2 (peratus guru/murid/keseluruhan) **automatik daripada snapshot d3 terkini** — dibekukan dalam `delima_beku` semasa disahkan; (4) sekolah boleh kemaskini dengan nombor tiket bila-bila masa sehingga **disahkan (dikunci)**.
+- Aliran: `/laporan-kunjung-bantu` (pilih sekolah → prefill PGB/PK/Admin DELIMa dari direktori + laman rasmi untuk item 1.8 → Ya/Tidak; auto-simpan 1.2 s ke localStorage + draf pelayan `kunjung_bantu_draf`) → tiket (`/berjaya`) → `/semak` (status, item perlu dibaiki, kemaskini, cetak). Cetak A4: `/cetak/kunjung-bantu?kod&resit` (di luar susun atur awam; staf boleh tanpa resit).
+- Admin: `/admin/kunjung-bantu` (senarai semua sekolah + status Belum/Draf/Menunggu/Pembetulan/Disahkan, tapis zon) → `/admin/kunjung-bantu/[kod]` (semakan item, isu, ulasan, nama pegawai, tarikh lawatan; Simpan / Minta pembetulan / Sahkan berjaya / Buka semula). `requireKandunganAccess`.
+- DB: migrasi `0061_kunjung_bantu` (2 jadual, RLS dikunci). Tiada cache (halaman force-dynamic, query satu sekolah); senarai sekolah guna `listSchoolOptions` bercache.
+- Kad baharu dalam CoE Reports (`LAPORAN_SECTIONS`) + kad admin `/admin/pelaporan`.

@@ -6,24 +6,34 @@ type Props = {
   schoolCode: string;
   schoolName?: string | null;
   ticket: string;
+  /** Tajuk dalam fail .txt (lalai: MJKD 2026). */
+  tajuk?: string;
+  /** Awalan nama fail .txt (lalai: tiket-maklum-balas-mjkd). */
+  awalanFail?: string;
 };
 
-function buildMemoText({ schoolCode, schoolName, ticket }: Props): string {
+function buildMemoText({ schoolCode, schoolName, ticket, tajuk }: Props): string {
   const lines = [
-    "NEXa Manjung — Maklum Balas MJKD 2026",
-    "Rujukan nombor tiket maklum balas",
+    `NEXa Manjung — ${tajuk ?? "Maklum Balas MJKD 2026"}`,
+    "Rujukan nombor tiket",
     "",
     `Kod sekolah: ${schoolCode || "—"}`,
     schoolName ? `Nama sekolah: ${schoolName}` : null,
     `Nombor tiket: ${ticket || "—"}`,
     "",
-    "Simpan fail ini. Nombor tiket diperlukan untuk mengemaskini atau menyemak maklum balas.",
+    "Simpan fail ini. Nombor tiket diperlukan untuk menyemak atau mengemaskini.",
     "Jika hilang, hubungi PPD Manjung — tiada carian awam untuk nombor tiket.",
   ];
   return lines.filter((line) => line != null).join("\n");
 }
 
-export default function MjkdTicketActions({ schoolCode, schoolName, ticket }: Props) {
+export default function MjkdTicketActions({
+  schoolCode,
+  schoolName,
+  ticket,
+  tajuk,
+  awalanFail,
+}: Props) {
   const [copyMsg, setCopyMsg] = useState<string | null>(null);
   const ready = Boolean(schoolCode && ticket);
 
@@ -40,12 +50,12 @@ export default function MjkdTicketActions({ schoolCode, schoolName, ticket }: Pr
 
   function onDownload() {
     if (!ready) return;
-    const body = buildMemoText({ schoolCode, schoolName, ticket });
+    const body = buildMemoText({ schoolCode, schoolName, ticket, tajuk });
     const blob = new Blob([body], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `tiket-maklum-balas-mjkd-${schoolCode}.txt`;
+    a.download = `${awalanFail ?? "tiket-maklum-balas-mjkd"}-${schoolCode}.txt`;
     document.body.appendChild(a);
     a.click();
     a.remove();

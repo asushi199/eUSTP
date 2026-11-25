@@ -18,6 +18,11 @@ const CARDS: AdminCard[] = [
     description: "Arkib bulanan dan statistik pelaporan PSS.",
   },
   {
+    href: "/admin/kunjung-bantu",
+    title: "Kunjung Bantu DELIMa",
+    description: "Pantau instrumen sekolah, semak semasa lawatan, minta pembetulan atau sahkan berjaya.",
+  },
+  {
     href: "/admin/laporan-akhbar",
     title: "Laporan Akhbar",
     description: "Tinjauan Langganan Akhbar 2026 — termasuk data 2024–2025, semakan PPD & eksport Excel JPN.",
