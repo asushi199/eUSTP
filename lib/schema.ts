@@ -1843,3 +1843,32 @@ export const kunjungBantuDraf = pgTable(
     pk: primaryKey({ columns: [t.sesi, t.schoolCode] }),
   }),
 );
+
+/* ============================== CoE Tools: Semak Rekod AINS ============================== */
+
+/** Log penggunaan alat Semak Rekod AINS — bilangan sahaja, tiada data murid. */
+export const semakAinsLog = pgTable(
+  "semak_ains_log",
+  {
+    id: serial("id").primaryKey(),
+    diciptaPada: timestamp("dicipta_pada", { withTimezone: true }).defaultNow().notNull(),
+    kodSekolah: text("kod_sekolah").references(() => schools.code, { onDelete: "set null" }),
+    namaSekolah: text("nama_sekolah").notNull(),
+    /** 'semak' | 'lulus' | 'tolak' */
+    jenis: text("jenis").notNull(),
+    bilRekod: integer("bil_rekod").notNull(),
+    bilHijau: integer("bil_hijau"),
+    bilKuning: integer("bil_kuning"),
+    bilMerah: integer("bil_merah"),
+    bilBerjaya: integer("bil_berjaya"),
+    bilGagal: integer("bil_gagal"),
+    tetapanDiubah: boolean("tetapan_diubah").notNull().default(false),
+    /** Perbezaan tetapan GPM daripada standard daerah (dirata, kecil). */
+    tetapan: jsonb("tetapan"),
+    versiEnjin: text("versi_enjin").notNull(),
+    versiPenanda: text("versi_penanda").notNull(),
+  },
+  (t) => ({
+    kodMasaIdx: index("semak_ains_log_kod_masa_idx").on(t.kodSekolah, t.diciptaPada),
+  }),
+);
