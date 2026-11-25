@@ -10,14 +10,18 @@ import {
   simpanDrafKunjungBantu,
 } from "@/lib/actions/kunjung-bantu";
 import {
+  ACCENT_KUNJUNG_BANTU,
   ASPEK,
   ITEM_DIISI,
   SESI_KUNJUNG_BANTU,
+  aspekLengkap,
   formatPeratus,
-  isPautan,
+  itemLengkap,
   kiraYa,
+  maklumatLengkap,
   nilaiAuto,
   semakLengkap,
+  type AspekInstrumen,
   type DelimaSekolah,
   type Jawapan,
   type MaklumatSekolah,
@@ -40,6 +44,13 @@ type Props = {
     delima: DelimaSekolah | null;
   } | null;
 };
+
+/** Tab: "maklumat" atau "a{bil}" bagi setiap aspek. */
+const TAB_MAKLUMAT = "maklumat";
+const TABS: { id: string; no: string; label: string; aspek: AspekInstrumen | null }[] = [
+  { id: TAB_MAKLUMAT, no: "B", label: "Maklumat", aspek: null },
+  ...ASPEK.map((a) => ({ id: `a${a.bil}`, no: String(a.bil), label: a.tajukPendek, aspek: a })),
+];
 
 const MAKLUMAT_KOSONG: MaklumatSekolah = { namaPgb: "", namaPkPentadbiran: "", namaAdminDelima: "" };
 
@@ -106,6 +117,13 @@ export default function BorangKunjungBantu({ schools, sudahHantar, existing }: P
   const [ralat, setRalat] = useState<string | null>(null);
   const [itemRalat, setItemRalat] = useState<string | null>(null);
   const [menghantar, startHantar] = useTransition();
+  // Mod kemaskini dengan pembetulan: buka terus bahagian pertama yang ada item "perlu dibaiki".
+  const [tab, setTab] = useState<string>(() => {
+    const s = existing?.semakan ?? {};
+    const a = ASPEK.find((x) => x.items.some((it) => s[it.id]?.status === "BAIKI"));
+    return a ? `a${a.bil}` : TAB_MAKLUMAT;
+  });
+  const navTabRef = useRef<HTMLDivElement | null>(null);
   const ubah = useRef(false); // ada suntingan pengguna sejak dimuat
   const pemasa = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -136,6 +154,7 @@ export default function BorangKunjungBantu({ schools, sudahHantar, existing }: P
     setDrafDipulih(null);
     setSedia(false);
     setSekolahSudahHantar(false);
+    setTab(TAB_MAKLUMAT);
     ubah.current = false;
     if (!kod) return;
     setMemuat(true);
@@ -196,6 +215,7 @@ export default function BorangKunjungBantu({ schools, sudahHantar, existing }: P
 
   function setItem(id: string, patch: Partial<{ ya: boolean | null; catatan: string }>) {
     ubah.current = true;
+    setRalat(null);
     if (itemRalat === id) setItemRalat(null);
     setJawapan((prev) => {
       const lama = prev[id] ?? { ya: null, catatan: "" };
@@ -205,6 +225,7 @@ export default function BorangKunjungBantu({ schools, sudahHantar, existing }: P
 
   function setMaklumatMedan(k: keyof MaklumatSekolah, v: string) {
     ubah.current = true;
+    setRalat(null);
     setMaklumat((m) => ({ ...m, [k]: v }));
   }
 
@@ -228,15 +249,19 @@ export default function BorangKunjungBantu({ schools, sudahHantar, existing }: P
     const salah = semakLengkap(maklumat, jawapan);
     if (salah) {
       setRalat(salah);
-      const item = ITEM_DIISI.find((it) => {
-        const j = jawapan[it.id];
-        return !j || j.ya === null || (it.wajibPautan && j.ya && !isPautan(j.catatan));
-      });
-      if (item && maklumat.namaPgb.trim() && maklumat.namaAdminDelima.trim()) {
+      if (!maklumatLengkap(maklumat)) {
+        bukaTab(TAB_MAKLUMAT);
+        return;
+      }
+      const item = ITEM_DIISI.find((it) => !itemLengkap(it, jawapan));
+      const aspek = item ? ASPEK.find((a) => a.items.includes(item)) : null;
+      if (item && aspek) {
         setItemRalat(item.id);
-        document.getElementById(`kb-item-${item.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
-      } else {
-        document.getElementById("kb-maklumat")?.scrollIntoView({ behavior: "smooth", block: "center" });
+        setTab(`a${aspek.bil}`);
+        // Tunggu tab dipaparkan sebelum menatal ke item.
+        setTimeout(() => {
+          document.getElementById(`kb-item-${item.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 60);
       }
       return;
     }
@@ -259,6 +284,45 @@ export default function BorangKunjungBantu({ schools, sudahHantar, existing }: P
       );
     });
   }
+
+  function tabLengkap(id: string): boolean {
+    const t = TABS.find((x) => x.id === id);
+    if (!t) return false;
+    return t.aspek ? aspekLengkap(t.aspek, jawapan) : maklumatLengkap(maklumat);
+  }
+
+  function tabAdaBaiki(id: string): boolean {
+    const a = TABS.find((x) => x.id === id)?.aspek;
+    return Boolean(a?.items.some((it) => semakan[it.id]?.status === "BAIKI"));
+  }
+
+  /** Tukar tab dan bawa pengguna ke atas bahagian (tidak perlu tatal ke atas sendiri). */
+  function bukaTab(id: string) {
+    setTab(id);
+    setTimeout(() => {
+      // Dua scrollIntoView "smooth" berturutan saling membatalkan dalam Chrome — tatal menegak
+      // (tetingkap) dan mendatar (bar tab) secara berasingan.
+      const sauh = navTabRef.current;
+      if (sauh) {
+        const y = sauh.getBoundingClientRect().top + window.scrollY - 64; // TopNav h-16
+        window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+      }
+      const cip = document.getElementById(`kb-tab-${id}`);
+      const bar = cip?.parentElement;
+      if (cip && bar) {
+        bar.scrollTo({
+          left: cip.offsetLeft - bar.clientWidth / 2 + cip.clientWidth / 2,
+          behavior: "smooth",
+        });
+      }
+    }, 30);
+  }
+
+  const idxTab = Math.max(0, TABS.findIndex((t) => t.id === tab));
+  const tabSemasa = TABS[idxTab]!;
+  const tabSebelum = idxTab > 0 ? TABS[idxTab - 1] : null;
+  const tabSeterus = idxTab < TABS.length - 1 ? TABS[idxTab + 1] : null;
+  const bilLengkap = TABS.filter((t) => tabLengkap(t.id)).length;
 
   const { ya, jumlah } = kiraYa(jawapan);
   const dijawab = ITEM_DIISI.filter((it) => jawapan[it.id]?.ya != null).length;
@@ -345,169 +409,136 @@ export default function BorangKunjungBantu({ schools, sudahHantar, existing }: P
             </div>
           ) : null}
 
-          {/* B. Maklumat */}
-          <section id="kb-maklumat" className="card p-6">
-            <h2 className="text-lg font-semibold">B. Maklumat sekolah</h2>
-            <p className="mt-1 text-sm text-graphite">Diisi daripada direktori — betulkan jika perlu.</p>
-            <div className="mt-4 grid gap-4 sm:grid-cols-3">
-              {(
-                [
-                  ["namaPgb", "Nama Pengetua / Guru Besar *"],
-                  ["namaPkPentadbiran", "Nama PK Pentadbiran"],
-                  ["namaAdminDelima", "Nama Admin DELIMa *"],
-                ] as const
-              ).map(([k, label]) => (
-                <div key={k}>
-                  <label className="label" htmlFor={`kb-${k}`}>
-                    {label}
-                  </label>
-                  <input
-                    id={`kb-${k}`}
-                    className="input"
-                    value={maklumat[k]}
-                    maxLength={200}
-                    onChange={(e) => setMaklumatMedan(k, e.target.value)}
-                  />
-                </div>
-              ))}
+          {/* Bar bahagian (tab) */}
+          <div ref={navTabRef} className="scroll-mt-16" aria-hidden />
+          <nav
+            aria-label="Bahagian instrumen"
+            className="sticky top-16 z-30 -mx-4 border-b hairline bg-white/95 px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-xl sm:border"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs font-semibold text-graphite">
+                {bilLengkap}/{TABS.length} bahagian lengkap
+              </p>
+              <div className="h-1.5 w-28 overflow-hidden rounded-full bg-fog" aria-hidden>
+                <div
+                  className="h-full rounded-full transition-all"
+                  style={{
+                    width: `${(bilLengkap / TABS.length) * 100}%`,
+                    backgroundColor: ACCENT_KUNJUNG_BANTU,
+                  }}
+                />
+              </div>
             </div>
-          </section>
+            <div
+              className="mt-2 flex gap-2 overflow-x-auto pb-1 pt-1 [scrollbar-width:none] sm:flex-wrap sm:overflow-visible [&::-webkit-scrollbar]:hidden"
+              role="tablist"
+            >
+              {TABS.map((t) => {
+                const aktif = t.id === tab;
+                const lengkap = tabLengkap(t.id);
+                const baiki = tabAdaBaiki(t.id);
+                return (
+                  <button
+                    key={t.id}
+                    id={`kb-tab-${t.id}`}
+                    type="button"
+                    role="tab"
+                    aria-selected={aktif}
+                    onClick={() => bukaTab(t.id)}
+                    className={`relative inline-flex h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 text-sm font-semibold transition ${
+                      aktif
+                        ? "border-ink bg-ink text-white"
+                        : lengkap
+                          ? "text-white"
+                          : "border-steel bg-white text-charcoal hover:border-ink"
+                    }`}
+                    style={
+                      !aktif && lengkap
+                        ? { backgroundColor: ACCENT_KUNJUNG_BANTU, borderColor: ACCENT_KUNJUNG_BANTU }
+                        : undefined
+                    }
+                  >
+                    <span className="tabular-nums opacity-80">{t.no}</span>
+                    {t.label}
+                    {lengkap ? <span aria-label="lengkap">✓</span> : null}
+                    {baiki ? (
+                      <span
+                        className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-bloom-deep"
+                        aria-label="ada item perlu dibaiki"
+                      />
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
+          </nav>
 
-          {/* C. Aspek */}
-          <section>
-            <h2 className="text-lg font-semibold">C. Aspek yang dipantau</h2>
-            <p className="mt-1 text-sm text-graphite">
-              Tandakan <b>Ya</b> jika sudah dilaksanakan dan bukti boleh ditunjukkan semasa lawatan PPD,
-              atau <b>Tidak</b> jika belum. Catatan/pautan bukti adalah pilihan.
-            </p>
-            <div className="mt-4 space-y-4">
-              {ASPEK.map((a) => (
-                <div key={a.bil} className="card overflow-hidden">
-                  <div className="border-b hairline bg-cloud px-5 py-3">
-                    <p className="font-semibold text-ink">
-                      {a.bil}. {a.tajuk}
-                    </p>
-                    {a.subtajuk ? <p className="text-xs text-graphite">{a.subtajuk}</p> : null}
+          {/* Kandungan bahagian semasa */}
+          {tabSemasa.aspek === null ? (
+            <section id="kb-maklumat" className="card p-6">
+              <h2 className="text-lg font-semibold">B. Maklumat sekolah</h2>
+              <p className="mt-1 text-sm text-graphite">Diisi daripada direktori — betulkan jika perlu.</p>
+              <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                {(
+                  [
+                    ["namaPgb", "Nama Pengetua / Guru Besar *"],
+                    ["namaPkPentadbiran", "Nama PK Pentadbiran"],
+                    ["namaAdminDelima", "Nama Admin DELIMa *"],
+                  ] as const
+                ).map(([k, label]) => (
+                  <div key={k}>
+                    <label className="label" htmlFor={`kb-${k}`}>
+                      {label}
+                    </label>
+                    <input
+                      id={`kb-${k}`}
+                      className="input"
+                      value={maklumat[k]}
+                      maxLength={200}
+                      onChange={(e) => setMaklumatMedan(k, e.target.value)}
+                    />
                   </div>
-                  {a.auto ? (
-                    <div className="px-5 py-4">
-                      <ul className="divide-y divide-fog">
-                        {a.items.map((it) => {
-                          const v = nilaiAuto(delima, it.id);
-                          return (
-                            <li key={it.id} className="flex items-baseline justify-between gap-4 py-2 text-sm">
-                              <span>
-                                <span className="mr-2 text-graphite">{it.no}</span>
-                                {it.item}
-                              </span>
-                              <span className="shrink-0 font-semibold tabular-nums">
-                                {v ? formatPeratus(v.peratus) : "—"}
-                              </span>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                      <p className="mt-2 text-xs text-graphite">
-                        {delima
-                          ? `Data automatik d3 DELIMa (${delima.tempoh}) — tidak perlu diisi. Dikemas kini setiap kali PPD mengimport data baharu.`
-                          : "Data d3 DELIMa sekolah ini belum ada — PPD akan menyemak semasa lawatan."}
-                      </p>
-                    </div>
-                  ) : (
-                    <ul className="divide-y divide-fog">
-                      {a.items.map((it) => {
-                        const j = jawapan[it.id] ?? { ya: null, catatan: "" };
-                        const s = semakan[it.id];
-                        const baiki = s?.status === "BAIKI";
-                        return (
-                          <li
-                            key={it.id}
-                            id={`kb-item-${it.id}`}
-                            className={`px-5 py-4 ${baiki ? "bg-bloom-rose/40" : ""} ${
-                              itemRalat === it.id ? "ring-2 ring-inset ring-bloom-deep" : ""
-                            }`}
-                          >
-                            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                              <div className="min-w-0">
-                                <p className="text-[15px] text-ink">
-                                  <span className="mr-2 font-semibold text-graphite">{it.no}</span>
-                                  {it.item}
-                                </p>
-                                {it.panduan ? (
-                                  <p className="mt-0.5 text-xs text-graphite">{it.panduan}</p>
-                                ) : null}
-                                {it.pautan ? (
-                                  <a
-                                    href={it.pautan.href}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="link-blue mt-0.5 inline-block text-xs"
-                                  >
-                                    {it.pautan.label} ↗
-                                  </a>
-                                ) : null}
-                                {baiki ? (
-                                  <p className="mt-1 text-sm font-semibold text-bloom-deep">
-                                    PPD: perlu dibaiki{s?.catatan ? ` — ${s.catatan}` : ""}
-                                  </p>
-                                ) : null}
-                              </div>
-                              <div className="flex shrink-0 gap-2" role="radiogroup" aria-label={`Item ${it.no}`}>
-                                {(
-                                  [
-                                    [true, "Ya"],
-                                    [false, "Tidak"],
-                                  ] as const
-                                ).map(([nilai, label]) => {
-                                  const aktif = j.ya === nilai;
-                                  return (
-                                    <button
-                                      key={label}
-                                      type="button"
-                                      role="radio"
-                                      aria-checked={aktif}
-                                      onClick={() => setItem(it.id, { ya: aktif ? null : nilai })}
-                                      className={`h-11 w-20 rounded border text-sm font-semibold transition ${
-                                        aktif
-                                          ? nilai
-                                            ? "border-ink bg-ink text-white"
-                                            : "border-graphite bg-graphite text-white"
-                                          : "border-steel bg-white text-charcoal hover:border-ink"
-                                      }`}
-                                    >
-                                      {label}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                            {j.ya !== null || it.wajibPautan ? (
-                              <input
-                                className="input mt-3"
-                                value={j.catatan}
-                                maxLength={1000}
-                                placeholder={
-                                  it.placeholderCatatan ??
-                                  (j.ya === false
-                                    ? "Catatan (pilihan): sebab / perancangan"
-                                    : "Catatan / pautan bukti (pilihan)")
-                                }
-                                onChange={(e) => setItem(it.id, { catatan: e.target.value })}
-                              />
-                            ) : null}
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  )}
-                </div>
-              ))}
-            </div>
-          </section>
+                ))}
+              </div>
+              <p className="mt-4 text-sm text-graphite">
+                Bahagian 1–6: tandakan <b>Ya</b> jika sudah dilaksanakan dan bukti boleh ditunjukkan
+                semasa lawatan PPD, atau <b>Tidak</b> jika belum. Catatan/pautan bukti adalah pilihan.
+              </p>
+            </section>
+          ) : (
+            <BahagianAspek
+              aspek={tabSemasa.aspek}
+              jawapan={jawapan}
+              semakan={semakan}
+              delima={delima}
+              itemRalat={itemRalat}
+              setItem={setItem}
+            />
+          )}
+
+          {/* Navigasi bahagian */}
+          <div className="flex items-center justify-between gap-3">
+            {tabSebelum ? (
+              <button type="button" className="btn-outline-ink" onClick={() => bukaTab(tabSebelum.id)}>
+                ← {tabSebelum.label}
+              </button>
+            ) : (
+              <span />
+            )}
+            {tabSeterus ? (
+              <button type="button" className="btn-ink" onClick={() => bukaTab(tabSeterus.id)}>
+                {tabSeterus.label} →
+              </button>
+            ) : (
+              <p className="text-right text-sm text-graphite">
+                Bahagian terakhir — tekan <b>{kemaskini ? "Kemaskini" : "Hantar"}</b> di bawah.
+              </p>
+            )}
+          </div>
 
           {/* Bar hantar */}
-          <div className="card sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] z-10 flex flex-col gap-3 p-4 shadow-modal sm:flex-row sm:items-center sm:justify-between lg:bottom-4">
-            <div className="min-w-0 text-sm">
+          <div className="card sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] z-10 flex items-center justify-between gap-3 px-4 py-3 shadow-modal lg:bottom-4">
+            <div className="min-w-0 flex-1 text-sm">
               <p className="font-semibold text-ink">
                 {dijawab}/{jumlah} item dijawab · {ya} Ya
               </p>
@@ -516,7 +547,7 @@ export default function BorangKunjungBantu({ schools, sudahHantar, existing }: P
             </div>
             <button
               type="button"
-              className="btn-primary h-12 shrink-0 sm:px-10"
+              className="btn-primary h-12 shrink-0 px-5 sm:px-10"
               disabled={menghantar}
               onClick={hantar}
             >
@@ -527,5 +558,142 @@ export default function BorangKunjungBantu({ schools, sudahHantar, existing }: P
       ) : null}
       {!sedia && ralat ? <p className="text-sm text-bloom-deep">{ralat}</p> : null}
     </div>
+  );
+}
+
+/** Satu bahagian (aspek) instrumen: senarai item Ya/Tidak, atau nilai automatik d3. */
+function BahagianAspek({
+  aspek: a,
+  jawapan,
+  semakan,
+  delima,
+  itemRalat,
+  setItem,
+}: {
+  aspek: AspekInstrumen;
+  jawapan: Jawapan;
+  semakan: Semakan;
+  delima: DelimaSekolah | null;
+  itemRalat: string | null;
+  setItem: (id: string, patch: Partial<{ ya: boolean | null; catatan: string }>) => void;
+}) {
+  return (
+    <section className="card overflow-hidden" aria-label={`Aspek ${a.bil}`}>
+      <div className="border-b hairline bg-cloud px-5 py-3">
+        <p className="font-semibold text-ink">
+          {a.bil}. {a.tajuk}
+        </p>
+        {a.subtajuk ? <p className="text-xs text-graphite">{a.subtajuk}</p> : null}
+      </div>
+      {a.auto ? (
+        <div className="px-5 py-4">
+          <ul className="divide-y divide-fog">
+            {a.items.map((it) => {
+              const v = nilaiAuto(delima, it.id);
+              return (
+                <li key={it.id} className="flex items-baseline justify-between gap-4 py-2 text-sm">
+                  <span>
+                    <span className="mr-2 text-graphite">{it.no}</span>
+                    {it.item}
+                  </span>
+                  <span className="shrink-0 font-semibold tabular-nums">
+                    {v ? formatPeratus(v.peratus) : "—"}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+          <p className="mt-2 text-xs text-graphite">
+            {delima
+              ? `Data automatik d3 DELIMa (${delima.tempoh}) — tidak perlu diisi. Dikemas kini setiap kali PPD mengimport data baharu.`
+              : "Data d3 DELIMa sekolah ini belum ada — PPD akan menyemak semasa lawatan."}
+          </p>
+        </div>
+      ) : (
+        <ul className="divide-y divide-fog">
+          {a.items.map((it) => {
+            const j = jawapan[it.id] ?? { ya: null, catatan: "" };
+            const s = semakan[it.id];
+            const baiki = s?.status === "BAIKI";
+            return (
+              <li
+                key={it.id}
+                id={`kb-item-${it.id}`}
+                className={`scroll-mt-48 px-5 py-4 ${baiki ? "bg-bloom-rose/40" : ""} ${
+                  itemRalat === it.id ? "ring-2 ring-inset ring-bloom-deep" : ""
+                }`}
+              >
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="min-w-0">
+                    <p className="text-[15px] text-ink">
+                      <span className="mr-2 font-semibold text-graphite">{it.no}</span>
+                      {it.item}
+                    </p>
+                    {it.panduan ? <p className="mt-0.5 text-xs text-graphite">{it.panduan}</p> : null}
+                    {it.pautan ? (
+                      <a
+                        href={it.pautan.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="link-blue mt-0.5 inline-block text-xs"
+                      >
+                        {it.pautan.label} ↗
+                      </a>
+                    ) : null}
+                    {baiki ? (
+                      <p className="mt-1 text-sm font-semibold text-bloom-deep">
+                        PPD: perlu dibaiki{s?.catatan ? ` — ${s.catatan}` : ""}
+                      </p>
+                    ) : null}
+                  </div>
+                  <div className="flex shrink-0 gap-2" role="radiogroup" aria-label={`Item ${it.no}`}>
+                    {(
+                      [
+                        [true, "Ya"],
+                        [false, "Tidak"],
+                      ] as const
+                    ).map(([nilai, label]) => {
+                      const aktif = j.ya === nilai;
+                      return (
+                        <button
+                          key={label}
+                          type="button"
+                          role="radio"
+                          aria-checked={aktif}
+                          onClick={() => setItem(it.id, { ya: aktif ? null : nilai })}
+                          className={`h-11 w-20 rounded border text-sm font-semibold transition ${
+                            aktif
+                              ? nilai
+                                ? "border-ink bg-ink text-white"
+                                : "border-graphite bg-graphite text-white"
+                              : "border-steel bg-white text-charcoal hover:border-ink"
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                {j.ya !== null || it.wajibPautan ? (
+                  <input
+                    className="input mt-3"
+                    value={j.catatan}
+                    maxLength={1000}
+                    placeholder={
+                      it.placeholderCatatan ??
+                      (j.ya === false
+                        ? "Catatan (pilihan): sebab / perancangan"
+                        : "Catatan / pautan bukti (pilihan)")
+                    }
+                    onChange={(e) => setItem(it.id, { catatan: e.target.value })}
+                  />
+                ) : null}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
   );
 }

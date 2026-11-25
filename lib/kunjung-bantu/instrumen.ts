@@ -32,6 +32,8 @@ export type ItemInstrumen = {
 export type AspekInstrumen = {
   bil: number;
   tajuk: string;
+  /** Label tab (ringkas, untuk telefon). */
+  tajukPendek: string;
   subtajuk?: string;
   /** Aspek "auto": nilai diambil daripada data d3 DELIMa — sekolah tidak mengisi. */
   auto?: boolean;
@@ -44,6 +46,7 @@ export const ASPEK: AspekInstrumen[] = [
   {
     bil: 1,
     tajuk: "Pengurusan Sekolah",
+    tajukPendek: "Pengurusan",
     items: [
       { id: "1.1", no: "1.1", item: "Jawatankuasa DELIMa" },
       { id: "1.2", no: "1.2", item: "Fail / e-fail DELIMa (Punca Kuasa KPM/JPN)" },
@@ -90,6 +93,7 @@ export const ASPEK: AspekInstrumen[] = [
   {
     bil: 2,
     tajuk: "Pembudayaan DELIMa",
+    tajukPendek: "Pembudayaan",
     subtajuk: "Dashboard Status Penggunaan DELIMa / Perak Drift",
     auto: true,
     items: [
@@ -101,6 +105,7 @@ export const ASPEK: AspekInstrumen[] = [
   {
     bil: 3,
     tajuk: "Promosi",
+    tajukPendek: "Promosi",
     items: [
       { id: "3.1", no: "3.1", item: "Promosi / pelancaran DELIMa" },
       { id: "3.2", no: "3.2", item: "Kursus dalaman kepada guru" },
@@ -112,6 +117,7 @@ export const ASPEK: AspekInstrumen[] = [
   {
     bil: 4,
     tajuk: "Penggunaan DELIMa Pengurusan Sekolah",
+    tajukPendek: "Penggunaan",
     subtajuk: "ID CM DELIMa",
     items: [
       { id: "4.1", no: "4.1", item: "DELIMa dalam pengurusan" },
@@ -133,6 +139,7 @@ export const ASPEK: AspekInstrumen[] = [
   {
     bil: 5,
     tajuk: "Pensijilan DELIMa Guru",
+    tajukPendek: "Pensijilan",
     subtajuk: "DCTP, Google, Microsoft, Apple dan lain-lain",
     items: [
       { id: "5.1", no: "5.1", item: "DELIMa Certified Training Programme (DCTP)" },
@@ -145,6 +152,7 @@ export const ASPEK: AspekInstrumen[] = [
   {
     bil: 6,
     tajuk: "Keistimewaan Sekolah",
+    tajukPendek: "Keistimewaan",
     items: [
       { id: "6.1", no: "6.1", item: "Kolaboratif / jaringan / jalinan" },
       { id: "6.2", no: "6.2", item: "Web / portal / dashboard DELIMa" },
@@ -219,16 +227,32 @@ export function isPautan(v: string): boolean {
   return /^https?:\/\/\S+\.\S+/i.test(v.trim());
 }
 
+/** Satu item lengkap: Ya/Tidak dipilih, dan pautan sah jika item memerlukannya. */
+export function itemLengkap(it: ItemInstrumen, jawapan: Jawapan): boolean {
+  const j = jawapan[it.id];
+  if (!j || j.ya === null) return false;
+  return !(it.wajibPautan && j.ya && !isPautan(j.catatan));
+}
+
+/** Aspek lengkap: semua item diisi (aspek auto sentiasa lengkap). */
+export function aspekLengkap(a: AspekInstrumen, jawapan: Jawapan): boolean {
+  return a.auto === true || a.items.every((it) => itemLengkap(it, jawapan));
+}
+
+export function maklumatLengkap(m: MaklumatSekolah): boolean {
+  return Boolean(m.namaPgb.trim() && m.namaAdminDelima.trim());
+}
+
 /** Semak jawapan sebelum dihantar. Pulangkan mesej ralat pertama, atau null jika sah. */
 export function semakLengkap(maklumat: MaklumatSekolah, jawapan: Jawapan): string | null {
   if (!maklumat.namaPgb.trim()) return "Sila isi nama Pengetua / Guru Besar.";
   if (!maklumat.namaAdminDelima.trim()) return "Sila isi nama Admin DELIMa.";
   for (const it of ITEM_DIISI) {
-    const j = jawapan[it.id];
-    if (!j || j.ya === null) return `Sila tandakan Ya atau Tidak bagi item ${it.no} (${it.item}).`;
-    if (it.wajibPautan && j.ya && !isPautan(j.catatan)) {
-      return `Item ${it.no}: sila masukkan pautan (bermula https://).`;
+    if (itemLengkap(it, jawapan)) continue;
+    if (jawapan[it.id]?.ya == null) {
+      return `Sila tandakan Ya atau Tidak bagi item ${it.no} (${it.item}).`;
     }
+    return `Item ${it.no}: sila masukkan pautan (bermula https://).`;
   }
   return null;
 }
