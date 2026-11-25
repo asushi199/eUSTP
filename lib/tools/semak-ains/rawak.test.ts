@@ -27,6 +27,7 @@ test("bukan perkataan (tiada vokal / konsonan panjang)", () => {
 
 test("sisa IME dalam teks Cina", () => {
   assert.equal(kesanRawak("甲a乙丙b丁戊c己庚d辛壬e癸", "zh"), "ime");
+  assert.equal(kesanRawak("甲a乙b丙c丁d戊e己", "zh"), "ime");
 });
 
 test("huruf dijarakkan", () => {
