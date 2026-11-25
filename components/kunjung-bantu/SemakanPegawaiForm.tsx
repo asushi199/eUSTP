@@ -25,8 +25,11 @@ type Props = {
   isu: string;
   ulasanPegawai: string;
   namaPegawai: string;
+  jawatanPegawai: string;
   tarikhPenilaian: string;
   delima: DelimaSekolah | null;
+  /** Pegawai USTP aktif (jadual `pegawai`) — nama + jawatan rasmi untuk tandatangan/cop. */
+  pegawaiPilihan: { nama: string; jawatan: string }[];
 };
 
 const SAHKAN_MESEJ =
@@ -39,6 +42,15 @@ export default function SemakanPegawaiForm(props: Props) {
   const [isu, setIsu] = useState(props.isu);
   const [ulasan, setUlasan] = useState(props.ulasanPegawai);
   const [namaPegawai, setNamaPegawai] = useState(props.namaPegawai);
+  const [jawatanPegawai, setJawatanPegawai] = useState(props.jawatanPegawai);
+  const pilihan = props.namaPegawai && !props.pegawaiPilihan.some((p) => p.nama === props.namaPegawai)
+    ? [...props.pegawaiPilihan, { nama: props.namaPegawai, jawatan: props.jawatanPegawai }]
+    : props.pegawaiPilihan;
+
+  function pilihPegawai(nama: string) {
+    setNamaPegawai(nama);
+    setJawatanPegawai(pilihan.find((p) => p.nama === nama)?.jawatan ?? "");
+  }
   const [tarikh, setTarikh] = useState(props.tarikhPenilaian);
   const [mesej, setMesej] = useState<{ ok: boolean; teks: string } | null>(null);
   const [sibuk, start] = useTransition();
@@ -72,6 +84,7 @@ export default function SemakanPegawaiForm(props: Props) {
         isu,
         ulasanPegawai: ulasan,
         namaPegawai,
+        jawatanPegawai,
         tarikhPenilaian: tarikh,
       });
       if (!r.ok) {
@@ -100,18 +113,38 @@ export default function SemakanPegawaiForm(props: Props) {
 
   return (
     <div className="space-y-6">
-      <section className="card grid gap-4 p-6 sm:grid-cols-2">
+      <section className="card grid gap-4 p-6 sm:grid-cols-3">
         <div>
           <label className="label" htmlFor="kb-pegawai">
-            Nama pegawai penilai
+            Pegawai penilai
           </label>
-          <input
+          <select
             id="kb-pegawai"
             className="input"
             value={namaPegawai}
             disabled={dikunci}
+            onChange={(e) => pilihPegawai(e.target.value)}
+          >
+            <option value="">Pilih pegawai…</option>
+            {pilihan.map((p) => (
+              <option key={p.nama} value={p.nama}>
+                {p.nama}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="label" htmlFor="kb-jawatan">
+            Jawatan rasmi
+          </label>
+          <input
+            id="kb-jawatan"
+            className="input"
+            value={jawatanPegawai}
+            disabled={dikunci}
             maxLength={200}
-            onChange={(e) => setNamaPegawai(e.target.value)}
+            placeholder="Dicetak di bawah tandatangan"
+            onChange={(e) => setJawatanPegawai(e.target.value)}
           />
         </div>
         <div>

@@ -159,8 +159,8 @@ export default function CetakInstrumen({
           <div className="min-w-[70mm]">
             <p className="font-semibold">Tanda tangan pegawai</p>
             <div className="mt-10 border-b border-ink" />
-            <p className="mt-1">{rekod.namaPegawai || "Nama:"}</p>
-            <p className="text-charcoal">USTP, PPD Manjung</p>
+            <p className="mt-1 font-semibold">{rekod.namaPegawai || "Nama:"}</p>
+            <p className="text-charcoal">{rekod.jawatanPegawai || "Jawatan:"}</p>
             <p className="text-charcoal">Tarikh: {tarikhPanjang(rekod.tarikhPenilaian)}</p>
           </div>
           {sah ? (

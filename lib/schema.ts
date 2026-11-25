@@ -1814,6 +1814,8 @@ export const kunjungBantu = pgTable(
     isu: text("isu").notNull().default(""),
     ulasanPegawai: text("ulasan_pegawai").notNull().default(""),
     namaPegawai: text("nama_pegawai").notNull().default(""),
+    /** Jawatan rasmi pegawai penilai (daripada jadual `pegawai`), dicetak di bawah tandatangan. */
+    jawatanPegawai: text("jawatan_pegawai").notNull().default(""),
     tarikhPenilaian: date("tarikh_penilaian"),
     disemakPada: timestamp("disemak_pada", { withTimezone: true }),
     disahkanPada: timestamp("disahkan_pada", { withTimezone: true }),

@@ -320,6 +320,7 @@ export async function adminSemakKunjungBantu(raw: {
   isu: string;
   ulasanPegawai: string;
   namaPegawai: string;
+  jawatanPegawai: string;
   tarikhPenilaian: string;
 }): Promise<{ ok: boolean; error?: string }> {
   await requireKandunganAccess();
@@ -332,6 +333,7 @@ export async function adminSemakKunjungBantu(raw: {
   const isu = String(raw.isu ?? "").trim().slice(0, 4000);
   const ulasanPegawai = String(raw.ulasanPegawai ?? "").trim().slice(0, 4000);
   const namaPegawai = String(raw.namaPegawai ?? "").trim().slice(0, 200);
+  const jawatanPegawai = String(raw.jawatanPegawai ?? "").trim().slice(0, 200);
   const tarikh = String(raw.tarikhPenilaian ?? "").trim();
   const tarikhPenilaian = /^\d{4}-\d{2}-\d{2}$/.test(tarikh) ? tarikh : null;
 
@@ -366,6 +368,7 @@ export async function adminSemakKunjungBantu(raw: {
           isu,
           ulasanPegawai,
           namaPegawai,
+          jawatanPegawai,
           tarikhPenilaian,
           disemakPada: now,
           updatedAt: now,
@@ -388,7 +391,9 @@ export async function adminSemakKunjungBantu(raw: {
           if (itemPerluBaiki(semakan).length > 0) {
             return { ok: false, error: "Masih ada item \"Perlu dibaiki\". Tukar kepada Disahkan dahulu." };
           }
-          if (!namaPegawai) return { ok: false, error: "Sila isi nama pegawai penilai." };
+          if (!namaPegawai || !jawatanPegawai) {
+            return { ok: false, error: "Sila pilih pegawai penilai (nama dan jawatan rasmi)." };
+          }
           if (!tarikhPenilaian) return { ok: false, error: "Sila isi tarikh penilaian." };
           // Item yang belum ditanda dianggap disahkan.
           const semuaSah: Semakan = {};

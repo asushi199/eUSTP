@@ -4,6 +4,7 @@ import StatusLencana from "@/components/kunjung-bantu/StatusLencana";
 import { withDbTimeout } from "@/lib/db";
 import { ITEM_DIISI, NAMA_INSTRUMEN, kiraYa } from "@/lib/kunjung-bantu/instrumen";
 import { getDelimaSekolahTerkini, getRekod, getSekolah } from "@/lib/kunjung-bantu/queries";
+import { listPegawaiAktif } from "@/lib/maklumat/queries";
 import { requireKandunganAccess } from "@/lib/rbac";
 
 export const dynamic = "force-dynamic";
@@ -23,6 +24,7 @@ export default async function AdminKunjungBantuSekolahPage({ params }: Props) {
     sekolah: Awaited<ReturnType<typeof getSekolah>>;
     rekod: Awaited<ReturnType<typeof getRekod>>;
     delima: Awaited<ReturnType<typeof getDelimaSekolahTerkini>>;
+    pegawai: { nama: string; jawatan: string }[];
   };
   try {
     data = await withDbTimeout(
@@ -30,7 +32,10 @@ export default async function AdminKunjungBantuSekolahPage({ params }: Props) {
         const sekolah = await getSekolah(kod);
         const rekod = sekolah ? await getRekod(kod) : null;
         const delima = rekod?.delimaBeku ?? (sekolah ? await getDelimaSekolahTerkini(kod) : null);
-        return { sekolah, rekod, delima };
+        const pegawai = rekod
+          ? (await listPegawaiAktif()).map((p) => ({ nama: p.nama, jawatan: p.jawatan }))
+          : [];
+        return { sekolah, rekod, delima, pegawai };
       })(),
     );
   } catch {
@@ -40,7 +45,10 @@ export default async function AdminKunjungBantuSekolahPage({ params }: Props) {
       </p>
     );
   }
-  const { sekolah, rekod, delima } = data;
+  const { sekolah, rekod, delima, pegawai } = data;
+  // Akaun log masuk mungkin akaun kongsi ("Pentadbir USTP") — hanya pilih lalai jika nama
+  // pengguna sepadan dengan pegawai USTP sebenar.
+  const lalai = pegawai.find((p) => p.nama === user.nama);
 
   return (
     <>
@@ -105,7 +113,9 @@ export default async function AdminKunjungBantuSekolahPage({ params }: Props) {
                   semakan={rekod.semakan}
                   isu={rekod.isu}
                   ulasanPegawai={rekod.ulasanPegawai}
-                  namaPegawai={rekod.namaPegawai || user.nama || ""}
+                  namaPegawai={rekod.namaPegawai || lalai?.nama || ""}
+                  jawatanPegawai={rekod.jawatanPegawai || lalai?.jawatan || ""}
+                  pegawaiPilihan={pegawai}
                   tarikhPenilaian={rekod.tarikhPenilaian ?? hariIniMy()}
                   delima={delima}
                 />

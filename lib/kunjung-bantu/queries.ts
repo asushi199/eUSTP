@@ -34,6 +34,7 @@ export type RekodKunjungBantu = {
   isu: string;
   ulasanPegawai: string;
   namaPegawai: string;
+  jawatanPegawai: string;
   tarikhPenilaian: string | null;
   disemakPada: Date | null;
   disahkanPada: Date | null;
@@ -55,6 +56,7 @@ function keRekod(r: typeof kunjungBantu.$inferSelect): RekodKunjungBantu {
     isu: r.isu,
     ulasanPegawai: r.ulasanPegawai,
     namaPegawai: r.namaPegawai,
+    jawatanPegawai: r.jawatanPegawai,
     tarikhPenilaian: r.tarikhPenilaian,
     disemakPada: r.disemakPada,
     disahkanPada: r.disahkanPada,

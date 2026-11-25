@@ -2772,3 +2772,4 @@ Corak berselang = instance sihat vs beracun.
 - Admin: `/admin/kunjung-bantu` (senarai semua sekolah + status Belum/Draf/Menunggu/Pembetulan/Disahkan, tapis zon) → `/admin/kunjung-bantu/[kod]` (semakan item, isu, ulasan, nama pegawai, tarikh lawatan; Simpan / Minta pembetulan / Sahkan berjaya / Buka semula). `requireKandunganAccess`.
 - DB: migrasi `0061_kunjung_bantu` (2 jadual, RLS dikunci). Tiada cache (halaman force-dynamic, query satu sekolah); senarai sekolah guna `listSchoolOptions` bercache.
 - Kad baharu dalam CoE Reports (`LAPORAN_SECTIONS`) + kad admin `/admin/pelaporan`.
+- (susulan) Pegawai penilai dipilih daripada senarai 5 pegawai USTP aktif (jadual `pegawai`) — jawatan rasmi diisi automatik dan disimpan dalam `jawatan_pegawai` (migrasi `0062`), dicetak di bawah tandatangan. Akaun log masuk kongsi "Pentadbir USTP" tidak lagi dijadikan nama lalai.

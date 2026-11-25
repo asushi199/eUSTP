@@ -1,0 +1,1 @@
+ALTER TABLE "kunjung_bantu" ADD COLUMN "jawatan_pegawai" text DEFAULT '' NOT NULL;
