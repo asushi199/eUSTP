@@ -53,6 +53,12 @@ export function PublicNavIcon({ id }: { id: PublicNavId }) {
           <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
         </svg>
       );
+    case "tools":
+      return (
+        <svg {...iconProps}>
+          <path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z" />
+        </svg>
+      );
     case "media":
       return (
         <svg {...iconProps}>

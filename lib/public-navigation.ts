@@ -5,6 +5,7 @@ export type PublicNavId =
   | "resources"
   | "direktori"
   | "services"
+  | "tools"
   | "media";
 
 export type PublicNavItem = {
@@ -62,6 +63,13 @@ export const PUBLIC_NAV: PublicNavItem[] = [
     label: "CoE Services",
     shortLabel: "Services",
     mobile: "tab",
+  },
+  {
+    id: "tools",
+    href: "/tools",
+    label: "CoE Tools",
+    shortLabel: "Tools",
+    mobile: "more",
   },
   {
     id: "media",

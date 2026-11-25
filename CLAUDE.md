@@ -61,8 +61,8 @@ GPICT/DELIMa/GPM, Tempahan PKG, Portal Sumber/Analisis/Maklumat Asas). Sumber as
   `/analisis` dan modal Analisis halaman utama (`HomeAnalisisBand`, dimuat
   malas via `next/dynamic` — JANGAN import recharts terus dalam halaman utama).
 - **OSC sudah dimansuhkan.** `/osc` dan `/sumber` dihalakan ke `/resources`.
-  Halaman utama papar jalur **CoE Analytics** (bukan kad) + 5 kad
-  `HOME_MODULES` (Reports, Resources, Direktori, Services, Media). Menu
+  Halaman utama papar jalur **CoE Analytics** (bukan kad) + 6 kad
+  `HOME_MODULES` (Reports, Resources, Direktori, Services, Media, Tools). Menu
   desktop di bar sisi; telefon kekal tab bawah + Lagi. `/analisis` kekal
   dalaman (staf).
 - **Program Ains — dasar data tahunan** (jadual `analisis_ains_*`, import via
@@ -122,6 +122,15 @@ GPICT/DELIMa/GPM, Tempahan PKG, Portal Sumber/Analisis/Maklumat Asas). Sumber as
   cop SVG pada `/cetak/kunjung-bantu`. Item dalam `lib/kunjung-bantu/instrumen.ts`; Aspek 2 = peratus d3
   automatik (dibekukan semasa disahkan). Laporan Akhbar/MJKD/Tebus Buku disorok dari CoE Reports
   (2026-11-25) — tambah semula href dalam `LAPORAN_SECTIONS` jika perlu tahun depan.
+- **CoE Tools** `/tools` — hub alat bantuan guru (`TOOLS_SECTIONS` dalam `lib/module-theme.ts`;
+  alat baharu = modul dalam `MODULES` + href dalam senarai). Alat pertama **Semak Rekod AINS**
+  `/tools/semak-ains`: penanda kendiri `public/tools/semak-ains/penanda.js` dalam tab AINS +
+  enjin peraturan `lib/tools/semak-ains/` dalam pelayar (tiada data murid ke pelayan, tiada AI).
+  Ubah standard lalai (`standard.ts`) = naikkan `VERSI_ENJIN`; ubah `penanda.js` = naikkan
+  `VERSI_PENANDA` (+ `VERSI_PENANDA_MIN` jika tidak serasi). Pemantauan bilangan sahaja
+  `semak_ains_log` → `/admin/semak-ains`. Ujian `npm run test:tools`. Fixture mesti sintetik
+  (jangan komit teks/nama murid sebenar). Spesifikasi
+  `docs/superpowers/specs/2026-11-25-semak-rekod-ains-design.md`.
 - Petak statistik DPD/PSS halaman utama disorok (`SHOW_LAPORAN_TILES=false`
   dalam `app/(public)/page.tsx`) — pelaporan 2026 masih guna Looker Studio.
 - **MJKD 2026 = satu acara, satu rekod `mjkd_mesyuarat`** (kehadiran, minit +

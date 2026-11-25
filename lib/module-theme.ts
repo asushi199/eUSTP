@@ -69,6 +69,18 @@ export const MEDIA_HUB = {
   iconKey: "media" as const,
 } as const;
 
+/** Hub CoE Tools — alat bantuan guru (Semak Rekod AINS dan alat akan datang). */
+export const TOOLS_HUB = {
+  href: "/tools",
+  internalHref: "/tools",
+  external: false,
+  title: "CoE Tools",
+  description:
+    "Alat bantuan untuk guru dan sekolah — semakan dan pengurusan yang lebih pantas.",
+  accent: "#4F46E5",
+  iconKey: "tools" as const,
+} as const;
+
 export const MODULES = [
   LAPORAN_HUB,
   RESOURCES_HUB,
@@ -135,6 +147,16 @@ export const MODULES = [
   },
   DIREKTORI_HUB,
   TEMPAHAN_HUB,
+  TOOLS_HUB,
+  {
+    href: "/tools/semak-ains",
+    internalHref: "/tools/semak-ains",
+    external: false,
+    title: "Semak Rekod AINS",
+    description: "Semak dan sahkan rekod bacaan AINS murid secara pukal untuk GPM.",
+    accent: "#4F46E5",
+    iconKey: "semakAins" as const,
+  },
   {
     href: "/tempahan/bilik",
     internalHref: "/tempahan/bilik",
@@ -218,6 +240,11 @@ export const LAPORAN_SECTIONS = MODULES.filter((m) =>
 /** Sub-modul di bawah hub /tempahan — dipapar dalam halaman CoE Services. */
 export const TEMPAHAN_SECTIONS = MODULES.filter((m) =>
   ["/tempahan/bilik", "/khidmat-bantu", "/tempahan/peralatan"].includes(m.internalHref),
+);
+
+/** Alat di bawah hub /tools — dipapar dalam halaman CoE Tools dan kad Tools halaman utama. Alat baharu: tambah modul dalam MODULES + href di sini. */
+export const TOOLS_SECTIONS = MODULES.filter((m) =>
+  ["/tools/semak-ains"].includes(m.internalHref),
 );
 
 export function getModuleThemeForPath(path: string): ModuleTheme {
