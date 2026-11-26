@@ -10,6 +10,8 @@ export type Standard = {
   minRuangan: Record<Ukuran, number>;
   hantarSemulaSama: ModPeraturan;
   bukuSamaBerulang: ModPeraturan;
+  /** Bahasa Rumusan dan Pengajaran berbeza (R8/Y8); lalai mati. */
+  bahasaBercampur: ModPeraturan;
   aktivitiKelas: "benar" | "kuning";
   bahasaTakSepadan: boolean;
   semakUnsurPengajaran: boolean;
@@ -41,6 +43,7 @@ export const STANDARD_DAERAH: Standard = {
   minRuangan: { kata: 3, zh: 5 },
   hantarSemulaSama: "merah",
   bukuSamaBerulang: "kuning",
+  bahasaBercampur: "abai",
   aktivitiKelas: "benar",
   bahasaTakSepadan: true,
   semakUnsurPengajaran: false,
@@ -55,6 +58,7 @@ export type TetapanGpm = {
   minRuangan?: Partial<Record<Ukuran, number>>;
   hantarSemulaSama?: ModPeraturan;
   bukuSamaBerulang?: ModPeraturan;
+  bahasaBercampur?: ModPeraturan;
   aktivitiKelas?: "benar" | "kuning";
   bahasaTakSepadan?: boolean;
   semakUnsurPengajaran?: boolean;
@@ -93,6 +97,7 @@ export function gabungStandard(
   }
   if (t.hantarSemulaSama && MOD.includes(t.hantarSemulaSama)) s.hantarSemulaSama = t.hantarSemulaSama;
   if (t.bukuSamaBerulang && MOD.includes(t.bukuSamaBerulang)) s.bukuSamaBerulang = t.bukuSamaBerulang;
+  if (t.bahasaBercampur && MOD.includes(t.bahasaBercampur)) s.bahasaBercampur = t.bahasaBercampur;
   if (t.aktivitiKelas === "benar" || t.aktivitiKelas === "kuning") s.aktivitiKelas = t.aktivitiKelas;
   if (typeof t.bahasaTakSepadan === "boolean") s.bahasaTakSepadan = t.bahasaTakSepadan;
   if (typeof t.semakUnsurPengajaran === "boolean") s.semakUnsurPengajaran = t.semakUnsurPengajaran;

@@ -37,6 +37,7 @@ const KOMEN_KUNING: KodSebab[] = [
   "buku-sama-berulang",
   "simbol-pengisi",
   "tiada-unsur-pengajaran",
+  "bahasa-bercampur",
 ];
 const MOD_LABEL: Record<ModPeraturan, string> = {
   merah: "Cadang tolak (merah)",
@@ -152,6 +153,10 @@ export default function LaciTetapan({ standard, diubah, onSimpan, onReset, onTut
           <label className="block">
             <span className="label">Buku sama direkod semula (teks berbeza)</span>
             {pilihMod(s.bukuSamaBerulang, (m) => setS({ ...s, bukuSamaBerulang: m }))}
+          </label>
+          <label className="block">
+            <span className="label">Bahasa Rumusan & Pengajaran berbeza (bahasa bercampur)</span>
+            {pilihMod(s.bahasaBercampur, (m) => setS({ ...s, bahasaBercampur: m }))}
           </label>
           <label className="block">
             <span className="label">Teks sama rakan sekelas (buku & hari sama)</span>

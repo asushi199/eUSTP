@@ -27,6 +27,7 @@ export type KodSebab =
   | "hantar-semula-sama"
   | "teks-rawak"
   | "bahasa-tak-sepadan"
+  | "bahasa-bercampur"
   | "agak-pendek"
   | "terlalu-panjang"
   | "rumusan-sama-2-buku"

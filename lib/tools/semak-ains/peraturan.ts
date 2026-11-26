@@ -73,6 +73,16 @@ export function semak(rekod: RekodAins[], standard: Standard): Keputusan[] {
     ) {
       merah.push("bahasa-tak-sepadan");
     }
+    const BAHASA_TETAP = ["bm", "en", "zh", "ta"];
+    const bhsRumusan = kesanBahasa(r.rumusan);
+    const bhsPengajaran = kesanBahasa(r.pengajaran);
+    if (
+      BAHASA_TETAP.includes(bhsRumusan) &&
+      BAHASA_TETAP.includes(bhsPengajaran) &&
+      bhsRumusan !== bhsPengajaran
+    ) {
+      ikutMod(standard.bahasaBercampur, "bahasa-bercampur", merah, kuning);
+    }
     if (standard.semakUnsurPengajaran && !UNSUR_PENGAJARAN.test(r.pengajaran)) {
       kuning.push("tiada-unsur-pengajaran");
     }

@@ -32,3 +32,9 @@ test("tetapanBeza simpan medan berubah sahaja (termasuk komen); bezaStandard aba
   assert.deepEqual(tetapanBeza(s), { bahasaTakSepadan: false, komen: { templat: "Tulis sendiri." } });
   assert.deepEqual(bezaStandard(s), { bahasaTakSepadan: false });
 });
+
+test("bahasaBercampur: lalai abai, boleh ditetapkan, nilai tidak sah diabaikan", () => {
+  assert.equal(STANDARD_DAERAH.bahasaBercampur, "abai");
+  assert.equal(gabungStandard({ bahasaBercampur: "kuning" }).bahasaBercampur, "kuning");
+  assert.equal(gabungStandard({ bahasaBercampur: "salah" as never }).bahasaBercampur, "abai");
+});

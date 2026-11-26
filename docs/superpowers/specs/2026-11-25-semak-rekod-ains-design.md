@@ -272,12 +272,13 @@ Warna rekod = merah jika ada sebab merah; kuning jika ada sebab kuning; jika tid
 | Y4 `sama-murid-lain` | Rumusan sama dengan murid lain bagi buku sama, **bukan** aktiviti kelas |
 | Y5 `buku-sama-berulang` | Murid sama, buku sama, rumusan berbeza |
 | Y6 `simbol-pengisi` | Tanda baca/simbol sama berulang ≥ 8 kali (cth. `........`, `,,,,,,`, `()()()`) |
+| Y8/R8 `bahasa-bercampur` (pilihan, lalai **mati**) | Bahasa Rumusan dan Pengajaran dikesan berasingan; kedua-duanya bm/en/zh/ta tetapi berbeza (`campur`/`lain` tidak mencetus). Tahap mengikut tetapan `bahasaBercampur` (merah / kuning / abai). Sebab lalai mati: di sesetengah SK, Rumusan BI + Pengajaran BM lazim dan diluluskan. |
 
 **Pengecualian:** rumusan sama oleh murid berlainan, buku sama, **kelas sama dan
 hari sama** = aktiviti kelas → tidak dikenakan Y4 (boleh ditukar dalam tetapan).
 
 **Tidak digunakan** (diuji dan ditolak): bilangan hantaran sehari (lazim dalam
-rekod yang diluluskan); campuran BM/BI dalam satu rekod; huruf panjang
+rekod yang diluluskan); campuran BM/BI dalam satu rekod (kini pilihan Y8/R8, lalai mati, boleh dihidupkan GPM); huruf panjang
 (`kesayangannyaaaa`) dan kata ganda BM (`labah labah`) tidak dikira rawak.
 
 **Penanda maklumat** (tidak mengubah warna): murid > 50 rekod dalam kelompok;
@@ -316,7 +317,7 @@ Perubahan standard daerah = suntingan kod (`standard.ts`) + naikkan `VERSI_ENJIN
 ### 7.2 Tetapan GPM
 
 - Disimpan dalam `localStorage` pelayar GPM, kunci `semak-ains:tetapan:<kod atau nama sekolah>`.
-- Boleh ubah: semua ambang §7.1; Y4 aktiviti kelas (benarkan / kuning); R5/Y5 (tolak / kuning / benarkan); R7 (hidup / mati); Y7 pengajaran (hidup / mati); ambang murid luar biasa; templat komen; jeda tindakan.
+- Boleh ubah: semua ambang §7.1; Y4 aktiviti kelas (benarkan / kuning); R5/Y5 (tolak / kuning / benarkan); R7 (hidup / mati); Y7 pengajaran (hidup / mati); Y8/R8 bahasa bercampur (merah / kuning / abai, lalai abai); ambang murid luar biasa; templat komen; jeda tindakan.
 - Perbezaan daripada lalai dihantar bersama log pemantauan (`tetapan`).
 
 ## 8. Privasi dan keselamatan

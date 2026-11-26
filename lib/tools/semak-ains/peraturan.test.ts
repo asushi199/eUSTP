@@ -156,3 +156,19 @@ test("murid luar biasa dikunci murid|kelas", () => {
   );
   assert.ok(!k[0]!.maklumat.includes("murid-luar-biasa"));
 });
+
+const RUMUSAN_EN =
+  "The story tells about a clever mouse deer who crosses the river by tricking the hungry crocodiles waiting on the bank of the river.";
+
+test("bahasa-bercampur: lalai mati; kuning/merah ikut tetapan; kedua-dua BM tidak kena", () => {
+  const campur = () => r({ rumusan: RUMUSAN_EN });
+  const lalai = satu(campur());
+  assert.ok(!lalai.kuning.includes("bahasa-bercampur") && !lalai.merah.includes("bahasa-bercampur"));
+  assert.equal(lalai.warna, "hijau");
+  const kuning = satu(campur(), gabungStandard({ bahasaBercampur: "kuning" }));
+  assert.ok(kuning.kuning.includes("bahasa-bercampur"));
+  const merah = satu(campur(), gabungStandard({ bahasaBercampur: "merah" }));
+  assert.ok(merah.merah.includes("bahasa-bercampur"));
+  const bm = satu(r(), gabungStandard({ bahasaBercampur: "merah" }));
+  assert.ok(!bm.merah.includes("bahasa-bercampur") && !bm.kuning.includes("bahasa-bercampur"));
+});
