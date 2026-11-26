@@ -23,8 +23,6 @@ type Props = {
   status: Map<string, StatusTindakan>;
   dipilih: Set<string>;
   onTogolPilih: (id: string) => void;
-  dilihat: Set<string>;
-  onTandaDilihat: (id: string) => void;
 };
 
 export function pautanAins(id: string): string {
@@ -37,8 +35,6 @@ export default function SenaraiRekod({
   status,
   dipilih,
   onTogolPilih,
-  dilihat,
-  onTandaDilihat,
 }: Props) {
   const [warna, setWarna] = useState<Warna | "semua">("semua");
   const [sebab, setSebab] = useState<KodSebab | "semua">("semua");
@@ -117,7 +113,9 @@ export default function SenaraiRekod({
           if (!r) return null;
           const st = status.get(k.id);
           const siap = st?.berjaya === true || st?.perluBacaSemula === true;
-          const bolehPilih = !siap && (k.warna !== "kuning" || dilihat.has(k.id));
+          /* Rekod kuning boleh dipilih terus (keputusan pengguna 2026-11-26); merah/hijau
+           * tetap dihadkan oleh PanelTindakan (merah tidak boleh diluluskan, hijau tidak ditolak). */
+          const bolehPilih = !siap;
           const w = WARNA_STATUS[k.warna];
           return (
             <li key={k.id} className="py-4">
@@ -182,15 +180,9 @@ export default function SenaraiRekod({
                       href={pautanAins(k.id)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      onClick={() => onTandaDilihat(k.id)}
                     >
                       Buka dalam AINS
                     </a>
-                    {k.warna === "kuning" && !dilihat.has(k.id) ? (
-                      <button type="button" className="text-graphite underline" onClick={() => onTandaDilihat(k.id)}>
-                        Tanda sudah dilihat
-                      </button>
-                    ) : null}
                   </div>
                 </div>
               </div>

@@ -24,14 +24,12 @@ export default function SemakAinsApp() {
   const [tetapan, setTetapan] = useState<TetapanGpm | null>(null);
   const [bukaTetapan, setBukaTetapan] = useState(false);
   const [dipilih, setDipilih] = useState<Set<string>>(() => new Set());
-  const [dilihat, setDilihat] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
     setTetapan(bacaTetapan(kunci));
   }, [kunci]);
   useEffect(() => {
     setDipilih(new Set());
-    setDilihat(new Set());
   }, [s.bacaanKe]);
 
   const standard = useMemo(() => gabungStandard(tetapan), [tetapan]);
@@ -134,7 +132,6 @@ export default function SemakAinsApp() {
       else y.add(id);
       return y;
     });
-  const tanda = (id: string) => setDilihat((x) => new Set(x).add(id));
 
   if (s.fasa === "semak-sambungan") return <p className="mt-8 text-sm text-graphite">Memuatkan…</p>;
 
@@ -270,8 +267,6 @@ export default function SemakAinsApp() {
             status={s.status}
             dipilih={dipilih}
             onTogolPilih={togol(setDipilih)}
-            dilihat={dilihat}
-            onTandaDilihat={tanda}
           />
         </>
       ) : null}

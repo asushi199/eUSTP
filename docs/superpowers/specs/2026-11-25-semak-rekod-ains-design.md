@@ -121,7 +121,7 @@ Keadaan halaman:
 3. **Keputusan:**
    - Ringkasan: 🟢 Lulus · 🟡 Perlu semak · 🔴 Cadang tolak (bilangan + peratus).
    - Senarai bertapis (warna, sebab, tahap, kelas, bahasa); setiap baris: tajuk, murid, kelas, sebab (BM), petikan Rumusan/Pengajaran, pautan **"Buka dalam AINS"** (`/web/teacher-record-details?id=…`).
-   - Rekod kuning: kotak semak diaktifkan selepas GPM membuka/menanda "sudah dilihat".
+   - Rekod kuning boleh dipilih terus (keputusan pengguna 2026-11-26 — syarat "sudah dilihat" dibuang kerana menambah satu klik); had keselamatan kekal: merah tidak boleh diluluskan pukal, hijau tidak boleh ditolak pukal.
    - Tindakan: **"Luluskan semua hijau (N)"**, **"Tolak semua merah (N)"**, serta lulus/tolak rekod terpilih. Merah tidak boleh diluluskan secara pukal; hijau tidak boleh ditolak secara pukal.
    - Komen penolakan dijana mengikut sebab (§6), boleh disunting sebelum hantar.
    - Pilihan **"Semak rawak 5 rekod hijau"** sebelum lulus pukal.
