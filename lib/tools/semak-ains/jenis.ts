@@ -1,4 +1,4 @@
-/** Jenis data Semak Rekod AINS — dikongsi enjin, halaman dan protokol mesej. */
+/** Jenis data SahPantas AINS — dikongsi enjin, halaman dan protokol mesej. */
 
 export type Bahasa = "zh" | "ta" | "bm" | "en" | "campur" | "lain";
 export type Jalur = "D1-2" | "D3-4" | "D5-6" | "M";

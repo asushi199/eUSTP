@@ -7,7 +7,7 @@ import { semakAinsLog } from "@/lib/schema";
 import { normalTeks } from "@/lib/tools/semak-ains/normal";
 
 /**
- * Log bilangan penggunaan Semak Rekod AINS (awam, tanpa log masuk).
+ * Log bilangan penggunaan SahPantas AINS (awam, tanpa log masuk).
  * Tiada data murid. Data ialah petunjuk sahaja (boleh dipalsukan).
  */
 export const dynamic = "force-dynamic";

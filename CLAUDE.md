@@ -123,13 +123,16 @@ GPICT/DELIMa/GPM, Tempahan PKG, Portal Sumber/Analisis/Maklumat Asas). Sumber as
   automatik (dibekukan semasa disahkan). Laporan Akhbar/MJKD/Tebus Buku disorok dari CoE Reports
   (2026-11-25) — tambah semula href dalam `LAPORAN_SECTIONS` jika perlu tahun depan.
 - **CoE Tools** `/tools` — hub alat bantuan guru (`TOOLS_SECTIONS` dalam `lib/module-theme.ts`;
-  alat baharu = modul dalam `MODULES` + href dalam senarai). Alat pertama **Semak Rekod AINS**
+  alat baharu = modul dalam `MODULES` + href dalam senarai). Alat pertama **SahPantas AINS**
+  (dahulu "Semak Rekod AINS"; nama paparan dalam `lib/tools/semak-ains/nama.ts` — laluan, id,
+  jadual & kunci storan KEKAL `semak-ains` kerana penanda sedia ada membuka laluan itu)
   `/tools/semak-ains`: penanda kendiri `public/tools/semak-ains/penanda.js` dalam tab AINS +
   enjin peraturan `lib/tools/semak-ains/` dalam pelayar (tiada data murid ke pelayan, tiada AI).
   Ubah standard lalai (`standard.ts`) atau peraturan (`peraturan.ts`/`pendua.ts`/`rawak.ts`) = naikkan `VERSI_ENJIN`; ubah `penanda.js` = naikkan
   `VERSI_PENANDA` (+ `VERSI_PENANDA_MIN` jika tidak serasi). Pemantauan bilangan sahaja
   `semak_ains_log` → `/admin/semak-ains`. Ujian `npm run test:tools`. Fixture mesti sintetik
-  (jangan komit teks/nama murid sebenar). Spesifikasi
+  (jangan komit teks/nama murid sebenar). Semak reka letak semua fasa tanpa AINS di
+  `/dev/semak-ains?fasa=keputusan` (data sintetik, tiada log, dev sahaja). Spesifikasi
   `docs/superpowers/specs/2026-11-25-semak-rekod-ains-design.md`.
 - Petak statistik DPD/PSS halaman utama disorok (`SHOW_LAPORAN_TILES=false`
   dalam `app/(public)/page.tsx`) — pelaporan 2026 masih guna Looker Studio.

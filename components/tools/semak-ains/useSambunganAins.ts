@@ -222,6 +222,9 @@ export function useSambunganAins() {
   /** Kembali ke panel tapisan untuk membaca tahun/kelas lain (hanya selepas bacaan selesai). */
   const tukarTapisan = useCallback(() => setFasa((f) => (f === "keputusan" ? "sedia" : f)), []);
 
+  /** Batal tukar tapisan: kembali ke keputusan bacaan terakhir (rekod masih dalam memori). */
+  const kembaliKeputusan = useCallback(() => setFasa((f) => (f === "sedia" ? "keputusan" : f)), []);
+
   const laksana = useCallback(
     (tindakan: Tindakan, item: { id: string; komen: string }[], jedaMs: number) => {
       if (item.length === 0) return;
@@ -256,6 +259,7 @@ export function useSambunganAins() {
     mula,
     bacaSemula,
     tukarTapisan,
+    kembaliKeputusan,
     laksana,
     henti,
   };

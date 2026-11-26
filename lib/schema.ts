@@ -1844,9 +1844,9 @@ export const kunjungBantuDraf = pgTable(
   }),
 );
 
-/* ============================== CoE Tools: Semak Rekod AINS ============================== */
+/* ============================== CoE Tools: SahPantas AINS ============================== */
 
-/** Log penggunaan alat Semak Rekod AINS — bilangan sahaja, tiada data murid. */
+/** Log penggunaan alat SahPantas AINS — bilangan sahaja, tiada data murid. */
 export const semakAinsLog = pgTable(
   "semak_ains_log",
   {

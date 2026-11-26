@@ -1,9 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { cn } from "@/lib/cn";
 import type { Bahasa, Keputusan, KodSebab, RekodAins, Warna } from "@/lib/tools/semak-ains/jenis";
 import { LABEL_MAKLUMAT, LABEL_SEBAB } from "@/lib/tools/semak-ains/komen";
 import { ASAL_AINS } from "@/lib/tools/semak-ains/mesej";
+import type { Ringkasan } from "@/lib/tools/semak-ains/peraturan";
+import { labelKodTahap } from "./PanelTapisan";
+import { Ikon, TitikWarna } from "./Ui";
 import type { StatusTindakan } from "./useSambunganAins";
 import { WARNA_STATUS } from "./warna";
 
@@ -17,11 +21,29 @@ const LABEL_BAHASA: Record<Bahasa, string> = {
   lain: "Lain",
 };
 
+export type Penapis = {
+  warna: Warna | "semua";
+  sebab: KodSebab | "semua";
+  tahap: string;
+  cari: string;
+};
+export const PENAPIS_KOSONG: Penapis = { warna: "semua", sebab: "semua", tahap: "semua", cari: "" };
+
+const TAB: { kod: Warna | "semua"; label: string }[] = [
+  { kod: "semua", label: "Semua" },
+  { kod: "hijau", label: WARNA_STATUS.hijau.label },
+  { kod: "kuning", label: WARNA_STATUS.kuning.label },
+  { kod: "merah", label: WARNA_STATUS.merah.label },
+];
+
 type Props = {
   rekodIkutId: Map<string, RekodAins>;
   keputusan: Keputusan[];
+  ringkasan: Ringkasan;
   status: Map<string, StatusTindakan>;
   dipilih: Set<string>;
+  penapis: Penapis;
+  onPenapis: (p: Penapis) => void;
   onTogolPilih: (id: string) => void;
 };
 
@@ -29,18 +51,32 @@ export function pautanAins(id: string): string {
   return `${ASAL_AINS}/web/teacher-record-details?id=${encodeURIComponent(id)}`;
 }
 
+function LencanaStatus({ st }: { st: StatusTindakan }) {
+  const teks = st.berjaya
+    ? st.tindakan === "approved"
+      ? "Diluluskan"
+      : "Ditolak"
+    : `Gagal: ${st.jawapan ?? "ralat"}`;
+  return (
+    <span className="status-badge">
+      {st.berjaya ? <Ikon nama="betul" className="h-3 w-3" /> : <Ikon nama="amaran" className="h-3 w-3 text-bloom-deep" />}
+      {teks}
+    </span>
+  );
+}
+
 export default function SenaraiRekod({
   rekodIkutId,
   keputusan,
+  ringkasan,
   status,
   dipilih,
+  penapis,
+  onPenapis,
   onTogolPilih,
 }: Props) {
-  const [warna, setWarna] = useState<Warna | "semua">("semua");
-  const [sebab, setSebab] = useState<KodSebab | "semua">("semua");
-  const [tahap, setTahap] = useState("semua");
-  const [cari, setCari] = useState("");
   const [had, setHad] = useState(LANGKAH);
+  useEffect(() => setHad(LANGKAH), [penapis]);
 
   const sebabAda = useMemo(
     () => [...new Set(keputusan.flatMap((k) => [...k.merah, ...k.kuning]))],
@@ -48,152 +84,202 @@ export default function SenaraiRekod({
   );
   const tahapAda = useMemo(() => [...new Set(keputusan.map((k) => k.kodTahap))].sort(), [keputusan]);
   const tapis = useMemo(() => {
-    const q = cari.trim().toLowerCase();
+    const q = penapis.cari.trim().toLowerCase();
     return keputusan.filter((k) => {
-      if (warna !== "semua" && k.warna !== warna) return false;
-      if (sebab !== "semua" && !k.merah.includes(sebab) && !k.kuning.includes(sebab)) return false;
-      if (tahap !== "semua" && k.kodTahap !== tahap) return false;
+      if (penapis.warna !== "semua" && k.warna !== penapis.warna) return false;
+      if (penapis.sebab !== "semua" && !k.merah.includes(penapis.sebab) && !k.kuning.includes(penapis.sebab)) return false;
+      if (penapis.tahap !== "semua" && k.kodTahap !== penapis.tahap) return false;
       if (q) {
         const r = rekodIkutId.get(k.id);
         if (!r || !`${r.murid} ${r.tajuk} ${r.kelas}`.toLowerCase().includes(q)) return false;
       }
       return true;
     });
-  }, [keputusan, warna, sebab, tahap, cari, rekodIkutId]);
+  }, [keputusan, penapis, rekodIkutId]);
 
-  const ubah = <T,>(set: (v: T) => void) => (v: T) => {
-    set(v);
-    setHad(LANGKAH);
-  };
+  const ubah = (sebahagian: Partial<Penapis>) => onPenapis({ ...penapis, ...sebahagian });
+  const adaTapisan =
+    penapis.warna !== "semua" || penapis.sebab !== "semua" || penapis.tahap !== "semua" || penapis.cari.trim() !== "";
+  const bilangan = (kod: Warna | "semua") => (kod === "semua" ? ringkasan.jumlah : ringkasan[kod]);
 
   return (
-    <section className="card p-4 sm:p-6">
-      <div className="grid gap-3 sm:grid-cols-4">
-        <label className="block">
-          <span className="label">Status</span>
-          <select className="input mt-1" value={warna} onChange={(e) => ubah(setWarna)(e.target.value as Warna | "semua")}>
-            <option value="semua">Semua</option>
-            <option value="hijau">{WARNA_STATUS.hijau.label}</option>
-            <option value="kuning">{WARNA_STATUS.kuning.label}</option>
-            <option value="merah">{WARNA_STATUS.merah.label}</option>
-          </select>
-        </label>
-        <label className="block">
-          <span className="label">Sebab</span>
-          <select className="input mt-1" value={sebab} onChange={(e) => ubah(setSebab)(e.target.value as KodSebab | "semua")}>
-            <option value="semua">Semua</option>
-            {sebabAda.map((s) => (
-              <option key={s} value={s}>
-                {LABEL_SEBAB[s]}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="block">
-          <span className="label">Tahap</span>
-          <select className="input mt-1" value={tahap} onChange={(e) => ubah(setTahap)(e.target.value)}>
-            <option value="semua">Semua</option>
-            {tahapAda.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="block">
-          <span className="label">Cari murid / tajuk</span>
-          <input className="input mt-1" value={cari} onChange={(e) => ubah(setCari)(e.target.value)} />
-        </label>
+    <section id="senarai-rekod" className="card scroll-mt-6 overflow-hidden">
+      <div className="p-4 sm:px-6 sm:pt-5">
+        <h2 className="text-base font-semibold text-ink">Senarai rekod</h2>
+        <div className="-mx-1 mt-3 flex gap-1.5 overflow-x-auto px-1 pb-1" role="group" aria-label="Tapis mengikut status">
+          {TAB.map((t) => {
+            const aktif = penapis.warna === t.kod;
+            return (
+              <button
+                key={t.kod}
+                type="button"
+                aria-pressed={aktif}
+                onClick={() => ubah({ warna: t.kod })}
+                className={cn(
+                  "inline-flex h-9 shrink-0 items-center gap-2 rounded-full border px-3.5 text-sm font-medium transition",
+                  aktif ? "border-ink bg-ink text-white" : "border-fog bg-white text-charcoal hover:border-steel",
+                )}
+              >
+                {t.kod !== "semua" ? <TitikWarna warna={t.kod} className="h-2 w-2" /> : null}
+                {t.label}
+                <span className={cn("text-xs tabular-nums", aktif ? "text-white/70" : "text-graphite")}>
+                  {bilangan(t.kod).toLocaleString("ms-MY")}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="mt-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_15rem_10rem]">
+          <label className="relative block">
+            <span className="sr-only">Cari murid, tajuk atau kelas</span>
+            <Ikon nama="cari" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-graphite" />
+            <input
+              type="search"
+              className="input h-10 pl-9 text-sm"
+              placeholder="Cari murid, tajuk atau kelas"
+              value={penapis.cari}
+              onChange={(e) => ubah({ cari: e.target.value })}
+            />
+          </label>
+          <label className="block">
+            <span className="sr-only">Sebab</span>
+            <select
+              className="input h-10 px-3 text-sm"
+              value={penapis.sebab}
+              onChange={(e) => ubah({ sebab: e.target.value as KodSebab | "semua" })}
+            >
+              <option value="semua">Semua sebab</option>
+              {sebabAda.map((s) => (
+                <option key={s} value={s}>
+                  {LABEL_SEBAB[s]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block">
+            <span className="sr-only">Tahap</span>
+            <select className="input h-10 px-3 text-sm" value={penapis.tahap} onChange={(e) => ubah({ tahap: e.target.value })}>
+              <option value="semua">Semua tahap</option>
+              {tahapAda.map((t) => (
+                <option key={t} value={t}>
+                  {labelKodTahap(t)}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
       </div>
 
-      <p className="mt-4 text-sm text-graphite">{tapis.length.toLocaleString("ms-MY")} rekod dipaparkan</p>
-      <ul className="mt-3 divide-y divide-cloud">
-        {tapis.slice(0, had).map((k) => {
-          const r = rekodIkutId.get(k.id);
-          if (!r) return null;
-          const st = status.get(k.id);
-          const siap = st?.berjaya === true || st?.perluBacaSemula === true;
-          /* Rekod kuning boleh dipilih terus (keputusan pengguna 2026-11-26); merah/hijau
-           * tetap dihadkan oleh PanelTindakan (merah tidak boleh diluluskan, hijau tidak ditolak). */
-          const bolehPilih = !siap;
-          const w = WARNA_STATUS[k.warna];
-          return (
-            <li key={k.id} className="py-4">
-              <div className="flex items-start gap-3">
+      <div className="flex items-center justify-between gap-3 border-y border-fog bg-cloud/70 px-4 py-2 text-xs text-graphite sm:px-6">
+        <span className="tabular-nums">{tapis.length.toLocaleString("ms-MY")} rekod dipaparkan</span>
+        {adaTapisan ? (
+          <button type="button" className="font-medium text-ink hover:underline" onClick={() => onPenapis(PENAPIS_KOSONG)}>
+            Kosongkan tapisan
+          </button>
+        ) : null}
+      </div>
+
+      {tapis.length === 0 ? (
+        <p className="px-6 py-12 text-center text-sm text-graphite">Tiada rekod sepadan dengan tapisan ini.</p>
+      ) : (
+        <ul className="divide-y divide-fog">
+          {tapis.slice(0, had).map((k) => {
+            const r = rekodIkutId.get(k.id);
+            if (!r) return null;
+            const st = status.get(k.id);
+            const siap = st?.berjaya === true || st?.perluBacaSemula === true;
+            /* Rekod kuning boleh dipilih terus (keputusan pengguna 2026-11-26); merah/hijau
+             * tetap dihadkan oleh PanelTindakan (merah tidak boleh diluluskan, hijau tidak ditolak). */
+            const bolehPilih = !siap;
+            const terpilih = dipilih.has(k.id);
+            const ada = k.merah.length + k.kuning.length + k.maklumat.length > 0;
+            return (
+              <li key={k.id} className={cn("flex gap-3 px-4 py-4 transition-colors sm:px-6", terpilih && "bg-cloud shadow-[inset_3px_0_0_#1a1a1a]", siap && "opacity-60")}>
                 <input
                   type="checkbox"
-                  className="mt-1 h-4 w-4"
-                  checked={dipilih.has(k.id)}
+                  className="mt-1 h-4 w-4 shrink-0 accent-ink"
+                  checked={terpilih}
                   disabled={!bolehPilih}
                   onChange={() => onTogolPilih(k.id)}
                   aria-label={`Pilih ${r.tajuk}`}
                 />
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold" style={{ color: w.teks }}>
-                      <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: w.warna }} aria-hidden />
-                      {w.label}
-                    </span>
-                    {st ? (
-                      <span className="status-badge">
-                        {st.berjaya
-                          ? st.tindakan === "approved"
-                            ? "Diluluskan"
-                            : "Ditolak"
-                          : `Gagal: ${st.jawapan ?? "ralat"}`}
-                      </span>
-                    ) : null}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="flex items-center gap-2 font-semibold text-ink">
+                        <TitikWarna warna={k.warna} className="h-2 w-2" />
+                        <span className="sr-only">{WARNA_STATUS[k.warna].label}: </span>
+                        <span className="min-w-0 break-words">{r.tajuk}</span>
+                      </p>
+                      <p className="mt-0.5 text-xs text-graphite">
+                        {r.murid} · {r.kelas} · {LABEL_BAHASA[k.bahasa]} · {k.panjang.toLocaleString("ms-MY")}{" "}
+                        {k.bahasa === "zh" ? "aksara" : "perkataan"}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      {st ? <LencanaStatus st={st} /> : null}
+                      <a
+                        className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-charcoal hover:bg-cloud hover:text-ink"
+                        href={pautanAins(k.id)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`Buka dalam AINS: ${r.tajuk}`}
+                      >
+                        <span className="hidden sm:inline">Buka dalam AINS</span>
+                        <span className="sm:hidden">AINS</span>
+                        <Ikon nama="luar" className="h-3.5 w-3.5" />
+                      </a>
+                    </div>
                   </div>
-                  <p className="mt-1 font-semibold text-ink">{r.tajuk}</p>
-                  <p className="text-xs text-graphite">
-                    {r.murid} · {r.kelas} · {LABEL_BAHASA[k.bahasa]} · {k.panjang}{" "}
-                    {k.bahasa === "zh" ? "aksara" : "perkataan"}
-                  </p>
-                  {k.merah.length + k.kuning.length + k.maklumat.length > 0 ? (
+                  {ada ? (
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       {k.merah.map((s) => (
-                        <span key={s} className="rounded px-2 py-0.5 text-xs" style={{ backgroundColor: `${WARNA_STATUS.merah.warna}14`, color: WARNA_STATUS.merah.teks }}>
+                        <span
+                          key={s}
+                          className="rounded-full px-2.5 py-0.5 text-xs font-medium"
+                          style={{ backgroundColor: `${WARNA_STATUS.merah.warna}14`, color: WARNA_STATUS.merah.teks }}
+                        >
                           {LABEL_SEBAB[s]}
                         </span>
                       ))}
                       {k.kuning.map((s) => (
-                        <span key={s} className="rounded px-2 py-0.5 text-xs" style={{ backgroundColor: `${WARNA_STATUS.kuning.warna}14`, color: WARNA_STATUS.kuning.teks }}>
+                        <span
+                          key={s}
+                          className="rounded-full px-2.5 py-0.5 text-xs font-medium"
+                          style={{ backgroundColor: `${WARNA_STATUS.kuning.warna}14`, color: WARNA_STATUS.kuning.teks }}
+                        >
                           {LABEL_SEBAB[s]}
                         </span>
                       ))}
                       {k.maklumat.map((m) => (
-                        <span key={m} className="rounded bg-cloud px-2 py-0.5 text-xs text-graphite">
+                        <span key={m} className="rounded-full bg-cloud px-2.5 py-0.5 text-xs text-graphite">
                           {LABEL_MAKLUMAT[m]}
                         </span>
                       ))}
                     </div>
                   ) : null}
-                  <p className="mt-2 line-clamp-2 text-sm text-graphite">
-                    <b>Rumusan:</b> {r.rumusan}
-                  </p>
-                  <p className="line-clamp-2 text-sm text-graphite">
-                    <b>Pengajaran:</b> {r.pengajaran}
-                  </p>
-                  <div className="mt-2 flex flex-wrap gap-4 text-sm">
-                    <a
-                      className="text-ink underline"
-                      href={pautanAins(k.id)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Buka dalam AINS
-                    </a>
-                  </div>
+                  <dl className="mt-2.5 space-y-1 border-l-2 border-fog pl-3 text-sm leading-relaxed text-charcoal">
+                    <div className="line-clamp-2">
+                      <dt className="inline font-semibold text-ink">Rumusan: </dt>
+                      <dd className="inline">{r.rumusan || "—"}</dd>
+                    </div>
+                    <div className="line-clamp-2">
+                      <dt className="inline font-semibold text-ink">Pengajaran: </dt>
+                      <dd className="inline">{r.pengajaran || "—"}</dd>
+                    </div>
+                  </dl>
                 </div>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+              </li>
+            );
+          })}
+        </ul>
+      )}
       {tapis.length > had ? (
-        <button type="button" className="btn-outline-ink mt-4" onClick={() => setHad((h) => h + LANGKAH)}>
-          Tunjuk {Math.min(LANGKAH, tapis.length - had)} lagi
-        </button>
+        <div className="border-t border-fog p-4 text-center">
+          <button type="button" className="btn-outline-ink btn-sm" onClick={() => setHad((h) => h + LANGKAH)}>
+            Tunjuk {Math.min(LANGKAH, tapis.length - had)} lagi
+          </button>
+        </div>
       ) : null}
     </section>
   );

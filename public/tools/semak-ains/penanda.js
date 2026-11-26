@@ -1,12 +1,12 @@
 /* eslint-disable */
-/* Semak Rekod AINS — penanda (bookmarklet).
+/* SahPantas AINS — penanda (bookmarklet).
  * Fail ini dijana menjadi pautan javascript: oleh /tools/semak-ains/pasang
  * (__NEXA_ORIGIN__ diganti dengan asal NEXa). Kendiri: tidak memuat skrip luar.
  * Hanya menerima arahan daripada __NEXA_ORIGIN__ dan hanya untuk ID rekod yang
  * dibaca dalam sesi ini. Ubah fail ini = naikkan VERSI_PENANDA. */
 (function () {
   "use strict";
-  var VERSI_PENANDA = 1;
+  var VERSI_PENANDA = 2;
   var NEXA = "__NEXA_ORIGIN__";
   var SUMBER = "semak-ains";
   var J = {
@@ -23,7 +23,7 @@
   };
 
   if (location.hostname !== "ains.moe.gov.my") {
-    alert("Semak Rekod AINS: sila klik penanda ini semasa berada di laman AINS (ains.moe.gov.my) selepas log masuk sebagai guru.");
+    alert("SahPantas AINS: sila klik penanda ini semasa berada di laman AINS (ains.moe.gov.my) selepas log masuk sebagai guru.");
     return;
   }
   if (window.__semakAins && window.__semakAins.tetingkap && !window.__semakAins.tetingkap.closed) {
@@ -40,7 +40,7 @@
    * tersembunyi pada tetingkap sempit). Nama sekolah = baris sebelum ID pengguna
    * (x@y) dalam menu profil; jika tiada, baris pertama yang bermula "SEKOLAH ". */
   if (!document.querySelector('a[href*="teacher-record-list"]')) {
-    alert("Semak Rekod AINS: sila buka Papan Pemuka guru AINS (Portal Guru) dahulu, kemudian klik penanda ini sekali lagi.");
+    alert("SahPantas AINS: sila buka Papan Pemuka guru AINS (Portal Guru) dahulu, kemudian klik penanda ini sekali lagi.");
     return;
   }
   var iId = baris.findIndex(function (s) { return /^[\w.-]+@[\w.-]+$/.test(s); });
@@ -209,7 +209,7 @@
     });
     if (!item.length) { tolakLaksana("Tiada rekod sah untuk tindakan. Baca semula senarai."); return; }
     var label = tindakan === "approved" ? "MELULUSKAN" : "MENOLAK";
-    if (!confirm("Semak Rekod AINS\n\nAnda akan " + label + " " + item.length + " rekod bacaan murid atas nama akaun anda.\n\nTeruskan?")) {
+    if (!confirm("SahPantas AINS\n\nAnda akan " + label + " " + item.length + " rekod bacaan murid atas nama akaun anda.\n\nTeruskan?")) {
       tolakLaksana("Dibatalkan oleh pengguna.");
       return;
     }
@@ -311,7 +311,7 @@
 
   keadaan.tetingkap = window.open(NEXA + "/tools/semak-ains", "semak-ains");
   if (!keadaan.tetingkap) {
-    alert("Semak Rekod AINS: tetingkap baharu disekat. Sila benarkan pop-up untuk ains.moe.gov.my dan cuba lagi.");
+    alert("SahPantas AINS: tetingkap baharu disekat. Sila benarkan pop-up untuk ains.moe.gov.my dan cuba lagi.");
     window.__semakAins = null;
   }
 })();

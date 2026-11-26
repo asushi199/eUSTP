@@ -1,4 +1,5 @@
 import { resolveLaporanModuleHref } from "./laporan-entry";
+import { NAMA_ALAT } from "./tools/semak-ains/nama";
 
 export type ModuleTheme = {
   accent: string;
@@ -69,7 +70,7 @@ export const MEDIA_HUB = {
   iconKey: "media" as const,
 } as const;
 
-/** Hub CoE Tools — alat bantuan guru (Semak Rekod AINS dan alat akan datang). */
+/** Hub CoE Tools — alat bantuan guru (SahPantas AINS dan alat akan datang). */
 export const TOOLS_HUB = {
   href: "/tools",
   internalHref: "/tools",
@@ -152,8 +153,8 @@ export const MODULES = [
     href: "/tools/semak-ains",
     internalHref: "/tools/semak-ains",
     external: false,
-    title: "Semak Rekod AINS",
-    description: "Semak dan sahkan rekod bacaan AINS murid secara pukal untuk GPM.",
+    title: NAMA_ALAT,
+    description: "Semak dan sahkan rekod bacaan AINS murid secara pukal — lulus, perlu semak atau cadang tolak.",
     accent: "#4F46E5",
     iconKey: "semakAins" as const,
   },

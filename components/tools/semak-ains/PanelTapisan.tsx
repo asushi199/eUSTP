@@ -19,6 +19,11 @@ const TAHUN: [string, string][] = [
   ["P", "Peralihan"],
 ];
 
+/** Label kod tahap enjin (D4, T2, P, ?) untuk paparan. */
+export function labelKodTahap(kod: string): string {
+  return TAHUN.find(([v]) => v === kod)?.[1] ?? "Tidak dikenal pasti";
+}
+
 /** Label ringkas tapisan semasa, cth. "Tahun 4 · kelas 4D" atau "Semua tahap". */
 export function labelTapisan(t: Tapisan): string {
   const tahun = TAHUN.find(([v]) => v === (t.tahun ?? ""))?.[1] ?? "Semua";
@@ -29,25 +34,34 @@ export function labelTapisan(t: Tapisan): string {
 
 export default function PanelTapisan({
   onMula,
+  onBatal,
   awal,
 }: {
   onMula: (t: Tapisan) => void;
+  /** Kembali ke keputusan bacaan sebelum ini (hanya jika sudah ada bacaan). */
+  onBatal?: () => void;
   /** Tapisan bacaan sebelum ini (untuk diisi semula apabila menukar tahun/kelas). */
   awal?: Tapisan;
 }) {
   const [tahun, setTahun] = useState(awal?.tahun ?? "");
   const [kelas, setKelas] = useState(awal?.kelas ?? "");
   return (
-    <section className="card p-6">
-      <h2 className="text-lg font-semibold text-ink">Baca rekod menunggu pengesahan</h2>
-      <p className="mt-1 text-sm text-graphite">
-        Pilih tahap atau kelas jika rekod terlalu banyak. Bacaan dibuat dalam tab AINS anda
-        (lebih kurang 1 minit bagi 1,500 rekod).
+    <section className="card p-6 sm:p-8">
+      <h2 className="text-xl font-semibold tracking-tight text-ink">Pilih rekod untuk disemak</h2>
+      <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-graphite">
+        Baca semua rekod yang menunggu pengesahan, atau hadkan kepada satu tahun/kelas jika rekod terlalu banyak.
+        Bacaan dibuat dalam tab AINS anda — lebih kurang 1 minit bagi 1,500 rekod.
       </p>
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+      <form
+        className="mt-6 grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-end"
+        onSubmit={(e) => {
+          e.preventDefault();
+          onMula({ tahun: tahun || undefined, kelas: kelas.trim() || undefined });
+        }}
+      >
         <label className="block">
           <span className="label">Tahun / Tingkatan</span>
-          <select className="input mt-1" value={tahun} onChange={(e) => setTahun(e.target.value)}>
+          <select className="input" value={tahun} onChange={(e) => setTahun(e.target.value)}>
             {TAHUN.map(([v, l]) => (
               <option key={v} value={v}>
                 {l}
@@ -56,22 +70,22 @@ export default function PanelTapisan({
           </select>
         </label>
         <label className="block">
-          <span className="label">Nama kelas (pilihan)</span>
-          <input
-            className="input mt-1"
-            value={kelas}
-            onChange={(e) => setKelas(e.target.value)}
-            placeholder="cth. 4D"
-          />
+          <span className="label">
+            Nama kelas <span className="font-normal text-graphite">(pilihan)</span>
+          </span>
+          <input className="input" value={kelas} onChange={(e) => setKelas(e.target.value)} placeholder="cth. 4D" />
         </label>
-      </div>
-      <button
-        type="button"
-        className="btn-primary mt-6"
-        onClick={() => onMula({ tahun: tahun || undefined, kelas: kelas.trim() || undefined })}
-      >
-        Mula baca
-      </button>
+        <div className="flex gap-2">
+          {onBatal ? (
+            <button type="button" className="btn-outline-ink flex-1 sm:flex-none" onClick={onBatal}>
+              Batal
+            </button>
+          ) : null}
+          <button type="submit" className="btn-primary flex-1 sm:flex-none">
+            Mula baca
+          </button>
+        </div>
+      </form>
     </section>
   );
 }

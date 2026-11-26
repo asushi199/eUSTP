@@ -39,7 +39,7 @@ const CARDS: AdminCard[] = [
   },
   {
     href: "/admin/semak-ains",
-    title: "Semak Rekod AINS",
+    title: "SahPantas AINS",
     description: "Penggunaan alat semakan AINS oleh GPM mengikut sekolah (bilangan sahaja).",
   },
 ];
