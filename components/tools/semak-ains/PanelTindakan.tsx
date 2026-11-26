@@ -21,6 +21,7 @@ type Props = {
   standard: Standard;
   melaksana: boolean;
   kira: KiraLaksana;
+  mengesahkan: { halaman: number; jumlahHalaman: number } | null;
   hasil: HasilLaksana | null;
   dilarang: boolean;
   onLaksana: (tindakan: Tindakan, item: Item[]) => void;
@@ -41,7 +42,8 @@ function rawak<T>(arr: T[], n: number): T[] {
 }
 
 function belumSiap(status: Map<string, StatusTindakan>, k: Keputusan): boolean {
-  return status.get(k.id)?.berjaya !== true;
+  const st = status.get(k.id);
+  return st?.berjaya !== true && st?.perluBacaSemula !== true;
 }
 
 export default function PanelTindakan(p: Props) {
@@ -119,8 +121,8 @@ export default function PanelTindakan(p: Props) {
       <section className="card p-6">
         <p className="font-semibold text-ink">Sedang dilaksanakan dalam tab AINS…</p>
         <p className="mt-1 text-sm text-graphite">
-          {p.kira.diproses >= p.kira.jumlah
-            ? "Mengesahkan keputusan dalam AINS… (membaca semula senarai menunggu)"
+          {p.mengesahkan
+            ? `Mengesahkan keputusan dalam AINS… halaman ${p.mengesahkan.halaman} / ${p.mengesahkan.jumlahHalaman || "…"}`
             : `Diproses ${p.kira.diproses} / ${p.kira.jumlah} · berjaya ${p.kira.berjaya} · gagal ${p.kira.gagal}`}
         </p>
         <div className="mt-3 h-2 rounded bg-cloud">

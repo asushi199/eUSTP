@@ -22,7 +22,14 @@ export type Fasa =
   | "melaksana";
 export type InfoSekolah = { nama: string; kod: string | null; versiPenanda: number };
 export type Tindakan = "approved" | "rejected";
-export type StatusTindakan = { tindakan: Tindakan; berjaya: boolean; jawapan: string | null; masa: string };
+export type StatusTindakan = {
+  tindakan: Tindakan;
+  berjaya: boolean;
+  jawapan: string | null;
+  masa: string;
+  /** Rekod masih "menunggu" dalam AINS selepas tindakan: tidak boleh diambil tindakan sehingga dibaca semula. */
+  perluBacaSemula?: boolean;
+};
 export type HasilLaksana = {
   tindakan: Tindakan;
   berjaya: number;
@@ -33,7 +40,6 @@ export type HasilLaksana = {
 };
 const HAD_BACA_MS = 45_000;
 const HAD_LAKSANA_MS = 90_000;
-const HAD_SAHKAN_MS = 360_000;
 
 export type KiraLaksana = { jumlah: number; diproses: number; berjaya: number; gagal: number };
 
@@ -45,6 +51,8 @@ export function useSambunganAins() {
   const [bacaan, setBacaan] = useState({ halaman: 0, jumlahHalaman: 0 });
   const [bacaanKe, setBacaanKe] = useState(0);
   const [ralat, setRalat] = useState<string | null>(null);
+  const [ralatSambungan, setRalatSambungan] = useState<string | null>(null);
+  const [mengesahkan, setMengesahkan] = useState<{ halaman: number; jumlahHalaman: number } | null>(null);
   const [halamanGagal, setHalamanGagal] = useState<number[]>([]);
   const [status, setStatus] = useState<Map<string, StatusTindakan>>(() => new Map());
   const [kira, setKira] = useState<KiraLaksana>({ jumlah: 0, diproses: 0, berjaya: 0, gagal: 0 });
@@ -52,12 +60,10 @@ export function useSambunganAins() {
   const tindakanSemasa = useRef<Tindakan>("approved");
   const tapisanAkhir = useRef<Tapisan>({});
   const fasaRef = useRef<Fasa>("semak-sambungan");
-  const kiraRef = useRef<KiraLaksana>(kira);
-  const terakhirMesej = useRef(0);
-  const adaKemajuan = useRef(false);
+    const terakhirMesej = useRef(0);
+  const adaIsyaratLaksana = useRef(false);
   fasaRef.current = fasa;
-  kiraRef.current = kira;
-
+  
   const hantar = useCallback((m: TanpaSumber<MesejKeAins>) => {
     window.opener?.postMessage({ ...m, sumber: SUMBER }, ASAL_AINS);
   }, []);
@@ -72,6 +78,7 @@ export function useSambunganAins() {
       if (e.origin !== ASAL_AINS || e.source !== window.opener || !mesejAinsSah(e.data)) return;
       const d = e.data;
       terakhirMesej.current = Date.now();
+      setRalatSambungan(null);
       switch (d.jenis) {
         case "sekolah":
           setSekolah({ nama: d.nama, kod: d.kod, versiPenanda: d.versiPenanda });
@@ -90,8 +97,12 @@ export function useSambunganAins() {
           setBacaanKe((n) => n + 1);
           setFasa("keputusan");
           break;
+        case "mengesahkan":
+          adaIsyaratLaksana.current = true;
+          setMengesahkan({ halaman: d.halaman, jumlahHalaman: d.jumlahHalaman });
+          break;
         case "kemajuan":
-          adaKemajuan.current = true;
+          adaIsyaratLaksana.current = true;
           setStatus((lama) =>
             new Map(lama).set(d.id, {
               tindakan: tindakanSemasa.current,
@@ -108,6 +119,7 @@ export function useSambunganAins() {
           }));
           break;
         case "selesai-laksana":
+          setMengesahkan(null);
           if (d.masihMenunggu.length) {
             const menunggu = d.masihMenunggu;
             setStatus((lama) => {
@@ -116,8 +128,9 @@ export function useSambunganAins() {
                 baru.set(id, {
                   tindakan: tindakanSemasa.current,
                   berjaya: false,
-                  jawapan: "Masih menunggu dalam AINS",
+                  jawapan: "Masih menunggu dalam AINS — baca semula",
                   masa: new Date().toISOString(),
+                  perluBacaSemula: true,
                 });
               }
               return baru;
@@ -155,7 +168,7 @@ export function useSambunganAins() {
     if (fasa !== "membaca" && fasa !== "melaksana") return;
     const id = window.setInterval(() => {
       if (!window.opener || window.opener.closed) {
-        setRalat("Tab AINS telah ditutup. Buka semula AINS, klik penanda dan baca semula.");
+        setRalatSambungan("Tab AINS telah ditutup. Buka semula AINS, klik penanda dan baca semula.");
         setFasa("keputusan");
       }
     }, 2000);
@@ -173,14 +186,13 @@ export function useSambunganAins() {
         had = HAD_BACA_MS;
         mesej = "Tiada respons daripada tab AINS. Klik penanda sekali lagi dalam tab AINS, kemudian baca semula.";
       } else {
-        /* Sebelum kemajuan pertama, confirm() dalam AINS mungkin sedang menunggu — tiada had. */
-        if (!adaKemajuan.current) return;
-        const k = kiraRef.current;
-        had = k.diproses >= k.jumlah ? HAD_SAHKAN_MS : HAD_LAKSANA_MS;
+        /* Sebelum kemajuan/pengesahan pertama, confirm() dalam AINS mungkin sedang menunggu — tiada had. */
+        if (!adaIsyaratLaksana.current) return;
+        had = HAD_LAKSANA_MS;
         mesej = "Tiada respons daripada tab AINS semasa tindakan. Semak AINS secara manual.";
       }
       if (Date.now() - terakhirMesej.current > had) {
-        setRalat(mesej);
+        setRalatSambungan(mesej);
         setFasa("keputusan");
       }
     }, 5000);
@@ -194,6 +206,7 @@ export function useSambunganAins() {
       setStatus(new Map());
       setHasilLaksana(null);
       setRalat(null);
+      setRalatSambungan(null);
       setHalamanGagal([]);
       setBacaan({ halaman: 0, jumlahHalaman: 0 });
       setFasa("membaca");
@@ -210,7 +223,9 @@ export function useSambunganAins() {
       tindakanSemasa.current = tindakan;
       setHasilLaksana(null);
       setKira({ jumlah: item.length, diproses: 0, berjaya: 0, gagal: 0 });
-      adaKemajuan.current = false;
+      adaIsyaratLaksana.current = false;
+      setMengesahkan(null);
+      setRalatSambungan(null);
       setFasa("melaksana");
       hantar({ jenis: "laksana", tindakan, item, jedaMs });
     },
@@ -226,6 +241,8 @@ export function useSambunganAins() {
     bacaan,
     bacaanKe,
     ralat,
+    ralatSambungan,
+    mengesahkan,
     halamanGagal,
     status,
     kira,

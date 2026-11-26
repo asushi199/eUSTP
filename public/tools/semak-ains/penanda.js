@@ -17,6 +17,7 @@
     selesaiBaca: "selesai-baca",
     laksana: "laksana",
     kemajuan: "kemajuan",
+    mengesahkan: "mengesahkan",
     henti: "henti",
     selesaiLaksana: "selesai-laksana"
   };
@@ -46,7 +47,7 @@
 
   var keadaan = {
     tetingkap: null, idDibaca: new Set(), henti: false, sibuk: false, tapisan: {},
-    mod: null, berjaya: 0, gagal: 0, hantarSekolah: null
+    mod: null, berjaya: 0, gagal: 0, giliran: 0, hantarSekolah: null
   };
   window.__semakAins = keadaan;
 
@@ -127,13 +128,14 @@
     }
     throw ralatAkhir || new Error("Gagal membaca halaman " + h + ".");
   }
-  async function bacaSemua(lapor) {
+  async function bacaSemua(lapor, kemajuanHalaman) {
     var p1 = await ambilHalaman(1);
     var jumlah = p1.rekod.length ? jumlahHalaman(p1.doc) : 0;
     var semua = p1.rekod.slice();
     var gagal = [];
     var dihentikan = false;
     if (lapor) lapor(p1.rekod, 1, jumlah);
+    if (kemajuanHalaman) kemajuanHalaman(1, jumlah);
     for (var h = 2; h <= jumlah; h++) {
       if (keadaan.henti) { dihentikan = true; break; }
       await tidur(100);
@@ -143,6 +145,7 @@
       semua = semua.concat(hasil.rekod);
       jumlah = Math.max(jumlah, jumlahHalaman(hasil.doc));
       if (lapor) lapor(hasil.rekod, h, jumlah);
+      if (kemajuanHalaman) kemajuanHalaman(h, jumlah);
     }
     return { rekod: semua, gagal: gagal, dihentikan: dihentikan };
   }
@@ -157,6 +160,8 @@
     keadaan.sibuk = true;
     keadaan.mod = "baca";
     keadaan.henti = false;
+    keadaan.giliran++;
+    var giliran = keadaan.giliran;
     keadaan.tapisan = {
       tahun: tapisan && tapisan.tahun ? String(tapisan.tahun) : "",
       kelas: tapisan && tapisan.kelas ? String(tapisan.kelas) : ""
@@ -167,6 +172,7 @@
         rekod.forEach(function (r) { keadaan.idDibaca.add(r.id); });
         hantar({ jenis: J.rekod, rekod: rekod, halaman: h, jumlahHalaman: jumlah });
       });
+      if (giliran !== keadaan.giliran) return;
       keadaan.sibuk = false;
       keadaan.mod = null;
       hantar({
@@ -176,12 +182,15 @@
         halamanGagal: hasil.gagal
       });
     } catch (e) {
+      if (giliran !== keadaan.giliran) return;
       keadaan.sibuk = false;
       keadaan.mod = null;
       hantar({ jenis: J.selesaiBaca, bilangan: keadaan.idDibaca.size, ralat: String((e && e.message) || e), halamanGagal: [] });
     } finally {
-      keadaan.sibuk = false;
-      keadaan.mod = null;
+      if (giliran === keadaan.giliran) {
+        keadaan.sibuk = false;
+        keadaan.mod = null;
+      }
     }
   }
   async function laksana(arahan) {
@@ -205,13 +214,15 @@
     keadaan.berjaya = 0;
     keadaan.gagal = 0;
     keadaan.henti = false;
+    keadaan.giliran++;
+    var giliran = keadaan.giliran;
     var jeda = Math.min(2000, Math.max(300, Number(arahan.jedaMs) || 500));
     var berjaya = 0, gagal = 0, gagalBerturut = 0, ralat = null, selesai = [];
     var dihentikan = false;
     var masihMenunggu = [];
     try {
       for (var i = 0; i < item.length; i++) {
-        if (keadaan.henti || !keadaan.tetingkap || keadaan.tetingkap.closed) break;
+        if (giliran !== keadaan.giliran || keadaan.henti || !keadaan.tetingkap || keadaan.tetingkap.closed) break;
         var x = item[i];
         var ok = false, jawapan = null;
         try {
@@ -234,10 +245,13 @@
         await tidur(jeda);
       }
       dihentikan = keadaan.henti || ralat !== null || berjaya + gagal < item.length;
-      if (selesai.length && keadaan.tetingkap && !keadaan.tetingkap.closed) {
+      if (giliran === keadaan.giliran && selesai.length && keadaan.tetingkap && !keadaan.tetingkap.closed) {
         keadaan.henti = false;
         try {
-          var semakan = await bacaSemua(null);
+          hantar({ jenis: J.mengesahkan, halaman: 0, jumlahHalaman: 0 });
+          var semakan = await bacaSemua(null, function (h, jumlah) {
+            hantar({ jenis: J.mengesahkan, halaman: h, jumlahHalaman: jumlah });
+          });
           var ada = new Set(semakan.rekod.map(function (r) { return r.id; }));
           masihMenunggu = selesai.filter(function (id) { return ada.has(id); });
           if (semakan.gagal.length || semakan.dihentikan) {
@@ -251,9 +265,11 @@
       dihentikan = true;
       ralat = "Ralat tidak dijangka: " + String((e && e.message) || e).slice(0, 120);
     } finally {
-      keadaan.sibuk = false;
-      keadaan.mod = null;
-      hantar({ jenis: J.selesaiLaksana, berjaya: berjaya, gagal: gagal, masihMenunggu: masihMenunggu, dihentikan: dihentikan, ralat: ralat });
+      if (giliran === keadaan.giliran) {
+        keadaan.sibuk = false;
+        keadaan.mod = null;
+        hantar({ jenis: J.selesaiLaksana, berjaya: berjaya, gagal: gagal, masihMenunggu: masihMenunggu, dihentikan: dihentikan, ralat: ralat });
+      }
     }
   }
 
@@ -277,6 +293,8 @@
     var mod = keadaan.mod;
     keadaan.sibuk = false;
     keadaan.mod = null;
+    keadaan.henti = true;
+    keadaan.giliran++;
     if (mod === "baca") {
       hantar({ jenis: J.selesaiBaca, bilangan: keadaan.idDibaca.size, ralat: "Halaman AINS ditutup atau dimuat semula semasa membaca.", halamanGagal: [] });
     } else if (mod === "laksana") {

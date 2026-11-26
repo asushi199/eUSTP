@@ -43,7 +43,10 @@ export default function SemakAinsApp() {
   const penandaLama = !!s.sekolah && s.sekolah.versiPenanda < VERSI_PENANDA_MIN;
   const muridLuarBiasa = useMemo(() => {
     const m = new Map<string, number>();
-    for (const r of s.rekod) m.set(r.murid, (m.get(r.murid) ?? 0) + 1);
+    for (const r of s.rekod) {
+      const k = `${r.murid}|${r.kelas}`;
+      m.set(k, (m.get(k) ?? 0) + 1);
+    }
     return [...m].filter(([, n]) => n > standard.ambangMuridLuarBiasa).sort((a, b) => b[1] - a[1]);
   }, [s.rekod, standard.ambangMuridLuarBiasa]);
 
@@ -207,6 +210,7 @@ export default function SemakAinsApp() {
 
       {adaKeputusan ? (
         <>
+          {s.ralatSambungan ? <div className="card p-4 text-sm text-ink">{s.ralatSambungan}</div> : null}
           {s.ralat ? <div className="card p-4 text-sm text-ink">{s.ralat}</div> : null}
           {s.halamanGagal.length ? (
             <div className="card p-4 text-sm text-ink">
@@ -219,7 +223,12 @@ export default function SemakAinsApp() {
               <p className="font-semibold text-ink">
                 Murid dengan rekod luar biasa banyak (lebih {standard.ambangMuridLuarBiasa} rekod)
               </p>
-              <p className="mt-1 text-graphite">{muridLuarBiasa.map(([m, n]) => `${m} (${n})`).join(" · ")}</p>
+              <p className="mt-1 text-graphite">{muridLuarBiasa
+                  .map(([k, n]) => {
+                    const [nama, kelas] = k.split("|");
+                    return `${nama} (${kelas}) — ${n}`;
+                  })
+                  .join(" · ")}</p>
               <p className="mt-1 text-xs text-graphite">
                 Cadangan: semak rawak rekod murid ini sebelum meluluskan secara pukal.
               </p>
@@ -233,6 +242,7 @@ export default function SemakAinsApp() {
             standard={standard}
             melaksana={s.fasa === "melaksana"}
             kira={s.kira}
+            mengesahkan={s.mengesahkan}
             hasil={s.hasilLaksana}
             dilarang={penandaLama}
             onLaksana={(tindakan, item) => s.laksana(tindakan, item, standard.jedaMs)}

@@ -116,7 +116,7 @@ export default function SenaraiRekod({
           const r = rekodIkutId.get(k.id);
           if (!r) return null;
           const st = status.get(k.id);
-          const siap = st?.berjaya === true;
+          const siap = st?.berjaya === true || st?.perluBacaSemula === true;
           const bolehPilih = !siap && (k.warna !== "kuning" || dilihat.has(k.id));
           const w = WARNA_STATUS[k.warna];
           return (

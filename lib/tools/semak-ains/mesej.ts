@@ -12,6 +12,7 @@ export const JENIS_MESEJ = [
   "selesai-baca",
   "laksana",
   "kemajuan",
+  "mengesahkan",
   "henti",
   "selesai-laksana",
 ] as const;
@@ -26,6 +27,7 @@ export type MesejDariAins =
   | (S & { jenis: "rekod"; rekod: RekodAins[]; halaman: number; jumlahHalaman: number })
   | (S & { jenis: "selesai-baca"; bilangan: number; ralat: string | null; halamanGagal: number[] })
   | (S & { jenis: "kemajuan"; id: string; berjaya: boolean; jawapan: string | null })
+  | (S & { jenis: "mengesahkan"; halaman: number; jumlahHalaman: number })
   | (S & {
       jenis: "selesai-laksana";
       berjaya: number;
@@ -48,7 +50,7 @@ export type MesejKeAins =
 
 export type TanpaSumber<T> = T extends unknown ? Omit<T, "sumber"> : never;
 
-const DARI_AINS: string[] = ["sekolah", "rekod", "selesai-baca", "kemajuan", "selesai-laksana"];
+const DARI_AINS: string[] = ["sekolah", "rekod", "selesai-baca", "kemajuan", "mengesahkan", "selesai-laksana"];
 
 /** Semak bentuk asas mesej daripada tab AINS (asal & sumber disemak oleh pemanggil). */
 export function mesejAinsSah(data: unknown): data is MesejDariAins {
