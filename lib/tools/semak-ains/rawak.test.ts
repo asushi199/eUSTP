@@ -63,3 +63,10 @@ test("simbol pengisi", () => {
   assert.equal(adaSimbolPengisi("()()()()()()()()()"), true);
   assert.equal(adaSimbolPengisi("Hebat!!! Terima kasih."), false);
 });
+
+test("angka Arab antara aksara Cina bukan sisa IME", () => {
+  assert.equal(
+    kesanRawak("第1只小猪盖了草房子，第2只小猪盖了木房子，第3只小猪盖了砖房子。大野狼吹了2次，过了3天它又来了。", "zh"),
+    null,
+  );
+});

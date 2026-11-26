@@ -36,7 +36,7 @@ export function kesanRawak(teks: string, bahasa: Bahasa): JenisRawak | null {
     if (buruk / latin.length >= 0.3) return "bukan-perkataan";
   }
 
-  if ((teks.match(/(?<=[\u4e00-\u9fff])[A-Za-z0-9](?=[\u4e00-\u9fff])/g) ?? []).length >= 5) return "ime";
+  if ((teks.match(/(?<=[\u4e00-\u9fff])[A-Za-z](?=[\u4e00-\u9fff])/g) ?? []).length >= 5) return "ime";
 
   if (/(?<![A-Za-z])[A-Za-z](?:\s+[A-Za-z](?![A-Za-z])){7,}/.test(teks)) return "huruf-dijarakkan";
 

@@ -94,7 +94,8 @@ test("aktiviti kelas dibenarkan secara lalai; kuning jika ditetapkan", () => {
 test("hantar semula sama: merah secara lalai, boleh diabaikan", () => {
   const a = r({ tajuk: "Sang Kancil", murid: "ALI" });
   const b = r({ tajuk: "Sang Kancil", murid: "ALI" });
-  assert.ok(semak([a, b], STANDARD_DAERAH)[0]!.merah.includes("hantar-semula-sama"));
+  assert.ok(semak([a, b], STANDARD_DAERAH)[1]!.merah.includes("hantar-semula-sama"));
+  assert.ok(!semak([a, b], STANDARD_DAERAH)[0]!.merah.includes("hantar-semula-sama"));
   assert.equal(semak([a, b], gabungStandard({ hantarSemulaSama: "abai" }))[0]!.warna, "hijau");
 });
 
@@ -117,4 +118,41 @@ test("janaKomen: sebab merah diutamakan, unik, boleh diganti", () => {
   assert.ok(teks.includes("terlalu pendek"));
   assert.ok(teks.endsWith("Lengkapkan."));
   assert.ok(!teks.includes("agak pendek"));
+});
+
+test("R4: rumusan sama pengajaran → merah", () => {
+  const k = satu(r({ pengajaran: RUMUSAN }));
+  assert.ok(k.merah.includes("rumusan-sama-pengajaran"));
+});
+
+test("Y2: terlalu panjang → kuning", () => {
+  const k = satu(r({ rumusan: `${RUMUSAN} ${"Kancil berlari ke sana ke mari mencari makanan. ".repeat(40)}` }));
+  assert.ok(k.kuning.includes("terlalu-panjang"));
+});
+
+test("R6: teks rawak (gelung) → merah teks-rawak", () => {
+  const k = satu(r({ rumusan: "kancil buaya sungai ".repeat(10), pengajaran: PENGAJARAN }));
+  assert.ok(k.merah.includes("teks-rawak"));
+});
+
+test("Y6: simbol pengisi → kuning", () => {
+  const k = satu(r({ rumusan: `${RUMUSAN} ........` }));
+  assert.ok(k.kuning.includes("simbol-pengisi"));
+});
+
+test("R7: tajuk Tamil + teks BM → bahasa tidak sepadan", () => {
+  const k = satu(r({ tajuk: "தமிழ் புத்தகம்" }));
+  assert.ok(k.merah.includes("bahasa-tak-sepadan"));
+});
+
+test("murid luar biasa dikunci murid|kelas", () => {
+  const s = gabungStandard({ ambangMuridLuarBiasa: 1 });
+  const k = semak(
+    [
+      r({ murid: "ALI", kelas: "TAHUN 5 5A", rumusan: `${RUMUSAN} Satu.` }),
+      r({ murid: "ALI", kelas: "TAHUN 5 5B", rumusan: `${RUMUSAN} Dua.` }),
+    ],
+    s,
+  );
+  assert.ok(!k[0]!.maklumat.includes("murid-luar-biasa"));
 });

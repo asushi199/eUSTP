@@ -22,11 +22,19 @@ export type HasilPendua = {
 
 const MIN_RUMUSAN_PENDUA = 40;
 
-function bilanganBuku(kumpulan: InputPendua[]): number {
-  const wakil: string[] = [];
-  for (const r of kumpulan) if (!wakil.some((w) => bukuSama(w, r.tajukN))) wakil.push(r.tajukN);
-  return wakil.length;
+/** Kelompokkan rekod mengikut buku (bukuSama); wakil = tajuk rekod pertama kelompok. */
+function kelompokBuku(kumpulan: InputPendua[]): InputPendua[][] {
+  const kelompok: InputPendua[][] = [];
+  for (const r of kumpulan) {
+    const k = kelompok.find((g) => bukuSama(g[0]!.tajukN, r.tajukN));
+    if (k) k.push(r);
+    else kelompok.push([r]);
+  }
+  return kelompok;
 }
+
+/** Murid dikenal melalui nama + kelas (nama sama dalam kelas berbeza ialah murid berlainan). */
+const kunciMurid = (r: InputPendua): string => `${r.murid}|${r.kelas}`;
 
 /** Kesan templat, pendua merentas murid, aktiviti kelas dan hantaran semula (spesifikasi §6). */
 export function kesanPendua(rekod: InputPendua[]): Map<string, HasilPendua> {
@@ -53,7 +61,22 @@ export function kesanPendua(rekod: InputPendua[]): Map<string, HasilPendua> {
   }
   for (const g of ikutRumusan.values()) {
     if (g.length < 2) continue;
-    const buku = bilanganBuku(g);
+    const kelompok = kelompokBuku(g);
+    const buku = kelompok.length;
+    const D = kelompok.reduce((p, k) => (k.length > p.length ? k : p), kelompok[0]!);
+    const satuKelasHari = g.every((x) => x.kelas === g[0]!.kelas && x.tarikh === g[0]!.tarikh);
+    if (satuKelasHari && buku > 1 && D.length >= 2 && D.length * 2 >= g.length) {
+      /* Aktiviti kelas: segelintir murid mengubah tajuk — bukan templat. */
+      for (const r of g) {
+        const h = hasil.get(r.id)!;
+        if (D.includes(r)) {
+          if (D.some((x) => kunciMurid(x) !== kunciMurid(r))) h.aktivitiKelas = true;
+        } else {
+          h.samaMuridLain = true;
+        }
+      }
+      continue;
+    }
     for (const r of g) {
       const h = hasil.get(r.id)!;
       if (buku >= 3) {
@@ -64,7 +87,7 @@ export function kesanPendua(rekod: InputPendua[]): Map<string, HasilPendua> {
         h.sama2Buku = true;
         continue;
       }
-      const lain = g.filter((x) => x !== r && x.murid !== r.murid);
+      const lain = g.filter((x) => x !== r && kunciMurid(x) !== kunciMurid(r));
       if (lain.length === 0) continue;
       if (lain.every((x) => x.kelas === r.kelas && x.tarikh === r.tarikh)) h.aktivitiKelas = true;
       else h.samaMuridLain = true;
@@ -73,9 +96,10 @@ export function kesanPendua(rekod: InputPendua[]): Map<string, HasilPendua> {
 
   const ikutMurid = new Map<string, InputPendua[]>();
   for (const r of rekod) {
-    const g = ikutMurid.get(r.murid);
+    const k = kunciMurid(r);
+    const g = ikutMurid.get(k);
     if (g) g.push(r);
-    else ikutMurid.set(r.murid, [r]);
+    else ikutMurid.set(k, [r]);
   }
   for (const g of ikutMurid.values()) {
     if (g.length < 2) continue;
@@ -83,8 +107,14 @@ export function kesanPendua(rekod: InputPendua[]): Map<string, HasilPendua> {
       const sama = g.filter((x) => x !== r && bukuSama(x.tajukN, r.tajukN));
       if (sama.length === 0) continue;
       const h = hasil.get(r.id)!;
-      if (r.rumusanN && sama.some((x) => x.rumusanN === r.rumusanN)) h.hantarSemulaSama = true;
-      else h.bukuSamaBerulang = true;
+      if (r.rumusanN && sama.some((x) => x.rumusanN === r.rumusanN)) {
+        /* Salinan pertama (ikut urutan input) tidak ditanda; hanya salinan kemudian. */
+        if (sama.some((x) => x.rumusanN === r.rumusanN && g.indexOf(x) < g.indexOf(r))) {
+          h.hantarSemulaSama = true;
+        }
+      } else {
+        h.bukuSamaBerulang = true;
+      }
     }
   }
   return hasil;

@@ -30,7 +30,10 @@ export function semak(rekod: RekodAins[], standard: Standard): Keputusan[] {
     })),
   );
   const bilMurid = new Map<string, number>();
-  for (const r of rekod) bilMurid.set(r.murid, (bilMurid.get(r.murid) ?? 0) + 1);
+  for (const r of rekod) {
+    const k = `${r.murid}|${r.kelas}`;
+    bilMurid.set(k, (bilMurid.get(k) ?? 0) + 1);
+  }
 
   return rekod.map((r) => {
     const teks = `${r.rumusan} ${r.pengajaran}`;
@@ -74,7 +77,7 @@ export function semak(rekod: RekodAins[], standard: Standard): Keputusan[] {
       kuning.push("tiada-unsur-pengajaran");
     }
 
-    if ((bilMurid.get(r.murid) ?? 0) > standard.ambangMuridLuarBiasa) maklumat.push("murid-luar-biasa");
+    if ((bilMurid.get(`${r.murid}|${r.kelas}`) ?? 0) > standard.ambangMuridLuarBiasa) maklumat.push("murid-luar-biasa");
     if (FRASA_AI.test(teks)) maklumat.push("frasa-ai");
 
     const warna: Warna = merah.length ? "merah" : kuning.length ? "kuning" : "hijau";
