@@ -40,7 +40,7 @@ const withPWA = withPWAInit({
   skipWaiting: true,
   disable: process.env.NODE_ENV === "development",
   // Slaid utama MJKD (~50 MB, termasuk video) hanya untuk mod pembentangan — jangan precache.
-  publicExcludes: ["!noprecache/**/*", "!mjkd/slaid-utama/**/*"],
+  publicExcludes: ["!noprecache/**/*", "!mjkd/slaid-utama/**/*", "!tools/semak-ains/penanda.js"],
   workboxOptions: {
     disableDevLogs: true,
     runtimeCaching: [

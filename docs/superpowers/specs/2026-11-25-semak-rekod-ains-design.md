@@ -74,10 +74,10 @@ Prinsip:
 - **NEXa tidak memegang sesi AINS.** Semua tindakan terhadap AINS dibuat oleh penanda dalam tab AINS.
 - **Penanda mempercayai NEXa secara terhad:** hanya menerima mesej daripada asal (origin) NEXa, hanya untuk ID yang ia sendiri baca dalam sesi ini, dan meminta pengesahan GPM sebelum melaksana.
 
-### 4.1 Penanda AINS (`public/semak-ains/penanda.js` → `javascript:` URL)
+### 4.1 Penanda AINS (`public/tools/semak-ains/penanda.js` → `javascript:` URL)
 
 Sumber penanda ialah fail JS biasa (ES2020, tiada `import`) di
-`public/semak-ains/penanda.js` yang mengandungi pemegang tempat
+`public/tools/semak-ains/penanda.js` yang mengandungi pemegang tempat
 `__NEXA_ORIGIN__` dan pemalar `VERSI_PENANDA`. Halaman `/tools/semak-ains/pasang`
 memuat fail itu, menggantikan `__NEXA_ORIGIN__` dengan `location.origin`, dan
 menjana pautan `javascript:` untuk diseret ke bar penanda. Fail yang sama dimuat
@@ -171,11 +171,11 @@ Semua mesej `{ sumber: 'semak-ains', versi, jenis, … }`. Penerima menyemak
 | AINS → NEXa | `sekolah` | `nama`, `kod?`, `versiPenanda` |
 | NEXa → AINS | `mula` | `tapisan: { tahun?, kelas? }` |
 | AINS → NEXa | `rekod` | `rekod[]`, `halaman`, `jumlahHalaman` |
-| AINS → NEXa | `selesai-baca` | `bilangan`, `ralat?` |
+| AINS → NEXa | `selesai-baca` | `bilangan`, `ralat?`, `halamanGagal[]` |
 | NEXa → AINS | `laksana` | `tindakan: 'approved'|'rejected'`, `item: {id, komen}[]`, `jedaMs` |
 | AINS → NEXa | `kemajuan` | `id`, `berjaya`, `jawapan?` |
 | NEXa → AINS | `henti` | — |
-| AINS → NEXa | `selesai-laksana` | `berjaya`, `gagal`, `masihMenunggu[]` |
+| AINS → NEXa | `selesai-laksana` | `berjaya`, `gagal`, `masihMenunggu[]`, `dihentikan`, `ralat?` |
 
 Penanda menolak `laksana` untuk sebarang `id` yang tidak dibaca dalam sesi itu.
 
@@ -344,7 +344,7 @@ Perubahan standard daerah = suntingan kod (`standard.ts`) + naikkan `VERSI_ENJIN
 
 ## 10. Pengujian
 
-- Ujian unit enjin dengan `node:test` melalui `tsx` (tiada kebergantungan baharu): `npm run test:semak-ains` → `tsx --test lib/tools/semak-ains/*.test.ts`.
+- Ujian unit enjin dengan `node:test` melalui `tsx` (tiada kebergantungan baharu): `npm run test:tools` → `tsx --test "lib/tools/**/*.test.ts"`.
 - Fixture sintetik untuk setiap kod sebab (R1–R7, Y1–Y6), pengecualian aktiviti kelas, `bukuSama`, pengesanan bahasa (zh/ta/bm/en/campur), kata ganda BM tidak dikira rawak.
 - Penghurai penanda bergantung pada `DOMParser` (tiada dalam Node) — disahkan secara manual dalam tab AINS yang log masuk; ujian Node memastikan pemalar `jenis` mesej dalam `penanda.js` sepadan dengan `mesej.ts`.
 - Ujian manual (perintis): satu sekolah, satu tahap; bandingkan keputusan alat dengan semakan GPM; ukur masa baca dan masa tindakan.

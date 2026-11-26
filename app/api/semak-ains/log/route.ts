@@ -67,7 +67,7 @@ export async function POST(request: Request) {
 
     await db.insert(semakAinsLog).values({
       kodSekolah: kod,
-      namaSekolah: d.namaSekolah,
+      namaSekolah: padan?.name ?? d.namaSekolah,
       jenis: d.jenis,
       bilRekod: d.bilRekod,
       bilHijau: d.bilHijau,

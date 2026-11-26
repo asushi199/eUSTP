@@ -126,7 +126,7 @@ GPICT/DELIMa/GPM, Tempahan PKG, Portal Sumber/Analisis/Maklumat Asas). Sumber as
   alat baharu = modul dalam `MODULES` + href dalam senarai). Alat pertama **Semak Rekod AINS**
   `/tools/semak-ains`: penanda kendiri `public/tools/semak-ains/penanda.js` dalam tab AINS +
   enjin peraturan `lib/tools/semak-ains/` dalam pelayar (tiada data murid ke pelayan, tiada AI).
-  Ubah standard lalai (`standard.ts`) = naikkan `VERSI_ENJIN`; ubah `penanda.js` = naikkan
+  Ubah standard lalai (`standard.ts`) atau peraturan (`peraturan.ts`/`pendua.ts`/`rawak.ts`) = naikkan `VERSI_ENJIN`; ubah `penanda.js` = naikkan
   `VERSI_PENANDA` (+ `VERSI_PENANDA_MIN` jika tidak serasi). Pemantauan bilangan sahaja
   `semak_ains_log` → `/admin/semak-ains`. Ujian `npm run test:tools`. Fixture mesti sintetik
   (jangan komit teks/nama murid sebenar). Spesifikasi

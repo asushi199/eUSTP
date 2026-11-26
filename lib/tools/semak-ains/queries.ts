@@ -28,7 +28,7 @@ export async function ringkasanIkutSekolah(): Promise<RingkasanSekolahSemakAins[
       bilMerah: sql<number>`coalesce(sum(${L.bilMerah}) filter (where ${L.jenis} = 'semak'), 0)::int`,
       bilDiluluskan: sql<number>`coalesce(sum(${L.bilBerjaya}) filter (where ${L.jenis} = 'lulus'), 0)::int`,
       bilDitolak: sql<number>`coalesce(sum(${L.bilBerjaya}) filter (where ${L.jenis} = 'tolak'), 0)::int`,
-      tetapanDiubah: sql<boolean>`bool_or(${L.tetapanDiubah})`,
+      tetapanDiubah: sql<boolean>`(array_agg(${L.tetapanDiubah} order by ${L.diciptaPada} desc))[1]`,
       tetapanTerkini: sql<Record<string, string | number | boolean> | null>`(array_agg(${L.tetapan} order by ${L.diciptaPada} desc))[1]`,
     })
     .from(L)
