@@ -38,13 +38,7 @@ export default function Pengenalan() {
         </p>
         <ol className="mt-6 space-y-6">
           <Langkah n={1} tajuk="Pasang penanda">
-            <p>
-              Tunjukkan bar penanda dengan{" "}
-              <kbd className="rounded border border-fog bg-cloud px-1.5 py-0.5 text-xs font-semibold text-ink">
-                Ctrl+Shift+B
-              </kbd>
-              , kemudian seret butang ini ke bar itu.
-            </p>
+            <p>Seret butang ini ke bar penanda (di bawah bar alamat pelayar).</p>
             <ButangPenanda />
           </Langkah>
           <Langkah n={2} tajuk="Buka AINS">

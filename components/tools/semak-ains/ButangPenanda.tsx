@@ -75,8 +75,13 @@ export default function ButangPenanda() {
       </div>
       <details className="mt-2 text-sm text-graphite">
         <summary className="cursor-pointer text-xs font-medium text-charcoal hover:text-ink">
-          Tidak boleh seret? Tambah secara manual
+          Bar penanda tidak kelihatan atau tidak boleh seret?
         </summary>
+        <p className="mt-2 leading-relaxed">
+          Tekan{" "}
+          <kbd className="rounded border border-fog bg-cloud px-1.5 py-0.5 text-xs font-semibold text-ink">Ctrl+Shift+B</kbd>{" "}
+          untuk memaparkan bar penanda (tekan sekali sahaja — tekan lagi akan menyembunyikannya). Atau tambah secara manual:
+        </p>
         <ol className="mt-2 list-decimal space-y-1 pl-5 leading-relaxed">
           <li>Klik kanan bar penanda → Tambah halaman / Add page.</li>
           <li>Nama: {NAMA_PENANDA}. URL: tampal kod yang disalin.</li>
