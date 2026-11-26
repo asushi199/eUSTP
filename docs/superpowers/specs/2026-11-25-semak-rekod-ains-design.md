@@ -91,7 +91,7 @@ halaman NEXa mengesan versi lama dan memaparkan arahan pasang semula.
 Tanggungjawab:
 
 1. **Semak konteks:** mesti di `ains.moe.gov.my` dan log masuk (halaman papan pemuka boleh dibaca). Jika tidak → `alert` dalam BM.
-2. **Kenal pasti sekolah** daripada `document.body.innerText` halaman Portal Guru semasa: baris selepas `PORTAL GURU` = nama sekolah; baris berbentuk `x@y` = ID pengguna. Kod sekolah daripada ID berformat `gpm@<kod>` jika `<kod>` sepadan `^[A-Z]{3}\d{4}$` (cth. `gpm@abc1234` → `ABC1234`), jika tidak, kosong. Jika tiada `PORTAL GURU` → minta GPM buka Papan Pemuka guru dahulu.
+2. **Kenal pasti sekolah** daripada `document.body.innerText` halaman Portal Guru semasa: halaman Portal Guru = ada pautan `teacher-record-list` (kepala "PORTAL GURU" tersembunyi pada tetingkap sempit — disahkan 2026-11-26); nama sekolah = baris sebelum ID pengguna (`x@y`) dalam menu profil jika bermula "SEKOLAH ", jika tidak baris pertama yang bermula "SEKOLAH ". Kod sekolah daripada ID berformat `gpm@<kod>` jika `<kod>` sepadan `^[A-Z]{3}\d{4}$` (cth. `gpm@abc1234` → `ABC1234`), jika tidak, kosong. Bukan Portal Guru → minta GPM buka Papan Pemuka guru dahulu.
 3. **Buka NEXa** (`window.open(__NEXA_ORIGIN__ + '/tools/semak-ains')`), tunggu mesej `sedia`, balas `sekolah`, kemudian tunggu `mula` (tapisan dipilih GPM di NEXa).
 4. **Baca senarai:** `GET /web/teacher-record-list?search_status=pending&page=N` (+ tapisan pilihan `search_class_year`, `search_class_name`). 10 rekod sehalaman (tetap). Satu permintaan pada satu masa, jeda ≥ 100 ms. Ukuran sampel: ~0.4 s sehalaman (1,381 rekod ≈ 56 s).
 5. **Hurai setiap rekod** daripada `#rsList [data-key] a.rec`:

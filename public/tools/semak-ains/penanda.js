@@ -36,12 +36,16 @@
     .split("\n")
     .map(function (s) { return s.trim(); })
     .filter(Boolean);
-  var iPortal = baris.indexOf("PORTAL GURU");
-  if (iPortal < 0) {
+  /* Portal Guru dikenal pasti melalui pautan senarai rekod guru (kepala "PORTAL GURU"
+   * tersembunyi pada tetingkap sempit). Nama sekolah = baris sebelum ID pengguna
+   * (x@y) dalam menu profil; jika tiada, baris pertama yang bermula "SEKOLAH ". */
+  if (!document.querySelector('a[href*="teacher-record-list"]')) {
     alert("Semak Rekod AINS: sila buka Papan Pemuka guru AINS (Portal Guru) dahulu, kemudian klik penanda ini sekali lagi.");
     return;
   }
-  var namaSekolah = baris[iPortal + 1] || "";
+  var iId = baris.findIndex(function (s) { return /^[\w.-]+@[\w.-]+$/.test(s); });
+  var namaSekolah = (iId > 0 && /^SEKOLAH\s/i.test(baris[iId - 1]) ? baris[iId - 1] : "") ||
+    baris.find(function (s) { return /^SEKOLAH\s/i.test(s); }) || "";
   var idGpm = baris.find(function (s) { return /^gpm@[A-Za-z]{3}\d{4}$/i.test(s); }) || "";
   var kodSekolah = idGpm ? idGpm.split("@")[1].toUpperCase() : null;
 
