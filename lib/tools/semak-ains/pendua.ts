@@ -65,7 +65,8 @@ export function kesanPendua(rekod: InputPendua[]): Map<string, HasilPendua> {
     const buku = kelompok.length;
     const D = kelompok.reduce((p, k) => (k.length > p.length ? k : p), kelompok[0]!);
     const satuKelasHari = g.every((x) => x.kelas === g[0]!.kelas && x.tarikh === g[0]!.tarikh);
-    if (satuKelasHari && buku > 1 && D.length >= 2 && D.length * 2 >= g.length) {
+    const muridD = new Set(D.map(kunciMurid)).size;
+    if (satuKelasHari && buku > 1 && muridD >= 2 && D.length * 2 > g.length) {
       /* Aktiviti kelas: segelintir murid mengubah tajuk — bukan templat. */
       for (const r of g) {
         const h = hasil.get(r.id)!;

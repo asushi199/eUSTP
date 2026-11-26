@@ -96,7 +96,7 @@ test("hantar semula sama: merah secara lalai, boleh diabaikan", () => {
   const b = r({ tajuk: "Sang Kancil", murid: "ALI" });
   assert.ok(semak([a, b], STANDARD_DAERAH)[1]!.merah.includes("hantar-semula-sama"));
   assert.ok(!semak([a, b], STANDARD_DAERAH)[0]!.merah.includes("hantar-semula-sama"));
-  assert.equal(semak([a, b], gabungStandard({ hantarSemulaSama: "abai" }))[0]!.warna, "hijau");
+  assert.equal(semak([a, b], gabungStandard({ hantarSemulaSama: "abai" }))[1]!.warna, "hijau");
 });
 
 test("murid luar biasa → maklumat sahaja, warna tidak berubah", () => {

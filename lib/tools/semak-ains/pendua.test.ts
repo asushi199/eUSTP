@@ -100,3 +100,27 @@ test("3 tajuk berbeza merentas kelas masih templat", () => {
   assert.equal(h.get("1")?.templat, true);
   assert.equal(h.get("3")?.templat, true);
 });
+
+test("A3: satu murid sahaja dalam kelompok dominan bukan aktiviti kelas", () => {
+  const h = kesanPendua([
+    rek("1", "ALI", "Buku A"),
+    rek("2", "ALI", "Buku A"),
+    rek("3", "ALI", "Buku B"),
+  ]);
+  for (const id of ["1", "2", "3"]) {
+    assert.equal(h.get(id)?.samaMuridLain, false, id);
+    assert.equal(h.get(id)?.aktivitiKelas, false, id);
+    assert.equal(h.get(id)?.sama2Buku, true, id);
+  }
+  assert.equal(h.get("2")?.hantarSemulaSama, true);
+});
+
+test("A3: kelompok dominan bukan majoriti mutlak → peraturan berbilang buku", () => {
+  const h = kesanPendua([
+    rek("1", "ALI", "Buku X"),
+    rek("2", "ABU", "Buku X"),
+    rek("3", "AHMAD", "Buku Y"),
+    rek("4", "ALIAH", "Buku Z"),
+  ]);
+  for (const id of ["1", "2", "3", "4"]) assert.equal(h.get(id)?.templat, true, id);
+});
