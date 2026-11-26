@@ -72,6 +72,7 @@ export const ASPEK: AspekInstrumen[] = [
         no: "1.9",
         item: "Jadual penggunaan DELIMa (sekurang-kurangnya sebulan sekali seorang guru)",
         panduan: "Dilaksana bermula Januari 2027.",
+        pautan: { label: "Contoh jadual DELIMa (rujukan)", href: "https://go.gov.my/ContohJadualDELIMa" },
       },
       {
         id: "2.0",
