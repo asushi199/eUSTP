@@ -31,6 +31,10 @@ export type HasilLaksana = {
   dihentikan: boolean;
   ralat: string | null;
 };
+const HAD_BACA_MS = 45_000;
+const HAD_LAKSANA_MS = 90_000;
+const HAD_SAHKAN_MS = 360_000;
+
 export type KiraLaksana = { jumlah: number; diproses: number; berjaya: number; gagal: number };
 
 /** Sambungan postMessage dengan penanda dalam tab AINS (window.opener). */
@@ -47,6 +51,12 @@ export function useSambunganAins() {
   const [hasilLaksana, setHasilLaksana] = useState<HasilLaksana | null>(null);
   const tindakanSemasa = useRef<Tindakan>("approved");
   const tapisanAkhir = useRef<Tapisan>({});
+  const fasaRef = useRef<Fasa>("semak-sambungan");
+  const kiraRef = useRef<KiraLaksana>(kira);
+  const terakhirMesej = useRef(0);
+  const adaKemajuan = useRef(false);
+  fasaRef.current = fasa;
+  kiraRef.current = kira;
 
   const hantar = useCallback((m: TanpaSumber<MesejKeAins>) => {
     window.opener?.postMessage({ ...m, sumber: SUMBER }, ASAL_AINS);
@@ -61,6 +71,7 @@ export function useSambunganAins() {
     const dengar = (e: MessageEvent) => {
       if (e.origin !== ASAL_AINS || e.source !== window.opener || !mesejAinsSah(e.data)) return;
       const d = e.data;
+      terakhirMesej.current = Date.now();
       switch (d.jenis) {
         case "sekolah":
           setSekolah({ nama: d.nama, kod: d.kod, versiPenanda: d.versiPenanda });
@@ -80,6 +91,7 @@ export function useSambunganAins() {
           setFasa("keputusan");
           break;
         case "kemajuan":
+          adaKemajuan.current = true;
           setStatus((lama) =>
             new Map(lama).set(d.id, {
               tindakan: tindakanSemasa.current,
@@ -96,6 +108,21 @@ export function useSambunganAins() {
           }));
           break;
         case "selesai-laksana":
+          if (d.masihMenunggu.length) {
+            const menunggu = d.masihMenunggu;
+            setStatus((lama) => {
+              const baru = new Map(lama);
+              for (const id of menunggu) {
+                baru.set(id, {
+                  tindakan: tindakanSemasa.current,
+                  berjaya: false,
+                  jawapan: "Masih menunggu dalam AINS",
+                  masa: new Date().toISOString(),
+                });
+              }
+              return baru;
+            });
+          }
           setHasilLaksana({
             tindakan: tindakanSemasa.current,
             berjaya: d.berjaya,
@@ -108,9 +135,19 @@ export function useSambunganAins() {
           break;
       }
     };
+    const hentiJikaSibuk = () => {
+      if (fasaRef.current === "membaca" || fasaRef.current === "melaksana") {
+        window.opener?.postMessage({ sumber: SUMBER, jenis: "henti" }, ASAL_AINS);
+      }
+    };
     window.addEventListener("message", dengar);
+    window.addEventListener("pagehide", hentiJikaSibuk);
     window.opener.postMessage({ sumber: SUMBER, jenis: "sedia", versiEnjin: VERSI_ENJIN }, ASAL_AINS);
-    return () => window.removeEventListener("message", dengar);
+    return () => {
+      window.removeEventListener("message", dengar);
+      window.removeEventListener("pagehide", hentiJikaSibuk);
+      hentiJikaSibuk();
+    };
   }, []);
 
   // Pengawas: jika tab AINS ditutup/dimuat semula semasa membaca/melaksana, henti menunggu.
@@ -122,6 +159,31 @@ export function useSambunganAins() {
         setFasa("keputusan");
       }
     }, 2000);
+    return () => window.clearInterval(id);
+  }, [fasa]);
+
+  // Had masa tanpa respons: tab AINS mungkin tergantung, bertukar halaman atau ditutup tanpa isyarat.
+  useEffect(() => {
+    if (fasa !== "membaca" && fasa !== "melaksana") return;
+    terakhirMesej.current = Date.now();
+    const id = window.setInterval(() => {
+      let had: number;
+      let mesej: string;
+      if (fasa === "membaca") {
+        had = HAD_BACA_MS;
+        mesej = "Tiada respons daripada tab AINS. Klik penanda sekali lagi dalam tab AINS, kemudian baca semula.";
+      } else {
+        /* Sebelum kemajuan pertama, confirm() dalam AINS mungkin sedang menunggu — tiada had. */
+        if (!adaKemajuan.current) return;
+        const k = kiraRef.current;
+        had = k.diproses >= k.jumlah ? HAD_SAHKAN_MS : HAD_LAKSANA_MS;
+        mesej = "Tiada respons daripada tab AINS semasa tindakan. Semak AINS secara manual.";
+      }
+      if (Date.now() - terakhirMesej.current > had) {
+        setRalat(mesej);
+        setFasa("keputusan");
+      }
+    }, 5000);
     return () => window.clearInterval(id);
   }, [fasa]);
 
@@ -148,6 +210,7 @@ export function useSambunganAins() {
       tindakanSemasa.current = tindakan;
       setHasilLaksana(null);
       setKira({ jumlah: item.length, diproses: 0, berjaya: 0, gagal: 0 });
+      adaKemajuan.current = false;
       setFasa("melaksana");
       hantar({ jenis: "laksana", tindakan, item, jedaMs });
     },

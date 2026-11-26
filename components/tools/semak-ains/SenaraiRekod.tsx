@@ -132,7 +132,7 @@ export default function SenaraiRekod({
                 />
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold" style={{ color: w.warna }}>
+                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold" style={{ color: w.teks }}>
                       <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: w.warna }} aria-hidden />
                       {w.label}
                     </span>
@@ -154,12 +154,12 @@ export default function SenaraiRekod({
                   {k.merah.length + k.kuning.length + k.maklumat.length > 0 ? (
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       {k.merah.map((s) => (
-                        <span key={s} className="rounded px-2 py-0.5 text-xs" style={{ backgroundColor: `${WARNA_STATUS.merah.warna}14`, color: WARNA_STATUS.merah.warna }}>
+                        <span key={s} className="rounded px-2 py-0.5 text-xs" style={{ backgroundColor: `${WARNA_STATUS.merah.warna}14`, color: WARNA_STATUS.merah.teks }}>
                           {LABEL_SEBAB[s]}
                         </span>
                       ))}
                       {k.kuning.map((s) => (
-                        <span key={s} className="rounded px-2 py-0.5 text-xs" style={{ backgroundColor: `${WARNA_STATUS.kuning.warna}14`, color: WARNA_STATUS.kuning.warna }}>
+                        <span key={s} className="rounded px-2 py-0.5 text-xs" style={{ backgroundColor: `${WARNA_STATUS.kuning.warna}14`, color: WARNA_STATUS.kuning.teks }}>
                           {LABEL_SEBAB[s]}
                         </span>
                       ))}

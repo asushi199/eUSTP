@@ -29,6 +29,15 @@ const KOMEN_MERAH: KodSebab[] = [
   "teks-rawak",
   "bahasa-tak-sepadan",
 ];
+const KOMEN_KUNING: KodSebab[] = [
+  "agak-pendek",
+  "terlalu-panjang",
+  "rumusan-sama-2-buku",
+  "sama-murid-lain",
+  "buku-sama-berulang",
+  "simbol-pengisi",
+  "tiada-unsur-pengajaran",
+];
 const MOD_LABEL: Record<ModPeraturan, string> = {
   merah: "Cadang tolak (merah)",
   kuning: "Perlu semak (kuning)",
@@ -186,16 +195,24 @@ export default function LaciTetapan({ standard, diubah, onSimpan, onReset, onTut
 
         <fieldset className="mt-6">
           <legend className="font-semibold text-ink">Komen penolakan kepada murid</legend>
-          {KOMEN_MERAH.map((k) => (
-            <label key={k} className="mt-3 block">
-              <span className="label">{LABEL_SEBAB[k]}</span>
-              <textarea
-                className="textarea mt-1"
-                rows={2}
-                value={s.komen[k] ?? KOMEN_LALAI[k]}
-                onChange={(e) => setS({ ...s, komen: { ...s.komen, [k]: e.target.value } })}
-              />
-            </label>
+          {[
+            { tajuk: "Sebab merah", senarai: KOMEN_MERAH },
+            { tajuk: "Sebab kuning", senarai: KOMEN_KUNING },
+          ].map((kumpulan) => (
+            <div key={kumpulan.tajuk} className="mt-4">
+              <p className="text-xs font-semibold uppercase text-graphite">{kumpulan.tajuk}</p>
+              {kumpulan.senarai.map((k) => (
+                <label key={k} className="mt-3 block">
+                  <span className="label">{LABEL_SEBAB[k]}</span>
+                  <textarea
+                    className="textarea mt-1"
+                    rows={2}
+                    value={s.komen[k] ?? KOMEN_LALAI[k]}
+                    onChange={(e) => setS({ ...s, komen: { ...s.komen, [k]: e.target.value } })}
+                  />
+                </label>
+              ))}
+            </div>
           ))}
         </fieldset>
 

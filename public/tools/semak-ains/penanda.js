@@ -26,6 +26,7 @@
     return;
   }
   if (window.__semakAins && window.__semakAins.tetingkap && !window.__semakAins.tetingkap.closed) {
+    window.__semakAins.hantarSekolah();
     window.__semakAins.tetingkap.focus();
     return;
   }
@@ -43,7 +44,10 @@
   var idGpm = baris.find(function (s) { return /^gpm@[A-Za-z]{3}\d{4}$/i.test(s); }) || "";
   var kodSekolah = idGpm ? idGpm.split("@")[1].toUpperCase() : null;
 
-  var keadaan = { tetingkap: null, idDibaca: new Set(), henti: false, sibuk: false, tapisan: {} };
+  var keadaan = {
+    tetingkap: null, idDibaca: new Set(), henti: false, sibuk: false, tapisan: {},
+    mod: null, berjaya: 0, gagal: 0, hantarSekolah: null
+  };
   window.__semakAins = keadaan;
 
   function tidur(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
@@ -53,6 +57,10 @@
     keadaan.tetingkap.postMessage(mesej, NEXA);
     return true;
   }
+  function hantarSekolah() {
+    hantar({ jenis: J.sekolah, nama: namaSekolah, kod: kodSekolah, versiPenanda: VERSI_PENANDA });
+  }
+  keadaan.hantarSekolah = hantarSekolah;
   async function ambilDokumen(url) {
     var res = await fetch(url, { credentials: "same-origin" });
     if (!res.ok) throw new Error("HTTP " + res.status);
@@ -133,6 +141,7 @@
       try { hasil = await ambilHalaman(h); }
       catch (e) { if (e && e.message === RALAT_SESI) throw e; gagal.push(h); continue; }
       semua = semua.concat(hasil.rekod);
+      jumlah = Math.max(jumlah, jumlahHalaman(hasil.doc));
       if (lapor) lapor(hasil.rekod, h, jumlah);
     }
     return { rekod: semua, gagal: gagal, dihentikan: dihentikan };
@@ -146,6 +155,7 @@
       return;
     }
     keadaan.sibuk = true;
+    keadaan.mod = "baca";
     keadaan.henti = false;
     keadaan.tapisan = {
       tahun: tapisan && tapisan.tahun ? String(tapisan.tahun) : "",
@@ -157,6 +167,8 @@
         rekod.forEach(function (r) { keadaan.idDibaca.add(r.id); });
         hantar({ jenis: J.rekod, rekod: rekod, halaman: h, jumlahHalaman: jumlah });
       });
+      keadaan.sibuk = false;
+      keadaan.mod = null;
       hantar({
         jenis: J.selesaiBaca,
         bilangan: hasil.rekod.length,
@@ -164,9 +176,12 @@
         halamanGagal: hasil.gagal
       });
     } catch (e) {
+      keadaan.sibuk = false;
+      keadaan.mod = null;
       hantar({ jenis: J.selesaiBaca, bilangan: keadaan.idDibaca.size, ralat: String((e && e.message) || e), halamanGagal: [] });
     } finally {
       keadaan.sibuk = false;
+      keadaan.mod = null;
     }
   }
   async function laksana(arahan) {
@@ -186,6 +201,9 @@
       return;
     }
     keadaan.sibuk = true;
+    keadaan.mod = "laksana";
+    keadaan.berjaya = 0;
+    keadaan.gagal = 0;
     keadaan.henti = false;
     var jeda = Math.min(2000, Math.max(300, Number(arahan.jedaMs) || 500));
     var berjaya = 0, gagal = 0, gagalBerturut = 0, ralat = null, selesai = [];
@@ -209,6 +227,8 @@
         }
         if (ok) { berjaya++; gagalBerturut = 0; selesai.push(x.id); keadaan.idDibaca.delete(x.id); }
         else { gagal++; gagalBerturut++; }
+        keadaan.berjaya = berjaya;
+        keadaan.gagal = gagal;
         hantar({ jenis: J.kemajuan, id: x.id, berjaya: ok, jawapan: ok ? null : jawapan });
         if (gagalBerturut >= 3) { ralat = "3 kegagalan berturut-turut — dihentikan. Sesi AINS mungkin tamat."; break; }
         await tidur(jeda);
@@ -232,6 +252,7 @@
       ralat = "Ralat tidak dijangka: " + String((e && e.message) || e).slice(0, 120);
     } finally {
       keadaan.sibuk = false;
+      keadaan.mod = null;
       hantar({ jenis: J.selesaiLaksana, berjaya: berjaya, gagal: gagal, masihMenunggu: masihMenunggu, dihentikan: dihentikan, ralat: ralat });
     }
   }
@@ -241,13 +262,28 @@
     if (!keadaan.tetingkap || e.source !== keadaan.tetingkap) return;
     var d = e.data;
     if (d.jenis === J.sedia) {
-      hantar({ jenis: J.sekolah, nama: namaSekolah, kod: kodSekolah, versiPenanda: VERSI_PENANDA });
+      hantarSekolah();
     } else if (d.jenis === J.mula) {
       mula(d.tapisan || {});
     } else if (d.jenis === J.laksana) {
       laksana(d);
     } else if (d.jenis === J.henti) {
       keadaan.henti = true;
+    }
+  });
+
+  window.addEventListener("pagehide", function () {
+    if (!keadaan.sibuk) return;
+    var mod = keadaan.mod;
+    keadaan.sibuk = false;
+    keadaan.mod = null;
+    if (mod === "baca") {
+      hantar({ jenis: J.selesaiBaca, bilangan: keadaan.idDibaca.size, ralat: "Halaman AINS ditutup atau dimuat semula semasa membaca.", halamanGagal: [] });
+    } else if (mod === "laksana") {
+      hantar({
+        jenis: J.selesaiLaksana, berjaya: keadaan.berjaya, gagal: keadaan.gagal, masihMenunggu: [],
+        dihentikan: true, ralat: "Halaman AINS ditutup atau dimuat semula semasa tindakan. Semak AINS secara manual."
+      });
     }
   });
 

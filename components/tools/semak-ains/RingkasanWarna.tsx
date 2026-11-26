@@ -7,7 +7,7 @@ export default function RingkasanWarna({ ringkasan }: { ringkasan: Ringkasan }) 
     <section className="grid gap-3 sm:grid-cols-3">
       {(["hijau", "kuning", "merah"] as const).map((w) => (
         <div key={w} className="card p-4">
-          <p className="flex items-center gap-2 text-sm font-semibold" style={{ color: WARNA_STATUS[w].warna }}>
+          <p className="flex items-center gap-2 text-sm font-semibold" style={{ color: WARNA_STATUS[w].teks }}>
             <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: WARNA_STATUS[w].warna }} aria-hidden />
             {WARNA_STATUS[w].label}
           </p>

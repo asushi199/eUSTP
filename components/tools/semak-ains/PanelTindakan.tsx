@@ -119,7 +119,9 @@ export default function PanelTindakan(p: Props) {
       <section className="card p-6">
         <p className="font-semibold text-ink">Sedang dilaksanakan dalam tab AINS…</p>
         <p className="mt-1 text-sm text-graphite">
-          Diproses {p.kira.diproses} / {p.kira.jumlah} · berjaya {p.kira.berjaya} · gagal {p.kira.gagal}
+          {p.kira.diproses >= p.kira.jumlah
+            ? "Mengesahkan keputusan dalam AINS… (membaca semula senarai menunggu)"
+            : `Diproses ${p.kira.diproses} / ${p.kira.jumlah} · berjaya ${p.kira.berjaya} · gagal ${p.kira.gagal}`}
         </p>
         <div className="mt-3 h-2 rounded bg-cloud">
           <div className="h-2 rounded bg-ink" style={{ width: `${pct}%` }} />
