@@ -1,6 +1,6 @@
 /* eslint-disable */
 /* SahPantas AINS — penanda (bookmarklet).
- * Fail ini dijana menjadi pautan javascript: oleh /tools/semak-ains/pasang
+ * Fail ini dijana menjadi pautan javascript: oleh /tools/semak-ains (ButangPenanda)
  * (__NEXA_ORIGIN__ diganti dengan asal NEXa). Kendiri: tidak memuat skrip luar.
  * Hanya menerima arahan daripada __NEXA_ORIGIN__ dan hanya untuk ID rekod yang
  * dibaca dalam sesi ini. Ubah fail ini = naikkan VERSI_PENANDA. */

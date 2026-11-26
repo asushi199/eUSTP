@@ -30,6 +30,8 @@ const nextConfig = {
       { source: "/admin/osc/:path*", destination: "/admin/resources", permanent: true },
       { source: "/admin/kandungan", destination: "/admin/resources", permanent: true },
       { source: "/admin/kandungan/:path*", destination: "/admin/resources", permanent: true },
+      /* Pasang penanda kini dalam halaman alat itu sendiri (2026-11-26). */
+      { source: "/tools/semak-ains/pasang", destination: "/tools/semak-ains", permanent: true },
     ];
   },
 };

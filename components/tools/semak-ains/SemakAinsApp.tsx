@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
 import { janaCsv } from "@/lib/tools/semak-ains/csv";
@@ -263,10 +262,11 @@ export function SemakAinsPaparan({ s, tanpaLog = false }: { s: Sambungan; tanpaL
 
       {penandaLama ? (
         <Notis tajuk="Penanda anda versi lama">
-          <Link href="/tools/semak-ains/pasang" className="font-medium text-ink underline">
+          {/* Tab baharu tanpa opener → paparan pasang penanda; sambungan tab ini kekal. */}
+          <a href="/tools/semak-ains" target="_blank" rel="noopener" className="font-medium text-ink underline">
             Pasang semula
-          </Link>{" "}
-          sebelum meluluskan atau menolak rekod.
+          </a>{" "}
+          (buang penanda lama dahulu) sebelum meluluskan atau menolak rekod.
         </Notis>
       ) : null}
 
