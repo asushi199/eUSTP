@@ -133,7 +133,17 @@ GPICT/DELIMa/GPM, Tempahan PKG, Portal Sumber/Analisis/Maklumat Asas). Sumber as
   `semak_ains_log` → `/admin/semak-ains`. Ujian `npm run test:tools`. Fixture mesti sintetik
   (jangan komit teks/nama murid sebenar). Semak reka letak semua fasa tanpa AINS di
   `/dev/semak-ains?fasa=keputusan` (data sintetik, tiada log, dev sahaja). Spesifikasi
-  `docs/superpowers/specs/2026-11-25-semak-rekod-ains-design.md`.
+  `docs/superpowers/specs/2026-11-25-semak-rekod-ains-design.md`. Perangkap AINS (ditemui
+  2026-11-26): `updatestatus` mesti guna ID dalaman berangka (`data-key` baris senarai =
+  `#data_id` butiran), BUKAN UUID pautan — AINS menjawab `success` walaupun ID salah, jadi
+  bukti kejayaan hanyalah pengesahan selepas tindakan (baca semula senarai menunggu). Jangan
+  guna `confirm()`/`alert()` dalam penanda semasa tab AINS di latar belakang (Chrome menyekatnya).
+  **Mod tetingkap (lalai sejak penanda v8):** penanda membuka tetingkap `about:blank` berasal AINS
+  yang memuatkan jambatan + iframe `/tools/semak-ains/tetingkap` (di luar kumpulan `(public)`,
+  tiada menu; `frame-ancestors` AINS sahaja dalam `next.config.mjs`), supaya tab AINS boleh dimuat
+  semula tanpa putus. Tetingkap & tab AINS saling memulihkan (penjaga dalam `penanda.js`).
+  `?mod=tab` pada halaman pasang = penanda cara lama. Aliran ini TIDAK boleh diuji dalam pelayar
+  terbina Claude (pop-up & localhost disekat) — minta pengguna uji dalam Chrome.
 - Petak statistik DPD/PSS halaman utama disorok (`SHOW_LAPORAN_TILES=false`
   dalam `app/(public)/page.tsx`) — pelaporan 2026 masih guna Looker Studio.
 - **MJKD 2026 = satu acara, satu rekod `mjkd_mesyuarat`** (kehadiran, minit +

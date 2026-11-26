@@ -10,6 +10,8 @@ import {
   type TanpaSumber,
   type Tapisan,
 } from "@/lib/tools/semak-ains/mesej";
+import { NAMA_PENANDA } from "@/lib/tools/semak-ains/nama";
+import { bacaSesi, simpanSesi } from "@/lib/tools/semak-ains/storan";
 import { VERSI_ENJIN } from "@/lib/tools/semak-ains/versi";
 
 export type Fasa =
@@ -40,10 +42,26 @@ export type HasilLaksana = {
 };
 const HAD_BACA_MS = 45_000;
 const HAD_LAKSANA_MS = 90_000;
+/** Respons pertama selepas arahan (halaman 1 / rekod pertama ~1 s). Tiada respons = tab AINS dimuat semula/ditutup. */
+const HAD_RESPONS_PERTAMA_MS = 12_000;
+/** Denyut semasa melahu: ping "sedia" → penanda membalas "sekolah". */
+const SELANG_DENYUT_MS = 4_000;
+const HAD_DENYUT_MS = 3_000;
 
 export type KiraLaksana = { jumlah: number; diproses: number; berjaya: number; gagal: number };
 
-/** Sambungan postMessage dengan penanda dalam tab AINS (window.opener). */
+/**
+ * Tetingkap yang menjalankan penanda: induk (mod tetingkap, lalai sejak penanda v8 — halaman ini
+ * dalam iframe tetingkap berasal AINS, /tools/semak-ains/tetingkap) atau pembuka (mod tab, penanda
+ * v5–v7 — halaman ini dibuka oleh tab AINS). Mesej tetap disahkan dengan asal AINS, jadi induk
+ * bukan AINS tidak boleh berbuat apa-apa.
+ */
+function rakanAins(): Window | null {
+  if (window.opener) return window.opener as Window;
+  return window.parent !== window ? window.parent : null;
+}
+
+/** Sambungan postMessage dengan penanda (lihat rakanAins). */
 export function useSambunganAins() {
   const [fasa, setFasa] = useState<Fasa>("semak-sambungan");
   const [sekolah, setSekolah] = useState<InfoSekolah | null>(null);
@@ -62,30 +80,53 @@ export function useSambunganAins() {
   const [tapisan, setTapisan] = useState<Tapisan>({});
   const fasaRef = useRef<Fasa>("semak-sambungan");
   const terakhirMesej = useRef(0);
-  const adaIsyaratLaksana = useRef(false);
+  /** Ada mesej daripada penanda sejak arahan terakhir (mula/laksana) dihantar. */
+  const adaRespons = useRef(false);
+  /** Penanda tidak membalas denyut: tab AINS dimuat semula, dinavigasi atau ditutup. */
+  const [terputus, setTerputus] = useState(false);
+  const namaSekolahRef = useRef("");
+  const mulaRef = useRef<(t: Tapisan) => void>(() => {});
   fasaRef.current = fasa;
 
   const hantar = useCallback((m: TanpaSumber<MesejKeAins>) => {
-    window.opener?.postMessage({ ...m, sumber: SUMBER }, ASAL_AINS);
+    rakanAins()?.postMessage({ ...m, sumber: SUMBER }, ASAL_AINS);
   }, []);
 
   useEffect(() => {
-    if (!window.opener) {
+    const rakan = rakanAins();
+    if (!rakan) {
       setFasa("tiada-penanda");
       return;
     }
     setFasa("menunggu");
     const dengar = (e: MessageEvent) => {
-      if (e.origin !== ASAL_AINS || e.source !== window.opener || !mesejAinsSah(e.data)) return;
+      if (e.origin !== ASAL_AINS || e.source !== rakan || !mesejAinsSah(e.data)) return;
       const d = e.data;
       terakhirMesej.current = Date.now();
-      setRalatSambungan(null);
+      adaRespons.current = true;
+      setTerputus(false);
       switch (d.jenis) {
         case "sekolah":
-          setSekolah({ nama: d.nama, kod: d.kod, versiPenanda: d.versiPenanda });
-          setFasa((f) => (f === "menunggu" ? "sedia" : f));
+          namaSekolahRef.current = d.nama;
+          /* Balasan denyut tiba setiap beberapa saat — kekalkan objek jika tiada perubahan. */
+          setSekolah((lama) =>
+            lama && lama.nama === d.nama && lama.kod === d.kod && lama.versiPenanda === d.versiPenanda
+              ? lama
+              : { nama: d.nama, kod: d.kod, versiPenanda: d.versiPenanda },
+          );
+          if (fasaRef.current === "menunggu") {
+            /* Tab ini dimuat semula (atau penanda diklik semula): baca semula tapisan terakhir
+             * secara automatik supaya GPM tidak perlu memilih dan menekan Mula baca lagi. */
+            const sesi = bacaSesi(d.nama);
+            if (sesi) mulaRef.current(sesi);
+            else {
+              fasaRef.current = "sedia";
+              setFasa("sedia");
+            }
+          }
           break;
         case "rekod":
+          setRalatSambungan(null);
           setRekod((lama) => {
             const ada = new Set(lama.map((r) => r.id));
             return [...lama, ...d.rekod.filter((r) => !ada.has(r.id))];
@@ -99,11 +140,9 @@ export function useSambunganAins() {
           setFasa("keputusan");
           break;
         case "mengesahkan":
-          adaIsyaratLaksana.current = true;
           setMengesahkan({ halaman: d.halaman, jumlahHalaman: d.jumlahHalaman });
           break;
         case "kemajuan":
-          adaIsyaratLaksana.current = true;
           setStatus((lama) =>
             new Map(lama).set(d.id, {
               tindakan: tindakanSemasa.current,
@@ -151,12 +190,12 @@ export function useSambunganAins() {
     };
     const hentiJikaSibuk = () => {
       if (fasaRef.current === "membaca" || fasaRef.current === "melaksana") {
-        window.opener?.postMessage({ sumber: SUMBER, jenis: "henti" }, ASAL_AINS);
+        rakanAins()?.postMessage({ sumber: SUMBER, jenis: "henti" }, ASAL_AINS);
       }
     };
     window.addEventListener("message", dengar);
     window.addEventListener("pagehide", hentiJikaSibuk);
-    window.opener.postMessage({ sumber: SUMBER, jenis: "sedia", versiEnjin: VERSI_ENJIN }, ASAL_AINS);
+    rakan.postMessage({ sumber: SUMBER, jenis: "sedia", versiEnjin: VERSI_ENJIN }, ASAL_AINS);
     return () => {
       window.removeEventListener("message", dengar);
       window.removeEventListener("pagehide", hentiJikaSibuk);
@@ -168,7 +207,8 @@ export function useSambunganAins() {
   useEffect(() => {
     if (fasa !== "membaca" && fasa !== "melaksana") return;
     const id = window.setInterval(() => {
-      if (!window.opener || window.opener.closed) {
+      const rakan = rakanAins();
+      if (!rakan || rakan.closed) {
         setRalatSambungan("Tab AINS telah ditutup. Buka semula AINS, klik penanda dan baca semula.");
         setFasa("keputusan");
       }
@@ -176,27 +216,60 @@ export function useSambunganAins() {
     return () => window.clearInterval(id);
   }, [fasa]);
 
+  // Denyut semasa melahu: kesan tab AINS dimuat semula/ditutup SEBELUM GPM menekan sesuatu.
+  useEffect(() => {
+    if (fasa !== "sedia" && fasa !== "keputusan") return;
+    let dihantarPada = 0;
+    const denyut = () => {
+      const rakan = rakanAins();
+      if (!rakan || rakan.closed) {
+        setTerputus(true);
+        return;
+      }
+      if (dihantarPada && terakhirMesej.current < dihantarPada && Date.now() - dihantarPada > HAD_DENYUT_MS) {
+        setTerputus(true);
+      }
+      dihantarPada = Date.now();
+      rakan.postMessage({ sumber: SUMBER, jenis: "sedia", versiEnjin: VERSI_ENJIN }, ASAL_AINS);
+    };
+    denyut();
+    const id = window.setInterval(denyut, SELANG_DENYUT_MS);
+    return () => window.clearInterval(id);
+  }, [fasa]);
+
+  // Semasa membaca/melaksana: minta pengesahan pelayar sebelum tab ini dimuat semula/ditutup.
+  useEffect(() => {
+    if (fasa !== "membaca" && fasa !== "melaksana") return;
+    const tahan = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", tahan);
+    return () => window.removeEventListener("beforeunload", tahan);
+  }, [fasa]);
+
   // Had masa tanpa respons: tab AINS mungkin tergantung, bertukar halaman atau ditutup tanpa isyarat.
   useEffect(() => {
     if (fasa !== "membaca" && fasa !== "melaksana") return;
     terakhirMesej.current = Date.now();
     const id = window.setInterval(() => {
-      let had: number;
-      let mesej: string;
-      if (fasa === "membaca") {
-        had = HAD_BACA_MS;
+      const senyap = Date.now() - terakhirMesej.current;
+      let mesej: string | null = null;
+      if (!adaRespons.current && senyap > HAD_RESPONS_PERTAMA_MS) {
+        /* Tab AINS dimuat semula/dinavigasi = penanda hilang; window.opener masih wujud jadi
+         * pengawas "closed" tidak mengesannya. */
+        mesej = `Tab AINS tidak memberi respons — mungkin dimuat semula atau ditutup. Klik penanda ${NAMA_PENANDA} sekali lagi dalam tab AINS.`;
+        if (fasa === "melaksana") mesej += " Semak status rekod dalam AINS sebelum mencuba semula.";
+      } else if (fasa === "membaca" && senyap > HAD_BACA_MS) {
         mesej = "Tiada respons daripada tab AINS. Klik penanda sekali lagi dalam tab AINS, kemudian baca semula.";
-      } else {
-        /* Sebelum kemajuan/pengesahan pertama, confirm() dalam AINS mungkin sedang menunggu — tiada had. */
-        if (!adaIsyaratLaksana.current) return;
-        had = HAD_LAKSANA_MS;
+      } else if (fasa === "melaksana" && senyap > HAD_LAKSANA_MS) {
         mesej = "Tiada respons daripada tab AINS semasa tindakan. Semak AINS secara manual.";
       }
-      if (Date.now() - terakhirMesej.current > had) {
+      if (mesej) {
         setRalatSambungan(mesej);
         setFasa("keputusan");
       }
-    }, 5000);
+    }, 2000);
     return () => window.clearInterval(id);
   }, [fasa]);
 
@@ -211,11 +284,15 @@ export function useSambunganAins() {
       setRalatSambungan(null);
       setHalamanGagal([]);
       setBacaan({ halaman: 0, jumlahHalaman: 0 });
+      adaRespons.current = false;
+      fasaRef.current = "membaca";
       setFasa("membaca");
+      simpanSesi(namaSekolahRef.current, tapisan);
       hantar({ jenis: "mula", tapisan });
     },
     [hantar],
   );
+  mulaRef.current = mula;
 
   const bacaSemula = useCallback(() => mula(tapisanAkhir.current), [mula]);
 
@@ -231,9 +308,9 @@ export function useSambunganAins() {
       tindakanSemasa.current = tindakan;
       setHasilLaksana(null);
       setKira({ jumlah: item.length, diproses: 0, berjaya: 0, gagal: 0 });
-      adaIsyaratLaksana.current = false;
       setMengesahkan(null);
       setRalatSambungan(null);
+      adaRespons.current = false;
       setFasa("melaksana");
       hantar({ jenis: "laksana", tindakan, item, jedaMs });
     },
@@ -250,6 +327,7 @@ export function useSambunganAins() {
     bacaanKe,
     ralat,
     ralatSambungan,
+    terputus,
     mengesahkan,
     halamanGagal,
     status,

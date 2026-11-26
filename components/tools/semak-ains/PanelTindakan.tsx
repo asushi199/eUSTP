@@ -30,6 +30,8 @@ type Props = {
   mengesahkan: { halaman: number; jumlahHalaman: number } | null;
   hasil: HasilLaksana | null;
   dilarang: boolean;
+  /** Sebab tindakan dimatikan (dipapar di kaki kad apabila `dilarang`). */
+  notaDilarang?: string;
   /** Kandungan tambahan di kaki kad ringkasan (cth. murid luar biasa). */
   kaki?: ReactNode;
   onLaksana: (tindakan: Tindakan, item: Item[]) => void;
@@ -162,34 +164,44 @@ export default function PanelTindakan(p: Props) {
     );
   };
 
+  const hasil = p.hasil;
+  const tiadaDiproses = hasil ? hasil.berjaya + hasil.gagal === 0 : false;
+  const hasilAmaran = !!hasil && (hasil.gagal > 0 || tiadaDiproses);
+  const namaTindakan = hasil?.tindakan === "approved" ? "Kelulusan" : "Penolakan";
+
   return (
     <>
       {p.melaksana ? (
         <KadKemajuan
-          tajuk="Sedang dilaksanakan dalam tab AINS…"
+          tajuk="Sedang dilaksanakan dalam AINS…"
           keterangan={
             p.mengesahkan
               ? `Mengesahkan keputusan dalam AINS — halaman ${p.mengesahkan.halaman} / ${p.mengesahkan.jumlahHalaman || "…"}`
               : `Diproses ${nombor(p.kira.diproses)} / ${nombor(p.kira.jumlah)} · berjaya ${nombor(p.kira.berjaya)} · gagal ${nombor(p.kira.gagal)}`
           }
           peratus={p.kira.jumlah ? Math.round((p.kira.diproses / p.kira.jumlah) * 100) : 0}
-          nota="Jangan tutup tab AINS atau tab ini. Jika tetingkap pengesahan muncul dalam tab AINS, jawab di sana."
+          nota="Jangan tutup atau muat semula tetingkap ini sehingga selesai."
           onHenti={p.onHenti}
         />
       ) : (
         <section className="card overflow-hidden" aria-labelledby={`${tajukId}-ringkasan`}>
-          {p.hasil ? (
+          {hasil ? (
             <div className="flex items-start gap-3 border-b border-fog bg-cloud px-5 py-4 text-sm sm:px-6" role="status">
-              <Ikon nama={p.hasil.gagal ? "amaran" : "betul"} className={p.hasil.gagal ? "mt-0.5 h-5 w-5 text-bloom-deep" : "mt-0.5 h-5 w-5 text-ink"} />
+              <Ikon
+                nama={hasilAmaran ? "amaran" : "betul"}
+                className={hasilAmaran ? "mt-0.5 h-5 w-5 text-bloom-deep" : "mt-0.5 h-5 w-5 text-ink"}
+              />
               <div className="min-w-0 text-graphite">
                 <p className="font-semibold text-ink">
-                  {p.hasil.tindakan === "approved" ? "Kelulusan" : "Penolakan"} selesai — {nombor(p.hasil.berjaya)} berjaya,{" "}
-                  {nombor(p.hasil.gagal)} gagal{p.hasil.dihentikan ? " (dihentikan)" : ""}.
+                  {/* 0 diproses = arahan ditolak penanda (cth. sibuk, tiada ID sah) — jangan tulis "selesai". */}
+                  {tiadaDiproses
+                    ? `${namaTindakan} tidak dilaksanakan — tiada rekod diproses.`
+                    : `${namaTindakan} selesai — ${nombor(hasil.berjaya)} berjaya, ${nombor(hasil.gagal)} gagal${hasil.dihentikan ? " (dihentikan)" : ""}.`}
                 </p>
-                {p.hasil.ralat ? <p className="mt-0.5">{p.hasil.ralat}</p> : null}
-                {p.hasil.masihMenunggu.length ? (
+                {hasil.ralat ? <p className="mt-0.5">{hasil.ralat}</p> : null}
+                {hasil.masihMenunggu.length ? (
                   <p className="mt-0.5">
-                    {nombor(p.hasil.masihMenunggu.length)} rekod masih &quot;Menunggu Pengesahan&quot; dalam AINS — semak
+                    {nombor(hasil.masihMenunggu.length)} rekod masih &quot;Menunggu Pengesahan&quot; dalam AINS — semak
                     secara manual.
                   </p>
                 ) : null}
@@ -249,7 +261,7 @@ export default function PanelTindakan(p: Props) {
 
           {p.dilarang ? (
             <p className="border-t border-fog px-5 py-3 text-sm text-graphite sm:px-6">
-              Tindakan dimatikan sehingga penanda dipasang semula.
+              {p.notaDilarang ?? "Tindakan dimatikan sehingga penanda dipasang semula."}
             </p>
           ) : null}
           {p.kaki}

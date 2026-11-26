@@ -90,7 +90,8 @@ export function KadKemajuan({
   /** null = belum diketahui (bar berdenyut). */
   peratus: number | null;
   nota: string;
-  onHenti: () => void;
+  /** Tiada = butang Henti disembunyikan (cth. semasa menunggu pengesahan dalam tab AINS). */
+  onHenti?: () => void;
 }) {
   return (
     <section className="card p-6 sm:p-8" aria-live="polite">
@@ -118,9 +119,11 @@ export function KadKemajuan({
       </div>
       <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
         <p className="text-xs text-graphite">{nota}</p>
-        <button type="button" className="btn-outline-ink btn-sm" onClick={onHenti}>
-          Henti
-        </button>
+        {onHenti ? (
+          <button type="button" className="btn-outline-ink btn-sm" onClick={onHenti}>
+            Henti
+          </button>
+        ) : null}
       </div>
     </section>
   );

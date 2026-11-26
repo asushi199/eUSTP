@@ -162,15 +162,18 @@ export default function ContohSemakAins({ fasaAwal }: { fasaAwal: Fasa }) {
   const [kira, setKira] = useState<KiraLaksana>({ jumlah: 40, diproses: 26, berjaya: 26, gagal: 0 });
   const [tapisan, setTapisan] = useState<Tapisan>({});
   const [notis, setNotis] = useState(false);
+  const [penandaLama, setPenandaLama] = useState(false);
+  const [terputus, setTerputus] = useState(false);
 
   const s: Sambungan = {
     fasa,
-    sekolah: { nama: "SEKOLAH CONTOH NEXA (DATA SINTETIK)", kod: "XYZ0000", versiPenanda: 2 },
+    sekolah: { nama: "SEKOLAH CONTOH NEXA (DATA SINTETIK)", kod: "XYZ0000", versiPenanda: penandaLama ? 4 : 8 },
     rekod: fasa === "membaca" ? rekod.slice(0, 60) : rekod,
     bacaan: { halaman: 6, jumlahHalaman: Math.ceil(rekod.length / 10) },
     bacaanKe: 1,
     ralat: null,
     ralatSambungan: notis ? "Tiada respons daripada tab AINS. Klik penanda sekali lagi dalam tab AINS, kemudian baca semula." : null,
+    terputus,
     mengesahkan: null,
     halamanGagal: notis ? [7, 12] : [],
     status,
@@ -185,8 +188,12 @@ export default function ContohSemakAins({ fasaAwal }: { fasaAwal: Fasa }) {
     tukarTapisan: () => setFasa("sedia"),
     kembaliKeputusan: () => setFasa("keputusan"),
     laksana: (tindakan, item) => {
-      setKira({ jumlah: item.length, diproses: Math.ceil(item.length / 2), berjaya: Math.ceil(item.length / 2), gagal: 0 });
+      /* Simulasi: mula (diproses 0) → separuh → selesai. */
+      setKira({ jumlah: item.length, diproses: 0, berjaya: 0, gagal: 0 });
       setFasa("melaksana");
+      window.setTimeout(() => {
+        setKira({ jumlah: item.length, diproses: Math.ceil(item.length / 2), berjaya: Math.ceil(item.length / 2), gagal: 0 });
+      }, 1200);
       window.setTimeout(() => {
         setStatus((lama) => {
           const baru = new Map(lama);
@@ -195,7 +202,7 @@ export default function ContohSemakAins({ fasaAwal }: { fasaAwal: Fasa }) {
         });
         setHasil({ tindakan, berjaya: item.length, gagal: 0, masihMenunggu: [], dihentikan: false, ralat: null });
         setFasa("keputusan");
-      }, 1500);
+      }, 2600);
     },
     henti: () => setFasa("keputusan"),
   };
@@ -216,6 +223,12 @@ export default function ContohSemakAins({ fasaAwal }: { fasaAwal: Fasa }) {
         ))}
         <label className="ml-2 flex items-center gap-1.5 text-charcoal">
           <input type="checkbox" checked={notis} onChange={(e) => setNotis(e.target.checked)} /> notis ralat
+        </label>
+        <label className="flex items-center gap-1.5 text-charcoal">
+          <input type="checkbox" checked={penandaLama} onChange={(e) => setPenandaLama(e.target.checked)} /> penanda lama (v4)
+        </label>
+        <label className="flex items-center gap-1.5 text-charcoal">
+          <input type="checkbox" checked={terputus} onChange={(e) => setTerputus(e.target.checked)} /> terputus
         </label>
       </div>
       <SemakAinsPaparan s={s} tanpaLog />

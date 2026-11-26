@@ -14,6 +14,10 @@ export default function ButangPenanda() {
   const [versi, setVersi] = useState("");
   const [ralat, setRalat] = useState(false);
   const [disalin, setDisalin] = useState(false);
+  /* Lalai = mod tetingkap (tahan muat semula tab AINS). /tools/semak-ains?mod=tab menjana penanda
+   * cara lama (SahPantas dalam tab baharu) — jalan keluar jika tetingkap tidak berfungsi pada
+   * pelayar tertentu (lihat penanda.js). */
+  const [modTab, setModTab] = useState(false);
 
   useEffect(() => {
     let batal = false;
@@ -24,7 +28,11 @@ export default function ButangPenanda() {
       })
       .then((sumber) => {
         if (batal) return;
-        const js = sumber.replace(/__NEXA_ORIGIN__/g, window.location.origin);
+        const tab = new URLSearchParams(window.location.search).get("mod") === "tab";
+        setModTab(tab);
+        const js = sumber
+          .replace(/__NEXA_ORIGIN__/g, window.location.origin)
+          .replace(/__SAHPANTAS_MOD__/g, tab ? "tab" : "tetingkap");
         const url = `javascript:${encodeURIComponent(js)}`;
         pautan.current?.setAttribute("href", url);
         setKod(url);
@@ -64,11 +72,12 @@ export default function ButangPenanda() {
               aria-disabled={!kod}
               title="Seret ke bar penanda — jangan klik"
             >
-              {NAMA_PENANDA}
+              {modTab ? `${NAMA_PENANDA} (tab)` : NAMA_PENANDA}
             </a>
             <span className="flex items-center gap-1.5 text-xs font-medium text-graphite">
               <Ikon nama="muat" className="h-3.5 w-3.5 rotate-180" />
               Seret ke bar penanda{versi ? ` · versi ${versi}` : ""}
+              {modTab ? " · mod tab (lama)" : ""}
             </span>
           </>
         )}

@@ -59,7 +59,7 @@ per satu.
  │    (GET berhalaman, dihadkan) │ postMessage │ 3. enjin semakan (dalam pelayar)   │
  │ 2. hantar rekod ──────────────┼───────────▶│ 4. papar Lulus/Semak/Tolak         │
  │                               │             │ 5. GPM pilih & tekan tindakan      │
- │ 7. sahkan (confirm) + laksana │◀───────────┼── 6. arahan {lulus|tolak, id[]}     │
+ │ 7. laksana (tiada confirm)    │◀───────────┼── 6. arahan {lulus|tolak, id[]}     │
  │    satu demi satu, dihadkan   │ postMessage │                                    │
  │ 8. lapor kemajuan ────────────┼───────────▶│ 9. papar kemajuan, CSV, log bilangan│
  └──────────────────────────────┘            └──────────────┬─────────────────────┘
@@ -72,7 +72,7 @@ Prinsip:
 
 - **Data murid kekal dalam pelayar.** Rekod hanya wujud dalam memori tab AINS dan tab NEXa.
 - **NEXa tidak memegang sesi AINS.** Semua tindakan terhadap AINS dibuat oleh penanda dalam tab AINS.
-- **Penanda mempercayai NEXa secara terhad:** hanya menerima mesej daripada asal (origin) NEXa, hanya untuk ID yang ia sendiri baca dalam sesi ini, dan meminta pengesahan GPM sebelum melaksana.
+- **Penanda mempercayai NEXa secara terhad:** hanya menerima mesej daripada asal (origin) NEXa, hanya untuk ID yang ia sendiri baca dalam sesi ini. Pengesahan GPM dibuat dalam dialog "Luluskan/Tolak N rekod?" di tab NEXa (pindaan 2026-11-26: `confirm()` dalam tab AINS dibuang — tab itu sentiasa di latar belakang dan Chrome menyekat dialog tab latar belakang, jadi lulus/tolak tidak pernah berjalan).
 
 ### 4.1 Penanda AINS (`public/tools/semak-ains/penanda.js` → `javascript:` URL)
 
@@ -93,15 +93,17 @@ Tanggungjawab:
 1. **Semak konteks:** mesti di `ains.moe.gov.my` dan log masuk (halaman papan pemuka boleh dibaca). Jika tidak → `alert` dalam BM.
 2. **Kenal pasti sekolah** daripada `document.body.innerText` halaman Portal Guru semasa: halaman Portal Guru = ada pautan `teacher-record-list` (kepala "PORTAL GURU" tersembunyi pada tetingkap sempit — disahkan 2026-11-26); nama sekolah = baris sebelum ID pengguna (`x@y`) dalam menu profil jika bermula "SEKOLAH ", jika tidak baris pertama yang bermula "SEKOLAH ". Kod sekolah daripada ID berformat `gpm@<kod>` jika `<kod>` sepadan `^[A-Z]{3}\d{4}$` (cth. `gpm@abc1234` → `ABC1234`), jika tidak, kosong. Bukan Portal Guru → minta GPM buka Papan Pemuka guru dahulu.
 3. **Buka NEXa** (`window.open(__NEXA_ORIGIN__ + '/tools/semak-ains')`), tunggu mesej `sedia`, balas `sekolah`, kemudian tunggu `mula` (tapisan dipilih GPM di NEXa).
+   **Pindaan 2026-11-26 (penanda v8, mod tetingkap — lalai):** penanda membuka tetingkap `about:blank` berasal AINS (`window.open('', 'sahpantas-tetingkap')`), menulis halaman pembalut dengan iframe `__NEXA_ORIGIN__/tools/semak-ains/tetingkap`, dan menjalankan dirinya semula DI DALAM tetingkap itu; langkah 4–7 berlaku di sana (rakan postMessage = iframe; NEXa menggunakan `window.parent`). Tab AINS asal hanya menjalankan penjaga yang menulis semula tetingkap jika ia dimuat semula, dan tetingkap menyuntik semula penjaga ke tab AINS selepas tab itu dimuat semula — jadi muat semula mana-mana satu tidak memutuskan alat. Laluan iframe hanya boleh dibingkai oleh AINS (`frame-ancestors`). Cara lama (di atas) kekal sebagai `MOD = "tab"` (`/tools/semak-ains?mod=tab`).
 4. **Baca senarai:** `GET /web/teacher-record-list?search_status=pending&page=N` (+ tapisan pilihan `search_class_year`, `search_class_name`). 10 rekod sehalaman (tetap). Satu permintaan pada satu masa, jeda ≥ 100 ms. Ukuran sampel: ~0.4 s sehalaman (1,381 rekod ≈ 56 s).
 5. **Hurai setiap rekod** daripada `#rsList [data-key] a.rec`:
-   - `id` ← `href` `teacher-record-details?id=…`
+   - `id` ← `href` `teacher-record-details?id=…` (UUID — dihantar ke NEXa untuk pautan "Buka dalam AINS")
+   - ID dalaman berangka ← atribut `data-key` baris (= `#data_id` halaman butiran) — disimpan dalam penanda sahaja dan digunakan untuk `updatestatus` (pindaan 2026-11-26)
    - `tajuk` ← `.rec-title`
    - `meta` ← `.rec-meta` (jenis bahan, "Dihantar <tarikh, masa>")
    - `rumusan`, `pengajaran` ← `p.rec-sum` dengan label `<b>Rumusan</b>` / `<b>Pengajaran</b>`
    - `murid` ← `.rec-murid b`, `kelas` ← `.rec-murid small` (cth. `TAHUN 4 4D`, `TINGKATAN 2 …`, `PERALIHAN …`)
 6. **Hantar** rekod secara berkelompok (cth. setiap 10 halaman) supaya NEXa boleh mula menyemak lebih awal; mesej akhir `selesai-baca`.
-7. **Laksana arahan** (§4.4): `confirm()` BM dengan bilangan dan jenis tindakan → untuk setiap ID, panggil fungsi kelulusan AINS yang sama digunakan oleh butang "Luluskan Rekod" / "Tolak Rekod" pada halaman butiran (parameter `id`, `status`, `comment`); jawapan dianggap berjaya hanya jika teks jawapan tepat `success`.
+7. **Laksana arahan** (§4.4): tiada `confirm()` (lihat prinsip di atas; pengesahan di dialog NEXa) → untuk setiap ID, panggil fungsi kelulusan AINS yang sama digunakan oleh butang "Luluskan Rekod" / "Tolak Rekod" pada halaman butiran (parameter `id` = ID dalaman berangka, BUKAN UUID pautan — dengan UUID AINS tetap menjawab `success` tetapi rekod tidak berubah; `status`; `comment`); jawapan dianggap berjaya hanya jika teks jawapan tepat `success`.
    - Satu demi satu, jeda lalai 500 ms (boleh ubah 300–2000 ms dalam tetapan).
    - Gagal sekali → catat dan teruskan; **3 kegagalan berturut-turut → henti** (kemungkinan sesi tamat atau AINS berubah).
    - Butang **Henti** sentiasa berfungsi (mesej `henti` dari NEXa atau panel kecil dalam tab AINS).
@@ -239,7 +241,7 @@ alat bantuan guru akan datang. Mengikut corak hub sedia ada (CoE Services):
 Diperhati 2026-11-25 (portal guru, aplikasi dipapar pelayan, jQuery):
 
 - Senarai: `/web/teacher-record-list` — borang GET (`keyword`, `search_status` = `pending|approved|rejected`, `search_class_year` = `D1–D6|T1–T5|P`, `search_class_name`, `search_start_date`, `search_end_date`); 10 rekod sehalaman, parameter `per-page` diabaikan.
-- Butiran: `/web/teacher-record-details?id=<uuid>` — medan tambahan (Kategori, Jenis Bahan, Bahasa, Penulis, ISBN, Bilangan Mukasurat, Penerbit, Penilaian) + butang lulus/tolak dengan "Komen untuk murid".
+- Butiran: `/web/teacher-record-details?id=<uuid>` — `#data_id` tersembunyi (ID dalaman berangka, sama dengan `data-key` baris senarai); medan tambahan (Kategori, Jenis Bahan, Bahasa, Penulis, ISBN, Bilangan Mukasurat, Penerbit, Penilaian) + butang lulus/tolak dengan "Komen untuk murid".
 - Papan pemuka: `/web/teacher-dashboard` — nama sekolah, ID pengguna, jumlah menunggu.
 
 Jika struktur ini berubah, hanya penanda (§4.1) perlu dikemas kini. Isu
@@ -324,7 +326,7 @@ Perubahan standard daerah = suntingan kod (`standard.ts`) + naikkan `VERSI_ENJIN
 
 - Data murid (nama, kelas, teks) hanya dalam memori pelayar GPM; CSV disimpan oleh GPM sendiri. Tiada data murid dalam DB NEXa, log pelayan atau analitik.
 - Tiada kata laluan AINS/DELIMa dikendalikan oleh NEXa; penanda menggunakan sesi GPM yang sudah log masuk.
-- `postMessage` dengan semakan `origin` dua hala; senarai putih ID; `confirm()` sebelum setiap kelompok tindakan.
+- `postMessage` dengan semakan `origin` dua hala; senarai putih ID; pengesahan GPM dalam dialog NEXa sebelum setiap kelompok tindakan (bukan `confirm()` dalam tab AINS — disekat Chrome kerana tab latar belakang).
 - Penanda kendiri (tiada skrip jauh dimuat ke halaman AINS).
 - Beban AINS: permintaan bersiri dengan jeda; tiada akses selari.
 - Data ujian & fixture: **teks sintetik sahaja**, jangan salin rekod sebenar murid ke repositori (repo awam).

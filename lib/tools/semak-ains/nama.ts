@@ -1,7 +1,7 @@
 /**
  * Nama paparan alat. Laluan, id, jadual & kunci storan kekal `semak-ains`
  * (penanda sedia ada membuka /tools/semak-ains — jangan tukar laluan).
- * Jika nama ditukar, kemas kini juga rentetan `alert`/`confirm` dalam
+ * Jika nama ditukar, kemas kini juga rentetan `alert` dalam
  * public/tools/semak-ains/penanda.js (dan naikkan VERSI_PENANDA).
  */
 export const NAMA_ALAT = "SahPantas AINS";

@@ -46,7 +46,7 @@ export default function Pengenalan() {
           </Langkah>
           <Langkah n={3} tajuk={`Klik penanda ${NAMA_PENANDA}`}>
             Benarkan pop-up jika diminta. Tab {NAMA_PENANDA} dibuka dan bersambung dengan AINS — pilih tahap/kelas,
-            kemudian tekan Mula baca.
+            kemudian tekan Mula baca. Tab AINS boleh terus digunakan atau dimuat semula seperti biasa.
           </Langkah>
         </ol>
       </section>

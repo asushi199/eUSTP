@@ -4,10 +4,24 @@
  * (__NEXA_ORIGIN__ diganti dengan asal NEXa). Kendiri: tidak memuat skrip luar.
  * Hanya menerima arahan daripada __NEXA_ORIGIN__ dan hanya untuk ID rekod yang
  * dibaca dalam sesi ini. Ubah fail ini = naikkan VERSI_PENANDA. */
-(function () {
+(function utama() {
   "use strict";
-  var VERSI_PENANDA = 2;
+  var VERSI_PENANDA = 8;
   var NEXA = "__NEXA_ORIGIN__";
+  /* Mod tetingkap (LALAI sejak v8): jambatan ini + halaman SahPantas (iframe
+   * /tools/semak-ains/tetingkap) berjalan dalam tetingkap berasingan berasal AINS, supaya tab AINS
+   * asal boleh dimuat semula/dinavigasi tanpa memutuskan sambungan. Kod ini berjalan dalam 3 peranan:
+   *   A. tab AINS, klik penanda  → buka/pulihkan tetingkap + pasang penjaga.
+   *   B. DALAM tetingkap         → jambatan (baca/lulus/tolak) + suntik semula penjaga ke tab AINS.
+   *   C. JAGA: tab AINS selepas dimuat semula (disuntik oleh B) → penjaga sahaja.
+   * Penjaga menulis semula tetingkap jika ia dimuat semula (halamannya about:blank, jadi muat semula
+   * mengosongkannya). MOD "tab" (ButangPenanda ?mod=tab) = cara lama: jambatan dalam tab AINS,
+   * SahPantas dalam tab baharu — putus apabila tab AINS dimuat semula. */
+  var MOD = "__SAHPANTAS_MOD__";
+  var ASAL = "https://ains.moe.gov.my";
+  var NAMA_TETINGKAP = "sahpantas-tetingkap";
+  var DALAM = window.name === NAMA_TETINGKAP && !!window.__sahpantasInfo;
+  var JAGA = !DALAM && !!window.__sahpantasJaga;
   var SUMBER = "semak-ains";
   var J = {
     sedia: "sedia",
@@ -22,11 +36,64 @@
     selesaiLaksana: "selesai-laksana"
   };
 
+  function sihat(w) {
+    try { return !!(w.__semakAins && w.document.getElementById("bingkai")); } catch (e) { return false; }
+  }
+  /* Tulis halaman pembalut (iframe SahPantas) ke dalam tetingkap w, kemudian jalankan kod ini
+   * semula DI DALAM w sebagai jambatan (peranan B). */
+  function tulisTetingkap(w, info) {
+    w.document.open();
+    w.document.write(
+      '<!doctype html><html lang="ms"><head><meta charset="utf-8"><title>SahPantas AINS</title>' +
+      "<style>html,body{margin:0;height:100%;overflow:hidden;background:#fff}iframe{display:block;border:0;width:100%;height:100%}</style>" +
+      '</head><body><iframe id="bingkai" title="SahPantas AINS" allow="clipboard-write" src="' + NEXA +
+      '/tools/semak-ains/tetingkap"></iframe></body></html>'
+    );
+    w.document.close();
+    /* document.open() memadam pendengar lama tetapi objek window kekal — buang jambatan lama
+     * supaya peranan B membina yang baharu (bukan menganggap ia sudah ada). */
+    w.__semakAins = null;
+    w.__sahpantasInfo = info;
+    w.eval("(" + utama.toString() + ")()");
+  }
+  /* Penjaga (tab AINS): pulihkan tetingkap jika ia dimuat semula. Berhenti apabila tetingkap
+   * ditutup atau selepas 3 percubaan pulih berturut-turut gagal. */
+  function jaga(w, info) {
+    if (window.__sahpantasPenjaga) clearInterval(window.__sahpantasPenjaga);
+    var cubaan = 0;
+    window.__sahpantasPenjaga = setInterval(function () {
+      try {
+        if (w.closed || cubaan >= 3) {
+          clearInterval(window.__sahpantasPenjaga);
+          window.__sahpantasPenjaga = 0;
+          return;
+        }
+        if (sihat(w)) { cubaan = 0; return; }
+        if (w.document.readyState !== "complete") return;
+        cubaan++;
+        tulisTetingkap(w, info);
+      } catch (e) {}
+    }, 1500);
+  }
+
+  var namaSekolah = "", kodSekolah = null;
+  if (JAGA) {
+    var j = window.__sahpantasJaga;
+    window.__sahpantasJaga = null;
+    jaga(j.w, { nama: j.nama, kod: j.kod });
+    return;
+  }
+  if (DALAM) {
+    /* Penanda diklik di dalam tetingkap SahPantas sendiri: jambatan sudah ada — jangan gandakan. */
+    if (window.__semakAins) { window.__semakAins.hantarSekolah(); return; }
+    namaSekolah = String(window.__sahpantasInfo.nama || "");
+    kodSekolah = window.__sahpantasInfo.kod || null;
+  } else {
   if (location.hostname !== "ains.moe.gov.my") {
     alert("SahPantas AINS: sila klik penanda ini semasa berada di laman AINS (ains.moe.gov.my) selepas log masuk sebagai guru.");
     return;
   }
-  if (window.__semakAins && window.__semakAins.tetingkap && !window.__semakAins.tetingkap.closed) {
+  if (MOD === "tab" && window.__semakAins && window.__semakAins.tetingkap && !window.__semakAins.tetingkap.closed) {
     window.__semakAins.hantarSekolah();
     window.__semakAins.tetingkap.focus();
     return;
@@ -44,13 +111,37 @@
     return;
   }
   var iId = baris.findIndex(function (s) { return /^[\w.-]+@[\w.-]+$/.test(s); });
-  var namaSekolah = (iId > 0 && /^SEKOLAH\s/i.test(baris[iId - 1]) ? baris[iId - 1] : "") ||
+  namaSekolah = (iId > 0 && /^SEKOLAH\s/i.test(baris[iId - 1]) ? baris[iId - 1] : "") ||
     baris.find(function (s) { return /^SEKOLAH\s/i.test(s); }) || "";
   var idGpm = baris.find(function (s) { return /^gpm@[A-Za-z]{3}\d{4}$/i.test(s); }) || "";
-  var kodSekolah = idGpm ? idGpm.split("@")[1].toUpperCase() : null;
+  kodSekolah = idGpm ? idGpm.split("@")[1].toUpperCase() : null;
+
+  if (MOD !== "tab") {
+    var info = { nama: namaSekolah, kod: kodSekolah };
+    var w = window.open("", NAMA_TETINGKAP);
+    if (!w) {
+      alert("SahPantas AINS: tetingkap baharu disekat. Sila benarkan pop-up untuk ains.moe.gov.my dan cuba lagi.");
+      return;
+    }
+    var samaSekolah = false;
+    try { samaSekolah = sihat(w) && !!w.__sahpantasInfo && w.__sahpantasInfo.nama === info.nama; } catch (e) {}
+    if (samaSekolah) {
+      try { w.__semakAins.hantarSekolah(); } catch (e) {}
+    } else {
+      try { tulisTetingkap(w, info); }
+      catch (e) {
+        alert("SahPantas AINS: tetingkap SahPantas tidak dapat disediakan. Tutup tetingkap itu, kemudian klik penanda ini sekali lagi.");
+        return;
+      }
+    }
+    jaga(w, info);
+    w.focus();
+    return;
+  }
+  }
 
   var keadaan = {
-    tetingkap: null, idDibaca: new Set(), henti: false, sibuk: false, tapisan: {},
+    tetingkap: null, idDibaca: new Set(), kunciData: new Map(), henti: false, sibuk: false, tapisan: {},
     mod: null, berjaya: 0, gagal: 0, giliran: 0, hantarSekolah: null
   };
   window.__semakAins = keadaan;
@@ -82,6 +173,11 @@
     senarai.querySelectorAll("[data-key] a.rec").forEach(function (a) {
       var m = (a.getAttribute("href") || "").match(/[?&]id=([^&#]+)/);
       if (!m) return;
+      /* updatestatus memerlukan ID dalaman berangka (= data-key baris = #data_id halaman butiran),
+       * BUKAN UUID pautan. UUID dihantar ke NEXa (pautan "Buka dalam AINS"); kunci kekal di sini. */
+      var baris = a.closest("[data-key]");
+      var kunci = baris ? (baris.getAttribute("data-key") || "").trim() : "";
+      if (/^\d+$/.test(kunci)) keadaan.kunciData.set(decodeURIComponent(m[1]), kunci);
       var r = {
         id: decodeURIComponent(m[1]),
         tajuk: teks(a, ".rec-title"),
@@ -117,7 +213,7 @@
     var q = new URLSearchParams({ search_status: "pending", page: String(halaman) });
     if (keadaan.tapisan.tahun) q.set("search_class_year", keadaan.tapisan.tahun);
     if (keadaan.tapisan.kelas) q.set("search_class_name", keadaan.tapisan.kelas);
-    return "/web/teacher-record-list?" + q.toString();
+    return ASAL + "/web/teacher-record-list?" + q.toString();
   }
   var RALAT_SESI = "Sesi AINS tamat atau halaman berubah. Sila log masuk semula dan cuba lagi.";
   async function ambilHalaman(h) {
@@ -132,8 +228,11 @@
     }
     throw ralatAkhir || new Error("Gagal membaca halaman " + h + ".");
   }
-  async function bacaSemua(lapor, kemajuanHalaman) {
+  /* giliran (pilihan): bacaan ini berhenti senyap jika giliran berubah (bacaan baharu bermula). */
+  async function bacaSemua(lapor, kemajuanHalaman, giliran) {
+    function basi() { return giliran != null && giliran !== keadaan.giliran; }
     var p1 = await ambilHalaman(1);
+    if (basi()) return { rekod: [], gagal: [], dihentikan: true };
     var jumlah = p1.rekod.length ? jumlahHalaman(p1.doc) : 0;
     var semua = p1.rekod.slice();
     var gagal = [];
@@ -141,11 +240,12 @@
     if (lapor) lapor(p1.rekod, 1, jumlah);
     if (kemajuanHalaman) kemajuanHalaman(1, jumlah);
     for (var h = 2; h <= jumlah; h++) {
-      if (keadaan.henti) { dihentikan = true; break; }
+      if (keadaan.henti || basi()) { dihentikan = true; break; }
       await tidur(100);
       var hasil;
       try { hasil = await ambilHalaman(h); }
       catch (e) { if (e && e.message === RALAT_SESI) throw e; gagal.push(h); continue; }
+      if (basi()) { dihentikan = true; break; }
       semua = semua.concat(hasil.rekod);
       jumlah = Math.max(jumlah, jumlahHalaman(hasil.doc));
       if (lapor) lapor(hasil.rekod, h, jumlah);
@@ -157,6 +257,13 @@
     hantar({ jenis: J.selesaiLaksana, berjaya: 0, gagal: 0, masihMenunggu: [], dihentikan: true, ralat: ralat });
   }
   async function mula(tapisan) {
+    if (keadaan.sibuk && keadaan.mod === "baca") {
+      /* Tab SahPantas dimuat semula semasa membaca lalu meminta bacaan baharu: tinggalkan bacaan
+       * lama (giliran berubah → ia berhenti tanpa melapor) dan mula semula. */
+      keadaan.giliran++;
+      keadaan.sibuk = false;
+      keadaan.mod = null;
+    }
     if (keadaan.sibuk) {
       hantar({ jenis: J.selesaiBaca, bilangan: 0, ralat: "Penanda sedang sibuk. Tunggu proses semasa selesai.", halamanGagal: [] });
       return;
@@ -171,11 +278,12 @@
       kelas: tapisan && tapisan.kelas ? String(tapisan.kelas) : ""
     };
     keadaan.idDibaca = new Set();
+    keadaan.kunciData = new Map();
     try {
       var hasil = await bacaSemua(function (rekod, h, jumlah) {
         rekod.forEach(function (r) { keadaan.idDibaca.add(r.id); });
         hantar({ jenis: J.rekod, rekod: rekod, halaman: h, jumlahHalaman: jumlah });
-      });
+      }, null, giliran);
       if (giliran !== keadaan.giliran) return;
       keadaan.sibuk = false;
       keadaan.mod = null;
@@ -208,11 +316,10 @@
       return true;
     });
     if (!item.length) { tolakLaksana("Tiada rekod sah untuk tindakan. Baca semula senarai."); return; }
-    var label = tindakan === "approved" ? "MELULUSKAN" : "MENOLAK";
-    if (!confirm("SahPantas AINS\n\nAnda akan " + label + " " + item.length + " rekod bacaan murid atas nama akaun anda.\n\nTeruskan?")) {
-      tolakLaksana("Dibatalkan oleh pengguna.");
-      return;
-    }
+    /* Tiada confirm() di sini: tab AINS sentiasa di latar belakang semasa arahan tiba dan Chrome
+     * menyekat confirm() tab latar belakang (terus pulang false). Pengesahan GPM dibuat dalam
+     * dialog "Luluskan/Tolak N rekod?" di tab SahPantas. Had kekal: asal NEXa + tetingkap yang
+     * dibuka penanda ini + ID yang dibaca dalam sesi ini sahaja. */
     keadaan.sibuk = true;
     keadaan.mod = "laksana";
     keadaan.berjaya = 0;
@@ -230,8 +337,12 @@
         var x = item[i];
         var ok = false, jawapan = null;
         try {
-          var q = new URLSearchParams({ id: x.id, comment: String(x.komen || "").slice(0, 500), status: tindakan });
-          var res = await fetch("/reading-record/updatestatus?" + q.toString(), {
+          /* Sama seperti updatestatus() halaman butiran AINS: id = #data_id (berangka), bukan UUID.
+           * Dengan UUID, AINS tetap menjawab "success" tetapi tiada rekod berubah. */
+          var kunci = keadaan.kunciData.get(x.id);
+          if (!kunci) throw new Error("ID dalaman rekod tiada — baca semula senarai.");
+          var q = new URLSearchParams({ id: kunci, comment: String(x.komen || "").slice(0, 500), status: tindakan });
+          var res = await fetch(ASAL + "/reading-record/updatestatus?" + q.toString(), {
             credentials: "same-origin",
             headers: { "X-Requested-With": "XMLHttpRequest" }
           });
@@ -292,6 +403,16 @@
     }
   });
 
+  /* Muat semula/navigasi tab AINS memadam penanda ini. Selagi tab SahPantas masih terbuka,
+   * minta pelayar mengesahkan dahulu ("Leave site?") supaya GPM tidak memutuskan sambungan
+   * secara tidak sengaja. (Dialog pelayar sahaja — tiada confirm()/alert().) */
+  window.addEventListener("beforeunload", function (e) {
+    /* Mod tetingkap: hanya semasa membaca/melaksana (penjaga memulihkan tetingkap selepas muat semula). */
+    if (DALAM ? !keadaan.sibuk : (!keadaan.tetingkap || keadaan.tetingkap.closed)) return;
+    e.preventDefault();
+    e.returnValue = "";
+  });
+
   window.addEventListener("pagehide", function () {
     if (!keadaan.sibuk) return;
     var mod = keadaan.mod;
@@ -309,6 +430,23 @@
     }
   });
 
+  if (DALAM) {
+    /* Mod tetingkap: rakan = iframe SahPantas dalam tetingkap ini (WindowProxy kekal walaupun iframe dimuat semula). */
+    var bingkai = document.getElementById("bingkai");
+    keadaan.tetingkap = bingkai ? bingkai.contentWindow : null;
+    /* Tab AINS dimuat semula = penjaganya hilang. Suntik semula penjaga sahaja (peranan C) supaya
+     * tetingkap ini masih dipulihkan jika ia pula dimuat semula kemudian. */
+    setInterval(function () {
+      try {
+        var o = window.opener;
+        if (!o || o === window || o.closed) return;
+        if (o.location.origin !== ASAL || o.document.readyState !== "complete" || o.__sahpantasPenjaga) return;
+        o.__sahpantasJaga = { w: window, nama: namaSekolah, kod: kodSekolah };
+        o.eval("(" + utama.toString() + ")()");
+      } catch (e) {}
+    }, 3000);
+    return;
+  }
   keadaan.tetingkap = window.open(NEXA + "/tools/semak-ains", "semak-ains");
   if (!keadaan.tetingkap) {
     alert("SahPantas AINS: tetingkap baharu disekat. Sila benarkan pop-up untuk ains.moe.gov.my dan cuba lagi.");

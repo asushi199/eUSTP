@@ -20,6 +20,15 @@ const nextConfig = {
       bodySizeLimit: "10mb",
     },
   },
+  async headers() {
+    return [
+      {
+        /* Paparan SahPantas di dalam tetingkap penanda: hanya AINS (dan NEXa sendiri) boleh membingkainya. */
+        source: "/tools/semak-ains/tetingkap",
+        headers: [{ key: "Content-Security-Policy", value: "frame-ancestors 'self' https://ains.moe.gov.my" }],
+      },
+    ];
+  },
   async redirects() {
     return [
       { source: "/osc", destination: "/resources", permanent: true },

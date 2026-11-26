@@ -36,12 +36,15 @@ export default function PanelTapisan({
   onMula,
   onBatal,
   awal,
+  dimatikan = false,
 }: {
   onMula: (t: Tapisan) => void;
   /** Kembali ke keputusan bacaan sebelum ini (hanya jika sudah ada bacaan). */
   onBatal?: () => void;
   /** Tapisan bacaan sebelum ini (untuk diisi semula apabila menukar tahun/kelas). */
   awal?: Tapisan;
+  /** Sambungan dengan tab AINS terputus — bacaan tidak boleh dimulakan. */
+  dimatikan?: boolean;
 }) {
   const [tahun, setTahun] = useState(awal?.tahun ?? "");
   const [kelas, setKelas] = useState(awal?.kelas ?? "");
@@ -50,7 +53,7 @@ export default function PanelTapisan({
       <h2 className="text-xl font-semibold tracking-tight text-ink">Pilih rekod untuk disemak</h2>
       <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-graphite">
         Baca semua rekod yang menunggu pengesahan, atau hadkan kepada satu tahun/kelas jika rekod terlalu banyak.
-        Bacaan dibuat dalam tab AINS anda — lebih kurang 1 minit bagi 1,500 rekod.
+        Bacaan dibuat melalui sesi AINS anda — lebih kurang 1 minit bagi 1,500 rekod.
       </p>
       <form
         className="mt-6 grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-end"
@@ -81,7 +84,7 @@ export default function PanelTapisan({
               Batal
             </button>
           ) : null}
-          <button type="submit" className="btn-primary flex-1 sm:flex-none">
+          <button type="submit" className="btn-primary flex-1 sm:flex-none" disabled={dimatikan}>
             Mula baca
           </button>
         </div>

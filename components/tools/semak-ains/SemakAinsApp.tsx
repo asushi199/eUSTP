@@ -12,6 +12,7 @@ import { ringkaskan, semak } from "@/lib/tools/semak-ains/peraturan";
 import { gabungStandard, tetapanBeza, type Standard, type TetapanGpm } from "@/lib/tools/semak-ains/standard";
 import { bacaTetapan, padamTetapan, simpanTetapan } from "@/lib/tools/semak-ains/storan";
 import { VERSI_ENJIN, VERSI_PENANDA_MIN } from "@/lib/tools/semak-ains/versi";
+import DialogTerputus from "./DialogTerputus";
 import LaciTetapan from "./LaciTetapan";
 import PanelTapisan, { labelTapisan } from "./PanelTapisan";
 import PanelTindakan from "./PanelTindakan";
@@ -54,6 +55,13 @@ export function SemakAinsPaparan({ s, tanpaLog = false }: { s: Sambungan; tanpaL
   const ringkasan = useMemo(() => ringkaskan(keputusan), [keputusan]);
   const rekodIkutId = useMemo(() => new Map(s.rekod.map((r) => [r.id, r])), [s.rekod]);
   const penandaLama = !!s.sekolah && s.sekolah.versiPenanda < VERSI_PENANDA_MIN;
+  /* Hanya bermakna semasa melahu; membaca/melaksana ada had masa sendiri. */
+  const terputus = s.terputus && (s.fasa === "sedia" || s.fasa === "keputusan");
+  /* Pop-up muncul setiap kali sambungan terputus; "Faham" menutupnya (notis sebaris kekal). */
+  const [terputusDitutup, setTerputusDitutup] = useState(false);
+  useEffect(() => {
+    if (!terputus) setTerputusDitutup(false);
+  }, [terputus]);
   const muridLuarBiasa = useMemo(() => {
     const m = new Map<string, number>();
     for (const r of s.rekod) {
@@ -167,7 +175,7 @@ export function SemakAinsPaparan({ s, tanpaLog = false }: { s: Sambungan; tanpaL
       <section className="card mt-8 flex items-center gap-4 p-6 sm:p-8" aria-live="polite">
         <span className="h-8 w-8 shrink-0 animate-spin rounded-full border-2 border-fog border-t-ink" aria-hidden />
         <div>
-          <p className="font-semibold text-ink">Menyambung ke tab AINS…</p>
+          <p className="font-semibold text-ink">Menyambung ke AINS…</p>
           <p className="mt-0.5 text-sm text-graphite">
             Jika tiada respons dalam beberapa saat, klik penanda &quot;{NAMA_PENANDA}&quot; sekali lagi dalam tab AINS.
           </p>
@@ -232,7 +240,7 @@ export function SemakAinsPaparan({ s, tanpaLog = false }: { s: Sambungan; tanpaL
                 <Ikon nama="tukar" />
                 Tukar tahun / kelas
               </button>
-              <button type="button" className="btn-outline-ink btn-sm" disabled={melaksana} onClick={s.bacaSemula}>
+              <button type="button" className="btn-outline-ink btn-sm" disabled={melaksana || terputus} onClick={s.bacaSemula}>
                 <Ikon nama="ulang" />
                 Baca semula
               </button>
@@ -260,13 +268,22 @@ export function SemakAinsPaparan({ s, tanpaLog = false }: { s: Sambungan; tanpaL
         </div>
       </section>
 
+      {terputus ? (
+        <Notis tajuk="Sambungan dengan tab AINS terputus">
+          Tab AINS telah dimuat semula, bertukar halaman atau ditutup. Buka Papan Pemuka AINS dan klik penanda{" "}
+          <b className="font-semibold text-ink">{NAMA_PENANDA}</b> sekali lagi — rekod akan dibaca semula secara
+          automatik. Jika tab {NAMA_PENANDA} baharu dibuka, tutup tab ini.
+        </Notis>
+      ) : null}
+
       {penandaLama ? (
-        <Notis tajuk="Penanda anda versi lama">
+        <Notis tajuk="Penanda anda versi lama — lulus/tolak tidak dapat dijalankan">
+          Padam penanda {NAMA_PENANDA} lama daripada bar penanda, kemudian{" "}
           {/* Tab baharu tanpa opener → paparan pasang penanda; sambungan tab ini kekal. */}
           <a href="/tools/semak-ains" target="_blank" rel="noopener" className="font-medium text-ink underline">
-            Pasang semula
+            pasang semula
           </a>{" "}
-          (buang penanda lama dahulu) sebelum meluluskan atau menolak rekod.
+          dan klik penanda baharu dalam tab AINS. Senarai di bawah masih boleh dilihat.
         </Notis>
       ) : null}
 
@@ -275,6 +292,7 @@ export function SemakAinsPaparan({ s, tanpaLog = false }: { s: Sambungan; tanpaL
           onMula={s.mula}
           awal={s.tapisan}
           onBatal={s.bacaanKe > 0 ? s.kembaliKeputusan : undefined}
+          dimatikan={terputus}
         />
       ) : null}
 
@@ -285,14 +303,14 @@ export function SemakAinsPaparan({ s, tanpaLog = false }: { s: Sambungan; tanpaL
             s.bacaan.jumlahHalaman ? s.bacaan.jumlahHalaman.toLocaleString("ms-MY") : "?"
           } · ${s.rekod.length.toLocaleString("ms-MY")} rekod diterima`}
           peratus={s.bacaan.jumlahHalaman ? Math.round((s.bacaan.halaman / s.bacaan.jumlahHalaman) * 100) : null}
-          nota="Biarkan tab AINS terbuka sehingga bacaan selesai."
+          nota="Jangan tutup atau muat semula tetingkap ini sehingga bacaan selesai."
           onHenti={s.henti}
         />
       ) : null}
 
       {adaKeputusan ? (
         <>
-          {s.ralatSambungan ? <Notis tajuk="Sambungan dengan tab AINS terputus">{s.ralatSambungan}</Notis> : null}
+          {s.ralatSambungan && !terputus ? <Notis tajuk="Sambungan dengan tab AINS terputus">{s.ralatSambungan}</Notis> : null}
           {s.ralat ? <Notis tajuk="Bacaan tidak lengkap">{s.ralat}</Notis> : null}
           {s.halamanGagal.length ? (
             <Notis tajuk={`${s.halamanGagal.length} halaman tidak dapat dibaca`}>
@@ -329,7 +347,12 @@ export function SemakAinsPaparan({ s, tanpaLog = false }: { s: Sambungan; tanpaL
                 kira={s.kira}
                 mengesahkan={s.mengesahkan}
                 hasil={s.hasilLaksana}
-                dilarang={penandaLama}
+                dilarang={penandaLama || terputus}
+                notaDilarang={
+                  terputus && !penandaLama
+                    ? `Tindakan dimatikan sehingga penanda ${NAMA_PENANDA} diklik semula dalam tab AINS.`
+                    : undefined
+                }
                 kaki={kakiMurid}
                 onLaksana={(tindakan, item) => s.laksana(tindakan, item, standard.jedaMs)}
                 onHenti={s.henti}
@@ -350,6 +373,8 @@ export function SemakAinsPaparan({ s, tanpaLog = false }: { s: Sambungan; tanpaL
           )}
         </>
       ) : null}
+
+      {terputus && !terputusDitutup ? <DialogTerputus onTutup={() => setTerputusDitutup(true)} /> : null}
 
       {bukaTetapan ? (
         <LaciTetapan standard={standard} diubah={diubah} onSimpan={simpan} onReset={reset} onTutup={() => setBukaTetapan(false)} />
