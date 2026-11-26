@@ -12,7 +12,7 @@ import { gabungStandard, tetapanBeza, type Standard, type TetapanGpm } from "@/l
 import { bacaTetapan, padamTetapan, simpanTetapan } from "@/lib/tools/semak-ains/storan";
 import { VERSI_ENJIN, VERSI_PENANDA_MIN } from "@/lib/tools/semak-ains/versi";
 import LaciTetapan from "./LaciTetapan";
-import PanelTapisan from "./PanelTapisan";
+import PanelTapisan, { labelTapisan } from "./PanelTapisan";
 import PanelTindakan from "./PanelTindakan";
 import RingkasanWarna from "./RingkasanWarna";
 import SenaraiRekod from "./SenaraiRekod";
@@ -188,7 +188,7 @@ export default function SemakAinsApp() {
         </div>
       ) : null}
 
-      {s.fasa === "sedia" ? <PanelTapisan onMula={s.mula} /> : null}
+      {s.fasa === "sedia" ? <PanelTapisan onMula={s.mula} awal={s.tapisan} /> : null}
 
       {s.fasa === "membaca" ? (
         <section className="card p-6">
@@ -216,6 +216,19 @@ export default function SemakAinsApp() {
             <div className="card p-4 text-sm text-ink">
               Halaman tidak dapat dibaca: {s.halamanGagal.join(", ")}. Rekod pada halaman ini tidak disemak.
             </div>
+          ) : null}
+          <p className="text-sm text-graphite">
+            Tapisan: <span className="font-semibold text-ink">{labelTapisan(s.tapisan)}</span> ·{" "}
+            {ringkasan.jumlah.toLocaleString("ms-MY")} rekod menunggu
+          </p>
+          {s.fasa === "keputusan" && ringkasan.jumlah === 0 && !s.ralat && !s.ralatSambungan ? (
+            <section className="card p-6 text-sm text-graphite">
+              <p className="font-semibold text-ink">Tiada rekod menunggu pengesahan untuk tapisan ini.</p>
+              <p className="mt-1">Pilih tahun atau kelas lain, atau baca semua tahap.</p>
+              <button type="button" className="btn-outline-ink mt-4" onClick={s.tukarTapisan}>
+                Tukar tahun / kelas
+              </button>
+            </section>
           ) : null}
           <RingkasanWarna ringkasan={ringkasan} />
           {muridLuarBiasa.length ? (
@@ -249,6 +262,7 @@ export default function SemakAinsApp() {
             onHenti={s.henti}
             onCsv={muatCsv}
             onBacaSemula={s.bacaSemula}
+            onTukarTapisan={s.tukarTapisan}
           />
           <SenaraiRekod
             rekodIkutId={rekodIkutId}

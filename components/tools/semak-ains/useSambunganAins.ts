@@ -59,11 +59,12 @@ export function useSambunganAins() {
   const [hasilLaksana, setHasilLaksana] = useState<HasilLaksana | null>(null);
   const tindakanSemasa = useRef<Tindakan>("approved");
   const tapisanAkhir = useRef<Tapisan>({});
+  const [tapisan, setTapisan] = useState<Tapisan>({});
   const fasaRef = useRef<Fasa>("semak-sambungan");
-    const terakhirMesej = useRef(0);
+  const terakhirMesej = useRef(0);
   const adaIsyaratLaksana = useRef(false);
   fasaRef.current = fasa;
-  
+
   const hantar = useCallback((m: TanpaSumber<MesejKeAins>) => {
     window.opener?.postMessage({ ...m, sumber: SUMBER }, ASAL_AINS);
   }, []);
@@ -202,6 +203,7 @@ export function useSambunganAins() {
   const mula = useCallback(
     (tapisan: Tapisan) => {
       tapisanAkhir.current = tapisan;
+      setTapisan(tapisan);
       setRekod([]);
       setStatus(new Map());
       setHasilLaksana(null);
@@ -216,6 +218,9 @@ export function useSambunganAins() {
   );
 
   const bacaSemula = useCallback(() => mula(tapisanAkhir.current), [mula]);
+
+  /** Kembali ke panel tapisan untuk membaca tahun/kelas lain (hanya selepas bacaan selesai). */
+  const tukarTapisan = useCallback(() => setFasa((f) => (f === "keputusan" ? "sedia" : f)), []);
 
   const laksana = useCallback(
     (tindakan: Tindakan, item: { id: string; komen: string }[], jedaMs: number) => {
@@ -247,8 +252,10 @@ export function useSambunganAins() {
     status,
     kira,
     hasilLaksana,
+    tapisan,
     mula,
     bacaSemula,
+    tukarTapisan,
     laksana,
     henti,
   };

@@ -19,9 +19,24 @@ const TAHUN: [string, string][] = [
   ["P", "Peralihan"],
 ];
 
-export default function PanelTapisan({ onMula }: { onMula: (t: Tapisan) => void }) {
-  const [tahun, setTahun] = useState("");
-  const [kelas, setKelas] = useState("");
+/** Label ringkas tapisan semasa, cth. "Tahun 4 · kelas 4D" atau "Semua tahap". */
+export function labelTapisan(t: Tapisan): string {
+  const tahun = TAHUN.find(([v]) => v === (t.tahun ?? ""))?.[1] ?? "Semua";
+  const bahagian = [tahun === "Semua" ? "Semua tahap" : tahun];
+  if (t.kelas) bahagian.push(`kelas ${t.kelas}`);
+  return bahagian.join(" · ");
+}
+
+export default function PanelTapisan({
+  onMula,
+  awal,
+}: {
+  onMula: (t: Tapisan) => void;
+  /** Tapisan bacaan sebelum ini (untuk diisi semula apabila menukar tahun/kelas). */
+  awal?: Tapisan;
+}) {
+  const [tahun, setTahun] = useState(awal?.tahun ?? "");
+  const [kelas, setKelas] = useState(awal?.kelas ?? "");
   return (
     <section className="card p-6">
       <h2 className="text-lg font-semibold text-ink">Baca rekod menunggu pengesahan</h2>

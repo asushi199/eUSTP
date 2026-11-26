@@ -28,6 +28,7 @@ type Props = {
   onHenti: () => void;
   onCsv: () => void;
   onBacaSemula: () => void;
+  onTukarTapisan: () => void;
 };
 
 function rawak<T>(arr: T[], n: number): T[] {
@@ -176,6 +177,9 @@ export default function PanelTindakan(p: Props) {
       <div className="mt-3 flex flex-wrap gap-2">
         <button type="button" className="btn-outline-ink" onClick={p.onCsv}>
           Muat turun CSV
+        </button>
+        <button type="button" className="btn-outline-ink" onClick={p.onTukarTapisan}>
+          Tukar tahun / kelas
         </button>
         <button type="button" className="btn-outline-ink" onClick={p.onBacaSemula}>
           Baca semula
