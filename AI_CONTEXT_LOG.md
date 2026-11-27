@@ -1,5 +1,45 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-11-27 — DELIMa d3: kemas kini dengan penanda "DELIMa → NEXa" (tanpa Claude/CSV)
+
+- Permintaan pengguna: kemas kini DELIMa terlalu leceh (log masuk + Claude baca + CSV + import).
+  Disiasat dahulu sama ada boleh automatik sepenuhnya:
+  - **ESN/DCS:** GitHub Actions (AS, Azure) TIDAK dapat mencapai esn/dcs.moe.edu.my (sambungan
+    tamat masa); fungsi Vercel `sin1` dapat (HTTP 200, puluhan ms). Laluan/workflow ujian sudah
+    dibuang. Automasi ESN/DCS di Vercel (kata laluan sebagai env) boleh dibuat tetapi pengguna
+    menangguhkannya.
+  - **DELIMa d3:** log masuk = Google OAuth (`accounts.google.com` → `/authentication/code`);
+    token d3 dalam kuki `AUTH_CRED` (`{token, role}`, JWT **sah 24 jam**, tiada token segar
+    semula dalam aplikasi). Pelayan tidak boleh log masuk sendiri → tiada cron. Pengguna memilih
+    penanda (bukan skrip Playwright tempatan).
+- Penanda `public/penanda/delima-d3.js` (VERSI_PENANDA 1), kendiri dalam URL `javascript:`: baca
+  token daripada kuki, `GET d3-spp-api…/options/organization-units` (jawapan `{level, options:
+  [{value, label}]}`; akaun PPD → satu pilihan "PPD MANJUNG"), anak PPD = 102 sekolah, kemudian
+  `GET d3-api…/analytics/active-teacher-student?orgUnitId&startDate=YYYY-01-01&endDate=YYYY-MM-DD`
+  (`{teacher|student: {totalActiveUsers, totalUsers}}`), 4 serentak + cuba semula, kotak status di
+  penjuru (tiada alert/confirm). Selesai → `location.assign(NEXa/penanda/delima-d3#d=<JSON>)`
+  (~8.5 KB; serpihan tidak sampai ke pelayan). Token d3 tidak dihantar ke NEXa.
+- NEXa: `/penanda/delima-d3` (awam, `noindex`, tiada query DB semasa render) →
+  `components/analisis/TerimaDelimaD3.tsx` simpan muatan dalam sessionStorage (kekal semasa log
+  masuk), panggil `terimaDelimaD3(muatan, false)` untuk pratonton, dan hanya menulis selepas
+  pegawai tekan "Simpan ke NEXa" (sengaja TIDAK auto-simpan: pautan rekaan yang dibuka pegawai
+  log masuk tidak boleh menulis data sendiri). Action semak sesi tanpa `redirect()`
+  (Admin/Pegawai), `bacaMuatanD3` (zod, tarikh ≤ 2 hari, mula = 1 Jan, aktif ≤ jumlah), kemudian
+  `prosesDelimaD3` + `revalidateTag(home)`. Kad pasang penanda: `PenandaDelimaD3` pada
+  `/admin/analisis?modul=delima`.
+- `scripts/import-delima-d3.ts` kini memanggil teras yang sama (`lib/analisis/delima-d3-simpan.ts`);
+  `--dry-run` pada CSV 24 Nov memberi angka sama seperti sebelum pemfaktoran (3,741/3,834,
+  23,776/41,231, 48 capai KPI).
+- Disahkan: ujian `tests/analisis/delima-d3-penanda.test.ts` (5) + `delima-d3.test.ts`, typecheck,
+  eslint, `npm run build`. Logik bacaan penanda dijalankan dalam sesi d3 sebenar (pengguna log
+  masuk dalam pelayar terbina): 102 sekolah, Σ sekolah = PPD — guru 3,749/3,834, murid
+  23,817/41,231 (1 Jan – 27 Nov), ~1 minit. **Belum disahkan:** halaman terima + simpan dengan
+  sesi pegawai (Claude tidak log masuk NEXa), dan klik penanda sebenar dalam Edge/Chrome pengguna
+  (profil Chrome moe-dl menyekat `javascript:` — guna Edge). Pelayan pratonton terbina hanya
+  melancarkan `F:\eUSTP` (bukan worktree), jadi halaman tidak disemak secara tempatan.
+- Beban: Vercel = satu permintaan kecil setiap kemas kini; Supabase = satu snapshot sebulan
+  ditimpa (102 baris sekolah), bacaan rujukan 102 baris × 4 lajur.
+
 ## 2026-11-24 — Kad Pensijilan Digital dipapar semula
 
 - `SHOW_PENSIJILAN = true` dalam `app/(public)/page.tsx` (arahan pengguna) — kad

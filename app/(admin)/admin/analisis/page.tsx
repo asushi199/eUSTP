@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { analisisBreakdown, analisisMetrics, analisisModul } from "@/lib/schema";
 import { getDelimaTerkini, listDelimaSnapshots, periodLabel } from "@/lib/analisis/delima-snapshot";
 import { DELIMA_D3_SUMBER } from "@/lib/analisis/delima-d3-parse";
+import PenandaDelimaD3 from "@/components/analisis/PenandaDelimaD3";
 import {
   deleteBreakdown,
   deleteMetric,
@@ -92,10 +93,12 @@ export default async function AdminAnalisisPage({
           <h2 className="text-lg font-semibold">Sumber Data</h2>
           <p className="mt-1 text-sm text-graphite">
             Data rasmi KPM (d3.delima.edu.my → Utama, PPD Manjung, tempoh 1 Jan → tarikh ambil). Papan
-            pemuka itu memerlukan log masuk, jadi data diambil secara manual setiap bulan dan diimport:{" "}
-            <code>npm run db:import-delima-d3 -- scripts/data/delima-d3-YYYY-MM-DD.csv</code>. Paparan
-            awam memakai snapshot d3 terbaharu.
+            pemuka itu memerlukan log masuk Google, jadi pelayan tidak boleh menariknya sendiri: pegawai
+            yang log masuk mengemas kini dengan penanda di bawah. Paparan awam memakai snapshot d3
+            terbaharu. Cara lama masih boleh:{" "}
+            <code>npm run db:import-delima-d3 -- scripts/data/delima-d3-YYYY-MM-DD.csv</code>.
           </p>
+          <PenandaDelimaD3 />
           <div className="card mt-3 px-4 py-3">
             <p className="text-sm">
               Snapshot semasa:{" "}

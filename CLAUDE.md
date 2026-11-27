@@ -90,11 +90,18 @@ GPICT/DELIMa/GPM, Tempahan PKG, Portal Sumber/Analisis/Maklumat Asas). Sumber as
   - Import bulanan: upsert murid guna `setWhere nama IS DISTINCT FROM` —
     jangan buang, UPDATE tanpa perubahan menjana tuple mati (bloat 6× pernah
     berlaku; dibaiki 2026-10-13).
-- **DELIMa — sumber tunggal d3.delima.edu.my (rasmi KPM).** Perlu log masuk pengguna, jadi
-  tiada cron: setiap bulan pegawai log masuk dalam pelayar, Claude baca Utama (PPD + setiap
-  sekolah, 1 Jan → hari ini), simpan `scripts/data/delima-d3-YYYY-MM-DD.csv`, lalu
-  `npm run db:import-delima-d3 -- <fail>` (semak jumlah + padan kod). Paparan = snapshot d3
-  terbaharu (`getDelimaTerkini`). DELIMa Perak tidak lagi dibaca. Eksport CSV pengguna d3 (SPP)
+- **DELIMa — sumber tunggal d3.delima.edu.my (rasmi KPM).** Log masuk d3 = Google OAuth (token
+  d3 sah 24 jam, tiada token segar semula), jadi TIADA cron/skrip pelayan — jangan cuba lagi.
+  Cara biasa: **penanda "DELIMa → NEXa"** (`public/penanda/delima-d3.js`, dipasang dari
+  `/admin/analisis?modul=delima`): pegawai log masuk d3, klik penanda → ia baca PPD + setiap
+  sekolah (1 Jan → hari ini) melalui API d3 dalam tab itu → buka `/penanda/delima-d3#d=…` →
+  semak → "Simpan ke NEXa" (`terimaDelimaD3`, Admin/Pegawai; halaman itu awam supaya data tidak
+  hilang semasa log masuk, kebenaran disemak dalam action). Teras semak + simpan dikongsi dengan
+  skrip CSV: `lib/analisis/delima-d3-simpan.ts` (jumlah sekolah = PPD, padan nama → kod, satu
+  snapshot sebulan ditimpa). Ubah `delima-d3.js` = naikkan `VERSI_PENANDA` (+
+  `VERSI_PENANDA_D3_MIN` jika format muatan berubah). Cara lama masih ada:
+  `scripts/data/delima-d3-YYYY-MM-DD.csv` + `npm run db:import-delima-d3 -- <fail>`. Paparan =
+  snapshot d3 terbaharu (`getDelimaTerkini`). DELIMa Perak tidak lagi dibaca. Eksport CSV pengguna d3 (SPP)
   mengandungi No. KP — jangan komit / jangan papar. Buat masa ini paparan **bilangan sahaja**
   (tiada senarai nama guru belum log masuk); senarai nama hanya jika diminta → "Pelan 2" dalam
   `AI_CONTEXT_LOG.md` (2026-10-16).
