@@ -1,5 +1,18 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-11-27 — Kemas kini data: DCS
+
+- `scripts/data/dcs-2026-11-27.json` diimport — murid 2,457/2,459 = **99.9%** (25 Nov
+  2,411/2,459 = 98.0%), sekolah siap **100/101**. Sitiawan 633/633 (rank Perak 35 → **8**; SABK
+  Maahad 20/40 → 40/40), Seri Manjung 591/591 (36 → **15**; KV Seri Manjung 0/23 → 23/23),
+  Pantai Remis 366/368 (28 → 27). Tinggal satu sekolah: **SK Panchor 18/20**. Beruas 293/293
+  (rank 21) dan Ayer Tawar 574/574 (rank 19) tidak dibaca semula — angka murid pada Ranking sama
+  seperti 25 Nov, jadi baris sekolah disalin daripada snapshot lalu dan hanya kedudukan dikemas
+  kini. Disemak bagi 3 PKG yang dibaca: Σ murid sekolah = Dashboard = Ranking, Σ siap = T6+T3+T5.
+- Kaedah: semua halaman (termasuk Dashboard) dibaca dengan `fetch` + DOMParser; angka Dashboard
+  daripada item pertama `Morris.Donut` (hijau = selesai), bukan teks donut yang dirender.
+  Halaman utama langsung disahkan papar 99.9%.
+
 ## 2026-11-27 — Kemas kini data: ESN
 
 - `scripts/data/esn-2026-11-27.json` diimport — murid selesai 6,902/9,385 = **73.5%** (25 Nov
