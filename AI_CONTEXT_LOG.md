@@ -1,5 +1,15 @@
 # AI Context Log — NEXa Manjung
 
+## 2026-11-27 — Kemas kini data: ESN
+
+- `scripts/data/esn-2026-11-27.json` diimport — murid selesai 6,902/9,385 = **73.5%** (25 Nov
+  6,744/9,226 = 73.1%). Sekolah rendah 48/24/9 (selesai/proses/belum), menengah 11/7/3. Tiga
+  sekolah bertukar status: SMK Tok Perdana → Selesai; SK St. Francis & SMK Batu Sepuluh Belum →
+  Proses. 12 belum mula; yang sudah daftar murid tetapi 0 selesai: SK Muhammad Saman 0/136,
+  SK Pengkalan Baharu 0/40, KV Seri Manjung 0/20, SJKT Ladang Walbrook 0/19. Rekod ujian ABC1234
+  dibuang. Disemak: Σ murid sekolah & bilangan status = Dashboard; halaman utama langsung papar
+  73.5%. Pengguna memutuskan penanda/automasi ESN & DCS TIDAK dibuat buat masa ini.
+
 ## 2026-11-27 — DELIMa d3: kemas kini dengan penanda "DELIMa → NEXa" (tanpa Claude/CSV)
 
 - Permintaan pengguna: kemas kini DELIMa terlalu leceh (log masuk + Claude baca + CSV + import).
