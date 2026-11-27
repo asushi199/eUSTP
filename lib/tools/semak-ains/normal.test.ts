@@ -7,7 +7,16 @@ test("normalTeks buang tanda baca, ruang dan huruf besar", () => {
   assert.equal(normalTeks("《小王子》 "), "小王子");
 });
 
-test("bukuSama: sama tepat atau satu mengandungi yang lain (≥ 6 aksara)", () => {
+test("bukuSama: awalan kategori/siri bukan buku sama", () => {
+  const kategori = normalTeks("UJI KAJI SAINS");
+  const a = normalTeks("UJI KAJI SAINS - MENGKAJI DAYA APUNGAN");
+  const b = normalTeks("UJI KAJI SAINS - MENGKAJI KADAR PENYEJATAN");
+  assert.equal(bukuSama(kategori, a), false);
+  assert.equal(bukuSama(a, b), false);
+  assert.equal(bukuSama(normalTeks("Sang Kancil"), normalTeks("Sang Kancil dan Buaya")), false);
+});
+
+test("bukuSama: sama tepat atau tajuk pendek di hujung tajuk panjang (≥ 6 aksara)", () => {
   assert.equal(bukuSama("sangkancil", "sangkancil"), true);
   assert.equal(
     bukuSama(normalTeks("MODUL ETIKA SIBER - PRIVASI DIGITAL"), normalTeks("PRIVASI DIGITAL")),

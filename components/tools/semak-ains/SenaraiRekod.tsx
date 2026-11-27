@@ -45,6 +45,8 @@ type Props = {
   penapis: Penapis;
   onPenapis: (p: Penapis) => void;
   onTogolPilih: (id: string) => void;
+  /** Pilih / nyahpilih banyak rekod sekali gus (kotak "Pilih semua"). */
+  onPilihBanyak: (id: string[], pilih: boolean) => void;
 };
 
 export function pautanAins(id: string): string {
@@ -74,6 +76,7 @@ export default function SenaraiRekod({
   penapis,
   onPenapis,
   onTogolPilih,
+  onPilihBanyak,
 }: Props) {
   const [had, setHad] = useState(LANGKAH);
   useEffect(() => setHad(LANGKAH), [penapis]);
@@ -96,6 +99,21 @@ export default function SenaraiRekod({
       return true;
     });
   }, [keputusan, penapis, rekodIkutId]);
+
+  /* "Pilih semua" meliputi SEMUA rekod dalam tapisan semasa (bukan hanya yang sudah dipaparkan),
+   * kecuali yang sudah diluluskan/ditolak. */
+  const idBolehPilih = useMemo(
+    () =>
+      tapis
+        .filter((k) => {
+          const st = status.get(k.id);
+          return st?.berjaya !== true && st?.perluBacaSemula !== true;
+        })
+        .map((k) => k.id),
+    [tapis, status],
+  );
+  const bilTerpilih = useMemo(() => idBolehPilih.filter((id) => dipilih.has(id)).length, [idBolehPilih, dipilih]);
+  const semuaTerpilih = idBolehPilih.length > 0 && bilTerpilih === idBolehPilih.length;
 
   const ubah = (sebahagian: Partial<Penapis>) => onPenapis({ ...penapis, ...sebahagian });
   const adaTapisan =
@@ -171,7 +189,22 @@ export default function SenaraiRekod({
       </div>
 
       <div className="flex items-center justify-between gap-3 border-y border-fog bg-cloud/70 px-4 py-2 text-xs text-graphite sm:px-6">
-        <span className="tabular-nums">{tapis.length.toLocaleString("ms-MY")} rekod dipaparkan</span>
+        <label className={cn("flex min-w-0 items-center gap-3", idBolehPilih.length > 0 && "cursor-pointer")}>
+          <input
+            type="checkbox"
+            className="h-4 w-4 shrink-0 accent-ink"
+            checked={semuaTerpilih}
+            disabled={idBolehPilih.length === 0}
+            ref={(el) => {
+              if (el) el.indeterminate = bilTerpilih > 0 && !semuaTerpilih;
+            }}
+            onChange={() => onPilihBanyak(idBolehPilih, !semuaTerpilih)}
+          />
+          <span className="font-medium text-ink">{semuaTerpilih ? "Nyahpilih semua" : "Pilih semua"}</span>
+          <span className="tabular-nums">
+            {tapis.length.toLocaleString("ms-MY")} rekod{adaTapisan ? " dalam tapisan ini" : ""}
+          </span>
+        </label>
         {adaTapisan ? (
           <button type="button" className="font-medium text-ink hover:underline" onClick={() => onPenapis(PENAPIS_KOSONG)}>
             Kosongkan tapisan
@@ -188,8 +221,8 @@ export default function SenaraiRekod({
             if (!r) return null;
             const st = status.get(k.id);
             const siap = st?.berjaya === true || st?.perluBacaSemula === true;
-            /* Rekod kuning boleh dipilih terus (keputusan pengguna 2026-11-26); merah/hijau
-             * tetap dihadkan oleh PanelTindakan (merah tidak boleh diluluskan, hijau tidak ditolak). */
+            /* Semua rekod boleh dipilih; rekod terpilih boleh diluluskan ATAU ditolak tanpa mengira
+             * warna — GPM yang memutuskan (2026-11-27). Butang pukal kekal ikut warna. */
             const bolehPilih = !siap;
             const terpilih = dipilih.has(k.id);
             const ada = k.merah.length + k.kuning.length + k.maklumat.length > 0;
@@ -257,6 +290,21 @@ export default function SenaraiRekod({
                         </span>
                       ))}
                     </div>
+                  ) : null}
+                  {k.padanBuku?.length ? (
+                    <p className="mt-2 text-xs leading-relaxed text-graphite">
+                      {(() => {
+                        /* Tunjuk rekod mana yang dikira "buku sama" supaya GPM boleh menilai padanan itu. */
+                        const lain = k.padanBuku.map((id) => rekodIkutId.get(id)?.tajuk ?? "").filter(Boolean);
+                        const unik = [...new Set(lain)];
+                        if (unik.length === 1 && unik[0] === r.tajuk) {
+                          return `Tajuk yang sama direkod ${lain.length.toLocaleString("ms-MY")} kali lagi oleh murid ini.`;
+                        }
+                        const papar = unik.slice(0, 2).map((t) => `“${t}”`).join(", ");
+                        const baki = unik.length - 2;
+                        return `Dikira buku sama dengan rekod lain murid ini: ${papar}${baki > 0 ? ` dan ${baki} lagi` : ""}.`;
+                      })()}
+                    </p>
                   ) : null}
                   <dl className="mt-2.5 space-y-1 border-l-2 border-fog pl-3 text-sm leading-relaxed text-charcoal">
                     <div className="line-clamp-2">

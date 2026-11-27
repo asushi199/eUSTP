@@ -142,7 +142,9 @@ GPICT/DELIMa/GPM, Tempahan PKG, Portal Sumber/Analisis/Maklumat Asas). Sumber as
   yang memuatkan jambatan + iframe `/tools/semak-ains/tetingkap` (di luar kumpulan `(public)`,
   tiada menu; `frame-ancestors` AINS sahaja dalam `next.config.mjs`), supaya tab AINS boleh dimuat
   semula tanpa putus. Tetingkap & tab AINS saling memulihkan (penjaga dalam `penanda.js`).
-  `?mod=tab` pada halaman pasang = penanda cara lama. Aliran ini TIDAK boleh diuji dalam pelayar
+  `?mod=tab` pada halaman pasang = penanda cara lama. **Penanda "tiada respons langsung"** = profil Chrome moe-dl (terurus) menyekat URL
+  `javascript:` — semua penanda gagal senyap, bukan pepijat kita (disahkan 2026-11-27); penyelesaian: Edge
+  atau profil Chrome tanpa akaun moe-dl; log masuk AINS seperti biasa (akaun AINS tidak terjejas). Aliran ini TIDAK boleh diuji dalam pelayar
   terbina Claude (pop-up & localhost disekat) — minta pengguna uji dalam Chrome.
 - Petak statistik DPD/PSS halaman utama disorok (`SHOW_LAPORAN_TILES=false`
   dalam `app/(public)/page.tsx`) — pelaporan 2026 masih guna Looker Studio.

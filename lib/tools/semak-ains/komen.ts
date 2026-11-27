@@ -11,7 +11,6 @@ export const LABEL_SEBAB: Record<KodSebab, string> = {
   "bahasa-tak-sepadan": "Bahasa tidak sepadan dengan buku",
   "bahasa-bercampur": "Bahasa Rumusan dan Pengajaran berbeza",
   "agak-pendek": "Agak pendek",
-  "terlalu-panjang": "Luar biasa panjang",
   "rumusan-sama-2-buku": "Rumusan sama untuk 2 buku",
   "sama-murid-lain": "Sama dengan murid lain",
   "buku-sama-berulang": "Buku sama direkod semula",
@@ -34,13 +33,15 @@ export const KOMEN_LALAI: Record<KodSebab, string> = {
   "bahasa-tak-sepadan": "Rumusan hendaklah dalam bahasa buku yang dibaca.",
   "bahasa-bercampur": "Rumusan dan pengajaran hendaklah ditulis dalam bahasa yang sama.",
   "agak-pendek": "Rumusan dan pengajaran agak pendek. Sila huraikan dengan lebih lengkap.",
-  "terlalu-panjang": "Sila tulis rumusan dengan ayat sendiri secara ringkas.",
   "rumusan-sama-2-buku": "Rumusan ini sama dengan rekod buku lain. Sila tulis rumusan khusus untuk buku ini.",
   "sama-murid-lain": "Rumusan ini sama dengan murid lain. Sila tulis dengan ayat sendiri.",
   "buku-sama-berulang": "Buku ini telah direkodkan sebelum ini.",
   "simbol-pengisi": "Jangan gunakan tanda baca berulang untuk memanjangkan teks.",
   "tiada-unsur-pengajaran": "Pengajaran hendaklah menyatakan nilai atau pengajaran daripada buku.",
 };
+
+/** Komen lalai apabila GPM menolak rekod yang tiada sebab automatik (cth. rekod "Cadang lulus"). */
+export const KOMEN_TANPA_SEBAB = "Rekod ini belum memenuhi kehendak. Sila semak semula rumusan dan pengajaran, kemudian hantar semula.";
 
 /**
  * Komen penolakan satu rekod: gabungan komen unik bagi sebab merah (atau kuning

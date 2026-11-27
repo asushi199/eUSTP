@@ -1,10 +1,10 @@
 import type { Jalur, KodSebab, Ukuran } from "./jenis";
 
-export type Ambang = { merah: number; kuning: number; panjang: number };
+export type Ambang = { merah: number; kuning: number };
 export type ModPeraturan = "merah" | "kuning" | "abai";
 
 export type Standard = {
-  /** Jumlah panjang Rumusan + Pengajaran: < merah = R2; < kuning = Y1; > panjang = Y2. */
+  /** Jumlah panjang Rumusan + Pengajaran: < merah = R2; < kuning = Y1. Tiada had atas (Y2 dimansuhkan, enjin 1.1.0). */
   ambang: Record<Ukuran, Record<Jalur, Ambang>>;
   /** Minimum setiap ruangan (R1). */
   minRuangan: Record<Ukuran, number>;
@@ -28,16 +28,16 @@ export type Standard = {
 export const STANDARD_DAERAH: Standard = {
   ambang: {
     kata: {
-      "D1-2": { merah: 6, kuning: 12, panjang: 250 },
-      "D3-4": { merah: 10, kuning: 20, panjang: 250 },
-      "D5-6": { merah: 10, kuning: 20, panjang: 250 },
-      M: { merah: 15, kuning: 25, panjang: 400 },
+      "D1-2": { merah: 6, kuning: 12 },
+      "D3-4": { merah: 10, kuning: 20 },
+      "D5-6": { merah: 10, kuning: 20 },
+      M: { merah: 15, kuning: 25 },
     },
     zh: {
-      "D1-2": { merah: 40, kuning: 60, panjang: 500 },
-      "D3-4": { merah: 60, kuning: 100, panjang: 500 },
-      "D5-6": { merah: 80, kuning: 120, panjang: 500 },
-      M: { merah: 60, kuning: 150, panjang: 800 },
+      "D1-2": { merah: 40, kuning: 60 },
+      "D3-4": { merah: 60, kuning: 100 },
+      "D5-6": { merah: 80, kuning: 120 },
+      M: { merah: 60, kuning: 150 },
     },
   },
   minRuangan: { kata: 3, zh: 5 },
@@ -91,7 +91,6 @@ export function gabungStandard(
       const cur = s.ambang[u][j];
       cur.merah = nomborSah(a.merah, cur.merah, 0, 5000);
       cur.kuning = Math.max(cur.merah, nomborSah(a.kuning, cur.kuning, 0, 5000));
-      cur.panjang = Math.max(cur.kuning, nomborSah(a.panjang, cur.panjang, 1, 20000));
     }
     s.minRuangan[u] = nomborSah(t.minRuangan?.[u], s.minRuangan[u], 0, 100);
   }

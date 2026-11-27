@@ -20,7 +20,6 @@ const UKURAN: { kod: Ukuran; label: string }[] = [
 const MEDAN: { kod: keyof Ambang; label: string; warna: Warna }[] = [
   { kod: "merah", label: "Cadang tolak jika <", warna: "merah" },
   { kod: "kuning", label: "Perlu semak jika <", warna: "kuning" },
-  { kod: "panjang", label: "Perlu semak jika >", warna: "kuning" },
 ];
 const KOMEN_MERAH: KodSebab[] = [
   "ruangan-kosong",
@@ -33,7 +32,6 @@ const KOMEN_MERAH: KodSebab[] = [
 ];
 const KOMEN_KUNING: KodSebab[] = [
   "agak-pendek",
-  "terlalu-panjang",
   "rumusan-sama-2-buku",
   "sama-murid-lain",
   "buku-sama-berulang",
@@ -183,7 +181,7 @@ export default function LaciTetapan({ standard, diubah, onSimpan, onReset, onTut
           {tab === "panjang" ? (
             <>
               <p className="text-sm leading-relaxed text-graphite">
-                Jumlah panjang Rumusan + Pengajaran mengikut tahap murid.
+                Jumlah panjang minimum Rumusan + Pengajaran mengikut tahap murid. Tiada had maksimum.
               </p>
               {UKURAN.map((u) => (
                 <fieldset key={u.kod} className="mt-5">

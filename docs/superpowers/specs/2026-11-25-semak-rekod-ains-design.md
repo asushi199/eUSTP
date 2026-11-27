@@ -93,7 +93,7 @@ Tanggungjawab:
 1. **Semak konteks:** mesti di `ains.moe.gov.my` dan log masuk (halaman papan pemuka boleh dibaca). Jika tidak → `alert` dalam BM.
 2. **Kenal pasti sekolah** daripada `document.body.innerText` halaman Portal Guru semasa: halaman Portal Guru = ada pautan `teacher-record-list` (kepala "PORTAL GURU" tersembunyi pada tetingkap sempit — disahkan 2026-11-26); nama sekolah = baris sebelum ID pengguna (`x@y`) dalam menu profil jika bermula "SEKOLAH ", jika tidak baris pertama yang bermula "SEKOLAH ". Kod sekolah daripada ID berformat `gpm@<kod>` jika `<kod>` sepadan `^[A-Z]{3}\d{4}$` (cth. `gpm@abc1234` → `ABC1234`), jika tidak, kosong. Bukan Portal Guru → minta GPM buka Papan Pemuka guru dahulu.
 3. **Buka NEXa** (`window.open(__NEXA_ORIGIN__ + '/tools/semak-ains')`), tunggu mesej `sedia`, balas `sekolah`, kemudian tunggu `mula` (tapisan dipilih GPM di NEXa).
-   **Pindaan 2026-11-26 (penanda v8, mod tetingkap — pilihan sejak 2026-11-27, melalui `/tools/semak-ains?mod=tetingkap`; lalai dikembalikan kepada mod tab kerana mod tetingkap tidak tercetus dalam ujian pengguna):** penanda membuka tetingkap `about:blank` berasal AINS (`window.open('', 'sahpantas-tetingkap')`), menulis halaman pembalut dengan iframe `__NEXA_ORIGIN__/tools/semak-ains/tetingkap`, dan menjalankan dirinya semula DI DALAM tetingkap itu; langkah 4–7 berlaku di sana (rakan postMessage = iframe; NEXa menggunakan `window.parent`). Tab AINS asal hanya menjalankan penjaga yang menulis semula tetingkap jika ia dimuat semula, dan tetingkap menyuntik semula penjaga ke tab AINS selepas tab itu dimuat semula — jadi muat semula mana-mana satu tidak memutuskan alat. Laluan iframe hanya boleh dibingkai oleh AINS (`frame-ancestors`). Cara asal (di atas) ialah `MOD = "tab"` — **lalai**.
+   **Pindaan 2026-11-26 (penanda v8, mod tetingkap — lalai; `/tools/semak-ains?mod=tab` = cara lama. Lalai sempat dikembalikan kepada mod tab pada 2026-11-27 kerana "tidak tercetus", tetapi punca sebenar ialah profil Chrome moe-dl menyekat URL `javascript:` — semua penanda, kedua-dua mod — lalu dipulihkan pada hari yang sama):** penanda membuka tetingkap `about:blank` berasal AINS (`window.open('', 'sahpantas-tetingkap')`), menulis halaman pembalut dengan iframe `__NEXA_ORIGIN__/tools/semak-ains/tetingkap`, dan menjalankan dirinya semula DI DALAM tetingkap itu; langkah 4–7 berlaku di sana (rakan postMessage = iframe; NEXa menggunakan `window.parent`). Tab AINS asal hanya menjalankan penjaga yang menulis semula tetingkap jika ia dimuat semula, dan tetingkap menyuntik semula penjaga ke tab AINS selepas tab itu dimuat semula — jadi muat semula mana-mana satu tidak memutuskan alat. Laluan iframe hanya boleh dibingkai oleh AINS (`frame-ancestors`). Cara asal (di atas) ialah `MOD = "tab"` — **lalai**.
 4. **Baca senarai:** `GET /web/teacher-record-list?search_status=pending&page=N` (+ tapisan pilihan `search_class_year`, `search_class_name`). 10 rekod sehalaman (tetap). Satu permintaan pada satu masa, jeda ≥ 100 ms. Ukuran sampel: ~0.4 s sehalaman (1,381 rekod ≈ 56 s).
 5. **Hurai setiap rekod** daripada `#rsList [data-key] a.rec`:
    - `id` ← `href` `teacher-record-details?id=…` (UUID — dihantar ke NEXa untuk pautan "Buka dalam AINS")
@@ -124,7 +124,7 @@ Keadaan halaman:
    - Ringkasan: 🟢 Lulus · 🟡 Perlu semak · 🔴 Cadang tolak (bilangan + peratus).
    - Senarai bertapis (warna, sebab, tahap, kelas, bahasa); setiap baris: tajuk, murid, kelas, sebab (BM), petikan Rumusan/Pengajaran, pautan **"Buka dalam AINS"** (`/web/teacher-record-details?id=…`).
    - Rekod kuning boleh dipilih terus (keputusan pengguna 2026-11-26 — syarat "sudah dilihat" dibuang kerana menambah satu klik); had keselamatan kekal: merah tidak boleh diluluskan pukal, hijau tidak boleh ditolak pukal.
-   - Tindakan: **"Luluskan semua hijau (N)"**, **"Tolak semua merah (N)"**, serta lulus/tolak rekod terpilih. Merah tidak boleh diluluskan secara pukal; rekod merah yang DIPILIH boleh diluluskan atas keputusan GPM (2026-11-27); hijau tidak boleh ditolak secara pukal.
+   - Tindakan: **"Luluskan semua hijau (N)"**, **"Tolak semua merah (N)"**, serta lulus/tolak rekod terpilih. Merah tidak boleh diluluskan secara pukal; rekod merah yang DIPILIH boleh diluluskan atas keputusan GPM (2026-11-27); hijau tidak boleh ditolak secara pukal. **Pindaan 2026-11-27 (petang):** kotak **"Pilih semua"** pada bar senarai memilih SEMUA rekod dalam tapisan semasa (bukan hanya 100 yang dipaparkan; tidak termasuk yang sudah diproses); rekod hijau yang DIPILIH kini boleh ditolak — dialog tolak memaparkan bilangan hijau dan satu medan komen "Tiada sebab automatik" (lalai `KOMEN_TANPA_SEBAB`, wajib diisi) bagi rekod tanpa sebab merah/kuning. Butang pukal ikut warna tidak berubah.
    - Komen penolakan dijana mengikut sebab (§6), boleh disunting sebelum hantar.
    - Pilihan **"Semak rawak 5 rekod hijau"** sebelum lulus pukal.
 4. **Melaksana:** kemajuan per rekod, butang Henti, ringkasan berjaya/gagal.
@@ -261,7 +261,7 @@ Warna rekod = merah jika ada sebab merah; kuning jika ada sebab kuning; jika tid
 | R3 `templat` | Rumusan sama (normal, ≥ 40 aksara) digunakan untuk ≥ 3 buku berbeza (oleh sesiapa dalam kelompok) | Rumusan ini sama dengan rekod buku lain. Sila tulis rumusan khusus untuk buku ini. |
 | R4 `rumusan-sama-pengajaran` | Rumusan dan Pengajaran sama selepas normalisasi | Rumusan dan pengajaran tidak boleh sama. |
 | R5 `hantar-semula-sama` | Murid sama, buku sama (`bukuSama`), rumusan sama | Rekod ini telah dihantar sebelum ini. |
-| R6 `teks-rawak` | Mana-mana: (a) perkataan unik < 35% (≥ 8 perkataan) atau bigram Han unik < 40% (≥ 40 aksara); (b) perkataan sama berturut ≥ 6 kali; (c) corak papan kekunci (`asdf`, `qwer`, …); (d) ≥ 30% token Latin ≥ 4 huruf tanpa vokal / ≥ 5 konsonan berturut; (e) ≥ 5 kes huruf/angka Latin terselit antara aksara Han (sisa IME); (f) huruf dijarakkan (≥ 8 huruf tunggal berturut dipisah ruang) | Teks tidak dapat difahami. Sila tulis semula rumusan dan pengajaran. |
+| R6 `teks-rawak` | Mana-mana: (a) perkataan unik < 35% (≥ 8 perkataan) atau bigram Han unik < 40% (≥ 40 aksara), **dan** ada jujukan 3 perkataan/aksara yang diulang lebih 2 kali (frasa/tajuk ditulis 2 kali sahaja tidak ditanda — enjin 1.1.0, 2026-11-27); (b) perkataan sama berturut ≥ 6 kali; (c) corak papan kekunci (`asdf`, `qwer`, …); (d) ≥ 30% token Latin ≥ 4 huruf tanpa vokal / ≥ 5 konsonan berturut; (e) ≥ 5 kes huruf/angka Latin terselit antara aksara Han (sisa IME); (f) huruf dijarakkan (≥ 8 huruf tunggal berturut dipisah ruang) | Teks tidak dapat difahami. Sila tulis semula rumusan dan pengajaran. |
 | R7 `bahasa-tak-sepadan` | Tajuk mengandungi aksara Han/Tamil tetapi teks tidak | Rumusan hendaklah dalam bahasa buku yang dibaca. |
 
 **🟡 Perlu semak**
@@ -269,7 +269,7 @@ Warna rekod = merah jika ada sebab merah; kuning jika ada sebab kuning; jika tid
 | Kod | Peraturan |
 |---|---|
 | Y1 `agak-pendek` | Ambang merah ≤ panjang < ambang kuning |
-| Y2 `terlalu-panjang` | Panjang > ambang panjang (§7.1) |
+| ~~Y2 `terlalu-panjang`~~ | **Dimansuhkan 2026-11-27 (enjin 1.1.0)** — tiada had atas; hanya panjang minimum disemak |
 | Y3 `rumusan-sama-2-buku` | Rumusan sama untuk tepat 2 buku berbeza |
 | Y4 `sama-murid-lain` | Rumusan sama dengan murid lain bagi buku sama, **bukan** aktiviti kelas |
 | Y5 `buku-sama-berulang` | Murid sama, buku sama, rumusan berbeza |
@@ -287,9 +287,12 @@ rekod yang diluluskan); campuran BM/BI dalam satu rekod (kini pilihan Y8/R8, lal
 frasa lazim AI/terjemahan; (pilihan, lalai **mati**) "Pengajaran tiada unsur
 pengajaran" — jika dihidupkan GPM, menjadi Y7.
 
-**Kesamaan buku (`bukuSama`)**: tajuk dinormalkan sama, atau salah satu
-mengandungi yang lain (kedua-duanya ≥ 6 aksara selepas normalisasi) — menampung
-variasi seperti "MODUL X - BAB Y" / "BAB Y".
+**Kesamaan buku (`bukuSama`)**: tajuk dinormalkan sama, atau tajuk yang lebih pendek
+(≥ 6 aksara selepas normalisasi) ialah **hujung** tajuk yang lebih panjang — menampung
+"MODUL X - BAB Y" / "BAB Y". **Pindaan 2026-11-27 (enjin 1.1.0):** dahulu "mengandungi" di
+mana-mana kedudukan; tajuk pendek sebagai awalan (nama kategori/siri, cth. "EKSPERIMEN SAINS")
+menandakan semua rekod siri itu sebagai buku sama — kini awalan/tengah tidak dikira. Rekod yang
+ditanda R5/Y5 membawa `padanBuku` (ID rekod lain yang dipadankan) dan senarai memaparkan tajuknya.
 
 **Skop perbandingan pendua (v1):** rekod dalam kelompok yang dibaca sahaja
 (menunggu, mengikut tapisan). Rekod ditolak sebelum ini tidak dibandingkan.
@@ -300,18 +303,19 @@ variasi seperti "MODUL X - BAB Y" / "BAB Y".
 
 Panjang = Rumusan + Pengajaran. Perkataan untuk BM/BI/Tamil/campuran; aksara Han untuk Cina.
 
-| Bahasa | Ukuran | Jalur | 🔴 di bawah | 🟡 di bawah | 🟡 melebihi |
-|---|---|---|---|---|---|
-| BM / BI / Tamil | perkataan | Tahun 1–2 | 6 | 12 | 250 |
-| | | Tahun 3–4 | 10 | 20 | 250 |
-| | | Tahun 5–6 | 10 | 20 | 250 |
-| | | Menengah / Peralihan | 15 | 25 | 400 |
-| Cina | aksara | Tahun 1–2 | 40 | 60 | 500 |
-| | | Tahun 3–4 | 60 | 100 | 500 |
-| | | Tahun 5–6 | 80 | 120 | 500 |
-| | | Menengah / Peralihan | 60 | 150 | 800 |
+| Bahasa | Ukuran | Jalur | 🔴 di bawah | 🟡 di bawah |
+|---|---|---|---|---|
+| BM / BI / Tamil | perkataan | Tahun 1–2 | 6 | 12 |
+| | | Tahun 3–4 | 10 | 20 |
+| | | Tahun 5–6 | 10 | 20 |
+| | | Menengah / Peralihan | 15 | 25 |
+| Cina | aksara | Tahun 1–2 | 40 | 60 |
+| | | Tahun 3–4 | 60 | 100 |
+| | | Tahun 5–6 | 80 | 120 |
+| | | Menengah / Peralihan | 60 | 150 |
 
-Minimum ruangan: Cina 5 aksara; lain-lain 3 perkataan. Ambang Tahun 1–2 dan
+Tiada had maksimum (lajur "🟡 melebihi" 250/400/500/800 dibuang 2026-11-27, keputusan pengguna:
+hanya had minimum). Minimum ruangan: Cina 5 aksara; lain-lain 3 perkataan. Ambang Tahun 1–2 dan
 Tamil masih **sementara** (sampel kecil) — semak semula selepas perintis.
 
 Perubahan standard daerah = suntingan kod (`standard.ts`) + naikkan `VERSI_ENJIN`.

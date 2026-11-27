@@ -125,9 +125,15 @@ test("R4: rumusan sama pengajaran → merah", () => {
   assert.ok(k.merah.includes("rumusan-sama-pengajaran"));
 });
 
-test("Y2: terlalu panjang → kuning", () => {
-  const k = satu(r({ rumusan: `${RUMUSAN} ${"Kancil berlari ke sana ke mari mencari makanan. ".repeat(40)}` }));
-  assert.ok(k.kuning.includes("terlalu-panjang"));
+test("tiada had atas: teks sangat panjang tidak ditanda kerana panjangnya", () => {
+  // > 250 perkataan berlainan (sintetik) supaya peraturan teks berulang tidak terpicu.
+  const awal = ["ba", "ca", "da", "ga", "ha", "ja", "ka", "la", "ma", "na", "pa", "ra", "sa", "ta", "wa", "ya"];
+  const akhir = ["ri", "ku", "mi", "lo", "tu", "ne", "si", "bo", "du", "pe", "gi", "hu", "jo", "ke", "lu", "mo", "nu", "ro"];
+  const kata = awal.flatMap((x) => akhir.map((y) => x + y));
+  const k = satu(r({ rumusan: `${RUMUSAN} ${kata.join(" ")}.` }));
+  assert.ok(k.panjang > 250);
+  assert.equal(k.warna, "hijau");
+  assert.deepEqual(k.kuning, []);
 });
 
 test("R6: teks rawak (gelung) → merah teks-rawak", () => {

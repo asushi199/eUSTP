@@ -14,10 +14,11 @@ export default function ButangPenanda() {
   const [versi, setVersi] = useState("");
   const [ralat, setRalat] = useState(false);
   const [disalin, setDisalin] = useState(false);
-  /* Lalai = mod tab (SahPantas dalam tab baharu; teruji). Mod tetingkap (tahan muat semula tab
-   * AINS, lihat penanda.js) hanya melalui /tools/semak-ains?mod=tetingkap — dikembalikan sebagai
-   * pilihan 2026-11-27 kerana penanda v8 mod tetingkap tidak tercetus dalam ujian pengguna. */
-  const [modTetingkap, setModTetingkap] = useState(false);
+  /* Lalai = mod tetingkap (tahan muat semula tab AINS, lihat penanda.js). /tools/semak-ains?mod=tab
+   * menjana penanda cara lama (SahPantas dalam tab baharu) sebagai jalan keluar. Lalai pernah
+   * dikembalikan kepada mod tab pada 2026-11-27 pagi kerana "v8 tidak tercetus" — punca sebenar
+   * ialah profil Chrome moe-dl menyekat URL javascript: (semua penanda), bukan mod tetingkap. */
+  const [modTab, setModTab] = useState(false);
 
   useEffect(() => {
     let batal = false;
@@ -28,11 +29,11 @@ export default function ButangPenanda() {
       })
       .then((sumber) => {
         if (batal) return;
-        const tetingkap = new URLSearchParams(window.location.search).get("mod") === "tetingkap";
-        setModTetingkap(tetingkap);
+        const tab = new URLSearchParams(window.location.search).get("mod") === "tab";
+        setModTab(tab);
         const js = sumber
           .replace(/__NEXA_ORIGIN__/g, window.location.origin)
-          .replace(/__SAHPANTAS_MOD__/g, tetingkap ? "tetingkap" : "tab");
+          .replace(/__SAHPANTAS_MOD__/g, tab ? "tab" : "tetingkap");
         const url = `javascript:${encodeURIComponent(js)}`;
         pautan.current?.setAttribute("href", url);
         setKod(url);
@@ -72,12 +73,12 @@ export default function ButangPenanda() {
               aria-disabled={!kod}
               title="Seret ke bar penanda — jangan klik"
             >
-              {modTetingkap ? `${NAMA_PENANDA} (tetingkap)` : NAMA_PENANDA}
+              {modTab ? `${NAMA_PENANDA} (tab)` : NAMA_PENANDA}
             </a>
             <span className="flex items-center gap-1.5 text-xs font-medium text-graphite">
               <Ikon nama="muat" className="h-3.5 w-3.5 rotate-180" />
               Seret ke bar penanda{versi ? ` · versi ${versi}` : ""}
-              {modTetingkap ? " · mod tetingkap (ujian)" : ""}
+              {modTab ? " · mod tab (lama)" : ""}
             </span>
           </>
         )}
@@ -98,6 +99,24 @@ export default function ButangPenanda() {
         <button type="button" className="btn-outline-ink btn-sm mt-3" disabled={!kod} onClick={salin}>
           {disalin ? "Disalin" : "Salin kod penanda"}
         </button>
+      </details>
+      <details className="mt-2 text-sm text-graphite">
+        <summary className="cursor-pointer text-xs font-medium text-charcoal hover:text-ink">
+          Klik penanda di AINS tetapi tiada apa-apa berlaku?
+        </summary>
+        <p className="mt-2 leading-relaxed">
+          Jika langsung tiada respons (tiada mesej, tiada tetingkap baharu), pelayar anda menyekat penanda. Ini
+          lazim berlaku pada Chrome yang dilog masuk dengan akaun moe-dl (profil diurus organisasi). Akaun AINS anda
+          tidak terjejas — hanya pelayar yang perlu ditukar.
+        </p>
+        <ol className="mt-2 list-decimal space-y-1 pl-5 leading-relaxed">
+          <li>
+            Buka Microsoft Edge, atau tambah profil Chrome baharu tanpa log masuk akaun moe-dl (akaun Gmail
+            tidak diperlukan).
+          </li>
+          <li>Pasang penanda {NAMA_PENANDA} di sana.</li>
+          <li>Log masuk AINS seperti biasa, kemudian klik penanda.</li>
+        </ol>
       </details>
     </div>
   );

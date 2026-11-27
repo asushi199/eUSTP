@@ -4,13 +4,18 @@ export function normalTeks(s: string): string {
 }
 
 /**
- * Dua tajuk (sudah dinormalkan) dianggap buku sama jika sama, atau salah satu
- * mengandungi yang lain dan kedua-duanya ≥ 6 aksara.
+ * Dua tajuk (sudah dinormalkan) dianggap buku sama jika sama, atau tajuk yang lebih pendek
+ * (≥ 6 aksara) ialah HUJUNG tajuk yang lebih panjang — cth. "MODUL X - BAB Y" dan "BAB Y".
+ *
+ * Tajuk pendek yang hanya menjadi AWALAN atau bahagian tengah TIDAK dikira sama (enjin 1.1.0):
+ * awalan biasanya nama kategori/siri, bukan buku — cth. "EKSPERIMEN SAINS" berbanding
+ * "EKSPERIMEN SAINS - MENGKAJI MOMENTUM", atau "SANG KANCIL" berbanding "SANG KANCIL DAN BUAYA".
+ * Dahulu satu rekod bertajuk kategori sahaja menandakan SEMUA rekod siri itu sebagai buku sama.
  */
 export function bukuSama(a: string, b: string): boolean {
   if (a === b) return true;
   if (a.length < 6 || b.length < 6) return false;
-  return a.includes(b) || b.includes(a);
+  return a.endsWith(b) || b.endsWith(a);
 }
 
 /** Tarikh hantar daripada meta AINS, cth. "25 Nov 2026"; "" jika tiada. */

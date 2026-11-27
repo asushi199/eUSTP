@@ -13,6 +13,13 @@ test("ulang: teks gelung (perkataan unik < 35%)", () => {
   );
 });
 
+test("ulang: frasa diulang 2 kali sahaja TIDAK ditanda; lebih 2 kali ditanda", () => {
+  // Tajuk berkata ganda disalin dua kali (perkataan unik < 35%, tetapi tiada frasa > 2 kali).
+  const duaKali = "Rama rama dan lebah lebah. Rama rama dan lebah lebah. Lebah baik.";
+  assert.equal(kesanRawak(duaKali, "bm"), null);
+  assert.equal(kesanRawak(`${duaKali} Rama rama dan lebah lebah.`, "bm"), "ulang");
+});
+
 test("ulang: aksara Cina berulang", () => {
   assert.equal(kesanRawak("哈".repeat(50), "zh"), "ulang");
 });

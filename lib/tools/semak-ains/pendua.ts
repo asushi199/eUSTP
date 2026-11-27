@@ -18,6 +18,8 @@ export type HasilPendua = {
   aktivitiKelas: boolean;
   hantarSemulaSama: boolean;
   bukuSamaBerulang: boolean;
+  /** ID rekod lain murid yang sama bagi buku yang sama (asas R5 / "buku sama direkod semula"). */
+  padanBuku: string[];
 };
 
 const MIN_RUMUSAN_PENDUA = 40;
@@ -48,6 +50,7 @@ export function kesanPendua(rekod: InputPendua[]): Map<string, HasilPendua> {
         aktivitiKelas: false,
         hantarSemulaSama: false,
         bukuSamaBerulang: false,
+        padanBuku: [],
       },
     ]),
   );
@@ -108,6 +111,7 @@ export function kesanPendua(rekod: InputPendua[]): Map<string, HasilPendua> {
       const sama = g.filter((x) => x !== r && bukuSama(x.tajukN, r.tajukN));
       if (sama.length === 0) continue;
       const h = hasil.get(r.id)!;
+      h.padanBuku = sama.map((x) => x.id);
       if (r.rumusanN && sama.some((x) => x.rumusanN === r.rumusanN)) {
         /* Salinan pertama (ikut urutan input) tidak ditanda; hanya salinan kemudian. */
         if (sama.some((x) => x.rumusanN === r.rumusanN && g.indexOf(x) < g.indexOf(r))) {

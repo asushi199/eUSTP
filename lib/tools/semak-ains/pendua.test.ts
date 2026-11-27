@@ -49,6 +49,20 @@ test("hantar semula sama vs buku sama berulang", () => {
   ]);
   assert.equal(b.get("1")?.bukuSamaBerulang, true);
   assert.equal(b.get("1")?.hantarSemulaSama, false);
+  assert.deepEqual(b.get("1")?.padanBuku, ["2"]);
+  assert.deepEqual(b.get("2")?.padanBuku, ["1"]);
+});
+
+test("rekod bertajuk kategori sahaja tidak menandakan semua rekod siri itu", () => {
+  const h = kesanPendua([
+    rek("1", "ALI", "Uji Kaji Sains", "Saya menjalankan uji kaji sains di makmal sekolah bersama rakan sekelas."),
+    rek("2", "ALI", "Uji Kaji Sains - Daya Apungan", "Objek yang kurang tumpat daripada air akan terapung di permukaan air."),
+    rek("3", "ALI", "Uji Kaji Sains - Kadar Penyejatan", "Air menyejat lebih cepat apabila suhu persekitaran lebih tinggi."),
+  ]);
+  for (const id of ["1", "2", "3"]) {
+    assert.equal(h.get(id)?.bukuSamaBerulang, false);
+    assert.deepEqual(h.get(id)?.padanBuku, []);
+  }
 });
 
 test("rumusan pendek (< 40 aksara) tidak dikira pendua", () => {

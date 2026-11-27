@@ -3,7 +3,7 @@
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import type { Keputusan, KodSebab, RekodAins, Warna } from "@/lib/tools/semak-ains/jenis";
-import { KOMEN_LALAI, LABEL_SEBAB, janaKomen } from "@/lib/tools/semak-ains/komen";
+import { KOMEN_LALAI, KOMEN_TANPA_SEBAB, LABEL_SEBAB, janaKomen } from "@/lib/tools/semak-ains/komen";
 import type { Ringkasan } from "@/lib/tools/semak-ains/peraturan";
 import type { Standard } from "@/lib/tools/semak-ains/standard";
 import { pautanAins } from "./SenaraiRekod";
@@ -57,7 +57,7 @@ function belumSiap(status: Map<string, StatusTindakan>, k: Keputusan): boolean {
 }
 
 const KETERANGAN: Record<Warna, string> = {
-  hijau: "Memenuhi standard daerah. Semak rawak 5 rekod sebelum lulus pukal.",
+  hijau: "Memenuhi standard daerah. Semak rawak 5 rekod sebelum lulus pukal. Pilih rekod dalam senarai untuk menolaknya jika anda dapati ia tidak wajar.",
   kuning: "Ada tanda yang perlu dilihat. Pilih rekod dalam senarai untuk lulus atau tolak.",
   merah: "Tidak memenuhi standard. Komen penolakan dijana mengikut sebab. Pilih rekod dalam senarai untuk meluluskannya jika anda dapati ia wajar.",
 };
@@ -65,6 +65,8 @@ const KETERANGAN: Record<Warna, string> = {
 export default function PanelTindakan(p: Props) {
   const [dialog, setDialog] = useState<Dialog>(null);
   const [ganti, setGanti] = useState<Partial<Record<KodSebab, string>>>({});
+  /** Komen bagi rekod terpilih yang tiada sebab automatik (cth. hijau yang ditolak GPM). */
+  const [komenUmum, setKomenUmum] = useState(KOMEN_TANPA_SEBAB);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const batalRef = useRef<HTMLButtonElement>(null);
   const tajukId = useId();
@@ -83,10 +85,10 @@ export default function PanelTindakan(p: Props) {
     () => keputusan.filter((k) => dipilih.has(k.id) && belumSiap(status, k)),
     [keputusan, dipilih, status],
   );
-  /* Rekod terpilih boleh diluluskan walaupun merah — GPM yang memutuskan (2026-11-27).
-   * Lulus PUKAL kekal hijau sahaja ("Luluskan semua hijau"). */
+  /* Rekod terpilih boleh diluluskan walaupun merah, dan ditolak walaupun hijau — GPM yang
+   * memutuskan (2026-11-27). Butang PUKAL kekal ikut warna ("Luluskan semua" hijau, "Tolak semua" merah). */
   const pilihLulus = pilihAktif;
-  const pilihTolak = useMemo(() => pilihAktif.filter((k) => k.warna !== "hijau"), [pilihAktif]);
+  const pilihTolak = pilihAktif;
 
   // Dialog asli: showModal() memberi latar inert, kurungan fokus & Escape.
   useEffect(() => {
@@ -108,6 +110,7 @@ export default function PanelTindakan(p: Props) {
   const bukaLulus = (senarai: Keputusan[]) => setDialog({ jenis: "lulus", senarai, contoh: rawak(senarai, 5) });
   const bukaTolak = (senarai: Keputusan[]) => {
     setGanti({});
+    setKomenUmum(KOMEN_TANPA_SEBAB);
     setDialog({ jenis: "tolak", senarai });
   };
   const sebabTolak = (senarai: Keputusan[]) => [
@@ -115,8 +118,11 @@ export default function PanelTindakan(p: Props) {
   ];
 
   const komenSemasa = (kod: KodSebab) => ganti[kod] ?? p.standard.komen[kod] ?? KOMEN_LALAI[kod];
+  const tanpaSebab = (senarai: Keputusan[]) => senarai.filter((k) => k.merah.length + k.kuning.length === 0);
   const adaKomenKosong =
-    dialog?.jenis === "tolak" && sebabTolak(dialog.senarai).some((kod) => komenSemasa(kod).trim() === "");
+    dialog?.jenis === "tolak" &&
+    (sebabTolak(dialog.senarai).some((kod) => komenSemasa(kod).trim() === "") ||
+      (tanpaSebab(dialog.senarai).length > 0 && komenUmum.trim() === ""));
 
   const sahkan = () => {
     if (!dialog) return;
@@ -125,7 +131,10 @@ export default function PanelTindakan(p: Props) {
     } else {
       p.onLaksana(
         "rejected",
-        dialog.senarai.map((k) => ({ id: k.id, komen: janaKomen(k.merah, k.kuning, p.standard, ganti) })),
+        dialog.senarai.map((k) => ({
+          id: k.id,
+          komen: janaKomen(k.merah, k.kuning, p.standard, ganti) || komenUmum.trim().slice(0, 500),
+        })),
       );
     }
     setDialog(null);
@@ -341,6 +350,13 @@ export default function PanelTindakan(p: Props) {
                   {WARNA_STATUS.merah.label}&quot; akan diluluskan atas keputusan anda.
                 </p>
               ) : null}
+              {dialog.jenis === "tolak" && dialog.senarai.some((k) => k.warna === "hijau") ? (
+                <p className="mt-2 flex items-center gap-2 text-sm text-charcoal">
+                  <TitikWarna warna="hijau" className="h-2 w-2" />
+                  {nombor(dialog.senarai.filter((k) => k.warna === "hijau").length)} rekod &quot;
+                  {WARNA_STATUS.hijau.label}&quot; akan ditolak atas keputusan anda.
+                </p>
+              ) : null}
             </header>
             <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
               {dialog.jenis === "lulus" ? (
@@ -387,6 +403,23 @@ export default function PanelTindakan(p: Props) {
                       ) : null}
                     </label>
                   ))}
+                  {tanpaSebab(dialog.senarai).length > 0 ? (
+                    <label className="block">
+                      <span className="label">
+                        Tiada sebab automatik ({nombor(tanpaSebab(dialog.senarai).length)} rekod)
+                      </span>
+                      <textarea
+                        className="textarea mt-1"
+                        rows={2}
+                        maxLength={500}
+                        value={komenUmum}
+                        onChange={(e) => setKomenUmum(e.target.value)}
+                      />
+                      {komenUmum.trim() === "" ? (
+                        <span className="mt-1 block text-xs text-bloom-deep">Komen tidak boleh kosong.</span>
+                      ) : null}
+                    </label>
+                  ) : null}
                 </div>
               )}
             </div>

@@ -156,6 +156,16 @@ export function SemakAinsPaparan({ s, tanpaLog = false }: { s: Sambungan; tanpaL
       return y;
     });
 
+  const pilihBanyak = (id: string[], pilih: boolean) =>
+    setDipilih((x) => {
+      const y = new Set(x);
+      for (const i of id) {
+        if (pilih) y.add(i);
+        else y.delete(i);
+      }
+      return y;
+    });
+
   const keSenarai = (p: Penapis) => {
     setPenapis(p);
     window.requestAnimationFrame(() =>
@@ -368,6 +378,7 @@ export function SemakAinsPaparan({ s, tanpaLog = false }: { s: Sambungan; tanpaL
                 penapis={penapis}
                 onPenapis={setPenapis}
                 onTogolPilih={togolPilih}
+                onPilihBanyak={pilihBanyak}
               />
             </>
           )}

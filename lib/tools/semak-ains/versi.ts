@@ -1,5 +1,5 @@
 /** Naikkan apabila standard.ts / peraturan berubah. */
-export const VERSI_ENJIN = "1.0.0";
+export const VERSI_ENJIN = "1.1.0";
 
 /**
  * Versi penanda minimum yang serasi (VERSI_PENANDA dalam public/tools/semak-ains/penanda.js).

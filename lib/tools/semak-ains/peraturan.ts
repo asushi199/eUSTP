@@ -52,7 +52,6 @@ export function semak(rekod: RekodAins[], standard: Standard): Keputusan[] {
     }
     if (panjang < ambang.merah) merah.push("terlalu-pendek");
     else if (panjang < ambang.kuning) kuning.push("agak-pendek");
-    if (panjang > ambang.panjang) kuning.push("terlalu-panjang");
 
     const p = pendua.get(r.id)!;
     if (p.templat) merah.push("templat");
@@ -91,7 +90,19 @@ export function semak(rekod: RekodAins[], standard: Standard): Keputusan[] {
     if (FRASA_AI.test(teks)) maklumat.push("frasa-ai");
 
     const warna: Warna = merah.length ? "merah" : kuning.length ? "kuning" : "hijau";
-    return { id: r.id, warna, merah, kuning, maklumat, bahasa, jalur: tahap.jalur, kodTahap: tahap.kod, panjang };
+    const tandaBuku = [...merah, ...kuning].some((k) => k === "hantar-semula-sama" || k === "buku-sama-berulang");
+    return {
+      id: r.id,
+      warna,
+      merah,
+      kuning,
+      maklumat,
+      bahasa,
+      jalur: tahap.jalur,
+      kodTahap: tahap.kod,
+      panjang,
+      ...(tandaBuku && p.padanBuku.length ? { padanBuku: p.padanBuku } : {}),
+    };
   });
 }
 

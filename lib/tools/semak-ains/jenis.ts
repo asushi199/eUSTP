@@ -29,7 +29,6 @@ export type KodSebab =
   | "bahasa-tak-sepadan"
   | "bahasa-bercampur"
   | "agak-pendek"
-  | "terlalu-panjang"
   | "rumusan-sama-2-buku"
   | "sama-murid-lain"
   | "buku-sama-berulang"
@@ -49,4 +48,6 @@ export type Keputusan = {
   /** D1–D6, T1–T5, P atau "?" */
   kodTahap: string;
   panjang: number;
+  /** ID rekod lain murid yang sama yang dikira buku sama (hanya apabila R5/"buku sama direkod semula" ditanda). */
+  padanBuku?: string[];
 };
