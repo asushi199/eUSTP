@@ -107,7 +107,7 @@ Tanggungjawab:
    - Satu demi satu, jeda lalai 500 ms (boleh ubah 300–2000 ms dalam tetapan).
    - Gagal sekali → catat dan teruskan; **3 kegagalan berturut-turut → henti** (kemungkinan sesi tamat atau AINS berubah).
    - Butang **Henti** sentiasa berfungsi (mesej `henti` dari NEXa atau panel kecil dalam tab AINS).
-8. **Pengesahan selepas tindakan:** baca semula halaman menunggu yang berkaitan dan laporkan ID yang masih menunggu.
+8. **Pengesahan selepas tindakan (penanda v9, 2026-11-27):** bandingkan "Jumlah Rekod Menunggu Pengesahan" pada Papan Pemuka sebelum dan selepas (dua permintaan) — tidak lagi membaca semula semua halaman. Amaran jika bilangan turun kurang separuh daripada bilangan berjaya (murid boleh menghantar rekod baharu semasa proses); GPM boleh tekan "Baca semula" untuk semakan penuh.
 
 Pengesanan ralat: jika HTML yang dibaca tiada `#rsList` → anggap sesi tamat / struktur berubah, henti dan maklumkan.
 
@@ -124,7 +124,7 @@ Keadaan halaman:
    - Ringkasan: 🟢 Lulus · 🟡 Perlu semak · 🔴 Cadang tolak (bilangan + peratus).
    - Senarai bertapis (warna, sebab, tahap, kelas, bahasa); setiap baris: tajuk, murid, kelas, sebab (BM), petikan Rumusan/Pengajaran, pautan **"Buka dalam AINS"** (`/web/teacher-record-details?id=…`).
    - Rekod kuning boleh dipilih terus (keputusan pengguna 2026-11-26 — syarat "sudah dilihat" dibuang kerana menambah satu klik); had keselamatan kekal: merah tidak boleh diluluskan pukal, hijau tidak boleh ditolak pukal.
-   - Tindakan: **"Luluskan semua hijau (N)"**, **"Tolak semua merah (N)"**, serta lulus/tolak rekod terpilih. Merah tidak boleh diluluskan secara pukal; hijau tidak boleh ditolak secara pukal.
+   - Tindakan: **"Luluskan semua hijau (N)"**, **"Tolak semua merah (N)"**, serta lulus/tolak rekod terpilih. Merah tidak boleh diluluskan secara pukal; rekod merah yang DIPILIH boleh diluluskan atas keputusan GPM (2026-11-27); hijau tidak boleh ditolak secara pukal.
    - Komen penolakan dijana mengikut sebab (§6), boleh disunting sebelum hantar.
    - Pilihan **"Semak rawak 5 rekod hijau"** sebelum lulus pukal.
 4. **Melaksana:** kemajuan per rekod, butang Henti, ringkasan berjaya/gagal.

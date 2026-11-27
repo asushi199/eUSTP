@@ -59,7 +59,7 @@ function belumSiap(status: Map<string, StatusTindakan>, k: Keputusan): boolean {
 const KETERANGAN: Record<Warna, string> = {
   hijau: "Memenuhi standard daerah. Semak rawak 5 rekod sebelum lulus pukal.",
   kuning: "Ada tanda yang perlu dilihat. Pilih rekod dalam senarai untuk lulus atau tolak.",
-  merah: "Tidak memenuhi standard. Komen penolakan dijana mengikut sebab.",
+  merah: "Tidak memenuhi standard. Komen penolakan dijana mengikut sebab. Pilih rekod dalam senarai untuk meluluskannya jika anda dapati ia wajar.",
 };
 
 export default function PanelTindakan(p: Props) {
@@ -83,7 +83,9 @@ export default function PanelTindakan(p: Props) {
     () => keputusan.filter((k) => dipilih.has(k.id) && belumSiap(status, k)),
     [keputusan, dipilih, status],
   );
-  const pilihLulus = useMemo(() => pilihAktif.filter((k) => k.warna !== "merah"), [pilihAktif]);
+  /* Rekod terpilih boleh diluluskan walaupun merah — GPM yang memutuskan (2026-11-27).
+   * Lulus PUKAL kekal hijau sahaja ("Luluskan semua hijau"). */
+  const pilihLulus = pilihAktif;
   const pilihTolak = useMemo(() => pilihAktif.filter((k) => k.warna !== "hijau"), [pilihAktif]);
 
   // Dialog asli: showModal() memberi latar inert, kurungan fokus & Escape.
@@ -176,7 +178,9 @@ export default function PanelTindakan(p: Props) {
           tajuk="Sedang dilaksanakan dalam AINS…"
           keterangan={
             p.mengesahkan
-              ? `Mengesahkan keputusan dalam AINS — halaman ${p.mengesahkan.halaman} / ${p.mengesahkan.jumlahHalaman || "…"}`
+              ? p.mengesahkan.jumlahHalaman
+                ? `Mengesahkan keputusan dalam AINS — halaman ${p.mengesahkan.halaman} / ${p.mengesahkan.jumlahHalaman}`
+                : "Mengesahkan keputusan dalam AINS…"
               : `Diproses ${nombor(p.kira.diproses)} / ${nombor(p.kira.jumlah)} · berjaya ${nombor(p.kira.berjaya)} · gagal ${nombor(p.kira.gagal)}`
           }
           peratus={p.kira.jumlah ? Math.round((p.kira.diproses / p.kira.jumlah) * 100) : 0}
@@ -328,6 +332,13 @@ export default function PanelTindakan(p: Props) {
                   <TitikWarna warna="kuning" className="h-2 w-2" />
                   {nombor(dialog.senarai.filter((k) => k.warna === "kuning").length)} rekod &quot;
                   {WARNA_STATUS.kuning.label}&quot; termasuk dalam pilihan ini.
+                </p>
+              ) : null}
+              {dialog.jenis === "lulus" && dialog.senarai.some((k) => k.warna === "merah") ? (
+                <p className="mt-2 flex items-center gap-2 text-sm text-charcoal">
+                  <TitikWarna warna="merah" className="h-2 w-2" />
+                  {nombor(dialog.senarai.filter((k) => k.warna === "merah").length)} rekod &quot;
+                  {WARNA_STATUS.merah.label}&quot; akan diluluskan atas keputusan anda.
                 </p>
               ) : null}
             </header>

@@ -6,7 +6,7 @@
  * dibaca dalam sesi ini. Ubah fail ini = naikkan VERSI_PENANDA. */
 (function utama() {
   "use strict";
-  var VERSI_PENANDA = 8;
+  var VERSI_PENANDA = 9;
   var NEXA = "__NEXA_ORIGIN__";
   /* Mod tetingkap (pilihan, ?mod=tetingkap): jambatan ini + halaman SahPantas (iframe
    * /tools/semak-ains/tetingkap) berjalan dalam tetingkap berasingan berasal AINS, supaya tab AINS
@@ -215,6 +215,16 @@
     if (keadaan.tapisan.kelas) q.set("search_class_name", keadaan.tapisan.kelas);
     return ASAL + "/web/teacher-record-list?" + q.toString();
   }
+  /* Bilangan "Jumlah Rekod Menunggu Pengesahan" pada Papan Pemuka (satu permintaan); null jika gagal. */
+  async function bilanganMenunggu() {
+    try {
+      var doc = await ambilDokumen(ASAL + "/web/teacher-dashboard");
+      var m = (doc.body.textContent || "").replace(/\s+/g, " ").match(/Jumlah Rekod Menunggu Pengesahan\s+([\d,]+)/);
+      return m ? Number(m[1].replace(/,/g, "")) : null;
+    } catch (e) {
+      return null;
+    }
+  }
   var RALAT_SESI = "Sesi AINS tamat atau halaman berubah. Sila log masuk semula dan cuba lagi.";
   async function ambilHalaman(h) {
     var ralatAkhir = null;
@@ -332,6 +342,7 @@
     var dihentikan = false;
     var masihMenunggu = [];
     try {
+      var sebelum = await bilanganMenunggu();
       for (var i = 0; i < item.length; i++) {
         if (giliran !== keadaan.giliran || keadaan.henti || !keadaan.tetingkap || keadaan.tetingkap.closed) break;
         var x = item[i];
@@ -360,20 +371,21 @@
         await tidur(jeda);
       }
       dihentikan = keadaan.henti || ralat !== null || berjaya + gagal < item.length;
+      /* Pengesahan ringan (v9): bandingkan "Jumlah Rekod Menunggu Pengesahan" sebelum & selepas —
+       * dua permintaan, bukan membaca semula semua halaman. Murid boleh menghantar rekod baharu
+       * semasa proses, jadi hanya beri amaran jika bilangan turun kurang separuh daripada yang
+       * dijangka (kegagalan sistematik, cth. AINS menjawab "success" tanpa mengubah rekod). */
       if (giliran === keadaan.giliran && selesai.length && keadaan.tetingkap && !keadaan.tetingkap.closed) {
-        keadaan.henti = false;
-        try {
-          hantar({ jenis: J.mengesahkan, halaman: 0, jumlahHalaman: 0 });
-          var semakan = await bacaSemua(null, function (h, jumlah) {
-            hantar({ jenis: J.mengesahkan, halaman: h, jumlahHalaman: jumlah });
-          });
-          var ada = new Set(semakan.rekod.map(function (r) { return r.id; }));
-          masihMenunggu = selesai.filter(function (id) { return ada.has(id); });
-          if (semakan.gagal.length || semakan.dihentikan) {
-            ralat = (ralat ? ralat + " " : "") + "Pengesahan selepas tindakan tidak lengkap; semak AINS secara manual.";
+        hantar({ jenis: J.mengesahkan, halaman: 0, jumlahHalaman: 0 });
+        var selepas = await bilanganMenunggu();
+        if (sebelum !== null && selepas !== null) {
+          var turun = sebelum - selepas;
+          if (turun < Math.ceil(selesai.length / 2)) {
+            ralat = (ralat ? ralat + " " : "") + "Bilangan rekod menunggu dalam AINS hanya turun " + Math.max(0, turun) +
+              " (dijangka " + selesai.length + "). Tekan Baca semula untuk memastikan.";
           }
-        } catch (e) {
-          ralat = (ralat ? ralat + " " : "") + "Pengesahan selepas tindakan tidak dapat dibuat; semak AINS secara manual.";
+        } else {
+          ralat = (ralat ? ralat + " " : "") + "Pengesahan bilangan dalam AINS tidak dapat dibuat; tekan Baca semula jika perlu.";
         }
       }
     } catch (e) {
