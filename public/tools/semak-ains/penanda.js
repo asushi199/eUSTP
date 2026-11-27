@@ -8,14 +8,14 @@
   "use strict";
   var VERSI_PENANDA = 8;
   var NEXA = "__NEXA_ORIGIN__";
-  /* Mod tetingkap (LALAI sejak v8): jambatan ini + halaman SahPantas (iframe
+  /* Mod tetingkap (pilihan, ?mod=tetingkap): jambatan ini + halaman SahPantas (iframe
    * /tools/semak-ains/tetingkap) berjalan dalam tetingkap berasingan berasal AINS, supaya tab AINS
    * asal boleh dimuat semula/dinavigasi tanpa memutuskan sambungan. Kod ini berjalan dalam 3 peranan:
    *   A. tab AINS, klik penanda  → buka/pulihkan tetingkap + pasang penjaga.
    *   B. DALAM tetingkap         → jambatan (baca/lulus/tolak) + suntik semula penjaga ke tab AINS.
    *   C. JAGA: tab AINS selepas dimuat semula (disuntik oleh B) → penjaga sahaja.
    * Penjaga menulis semula tetingkap jika ia dimuat semula (halamannya about:blank, jadi muat semula
-   * mengosongkannya). MOD "tab" (ButangPenanda ?mod=tab) = cara lama: jambatan dalam tab AINS,
+   * mengosongkannya). MOD "tab" (LALAI semula sejak 2026-11-27; tetingkap = ?mod=tetingkap) = jambatan dalam tab AINS,
    * SahPantas dalam tab baharu — putus apabila tab AINS dimuat semula. */
   var MOD = "__SAHPANTAS_MOD__";
   var ASAL = "https://ains.moe.gov.my";
