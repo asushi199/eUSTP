@@ -37,6 +37,11 @@ const CARDS: AdminCard[] = [
     title: "Tebus Buku",
     description: "Muat naik CSV JPN setiap minggu untuk kemas kini status tebus dan guna.",
   },
+  {
+    href: "/admin/semak-ains",
+    title: "Verix",
+    description: "Penggunaan alat semakan AINS oleh GPM mengikut sekolah (bilangan sahaja).",
+  },
 ];
 
 export default async function AdminPelaporanPage() {

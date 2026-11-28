@@ -20,6 +20,15 @@ const nextConfig = {
       bodySizeLimit: "10mb",
     },
   },
+  async headers() {
+    return [
+      {
+        /* Paparan SahPantas di dalam tetingkap penanda: hanya AINS (dan NEXa sendiri) boleh membingkainya. */
+        source: "/tools/semak-ains/tetingkap",
+        headers: [{ key: "Content-Security-Policy", value: "frame-ancestors 'self' https://ains.moe.gov.my" }],
+      },
+    ];
+  },
   async redirects() {
     return [
       { source: "/osc", destination: "/resources", permanent: true },
@@ -30,6 +39,8 @@ const nextConfig = {
       { source: "/admin/osc/:path*", destination: "/admin/resources", permanent: true },
       { source: "/admin/kandungan", destination: "/admin/resources", permanent: true },
       { source: "/admin/kandungan/:path*", destination: "/admin/resources", permanent: true },
+      /* Pasang penanda kini dalam halaman alat itu sendiri (2026-11-26). */
+      { source: "/tools/semak-ains/pasang", destination: "/tools/semak-ains", permanent: true },
     ];
   },
 };
@@ -40,7 +51,7 @@ const withPWA = withPWAInit({
   skipWaiting: true,
   disable: process.env.NODE_ENV === "development",
   // Slaid utama MJKD (~50 MB, termasuk video) hanya untuk mod pembentangan — jangan precache.
-  publicExcludes: ["!noprecache/**/*", "!mjkd/slaid-utama/**/*"],
+  publicExcludes: ["!noprecache/**/*", "!mjkd/slaid-utama/**/*", "!tools/semak-ains/penanda.js"],
   workboxOptions: {
     disableDevLogs: true,
     runtimeCaching: [

@@ -181,5 +181,19 @@ export function HomeModuleIcon({ iconKey }: { iconKey: IconKey }) {
           <path d="m10 9 6 3.5L10 16z" fill="currentColor" stroke="none" />
         </svg>
       );
+    case "tools":
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" className={iconClass}>
+          <path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z" />
+        </svg>
+      );
+    case "semakAins":
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" className={iconClass}>
+          <rect x="6" y="4" width="12" height="17" rx="2" />
+          <path d="M9 4h6v3H9z" />
+          <path d="m9 13 2 2 4-4" />
+        </svg>
+      );
   }
 }

@@ -9,7 +9,10 @@ GPICT/DELIMa/GPM, Tempahan PKG, Portal Sumber/Analisis/Maklumat Asas). Sumber as
 
 ## Peraturan penting
 
-- **UI 100% Bahasa Melayu.** Komen kod boleh BM atau Inggeris.
+- **UI 100% Bahasa Melayu.** Komen kod boleh BM atau Inggeris. **Pengecualian sah (permintaan
+  pengguna 2026-11-28): alat Verix** (`/tools/semak-ains`) tiga bahasa — BM / 中文 / தமிழ் — melalui
+  kamus `lib/tools/semak-ains/i18n/`. Halaman lain (termasuk kepala halaman & menu di sekeliling
+  alat) kekal BM.
 - **Ejaan CoE:** Centre of Excellence dipaparkan sebagai **`CoE`**, bukan
   `COE`/`coe`. Jangan `text-transform: uppercase` pada teks yang mengandungi
   `CoE` (akan jadi `COE`). Id/slug/fail kekal huruf kecil.
@@ -61,8 +64,8 @@ GPICT/DELIMa/GPM, Tempahan PKG, Portal Sumber/Analisis/Maklumat Asas). Sumber as
   `/analisis` dan modal Analisis halaman utama (`HomeAnalisisBand`, dimuat
   malas via `next/dynamic` — JANGAN import recharts terus dalam halaman utama).
 - **OSC sudah dimansuhkan.** `/osc` dan `/sumber` dihalakan ke `/resources`.
-  Halaman utama papar jalur **CoE Analytics** (bukan kad) + 5 kad
-  `HOME_MODULES` (Reports, Resources, Direktori, Services, Media). Menu
+  Halaman utama papar jalur **CoE Analytics** (bukan kad) + 6 kad
+  `HOME_MODULES` (Reports, Resources, Direktori, Services, Media, Tools). Menu
   desktop di bar sisi; telefon kekal tab bawah + Lagi. `/analisis` kekal
   dalaman (staf).
 - **Program Ains — dasar data tahunan** (jadual `analisis_ains_*`, import via
@@ -129,6 +132,38 @@ GPICT/DELIMa/GPM, Tempahan PKG, Portal Sumber/Analisis/Maklumat Asas). Sumber as
   cop SVG pada `/cetak/kunjung-bantu`. Item dalam `lib/kunjung-bantu/instrumen.ts`; Aspek 2 = peratus d3
   automatik (dibekukan semasa disahkan). Laporan Akhbar/MJKD/Tebus Buku disorok dari CoE Reports
   (2026-11-25) — tambah semula href dalam `LAPORAN_SECTIONS` jika perlu tahun depan.
+- **CoE Tools** `/tools` — hub alat bantuan guru (`TOOLS_SECTIONS` dalam `lib/module-theme.ts`;
+  alat baharu = modul dalam `MODULES` + href dalam senarai). Alat pertama **Verix**
+  (dahulu "SahPantas AINS" / "Semak Rekod AINS"; nama paparan dalam `lib/tools/semak-ains/nama.ts` —
+  laluan, id, jadual, kunci storan & nama dalaman penanda (`sahpantas-tetingkap`, `__sahpantas*`)
+  KEKAL kerana penanda sedia ada bergantung padanya)
+  `/tools/semak-ains`: penanda kendiri `public/tools/semak-ains/penanda.js` dalam tab AINS +
+  enjin peraturan `lib/tools/semak-ains/` dalam pelayar (tiada data murid ke pelayan, tiada AI).
+  **Tiga bahasa:** semua teks UI alat dalam `i18n/ms.ts` (rujukan; `Kamus = typeof ms`), `zh.ts`,
+  `ta.ts` — rentetan baharu MESTI ditambah ke ketiga-tiga fail (tsc menolak kunci tertinggal); guna
+  `useBahasa()` (`components/tools/semak-ains/Bahasa.tsx`), jangan tulis teks BM terus dalam
+  komponen. Bahasa disimpan dalam localStorage `semak-ains:bahasa`; penanda membawa `?bahasa=`
+  (bahasa semasa dipasang) kerana storan dalam tetingkap dipartisi di bawah AINS. Mesej ralat
+  `penanda.js` kekal BM dan diterjemah di UI oleh `terjemahRalatPenanda` — ubah teks itu dalam
+  `penanda.js` = kemas kini `ms.ralatPenanda` (ada ujian). Terjemahan Tamil belum disemak penutur jati.
+  Ubah standard lalai (`standard.ts`) atau peraturan (`peraturan.ts`/`pendua.ts`/`rawak.ts`) = naikkan `VERSI_ENJIN`; ubah `penanda.js` = naikkan
+  `VERSI_PENANDA` (+ `VERSI_PENANDA_MIN` jika tidak serasi). Pemantauan bilangan sahaja
+  `semak_ains_log` → `/admin/semak-ains`. Ujian `npm run test:tools`. Fixture mesti sintetik
+  (jangan komit teks/nama murid sebenar). Semak reka letak semua fasa tanpa AINS di
+  `/dev/semak-ains?fasa=keputusan` (data sintetik, tiada log, dev sahaja). Spesifikasi
+  `docs/superpowers/specs/2026-11-25-semak-rekod-ains-design.md`. Perangkap AINS (ditemui
+  2026-11-26): `updatestatus` mesti guna ID dalaman berangka (`data-key` baris senarai =
+  `#data_id` butiran), BUKAN UUID pautan — AINS menjawab `success` walaupun ID salah, jadi
+  bukti kejayaan hanyalah pengesahan selepas tindakan (baca semula senarai menunggu). Jangan
+  guna `confirm()`/`alert()` dalam penanda semasa tab AINS di latar belakang (Chrome menyekatnya).
+  **Mod tetingkap (lalai sejak penanda v8):** penanda membuka tetingkap `about:blank` berasal AINS
+  yang memuatkan jambatan + iframe `/tools/semak-ains/tetingkap` (di luar kumpulan `(public)`,
+  tiada menu; `frame-ancestors` AINS sahaja dalam `next.config.mjs`), supaya tab AINS boleh dimuat
+  semula tanpa putus. Tetingkap & tab AINS saling memulihkan (penjaga dalam `penanda.js`).
+  `?mod=tab` pada halaman pasang = penanda cara lama. **Penanda "tiada respons langsung"** = profil Chrome moe-dl (terurus) menyekat URL
+  `javascript:` — semua penanda gagal senyap, bukan pepijat kita (disahkan 2026-11-27); penyelesaian: Edge
+  atau profil Chrome tanpa akaun moe-dl; log masuk AINS seperti biasa (akaun AINS tidak terjejas). Aliran ini TIDAK boleh diuji dalam pelayar
+  terbina Claude (pop-up & localhost disekat) — minta pengguna uji dalam Chrome.
 - Petak statistik DPD/PSS halaman utama disorok (`SHOW_LAPORAN_TILES=false`
   dalam `app/(public)/page.tsx`) — pelaporan 2026 masih guna Looker Studio.
 - **MJKD 2026 = satu acara, satu rekod `mjkd_mesyuarat`** (kehadiran, minit +

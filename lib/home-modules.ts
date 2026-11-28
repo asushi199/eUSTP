@@ -8,6 +8,8 @@ export {
   TEMPAHAN_HUB,
   RESOURCES_HUB,
   MEDIA_HUB,
+  TOOLS_HUB,
+  TOOLS_SECTIONS,
 } from "./module-theme";
 
 import {
@@ -16,6 +18,8 @@ import {
   MODULES,
   RESOURCES_HUB,
   TEMPAHAN_SECTIONS,
+  TOOLS_HUB,
+  TOOLS_SECTIONS,
 } from "./module-theme";
 import { ROLE_INFO } from "./direktori/config";
 import {
@@ -134,5 +138,14 @@ export const HOME_MODULES: HomeModuleCard[] = [
       href: item.href,
       external: "external" in item ? item.external : false,
     })),
+  },
+  {
+    href: TOOLS_HUB.href,
+    internalHref: TOOLS_HUB.internalHref,
+    title: TOOLS_HUB.title,
+    accent: TOOLS_HUB.accent,
+    iconKey: TOOLS_HUB.iconKey,
+    cta: "Lihat Tools",
+    items: TOOLS_SECTIONS.map((s) => ({ label: s.title, href: s.href })),
   },
 ];
