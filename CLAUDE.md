@@ -9,7 +9,10 @@ GPICT/DELIMa/GPM, Tempahan PKG, Portal Sumber/Analisis/Maklumat Asas). Sumber as
 
 ## Peraturan penting
 
-- **UI 100% Bahasa Melayu.** Komen kod boleh BM atau Inggeris.
+- **UI 100% Bahasa Melayu.** Komen kod boleh BM atau Inggeris. **Pengecualian sah (permintaan
+  pengguna 2026-11-28): alat Verix** (`/tools/semak-ains`) tiga bahasa — BM / 中文 / தமிழ் — melalui
+  kamus `lib/tools/semak-ains/i18n/`. Halaman lain (termasuk kepala halaman & menu di sekeliling
+  alat) kekal BM.
 - **Ejaan CoE:** Centre of Excellence dipaparkan sebagai **`CoE`**, bukan
   `COE`/`coe`. Jangan `text-transform: uppercase` pada teks yang mengandungi
   `CoE` (akan jadi `COE`). Id/slug/fail kekal huruf kecil.
@@ -123,11 +126,19 @@ GPICT/DELIMa/GPM, Tempahan PKG, Portal Sumber/Analisis/Maklumat Asas). Sumber as
   automatik (dibekukan semasa disahkan). Laporan Akhbar/MJKD/Tebus Buku disorok dari CoE Reports
   (2026-11-25) — tambah semula href dalam `LAPORAN_SECTIONS` jika perlu tahun depan.
 - **CoE Tools** `/tools` — hub alat bantuan guru (`TOOLS_SECTIONS` dalam `lib/module-theme.ts`;
-  alat baharu = modul dalam `MODULES` + href dalam senarai). Alat pertama **SahPantas AINS**
-  (dahulu "Semak Rekod AINS"; nama paparan dalam `lib/tools/semak-ains/nama.ts` — laluan, id,
-  jadual & kunci storan KEKAL `semak-ains` kerana penanda sedia ada membuka laluan itu)
+  alat baharu = modul dalam `MODULES` + href dalam senarai). Alat pertama **Verix**
+  (dahulu "SahPantas AINS" / "Semak Rekod AINS"; nama paparan dalam `lib/tools/semak-ains/nama.ts` —
+  laluan, id, jadual, kunci storan & nama dalaman penanda (`sahpantas-tetingkap`, `__sahpantas*`)
+  KEKAL kerana penanda sedia ada bergantung padanya)
   `/tools/semak-ains`: penanda kendiri `public/tools/semak-ains/penanda.js` dalam tab AINS +
   enjin peraturan `lib/tools/semak-ains/` dalam pelayar (tiada data murid ke pelayan, tiada AI).
+  **Tiga bahasa:** semua teks UI alat dalam `i18n/ms.ts` (rujukan; `Kamus = typeof ms`), `zh.ts`,
+  `ta.ts` — rentetan baharu MESTI ditambah ke ketiga-tiga fail (tsc menolak kunci tertinggal); guna
+  `useBahasa()` (`components/tools/semak-ains/Bahasa.tsx`), jangan tulis teks BM terus dalam
+  komponen. Bahasa disimpan dalam localStorage `semak-ains:bahasa`; penanda membawa `?bahasa=`
+  (bahasa semasa dipasang) kerana storan dalam tetingkap dipartisi di bawah AINS. Mesej ralat
+  `penanda.js` kekal BM dan diterjemah di UI oleh `terjemahRalatPenanda` — ubah teks itu dalam
+  `penanda.js` = kemas kini `ms.ralatPenanda` (ada ujian). Terjemahan Tamil belum disemak penutur jati.
   Ubah standard lalai (`standard.ts`) atau peraturan (`peraturan.ts`/`pendua.ts`/`rawak.ts`) = naikkan `VERSI_ENJIN`; ubah `penanda.js` = naikkan
   `VERSI_PENANDA` (+ `VERSI_PENANDA_MIN` jika tidak serasi). Pemantauan bilangan sahaja
   `semak_ains_log` → `/admin/semak-ains`. Ujian `npm run test:tools`. Fixture mesti sintetik

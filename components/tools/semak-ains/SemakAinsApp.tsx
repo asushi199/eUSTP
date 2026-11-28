@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
 import { janaCsv } from "@/lib/tools/semak-ains/csv";
 import type { KodSebab, Warna } from "@/lib/tools/semak-ains/jenis";
-import { KOMEN_LALAI } from "@/lib/tools/semak-ains/komen";
+import { terjemahRalatPenanda } from "@/lib/tools/semak-ains/i18n";
 import { hantarLog } from "@/lib/tools/semak-ains/log-klien";
 import { NAMA_PENANDA } from "@/lib/tools/semak-ains/nama";
 import { normalTeks } from "@/lib/tools/semak-ains/normal";
@@ -12,6 +12,7 @@ import { ringkaskan, semak } from "@/lib/tools/semak-ains/peraturan";
 import { gabungStandard, tetapanBeza, type Standard, type TetapanGpm } from "@/lib/tools/semak-ains/standard";
 import { bacaTetapan, padamTetapan, simpanTetapan } from "@/lib/tools/semak-ains/storan";
 import { VERSI_ENJIN, VERSI_PENANDA_MIN } from "@/lib/tools/semak-ains/versi";
+import { PemilihBahasa, PenyediaBahasa, useBahasa } from "./Bahasa";
 import DialogTerputus from "./DialogTerputus";
 import LaciTetapan from "./LaciTetapan";
 import PanelTapisan, { labelTapisan } from "./PanelTapisan";
@@ -24,15 +25,44 @@ import { useSambunganAins } from "./useSambunganAins";
 export type Sambungan = ReturnType<typeof useSambunganAins>;
 
 export default function SemakAinsApp() {
+  return (
+    <PenyediaBahasa>
+      <Bersambung />
+    </PenyediaBahasa>
+  );
+}
+
+/* Di dalam penyedia bahasa supaya mesej sambungan (useSambunganAins) mengikut bahasa paparan. */
+function Bersambung() {
   const s = useSambunganAins();
-  return <SemakAinsPaparan s={s} />;
+  return <Paparan s={s} />;
 }
 
 /**
  * Paparan penuh alat (dipisahkan daripada hook sambungan supaya boleh dipratonton
  * dengan data sintetik di /dev/semak-ains). `tanpaLog` = jangan POST log bilangan.
  */
-export function SemakAinsPaparan({ s, tanpaLog = false }: { s: Sambungan; tanpaLog?: boolean }) {
+export function SemakAinsPaparan(p: { s: Sambungan; tanpaLog?: boolean }) {
+  return (
+    <PenyediaBahasa>
+      <Paparan {...p} />
+    </PenyediaBahasa>
+  );
+}
+
+function Paparan(p: { s: Sambungan; tanpaLog?: boolean }) {
+  return (
+    <>
+      <div className="-mb-3 mt-6 flex justify-end">
+        <PemilihBahasa />
+      </div>
+      <Isi {...p} />
+    </>
+  );
+}
+
+function Isi({ s, tanpaLog = false }: { s: Sambungan; tanpaLog?: boolean }) {
+  const { k } = useBahasa();
   const kunci = s.sekolah ? (s.sekolah.kod ?? normalTeks(s.sekolah.nama)) : "umum";
   const [tetapan, setTetapan] = useState<TetapanGpm | null>(null);
   const [bukaTetapan, setBukaTetapan] = useState(false);
@@ -111,7 +141,7 @@ export function SemakAinsPaparan({ s, tanpaLog = false }: { s: Sambungan; tanpaL
 
   const simpan = (baru: Standard) => {
     const komen = Object.fromEntries(
-      Object.entries(baru.komen).filter(([k, v]) => v && v.trim() !== KOMEN_LALAI[k as KodSebab]),
+      Object.entries(baru.komen).filter(([kod, v]) => v && v.trim() !== k.komenLalai[kod as KodSebab]),
     );
     const t = tetapanBeza(gabungStandard(tetapanBeza({ ...baru, komen })));
     simpanTetapan(kunci, t);
@@ -125,21 +155,21 @@ export function SemakAinsPaparan({ s, tanpaLog = false }: { s: Sambungan; tanpaL
   };
 
   const muatCsv = () => {
-    const baris = keputusan.flatMap((k) => {
-      const r = rekodIkutId.get(k.id);
+    const baris = keputusan.flatMap((kp) => {
+      const r = rekodIkutId.get(kp.id);
       if (!r) return [];
-      const st = s.status.get(k.id);
+      const st = s.status.get(kp.id);
       return [
         {
           rekod: r,
-          keputusan: k,
+          keputusan: kp,
           tindakan: st ? (st.tindakan === "approved" ? "lulus" : "tolak") : "",
           hasil: st ? (st.berjaya ? "berjaya" : `gagal: ${st.jawapan ?? ""}`) : "",
           masa: st?.masa ?? "",
         },
       ];
     });
-    const csv = janaCsv(baris, `${VERSI_ENJIN}${diubah ? " (tetapan diubah)" : ""}`);
+    const csv = janaCsv(baris, `${VERSI_ENJIN}${diubah ? ` (${k.app.tetapanDiubahCsv})` : ""}`, k.sebab);
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
     const a = document.createElement("a");
     a.href = url;
@@ -175,7 +205,7 @@ export function SemakAinsPaparan({ s, tanpaLog = false }: { s: Sambungan; tanpaL
   const lihatWarna = (warna: Warna) => keSenarai({ ...PENAPIS_KOSONG, warna });
 
   if (s.fasa === "semak-sambungan") {
-    return <div className="mt-8 h-48 animate-pulse rounded-xl bg-white/70" aria-label="Memuatkan" />;
+    return <div className="mt-8 h-48 animate-pulse rounded-xl bg-white/70" aria-label={k.umum.memuatkan} />;
   }
 
   if (s.fasa === "tiada-penanda") return <Pengenalan />;
@@ -185,18 +215,16 @@ export function SemakAinsPaparan({ s, tanpaLog = false }: { s: Sambungan; tanpaL
       <section className="card mt-8 flex items-center gap-4 p-6 sm:p-8" aria-live="polite">
         <span className="h-8 w-8 shrink-0 animate-spin rounded-full border-2 border-fog border-t-ink" aria-hidden />
         <div>
-          <p className="font-semibold text-ink">Menyambung ke AINS…</p>
-          <p className="mt-0.5 text-sm text-graphite">
-            Jika tiada respons dalam beberapa saat, klik penanda &quot;{NAMA_PENANDA}&quot; sekali lagi dalam tab AINS.
-          </p>
+          <p className="font-semibold text-ink">{k.app.menyambung}</p>
+          <p className="mt-0.5 text-sm text-graphite">{k.app.menyambungNota(NAMA_PENANDA)}</p>
         </div>
       </section>
     );
   }
 
-  const adaPilihan = keputusan.some((k) => dipilih.has(k.id));
+  const adaPilihan = keputusan.some((kp) => dipilih.has(kp.id));
   const kosong = s.fasa === "keputusan" && ringkasan.jumlah === 0;
-  const subtajuk = [s.sekolah?.kod, adaKeputusan || s.fasa === "membaca" ? labelTapisan(s.tapisan) : null]
+  const subtajuk = [s.sekolah?.kod, adaKeputusan || s.fasa === "membaca" ? labelTapisan(s.tapisan, k) : null]
     .filter(Boolean)
     .join(" · ");
 
@@ -204,22 +232,19 @@ export function SemakAinsPaparan({ s, tanpaLog = false }: { s: Sambungan; tanpaL
     <details className="group border-t border-fog px-5 py-3.5 text-sm sm:px-6">
       <summary className="flex cursor-pointer list-none items-start gap-2.5 text-charcoal [&::-webkit-details-marker]:hidden">
         <Ikon nama="info" className="mt-0.5 text-graphite" />
-        <span className="min-w-0 flex-1">
-          <b className="font-semibold text-ink">{muridLuarBiasa.length} murid</b> mempunyai lebih{" "}
-          {standard.ambangMuridLuarBiasa} rekod dalam bacaan ini — semak rawak sebelum lulus pukal.
-        </span>
-        <span className="shrink-0 text-xs font-medium text-graphite group-open:hidden">Lihat</span>
-        <span className="hidden shrink-0 text-xs font-medium text-graphite group-open:inline">Tutup</span>
+        <span className="min-w-0 flex-1">{k.app.luarBiasa(muridLuarBiasa.length, standard.ambangMuridLuarBiasa)}</span>
+        <span className="shrink-0 text-xs font-medium text-graphite group-open:hidden">{k.umum.lihat}</span>
+        <span className="hidden shrink-0 text-xs font-medium text-graphite group-open:inline">{k.umum.tutup}</span>
       </summary>
       <div className="mt-3 flex flex-wrap gap-2 pl-6">
-        {muridLuarBiasa.map(([k, n]) => {
-          const [nama = "", kelas = ""] = k.split("|");
+        {muridLuarBiasa.map(([kunciMurid, n]) => {
+          const [nama = "", kelas = ""] = kunciMurid.split("|");
           return (
             <button
-              key={k}
+              key={kunciMurid}
               type="button"
               className="status-badge hover:border-steel"
-              title="Tapis senarai kepada murid ini"
+              title={k.app.tapisMurid}
               onClick={() => keSenarai({ ...PENAPIS_KOSONG, cari: nama })}
             >
               {nama} · {kelas}
@@ -239,7 +264,7 @@ export function SemakAinsPaparan({ s, tanpaLog = false }: { s: Sambungan; tanpaL
             <Ikon nama="sekolah" className="h-5 w-5" />
           </span>
           <div className="min-w-0">
-            <p className="truncate font-semibold text-ink">{s.sekolah?.nama ?? "Sekolah"}</p>
+            <p className="truncate font-semibold text-ink">{s.sekolah?.nama ?? k.umum.sekolah}</p>
             {subtajuk ? <p className="text-xs text-graphite">{subtajuk}</p> : null}
           </div>
         </div>
@@ -248,18 +273,18 @@ export function SemakAinsPaparan({ s, tanpaLog = false }: { s: Sambungan; tanpaL
             <>
               <button type="button" className="btn-outline-ink btn-sm" disabled={melaksana} onClick={s.tukarTapisan}>
                 <Ikon nama="tukar" />
-                Tukar tahun / kelas
+                {k.app.tukar}
               </button>
               <button type="button" className="btn-outline-ink btn-sm" disabled={melaksana || terputus} onClick={s.bacaSemula}>
                 <Ikon nama="ulang" />
-                Baca semula
+                {k.app.bacaSemula}
               </button>
               <button
                 type="button"
                 className="btn-outline-ink btn-sm"
                 disabled={melaksana || keputusan.length === 0}
                 onClick={muatCsv}
-                title="Muat turun keputusan sebagai CSV (disimpan pada komputer ini sahaja)"
+                title={k.app.csvPetua}
               >
                 <Ikon nama="muat" />
                 CSV
@@ -268,10 +293,10 @@ export function SemakAinsPaparan({ s, tanpaLog = false }: { s: Sambungan; tanpaL
           ) : null}
           <button type="button" className="btn-outline-ink btn-sm" onClick={() => setBukaTetapan(true)}>
             <Ikon nama="tetapan" />
-            Tetapan
+            {k.app.tetapan}
             {diubah ? (
               <span className="rounded-full bg-ink px-1.5 py-px text-[10px] font-semibold normal-case tracking-normal text-white">
-                diubah
+                {k.app.diubah}
               </span>
             ) : null}
           </button>
@@ -279,21 +304,17 @@ export function SemakAinsPaparan({ s, tanpaLog = false }: { s: Sambungan; tanpaL
       </section>
 
       {terputus ? (
-        <Notis tajuk="Sambungan dengan tab AINS terputus">
-          Tab AINS telah dimuat semula, bertukar halaman atau ditutup. Buka Papan Pemuka AINS dan klik penanda{" "}
-          <b className="font-semibold text-ink">{NAMA_PENANDA}</b> sekali lagi — rekod akan dibaca semula secara
-          automatik. Jika tab {NAMA_PENANDA} baharu dibuka, tutup tab ini.
-        </Notis>
+        <Notis tajuk={k.app.terputusTajuk}>{k.app.terputusIsi(NAMA_PENANDA)}</Notis>
       ) : null}
 
       {penandaLama ? (
-        <Notis tajuk="Penanda anda versi lama — lulus/tolak tidak dapat dijalankan">
-          Padam penanda {NAMA_PENANDA} lama daripada bar penanda, kemudian{" "}
+        <Notis tajuk={k.app.lamaTajuk}>
+          {k.app.lamaSebelum(NAMA_PENANDA)}
           {/* Tab baharu tanpa opener → paparan pasang penanda; sambungan tab ini kekal. */}
           <a href="/tools/semak-ains" target="_blank" rel="noopener" className="font-medium text-ink underline">
-            pasang semula
-          </a>{" "}
-          dan klik penanda baharu dalam tab AINS. Senarai di bawah masih boleh dilihat.
+            {k.app.lamaPautan}
+          </a>
+          {k.app.lamaSelepas}
         </Notis>
       ) : null}
 
@@ -308,23 +329,26 @@ export function SemakAinsPaparan({ s, tanpaLog = false }: { s: Sambungan; tanpaL
 
       {s.fasa === "membaca" ? (
         <KadKemajuan
-          tajuk="Membaca rekod daripada AINS…"
-          keterangan={`Halaman ${s.bacaan.halaman.toLocaleString("ms-MY")} / ${
-            s.bacaan.jumlahHalaman ? s.bacaan.jumlahHalaman.toLocaleString("ms-MY") : "?"
-          } · ${s.rekod.length.toLocaleString("ms-MY")} rekod diterima`}
+          tajuk={k.app.membaca}
+          keterangan={k.app.membacaKeterangan(
+            s.bacaan.halaman.toLocaleString("ms-MY"),
+            s.bacaan.jumlahHalaman ? s.bacaan.jumlahHalaman.toLocaleString("ms-MY") : "?",
+            s.rekod.length.toLocaleString("ms-MY"),
+          )}
           peratus={s.bacaan.jumlahHalaman ? Math.round((s.bacaan.halaman / s.bacaan.jumlahHalaman) * 100) : null}
-          nota="Jangan tutup atau muat semula tetingkap ini sehingga bacaan selesai."
+          nota={k.app.janganTutupBaca}
+          labelHenti={k.umum.henti}
           onHenti={s.henti}
         />
       ) : null}
 
       {adaKeputusan ? (
         <>
-          {s.ralatSambungan && !terputus ? <Notis tajuk="Sambungan dengan tab AINS terputus">{s.ralatSambungan}</Notis> : null}
-          {s.ralat ? <Notis tajuk="Bacaan tidak lengkap">{s.ralat}</Notis> : null}
+          {s.ralatSambungan && !terputus ? <Notis tajuk={k.app.terputusTajuk}>{s.ralatSambungan}</Notis> : null}
+          {s.ralat ? <Notis tajuk={k.app.bacaanTakLengkap}>{terjemahRalatPenanda(s.ralat, k)}</Notis> : null}
           {s.halamanGagal.length ? (
-            <Notis tajuk={`${s.halamanGagal.length} halaman tidak dapat dibaca`}>
-              Halaman {s.halamanGagal.join(", ")}. Rekod pada halaman ini tidak disemak — baca semula untuk mencuba lagi.
+            <Notis tajuk={k.app.halamanGagalTajuk(s.halamanGagal.length)}>
+              {k.app.halamanGagalIsi(s.halamanGagal.join(", "))}
             </Notis>
           ) : null}
 
@@ -333,14 +357,14 @@ export function SemakAinsPaparan({ s, tanpaLog = false }: { s: Sambungan; tanpaL
               <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-cloud text-ink">
                 <Ikon nama="betul" className="h-6 w-6" />
               </span>
-              <p className="mt-4 text-lg font-semibold text-ink">Tiada rekod menunggu pengesahan</p>
+              <p className="mt-4 text-lg font-semibold text-ink">{k.app.kosongTajuk}</p>
               <p className="mt-1 text-sm text-graphite">
                 {s.tapisan.tahun || s.tapisan.kelas
-                  ? `Tapisan: ${labelTapisan(s.tapisan)}. Pilih tahun atau kelas lain, atau baca semua tahap.`
-                  : "Tiada rekod bacaan yang menunggu pengesahan di sekolah ini buat masa ini."}
+                  ? k.app.kosongTapisan(labelTapisan(s.tapisan, k))
+                  : k.app.kosongSemua}
               </p>
               <button type="button" className="btn-outline-ink mt-6" onClick={s.tukarTapisan}>
-                Tukar tahun / kelas
+                {k.app.tukar}
               </button>
             </section>
           ) : (
@@ -352,7 +376,7 @@ export function SemakAinsPaparan({ s, tanpaLog = false }: { s: Sambungan; tanpaL
                 status={s.status}
                 dipilih={dipilih}
                 standard={standard}
-                labelTapisan={labelTapisan(s.tapisan)}
+                labelTapisan={labelTapisan(s.tapisan, k)}
                 melaksana={melaksana}
                 kira={s.kira}
                 mengesahkan={s.mengesahkan}
@@ -360,7 +384,7 @@ export function SemakAinsPaparan({ s, tanpaLog = false }: { s: Sambungan; tanpaL
                 dilarang={penandaLama || terputus}
                 notaDilarang={
                   terputus && !penandaLama
-                    ? `Tindakan dimatikan sehingga penanda ${NAMA_PENANDA} diklik semula dalam tab AINS.`
+                    ? k.app.dimatikan(NAMA_PENANDA)
                     : undefined
                 }
                 kaki={kakiMurid}

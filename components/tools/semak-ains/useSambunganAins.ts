@@ -13,6 +13,7 @@ import {
 import { NAMA_PENANDA } from "@/lib/tools/semak-ains/nama";
 import { bacaSesi, simpanSesi } from "@/lib/tools/semak-ains/storan";
 import { VERSI_ENJIN } from "@/lib/tools/semak-ains/versi";
+import { useBahasa } from "./Bahasa";
 
 export type Fasa =
   | "semak-sambungan"
@@ -63,6 +64,10 @@ function rakanAins(): Window | null {
 
 /** Sambungan postMessage dengan penanda (lihat rakanAins). */
 export function useSambunganAins() {
+  /* Mesej sambungan mengikut bahasa paparan semasa (ref: kesan di bawah tidak perlu dipasang semula). */
+  const { k: kamus } = useBahasa();
+  const kamusRef = useRef(kamus);
+  kamusRef.current = kamus;
   const [fasa, setFasa] = useState<Fasa>("semak-sambungan");
   const [sekolah, setSekolah] = useState<InfoSekolah | null>(null);
   const [rekod, setRekod] = useState<RekodAins[]>([]);
@@ -168,7 +173,7 @@ export function useSambunganAins() {
                 baru.set(id, {
                   tindakan: tindakanSemasa.current,
                   berjaya: false,
-                  jawapan: "Masih menunggu dalam AINS — baca semula",
+                  jawapan: kamusRef.current.sambungan.masihMenunggu,
                   masa: new Date().toISOString(),
                   perluBacaSemula: true,
                 });
@@ -209,7 +214,7 @@ export function useSambunganAins() {
     const id = window.setInterval(() => {
       const rakan = rakanAins();
       if (!rakan || rakan.closed) {
-        setRalatSambungan("Tab AINS telah ditutup. Buka semula AINS, klik penanda dan baca semula.");
+        setRalatSambungan(kamusRef.current.sambungan.tabDitutup);
         setFasa("keputusan");
       }
     }, 2000);
@@ -258,12 +263,12 @@ export function useSambunganAins() {
       if (!adaRespons.current && senyap > HAD_RESPONS_PERTAMA_MS) {
         /* Tab AINS dimuat semula/dinavigasi = penanda hilang; window.opener masih wujud jadi
          * pengawas "closed" tidak mengesannya. */
-        mesej = `Tab AINS tidak memberi respons — mungkin dimuat semula atau ditutup. Klik penanda ${NAMA_PENANDA} sekali lagi dalam tab AINS.`;
-        if (fasa === "melaksana") mesej += " Semak status rekod dalam AINS sebelum mencuba semula.";
+        mesej = kamusRef.current.sambungan.tiadaRespons(NAMA_PENANDA);
+        if (fasa === "melaksana") mesej += kamusRef.current.sambungan.semakDahulu;
       } else if (fasa === "membaca" && senyap > HAD_BACA_MS) {
-        mesej = "Tiada respons daripada tab AINS. Klik penanda sekali lagi dalam tab AINS, kemudian baca semula.";
+        mesej = kamusRef.current.sambungan.tiadaResponsBaca;
       } else if (fasa === "melaksana" && senyap > HAD_LAKSANA_MS) {
-        mesej = "Tiada respons daripada tab AINS semasa tindakan. Semak AINS secara manual.";
+        mesej = kamusRef.current.sambungan.tiadaResponsLaksana;
       }
       if (mesej) {
         setRalatSambungan(mesej);

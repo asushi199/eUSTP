@@ -3,23 +3,15 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 import type { Jalur, KodSebab, Ukuran, Warna } from "@/lib/tools/semak-ains/jenis";
-import { KOMEN_LALAI, LABEL_SEBAB } from "@/lib/tools/semak-ains/komen";
 import type { Ambang, ModPeraturan, Standard } from "@/lib/tools/semak-ains/standard";
+import { useBahasa } from "./Bahasa";
 import { Ikon, TitikWarna } from "./Ui";
 
-const JALUR: { kod: Jalur; label: string }[] = [
-  { kod: "D1-2", label: "Tahun 1–2" },
-  { kod: "D3-4", label: "Tahun 3–4" },
-  { kod: "D5-6", label: "Tahun 5–6" },
-  { kod: "M", label: "Menengah / Peralihan" },
-];
-const UKURAN: { kod: Ukuran; label: string }[] = [
-  { kod: "kata", label: "BM / BI / Tamil (perkataan)" },
-  { kod: "zh", label: "Cina (aksara)" },
-];
-const MEDAN: { kod: keyof Ambang; label: string; warna: Warna }[] = [
-  { kod: "merah", label: "Cadang tolak jika <", warna: "merah" },
-  { kod: "kuning", label: "Perlu semak jika <", warna: "kuning" },
+const JALUR: Jalur[] = ["D1-2", "D3-4", "D5-6", "M"];
+const UKURAN: Ukuran[] = ["kata", "zh"];
+const MEDAN: { kod: keyof Ambang; warna: Warna }[] = [
+  { kod: "merah", warna: "merah" },
+  { kod: "kuning", warna: "kuning" },
 ];
 const KOMEN_MERAH: KodSebab[] = [
   "ruangan-kosong",
@@ -39,17 +31,9 @@ const KOMEN_KUNING: KodSebab[] = [
   "tiada-unsur-pengajaran",
   "bahasa-bercampur",
 ];
-const MOD_LABEL: Record<ModPeraturan, string> = {
-  merah: "Cadang tolak (merah)",
-  kuning: "Perlu semak (kuning)",
-  abai: "Benarkan",
-};
-const TAB = [
-  { kod: "panjang", label: "Panjang teks" },
-  { kod: "peraturan", label: "Peraturan" },
-  { kod: "komen", label: "Komen penolakan" },
-] as const;
-type KodTab = (typeof TAB)[number]["kod"];
+const MOD: ModPeraturan[] = ["merah", "kuning", "abai"];
+const TAB = ["panjang", "peraturan", "komen"] as const;
+type KodTab = (typeof TAB)[number];
 
 type Props = {
   standard: Standard;
@@ -82,6 +66,8 @@ function Kumpulan({ tajuk, children }: { tajuk: string; children: ReactNode }) {
 }
 
 export default function LaciTetapan({ standard, diubah, onSimpan, onReset, onTutup }: Props) {
+  const { k: kamus } = useBahasa();
+  const T = kamus.tetapan;
   const [s, setS] = useState<Standard>(() => structuredClone(standard));
   const [tab, setTab] = useState<KodTab>("panjang");
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -115,9 +101,9 @@ export default function LaciTetapan({ standard, diubah, onSimpan, onReset, onTut
     });
   const pilihMod = (nilai: ModPeraturan, ubah: (m: ModPeraturan) => void) => (
     <select className="input h-10 px-3 text-sm" value={nilai} onChange={(e) => ubah(e.target.value as ModPeraturan)}>
-      {(Object.keys(MOD_LABEL) as ModPeraturan[]).map((m) => (
+      {MOD.map((m) => (
         <option key={m} value={m}>
-          {MOD_LABEL[m]}
+          {T.mod[m]}
         </option>
       ))}
     </select>
@@ -135,38 +121,35 @@ export default function LaciTetapan({ standard, diubah, onSimpan, onReset, onTut
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               <h2 id={tajukId} className="text-lg font-semibold text-ink">
-                Tetapan semakan
+                {T.tajuk}
               </h2>
-              <p className="mt-1 text-sm text-graphite">
-                Disimpan dalam pelayar ini sahaja. Perbezaan daripada standard daerah dilaporkan kepada USTP (nilai
-                tetapan sahaja, tiada data murid).
-              </p>
+              <p className="mt-1 text-sm text-graphite">{T.huraian}</p>
             </div>
             <button
               type="button"
               className="grid h-9 w-9 shrink-0 place-items-center rounded-md text-graphite hover:bg-cloud hover:text-ink"
-              aria-label="Tutup"
+              aria-label={kamus.umum.tutup}
               onClick={onTutup}
             >
               <Ikon nama="tutup" />
             </button>
           </div>
-          <div className="-mb-px mt-4 flex gap-1 overflow-x-auto" role="tablist" aria-label="Bahagian tetapan">
-            {TAB.map((t) => (
+          <div className="-mb-px mt-4 flex gap-1 overflow-x-auto" role="tablist" aria-label={T.bahagian}>
+            {TAB.map((kod) => (
               <button
-                key={t.kod}
+                key={kod}
                 type="button"
                 role="tab"
-                id={`${tajukId}-${t.kod}`}
-                aria-selected={tab === t.kod}
+                id={`${tajukId}-${kod}`}
+                aria-selected={tab === kod}
                 aria-controls={`${tajukId}-panel`}
                 className={cn(
                   "whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-medium transition",
-                  tab === t.kod ? "border-ink text-ink" : "border-transparent text-graphite hover:text-ink",
+                  tab === kod ? "border-ink text-ink" : "border-transparent text-graphite hover:text-ink",
                 )}
-                onClick={() => setTab(t.kod)}
+                onClick={() => setTab(kod)}
               >
-                {t.label}
+                {T.tab[kod]}
               </button>
             ))}
           </div>
@@ -180,22 +163,20 @@ export default function LaciTetapan({ standard, diubah, onSimpan, onReset, onTut
         >
           {tab === "panjang" ? (
             <>
-              <p className="text-sm leading-relaxed text-graphite">
-                Jumlah panjang minimum Rumusan + Pengajaran mengikut tahap murid. Tiada had maksimum.
-              </p>
+              <p className="text-sm leading-relaxed text-graphite">{T.panjangHuraian}</p>
               {UKURAN.map((u) => (
-                <fieldset key={u.kod} className="mt-5">
-                  <legend className="text-sm font-semibold text-ink">{u.label}</legend>
+                <fieldset key={u} className="mt-5">
+                  <legend className="text-sm font-semibold text-ink">{T.ukuran[u]}</legend>
                   <div className="mt-2 overflow-x-auto rounded-lg border border-fog">
                     <table className="w-full text-sm">
                       <thead className="bg-cloud text-left text-xs text-graphite">
                         <tr>
-                          <th className="px-3 py-2 font-medium">Tahap</th>
+                          <th className="px-3 py-2 font-medium">{T.lajurTahap}</th>
                           {MEDAN.map((m) => (
                             <th key={m.kod} className="px-3 py-2 font-medium">
                               <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
                                 <TitikWarna warna={m.warna} className="h-2 w-2" />
-                                {m.label}
+                                {m.kod === "merah" ? T.tolakJika : T.semakJika}
                               </span>
                             </th>
                           ))}
@@ -203,17 +184,17 @@ export default function LaciTetapan({ standard, diubah, onSimpan, onReset, onTut
                       </thead>
                       <tbody className="divide-y divide-fog">
                         {JALUR.map((j) => (
-                          <tr key={j.kod}>
-                            <td className="whitespace-nowrap px-3 py-2 text-charcoal">{j.label}</td>
+                          <tr key={j}>
+                            <td className="whitespace-nowrap px-3 py-2 text-charcoal">{T.jalur[j]}</td>
                             {MEDAN.map((m) => (
                               <td key={m.kod} className="px-3 py-1.5">
                                 <input
                                   type="number"
                                   min={0}
                                   className="input h-9 w-24 px-2 text-center text-sm tabular-nums"
-                                  aria-label={`${u.label}, ${j.label}: ${m.label}`}
-                                  value={s.ambang[u.kod][j.kod][m.kod]}
-                                  onChange={(e) => setAmbang(u.kod, j.kod, m.kod, Number(e.target.value))}
+                                  aria-label={`${T.ukuran[u]}, ${T.jalur[j]}: ${m.kod === "merah" ? T.tolakJika : T.semakJika}`}
+                                  value={s.ambang[u][j][m.kod]}
+                                  onChange={(e) => setAmbang(u, j, m.kod, Number(e.target.value))}
                                 />
                               </td>
                             ))}
@@ -225,8 +206,8 @@ export default function LaciTetapan({ standard, diubah, onSimpan, onReset, onTut
                 </fieldset>
               ))}
               <div className="mt-6">
-                <Kumpulan tajuk="Minimum setiap ruangan">
-                  <Baris tajuk="Perkataan" nota="Rumusan atau Pengajaran lebih pendek = tidak lengkap (cadang tolak).">
+                <Kumpulan tajuk={T.minRuangan}>
+                  <Baris tajuk={T.minPerkataan} nota={T.minPerkataanNota}>
                     <input
                       type="number"
                       min={0}
@@ -235,7 +216,7 @@ export default function LaciTetapan({ standard, diubah, onSimpan, onReset, onTut
                       onChange={(e) => setS({ ...s, minRuangan: { ...s.minRuangan, kata: Number(e.target.value) } })}
                     />
                   </Baris>
-                  <Baris tajuk="Aksara Cina">
+                  <Baris tajuk={T.minAksara}>
                     <input
                       type="number"
                       min={0}
@@ -251,29 +232,29 @@ export default function LaciTetapan({ standard, diubah, onSimpan, onReset, onTut
 
           {tab === "peraturan" ? (
             <>
-              <Kumpulan tajuk="Pendua">
-                <Baris tajuk="Hantar semula teks sama" nota="Buku sama, teks tidak dipinda.">
+              <Kumpulan tajuk={T.kumpPendua}>
+                <Baris tajuk={T.hantarSemula} nota={T.hantarSemulaNota}>
                   {pilihMod(s.hantarSemulaSama, (m) => setS({ ...s, hantarSemulaSama: m }))}
                 </Baris>
-                <Baris tajuk="Buku sama direkod semula" nota="Teks berbeza.">
+                <Baris tajuk={T.bukuSama} nota={T.bukuSamaNota}>
                   {pilihMod(s.bukuSamaBerulang, (m) => setS({ ...s, bukuSamaBerulang: m }))}
                 </Baris>
-                <Baris tajuk="Teks sama rakan sekelas" nota="Buku & hari sama — biasanya aktiviti kelas.">
+                <Baris tajuk={T.rakanSekelas} nota={T.rakanSekelasNota}>
                   <select
                     className="input h-10 px-3 text-sm"
                     value={s.aktivitiKelas}
                     onChange={(e) => setS({ ...s, aktivitiKelas: e.target.value as "benar" | "kuning" })}
                   >
-                    <option value="benar">Benarkan (aktiviti kelas)</option>
-                    <option value="kuning">Perlu semak (kuning)</option>
+                    <option value="benar">{T.benarAktiviti}</option>
+                    <option value="kuning">{T.mod.kuning}</option>
                   </select>
                 </Baris>
               </Kumpulan>
-              <Kumpulan tajuk="Bahasa & kandungan">
-                <Baris tajuk="Bahasa bercampur" nota="Rumusan dan Pengajaran dalam bahasa berbeza.">
+              <Kumpulan tajuk={T.kumpBahasa}>
+                <Baris tajuk={T.bercampur} nota={T.bercampurNota}>
                   {pilihMod(s.bahasaBercampur, (m) => setS({ ...s, bahasaBercampur: m }))}
                 </Baris>
-                <Baris tajuk="Bahasa tidak sepadan" nota="Tajuk Cina/Tamil tetapi rumusan dalam bahasa lain → cadang tolak.">
+                <Baris tajuk={T.takSepadan} nota={T.takSepadanNota}>
                   <span className="flex sm:justify-end">
                     <input
                       type="checkbox"
@@ -283,7 +264,7 @@ export default function LaciTetapan({ standard, diubah, onSimpan, onReset, onTut
                     />
                   </span>
                 </Baris>
-                <Baris tajuk="Tiada unsur pengajaran" nota="Pengajaran tidak menyatakan nilai/pengajaran → perlu semak.">
+                <Baris tajuk={T.tiadaUnsur} nota={T.tiadaUnsurNota}>
                   <span className="flex sm:justify-end">
                     <input
                       type="checkbox"
@@ -294,8 +275,8 @@ export default function LaciTetapan({ standard, diubah, onSimpan, onReset, onTut
                   </span>
                 </Baris>
               </Kumpulan>
-              <Kumpulan tajuk="Lain-lain">
-                <Baris tajuk="Ambang murid luar biasa" nota="Bilangan rekod seorang murid dalam satu bacaan.">
+              <Kumpulan tajuk={T.kumpLain}>
+                <Baris tajuk={T.ambangMurid} nota={T.ambangMuridNota}>
                   <input
                     type="number"
                     min={1}
@@ -304,7 +285,7 @@ export default function LaciTetapan({ standard, diubah, onSimpan, onReset, onTut
                     onChange={(e) => setS({ ...s, ambangMuridLuarBiasa: Number(e.target.value) })}
                   />
                 </Baris>
-                <Baris tajuk="Jeda antara tindakan (ms)" nota="300–2000 ms. Lebih perlahan = lebih selamat untuk pelayan AINS.">
+                <Baris tajuk={T.jeda} nota={T.jedaNota}>
                   <input
                     type="number"
                     min={300}
@@ -320,13 +301,10 @@ export default function LaciTetapan({ standard, diubah, onSimpan, onReset, onTut
 
           {tab === "komen" ? (
             <>
-              <p className="text-sm leading-relaxed text-graphite">
-                Komen dihantar kepada murid apabila rekod ditolak, mengikut sebab. Boleh disunting lagi sebelum setiap
-                penolakan.
-              </p>
+              <p className="text-sm leading-relaxed text-graphite">{T.komenHuraian}</p>
               {[
-                { tajuk: "Sebab cadang tolak", warna: "merah" as const, senarai: KOMEN_MERAH },
-                { tajuk: "Sebab perlu semak", warna: "kuning" as const, senarai: KOMEN_KUNING },
+                { tajuk: T.sebabMerah, warna: "merah" as const, senarai: KOMEN_MERAH },
+                { tajuk: T.sebabKuning, warna: "kuning" as const, senarai: KOMEN_KUNING },
               ].map((kumpulan) => (
                 <section key={kumpulan.tajuk} className="mt-6">
                   <h3 className="flex items-center gap-2 text-sm font-semibold text-ink">
@@ -336,11 +314,11 @@ export default function LaciTetapan({ standard, diubah, onSimpan, onReset, onTut
                   <div className="mt-3 space-y-4">
                     {kumpulan.senarai.map((k) => (
                       <label key={k} className="block">
-                        <span className="label">{LABEL_SEBAB[k]}</span>
+                        <span className="label">{kamus.sebab[k]}</span>
                         <textarea
                           className="textarea mt-1 text-sm"
                           rows={2}
-                          value={s.komen[k] ?? KOMEN_LALAI[k]}
+                          value={s.komen[k] ?? kamus.komenLalai[k]}
                           onChange={(e) => setS({ ...s, komen: { ...s.komen, [k]: e.target.value } })}
                         />
                       </label>
@@ -354,14 +332,14 @@ export default function LaciTetapan({ standard, diubah, onSimpan, onReset, onTut
 
         <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-fog bg-cloud/50 px-6 py-4">
           <button type="button" className="btn-outline-ink btn-sm" disabled={!diubah} onClick={onReset}>
-            Kembali ke standard daerah
+            {T.reset}
           </button>
           <div className="flex gap-2">
             <button ref={batalRef} type="button" className="btn-outline-ink btn-sm" onClick={onTutup}>
-              Batal
+              {kamus.umum.batal}
             </button>
             <button type="button" className="btn-ink btn-sm" onClick={() => onSimpan(s)}>
-              Simpan
+              {kamus.umum.simpan}
             </button>
           </div>
         </footer>

@@ -83,6 +83,7 @@ export function KadKemajuan({
   keterangan,
   peratus,
   nota,
+  labelHenti = "Henti",
   onHenti,
 }: {
   tajuk: string;
@@ -90,6 +91,8 @@ export function KadKemajuan({
   /** null = belum diketahui (bar berdenyut). */
   peratus: number | null;
   nota: string;
+  /** Teks butang henti mengikut bahasa paparan. */
+  labelHenti?: string;
   /** Tiada = butang Henti disembunyikan (cth. semasa menunggu pengesahan dalam tab AINS). */
   onHenti?: () => void;
 }) {
@@ -121,7 +124,7 @@ export function KadKemajuan({
         <p className="text-xs text-graphite">{nota}</p>
         {onHenti ? (
           <button type="button" className="btn-outline-ink btn-sm" onClick={onHenti}>
-            Henti
+            {labelHenti}
           </button>
         ) : null}
       </div>

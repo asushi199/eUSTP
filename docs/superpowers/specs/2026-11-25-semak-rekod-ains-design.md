@@ -5,6 +5,10 @@
 - **Modul:** CoE Tools (hub baharu; alat pertama untuk GPM)
 - **Laluan:** `/tools` (hub) · `/tools/semak-ains` (awam) · `/tools/semak-ains/pasang` · `/admin/semak-ains`
 
+> **Pindaan 2026-11-28:** alat dinamakan semula **Verix** (dahulu SahPantas AINS / Semak Rekod AINS) dan
+> menyokong tiga bahasa paparan (BM / 中文 / தமிழ்) melalui kamus `lib/tools/semak-ains/i18n/`; penanda v10
+> membawa bahasa semasa dipasang (`?bahasa=`). Nama lama dalam dokumen ini merujuk alat yang sama.
+
 ## 1. Ringkasan
 
 Alat untuk Guru Perpustakaan dan Media (GPM) menyemak rekod bacaan murid yang

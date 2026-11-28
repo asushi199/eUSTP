@@ -39,7 +39,7 @@ const CARDS: AdminCard[] = [
   },
   {
     href: "/admin/semak-ains",
-    title: "SahPantas AINS",
+    title: "Verix",
     description: "Penggunaan alat semakan AINS oleh GPM mengikut sekolah (bilangan sahaja).",
   },
 ];

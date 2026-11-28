@@ -1,4 +1,4 @@
-import type { Keputusan, RekodAins } from "./jenis";
+import type { Keputusan, KodSebab, RekodAins } from "./jenis";
 import { LABEL_SEBAB } from "./komen";
 
 export type BarisCsv = {
@@ -16,7 +16,12 @@ function sel(v: string): string {
 }
 
 /** CSV UTF-8 dengan BOM (untuk Excel) — disimpan pada komputer GPM sahaja. */
-export function janaCsv(baris: BarisCsv[], versi: string): string {
+export function janaCsv(
+  baris: BarisCsv[],
+  versi: string,
+  /** Label sebab mengikut bahasa paparan (lalai BM). Kepala lajur kekal BM. */
+  labelSebab: Record<KodSebab, string> = LABEL_SEBAB,
+): string {
   const kepala = ["id", "murid", "kelas", "tajuk", "warna", "sebab", "tindakan", "hasil", "masa", "versi_standard"];
   const isi = baris.map((b) =>
     [
@@ -25,7 +30,7 @@ export function janaCsv(baris: BarisCsv[], versi: string): string {
       b.rekod.kelas,
       b.rekod.tajuk,
       b.keputusan.warna,
-      [...b.keputusan.merah, ...b.keputusan.kuning].map((k) => LABEL_SEBAB[k]).join(" | "),
+      [...b.keputusan.merah, ...b.keputusan.kuning].map((k) => labelSebab[k]).join(" | "),
       b.tindakan,
       b.hasil,
       b.masa,

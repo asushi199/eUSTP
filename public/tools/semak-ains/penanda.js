@@ -1,13 +1,39 @@
 /* eslint-disable */
-/* SahPantas AINS — penanda (bookmarklet).
+/* Verix (dahulu SahPantas AINS) — penanda (bookmarklet).
  * Fail ini dijana menjadi pautan javascript: oleh /tools/semak-ains (ButangPenanda)
  * (__NEXA_ORIGIN__ diganti dengan asal NEXa). Kendiri: tidak memuat skrip luar.
  * Hanya menerima arahan daripada __NEXA_ORIGIN__ dan hanya untuk ID rekod yang
  * dibaca dalam sesi ini. Ubah fail ini = naikkan VERSI_PENANDA. */
 (function utama() {
   "use strict";
-  var VERSI_PENANDA = 9;
+  var VERSI_PENANDA = 10;
   var NEXA = "__NEXA_ORIGIN__";
+  /* Bahasa paparan semasa penanda dipasang (ms / zh / ta; diganti oleh ButangPenanda). Menentukan
+   * bahasa mesej amaran di bawah dan dibawa ke alat sebagai ?bahasa= (storan NEXa dalam tetingkap
+   * dipartisi di bawah AINS, jadi pilihan pada halaman pasang tidak kelihatan di sana). */
+  var BAHASA = "__VERIX_BAHASA__";
+  var TEKS = {
+    ms: {
+      bukanAins: "Verix: sila klik penanda ini semasa berada di laman AINS (ains.moe.gov.my) selepas log masuk sebagai guru.",
+      bukanPortal: "Verix: sila buka Papan Pemuka guru AINS (Portal Guru) dahulu, kemudian klik penanda ini sekali lagi.",
+      popup: "Verix: tetingkap baharu disekat. Sila benarkan pop-up untuk ains.moe.gov.my dan cuba lagi.",
+      takSedia: "Verix: tetingkap Verix tidak dapat disediakan. Tutup tetingkap itu, kemudian klik penanda ini sekali lagi."
+    },
+    zh: {
+      bukanAins: "Verix：请在以教师身份登录 AINS（ains.moe.gov.my）之后，在 AINS 页面上点击这个书签。",
+      bukanPortal: "Verix：请先打开 AINS 教师的 Papan Pemuka（Portal Guru），然后再点击一次这个书签。",
+      popup: "Verix：新窗口被拦截。请允许 ains.moe.gov.my 的弹出窗口，然后再试一次。",
+      takSedia: "Verix：无法准备 Verix 窗口。请关闭该窗口，然后再点击一次这个书签。"
+    },
+    ta: {
+      bukanAins: "Verix: ஆசிரியராக உள்நுழைந்த பிறகு, AINS தளத்தில் (ains.moe.gov.my) இருக்கும்போது இந்தப் புக்மார்க்கைச் சொடுக்குங்கள்.",
+      bukanPortal: "Verix: முதலில் AINS ஆசிரியர் Papan Pemuka-ஐ (Portal Guru) திறந்து, பின்னர் இந்தப் புக்மார்க்கை மீண்டும் சொடுக்குங்கள்.",
+      popup: "Verix: புதிய சாளரம் தடுக்கப்பட்டது. ains.moe.gov.my-க்கு பாப்-அப்பை அனுமதித்து மீண்டும் முயலுங்கள்.",
+      takSedia: "Verix: Verix சாளரத்தைத் தயார்செய்ய முடியவில்லை. அந்தச் சாளரத்தை மூடிவிட்டு, இந்தப் புக்மார்க்கை மீண்டும் சொடுக்குங்கள்."
+    }
+  };
+  if (!TEKS[BAHASA]) BAHASA = "ms";
+  var T = TEKS[BAHASA];
   /* Mod tetingkap (LALAI; mod tab = ?mod=tab): jambatan ini + halaman SahPantas (iframe
    * /tools/semak-ains/tetingkap) berjalan dalam tetingkap berasingan berasal AINS, supaya tab AINS
    * asal boleh dimuat semula/dinavigasi tanpa memutuskan sambungan. Kod ini berjalan dalam 3 peranan:
@@ -44,10 +70,10 @@
   function tulisTetingkap(w, info) {
     w.document.open();
     w.document.write(
-      '<!doctype html><html lang="ms"><head><meta charset="utf-8"><title>SahPantas AINS</title>' +
+      '<!doctype html><html lang="ms"><head><meta charset="utf-8"><title>Verix</title>' +
       "<style>html,body{margin:0;height:100%;overflow:hidden;background:#fff}iframe{display:block;border:0;width:100%;height:100%}</style>" +
-      '</head><body><iframe id="bingkai" title="SahPantas AINS" allow="clipboard-write" src="' + NEXA +
-      '/tools/semak-ains/tetingkap"></iframe></body></html>'
+      '</head><body><iframe id="bingkai" title="Verix" allow="clipboard-write" src="' + NEXA +
+      '/tools/semak-ains/tetingkap?bahasa=' + BAHASA + '"></iframe></body></html>'
     );
     w.document.close();
     /* document.open() memadam pendengar lama tetapi objek window kekal — buang jambatan lama
@@ -90,7 +116,7 @@
     kodSekolah = window.__sahpantasInfo.kod || null;
   } else {
   if (location.hostname !== "ains.moe.gov.my") {
-    alert("SahPantas AINS: sila klik penanda ini semasa berada di laman AINS (ains.moe.gov.my) selepas log masuk sebagai guru.");
+    alert(T.bukanAins);
     return;
   }
   if (MOD === "tab" && window.__semakAins && window.__semakAins.tetingkap && !window.__semakAins.tetingkap.closed) {
@@ -107,7 +133,7 @@
    * tersembunyi pada tetingkap sempit). Nama sekolah = baris sebelum ID pengguna
    * (x@y) dalam menu profil; jika tiada, baris pertama yang bermula "SEKOLAH ". */
   if (!document.querySelector('a[href*="teacher-record-list"]')) {
-    alert("SahPantas AINS: sila buka Papan Pemuka guru AINS (Portal Guru) dahulu, kemudian klik penanda ini sekali lagi.");
+    alert(T.bukanPortal);
     return;
   }
   var iId = baris.findIndex(function (s) { return /^[\w.-]+@[\w.-]+$/.test(s); });
@@ -120,7 +146,7 @@
     var info = { nama: namaSekolah, kod: kodSekolah };
     var w = window.open("", NAMA_TETINGKAP);
     if (!w) {
-      alert("SahPantas AINS: tetingkap baharu disekat. Sila benarkan pop-up untuk ains.moe.gov.my dan cuba lagi.");
+      alert(T.popup);
       return;
     }
     var samaSekolah = false;
@@ -130,7 +156,7 @@
     } else {
       try { tulisTetingkap(w, info); }
       catch (e) {
-        alert("SahPantas AINS: tetingkap SahPantas tidak dapat disediakan. Tutup tetingkap itu, kemudian klik penanda ini sekali lagi.");
+        alert(T.takSedia);
         return;
       }
     }
@@ -459,9 +485,9 @@
     }, 3000);
     return;
   }
-  keadaan.tetingkap = window.open(NEXA + "/tools/semak-ains", "semak-ains");
+  keadaan.tetingkap = window.open(NEXA + "/tools/semak-ains?bahasa=" + BAHASA, "semak-ains");
   if (!keadaan.tetingkap) {
-    alert("SahPantas AINS: tetingkap baharu disekat. Sila benarkan pop-up untuk ains.moe.gov.my dan cuba lagi.");
+    alert(T.popup);
     window.__semakAins = null;
   }
 })();

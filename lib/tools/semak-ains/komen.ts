@@ -52,8 +52,10 @@ export function janaKomen(
   kuning: KodSebab[],
   standard: Standard,
   ganti: Partial<Record<KodSebab, string>> = {},
+  /** Komen lalai mengikut bahasa paparan (lalai BM). */
+  lalai: Record<KodSebab, string> = KOMEN_LALAI,
 ): string {
   const sebab = merah.length ? merah : kuning;
-  const teks = sebab.map((k) => (ganti[k] ?? standard.komen[k] ?? KOMEN_LALAI[k]).trim()).filter(Boolean);
+  const teks = sebab.map((k) => (ganti[k] ?? standard.komen[k] ?? lalai[k]).trim()).filter(Boolean);
   return [...new Set(teks)].join(" ").slice(0, 500);
 }
